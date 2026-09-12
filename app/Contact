@@ -1,0 +1,1 @@
+export default function Contact(){ return <div style={{maxWidth:"800px", margin:"40px auto", padding:"20px", background:"white", borderRadius:"20px"}}><h1>Contact Us</h1><p>Email: support@loremgen.pro<br/>Location: Misrikh, UP, India<br/>We reply within 24 hours.</p><a href="/">← Back</a></div> }
