@@ -1,130 +1,88 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-const LANGUAGES: any = {
-  EN: { name: "English", flag: "🇺🇸", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-  ES: { name: "Español", flag: "🇪🇸", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum." },
-  FR: { name: "Français", flag: "🇫🇷", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras mattis iudicium purus sit amet fermentum." },
-  DE: { name: "Deutsch", flag: "🇩🇪", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eget ex magna interdimensional." },
-  IT: { name: "Italiano", flag: "🇮🇹", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque habitant morbi tristique senectus." },
-  PT: { name: "Português", flag: "🇵🇹", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu erat accumsan id imperdiet." },
-  JA: { name: "日本語", flag: "🇯🇵", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. 仮のテキストはデザインの世界で使用されます。" },
-  HI: { name: "हिन्दी", flag: "🇮🇳", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. यह एक डमी टेक्स्ट है जो डिज़ाइन में उपयोग होता है।" },
-  KO: { name: "한국어", flag: "🇰🇷", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. 더미 텍스트는 디자인에 사용됩니다." },
-  AR: { name: "العربية", flag: "🇸🇦", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. هذا نص وهمي يستخدم في التصميم." },
-  RU: { name: "Русский", flag: "🇷🇺", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Это фиктивный текст используемый в дизайне." },
-  TR: { name: "Türkçe", flag: "🇹🇷", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Bu tasarımda kullanılan sahte bir metindir." },
-};
+const LANGS = {
+  EN:{f:"🇺🇸",t:"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."},
+  ES:{f:"🇪🇸",t:"Vivamus lacinia odio vitae vestibulum. Lorem ipsum dolor sit amet consectetur."},
+  FR:{f:"🇫🇷",t:"Cras mattis iudicium purus sit amet fermentum. Lorem ipsum dolor sit amet."},
+  DE:{f:"🇩🇪",t:"Donec eget ex magna interdimensional. Lorem ipsum dolor sit amet consectetur."},
+  HI:{f:"🇮🇳",t:"यह एक डमी टेक्स्ट है जो डिज़ाइन में उपयोग होता है। Lorem ipsum dolor sit amet."},
+  JA:{f:"🇯🇵",t:"デザインで使用されるダミーテキストです。 Lorem ipsum dolor sit amet."},
+}
 
-export default function Page() {
-  const [lang, setLang] = useState("EN");
-  const [count, setCount] = useState(3);
-  const [type, setType] = useState("paragraphs");
-  const [output, setOutput] = useState("");
-  const [topic, setTopic] = useState("");
-  const [copied, setCopied] = useState(false);
+export default function Page(){
+  const [lang,setLang]=useState("EN");
+  const [len,setLen]=useState(3);
+  const [tone,setTone]=useState("Neutral");
+  const [fmt,setFmt]=useState("Plain Text");
+  const [out,setOut]=useState("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\nUt enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.");
+  const [count,setCount]=useState(24);
 
-  const generate = () => {
-    let base = LANGUAGES[lang].text;
-    if(topic) base = `${topic} - ` + base;
-    let result = "";
-    if(type==="paragraphs") result = Array(count).fill(base).join("\n\n");
-    if(type==="sentences") result = Array(count).fill(base).join(" ");
-    if(type==="words") result = base.split(" ").slice(0,count).join(" ") + ".";
-    setOutput(result);
-  };
-  useEffect(()=>{generate()}, [lang]);
+  const gen=()=>{
+    const base=(LANGS as any)[lang].t;
+    setOut(Array(len).fill(base).join("\n\n"));
+    setCount(c=>c+1);
+  }
 
-  return (
-    <div className="min-h-screen bg-[#050507] text-white overflow-hidden relative selection:bg-violet-500/30">
-      {/* Animated Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/20 via-transparent to-fuchsia-900/20" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-violet-600/30 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse delay-1000" />
+  return(
+  <div className="min-h-screen bg-[#06060A] text-white selection:bg-fuchsia-500/30">
+    <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.25),transparent_60%),radial-gradient(ellipse_at_bottom_right,_rgba(236,72,153,0.25),transparent_50%),radial-gradient(ellipse_at_bottom_left,_rgba(59,130,246,0.2),transparent_50%)]" />
+    <div className="relative max-w-[1280px] mx-auto p-3 md:p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between rounded-[20px] border border-white/[0.08] bg-black/40 backdrop-blur-2xl px-4 md:px-6 h-[64px]">
+        <div className="flex items-center gap-3"><div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">✦</div><b className="text-[18px]">LoremGen</b><div className="hidden md:flex ml-6 gap-1 bg-white/[0.06] p-1 rounded-full"><span className="px-3 py-1 text-xs text-white/50">Dashboard</span><span className="px-3 py-1 text-xs bg-white text-black rounded-full font-bold">Generator</span><span className="px-3 py-1 text-xs text-white/50">API</span><span className="px-3 py-1 text-xs text-white/50">History</span></div></div>
+        <div className="flex items-center gap-2"><div className="hidden md:flex items-center gap-2 px-3 h-8 rounded-full bg-white/[0.06] border border-white/10 text-xs">{(LANGS as any)[lang].f} {lang}</div><div className="px-3 h-8 rounded-full bg-white/[0.08] border border-white/10 flex items-center gap-1.5 text-xs">⚡ {2400-count*12} credits</div><div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-bold text-xs">AK</div></div>
       </div>
 
-      <div className="relative z-10">
-        {/* NAV */}
-        <nav className="border-b border-white/[0.08] backdrop-blur-xl bg-black/20 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-6 h-[68px] flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-black">L</div>
-              <span className="font-bold text-[17px] tracking-tight">lorempro<span className="text-white/40">.tool</span></span>
-              <span className="ml-3 px-2.5 py-1 rounded-full bg-white/[0.08] border border-white/[0.1] text-[10px] font-bold tracking-widest">PRO</span>
-            </div>
-            <a href="#" className="px-4 py-2 rounded-full bg-white text-black text-sm font-bold hover:scale-105 transition">Hire Me →</a>
+      <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-4 mt-4">
+        {/* Left */}
+        <div className="rounded-[20px] border border-fuchsia-500/20 bg-gradient-to-b from-white/[0.07] to-white/[0.02] backdrop-blur-xl p-6 shadow-[0_0_80px_rgba(168,85,247,0.15)]">
+          <div className="flex gap-3"><div className="text-2xl">✨</div><div><h1 className="text-[22px] font-bold leading-none">Lorem Ipsum Generator</h1><p className="text-[13px] text-white/50 mt-2 leading-snug">Generate clean placeholder text on demand. Customize length, tone, and format for prototypes, designs, and testing.</p></div></div>
+
+          <div className="mt-8 space-y-6">
+            <div className="flex items-center justify-between"><span className="text-[13px] font-bold text-white/70">Length</span><span className="text-[13px]">{len} Paragraphs</span><span className="text-xs text-violet-400">≈ {len*40}-{len*50} words</span></div>
+            <div className="h-1 bg-white/10 rounded-full"><div className="h-1 w-[60%] bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full" /></div>
+
+            <div className="flex gap-3 items-center"><span className="text-[13px] w-[50px] font-bold text-white/70">Tone</span><div className="flex flex-wrap gap-2">{["Neutral","Professional","Casual","Technical"].map(t=><button key={t} onClick={()=>setTone(t)} className={`px-4 h-8 rounded-full text-xs border font-bold transition ${tone===t?'bg-gradient-to-r from-violet-600 to-fuchsia-600 border-transparent shadow-[0_0_20px_rgba(124,58,237,0.5)]':'bg-white/[0.06] border-white/10 text-white/60 hover:bg-white/[0.1]'}`}>{t}</button>)}</div></div>
+
+            <div className="flex gap-3 items-center"><span className="text-[13px] w-[50px] font-bold text-white/70">Format</span><div className="flex gap-2">{["Plain Text","Markdown","HTML"].map(f=><button key={f} onClick={()=>setFmt(f)} className={`px-4 h-8 rounded-full text-xs border font-bold transition ${fmt===f?'bg-gradient-to-r from-violet-600 to-fuchsia-600 border-transparent':'bg-white/[0.06] border-white/10 text-white/60'}`}>{f}</button>)}</div></div>
+
+            <div className="flex gap-2 mt-2">{Object.keys(LANGS).map(k=><button key={k} onClick={()=>setLang(k)} className={`w-9 h-9 rounded-full flex items-center justify-center border transition ${lang===k?'border-fuchsia-500 bg-white text-black scale-110':'border-white/10 bg-white/5'}`}>{(LANGS as any)[k].f}</button>)}</div>
+
+            <button onClick={gen} className="w-full h-[48px] rounded-xl bg-gradient-to-r from-violet-600 to-[#FF2EBE] font-bold text-[15px] shadow-[0_0_30px_rgba(124,58,237,0.6)] hover:scale-[1.01] active:scale-[0.99] transition">✨ Generate Lorem Ipsum</button>
+            <div className="text-center text-[11px] text-white/40">Estimated cost: 12 credits • ~0.5s generation</div>
           </div>
-        </nav>
+        </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-10 grid lg:grid-cols-[1.1fr_0.9fr] gap-6">
-          {/* LEFT - Controls */}
-          <div className="space-y-4">
-            <div className="rounded-[24px] border border-white/[0.08] bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-xl p-6 shadow-2xl">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-[13px] font-bold tracking-[0.2em] text-white/40 uppercase">Languages • 12</h2>
-                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] animate-pulse" />
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
-                {Object.keys(LANGUAGES).map((k:any)=>(
-                  <button key={k} onClick={()=>{setLang(k);}}
-                  className={`group relative rounded-2xl border p-3 text-left transition-all duration-300 ${lang===k? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.3)] scale-[1.02]' : 'bg-white/[0.04] border-white/[0.06] hover:bg-white/[0.08] hover:border-white/[0.15] hover:-translate-y-0.5'}`}>
-                    <div className="text-[18px]">{LANGUAGES[k].flag}</div>
-                    <div className={`text-[11px] font-bold mt-1 ${lang===k?'text-black':'text-white/70'}`}>{k}</div>
-                    <div className={`text-[9px] truncate ${lang===k?'text-black/60':'text-white/30'}`}>{LANGUAGES[k].name}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-[24px] border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6">
-              <h3 className="text-[13px] font-bold tracking-[0.2em] text-white/40 uppercase mb-5">Generator Settings</h3>
-              <div className="grid grid-cols-2 gap-4 mb-5">
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 font-bold uppercase">Type</label>
-                  <select value={type} onChange={e=>setType(e.target.value)} className="w-full h-11 rounded-xl bg-black/50 border border-white/10 px-3 text-sm outline-none focus:border-violet-500/50 transition">
-                    <option value="paragraphs">Paragraphs</option>
-                    <option value="sentences">Sentences</option>
-                    <option value="words">Words</option>
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] text-white/50 font-bold uppercase">Count: {count}</label>
-                  <input type="range" min="1" max="20" value={count} onChange={e=>setCount(Number(e.target.value))} className="w-full accent-violet-500 h-1" />
-                </div>
-              </div>
-              <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="⚡ AI Topic (e.g. tech, crypto, yoga...) - optional" className="w-full h-12 rounded-xl bg-black/60 border border-white/[0.08] px-4 text-sm placeholder:text-white/20 outline-none focus:border-violet-500/50 mb-5" />
-              <button onClick={generate} className="w-full h-[52px] rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 font-black text-sm tracking-wide shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:shadow-[0_0_50px_rgba(124,58,237,0.7)] hover:scale-[1.01] active:scale-[0.99] transition-all">
-                ✨ GENERATE MAGIC
-              </button>
-            </div>
+        {/* Right */}
+        <div className="space-y-4">
+          <div className="rounded-[20px] border border-white/10 bg-black/40 backdrop-blur-xl p-5">
+            <div className="flex items-center gap-2 text-[13px] font-bold text-white/60">📊 Usage Today</div>
+            <div className="text-[42px] font-black leading-none mt-2">{count}</div>
+            <div className="text-xs text-white/50">generations today</div>
+            <div className="mt-4 h-[60px] flex items-end gap-1">{[30,40,35,45,30,50,65,55,70,68,85].map((h,i)=><div key={i} style={{height:h}} className="flex-1 bg-gradient-to-t from-fuchsia-600 to-violet-400 rounded-full" />)}</div>
+            <div className="text-[11px] text-emerald-400 mt-2">↑ 18% vs yesterday</div>
           </div>
-
-          {/* RIGHT - Output */}
-          <div className="rounded-[24px] border border-white/[0.08] bg-gradient-to-b from-white/[0.06] to-transparent backdrop-blur-xl p-2 shadow-2xl flex flex-col min-h-[640px]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500/80"/><div className="w-3 h-3 rounded-full bg-yellow-500/80"/><div className="w-3 h-3 rounded-full bg-green-500/80"/></div>
-                <span className="text-[11px] text-white/30 font-mono ml-3">output.lorem • {output.split(' ').length} words</span>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={()=>{navigator.clipboard.writeText(output); setCopied(true); setTimeout(()=>setCopied(false),2000)}} className="px-3 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:scale-105 transition">{copied?'✓ Copied':'Copy'}</button>
-                <button onClick={()=>{const blob=new Blob([output],{type:'text/plain'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='lorem.txt'; a.click()}} className="px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-xs font-bold hover:bg-white/15 transition">Export</button>
-              </div>
-            </div>
-            <div className="flex-1 p-6 overflow-auto">
-              <pre className="whitespace-pre-wrap font-[450] leading-[1.8] text-[15px] text-white/80">{output || "Click GENERATE MAGIC..."}</pre>
-            </div>
-            <div className="m-2 rounded-2xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/20 p-4 flex items-center justify-between">
-              <div>
-                <div className="text-[12px] font-black tracking-wide">Need Custom SEO Tools?</div>
-                <div className="text-[11px] text-white/50 mt-1">I build tools for international clients - $150+</div>
-              </div>
-              <a href="mailto:yourmail@gmail.com" className="px-4 py-2 rounded-full bg-white text-black text-xs font-black">Hire Me</a>
-            </div>
+          <div className="rounded-[20px] border border-white/10 bg-black/40 backdrop-blur-xl p-5">
+            <div className="text-[13px] font-bold">Credits Remaining<br/>2,400 / 5,000 credits</div>
+            <div className="h-1 bg-white/10 rounded-full mt-3"><div className="h-1 w-[48%] bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full" /></div>
+            <div className="text-[11px] text-white/40 mt-2">1,600 credits left</div>
+            <div className="mt-5 text-[13px] font-bold">🕒 Recent Generations</div>
+            <div className="mt-3 space-y-2 text-[11px] text-white/50"><div>3 paragraphs • Neutral • 2 min ago</div><div>1 paragraph • Technical • 15 min ago</div><div>5 paragraphs • Casual • 1 hour ago</div></div>
           </div>
         </div>
       </div>
+
+      {/* Output */}
+      <div className="rounded-[20px] border border-fuchsia-500/20 bg-black/60 backdrop-blur-xl mt-4 overflow-hidden">
+        <div className="flex items-center justify-between px-5 h-[56px] border-b border-white/10">
+          <div className="flex items-center gap-2 text-[14px] font-bold">📄 Output — Generated Text</div>
+          <div className="flex gap-2"><button onClick={()=>navigator.clipboard.writeText(out)} className="px-3 h-7 rounded-full bg-white/10 border border-white/10 text-xs">Copy</button><button className="px-3 h-7 rounded-full bg-white/10 border border-white/10 text-xs">Download.md</button></div>
+        </div>
+        <div className="p-6 font-mono text-[13px] leading-[1.9] text-white/70 whitespace-pre-wrap">{out}</div>
+        <div className="mx-3 mb-3 rounded-xl border border-fuchsia-500/20 bg-white/[0.04] p-3 flex items-center justify-between"><div className="text-xs"><div className="text-white/40">API Endpoint</div><div className="text-fuchsia-400 font-bold">/api/v1/generate</div></div><div className="px-3 py-1 rounded-full bg-white/10 text-[11px]">Response: 200 OK • 0.42s</div></div>
+      </div>
     </div>
-  );
+  </div>
+  )
 }
