@@ -1,114 +1,130 @@
-"use client"
-import { useState, useEffect } from 'react';
+"use client";
+import { useState, useEffect } from "react";
 
-const languages: any = {
-  en: { name: "English", flag: "🇺🇸", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-  es: { name: "Español", flag: "🇪🇸", text: "El cliente es muy importante, el cliente será seguido por el cliente. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-  fr: { name: "Français", flag: "🇫🇷", text: "Le client est très important, le client sera suivi par le client. Lorem ipsum dolor sit amet consectetur adipiscing elit." },
-  de: { name: "Deutsch", flag: "🇩🇪", text: "Der Kunde ist sehr wichtig, der Kunde wird vom Kunden verfolgt. Lorem ipsum dolor sit amet consectetur." },
-  pt: { name: "Português", flag: "🇵🇹", text: "O cliente é muito importante, o cliente será seguido pelo cliente. Lorem ipsum dolor sit amet consectetur." },
-  it: { name: "Italiano", flag: "🇮🇹", text: "Il cliente è molto importante, il cliente sarà seguito dal cliente. Lorem ipsum dolor sit amet." },
-  hi: { name: "Hindi", flag: "🇮🇳", text: "ग्राहक बहुत महत्वपूर्ण है, ग्राहक का अनुसरण ग्राहक द्वारा किया जाएगा। लोरेम इप्सम डोलर सिट अमेट।" },
-  ja: { name: "Japanese", flag: "🇯🇵", text: "顧客は非常に重要であり、顧客は顧客によってフォローされます。Lorem ipsum dolor sit amet consectetur." },
-  ko: { name: "Korean", flag: "🇰🇷", text: "고객은 매우 중요하며 고객은 고객이 뒤따를 것입니다. Lorem ipsum dolor sit amet consectetur." },
-  ar: { name: "Arabic", flag: "🇸🇦", text: "العميل مهم جدا، العميل سيتبعه العميل. لوريم إيبسوم دولور سيت أميت كونسيكتيتور." },
-  ru: { name: "Russian", flag: "🇷🇺", text: "Клиент очень важен, за клиентом будет следить клиент. Lorem ipsum dolor sit amet consectetur." },
-  tr: { name: "Turkish", flag: "🇹🇷", text: "Müşteri çok önemlidir, müşteri müşteri tarafından takip edilecektir. Lorem ipsum dolor sit amet." },
-}
+const LANGUAGES: any = {
+  EN: { name: "English", flag: "🇺🇸", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+  ES: { name: "Español", flag: "🇪🇸", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum." },
+  FR: { name: "Français", flag: "🇫🇷", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras mattis iudicium purus sit amet fermentum." },
+  DE: { name: "Deutsch", flag: "🇩🇪", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eget ex magna interdimensional." },
+  IT: { name: "Italiano", flag: "🇮🇹", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque habitant morbi tristique senectus." },
+  PT: { name: "Português", flag: "🇵🇹", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur arcu erat accumsan id imperdiet." },
+  JA: { name: "日本語", flag: "🇯🇵", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. 仮のテキストはデザインの世界で使用されます。" },
+  HI: { name: "हिन्दी", flag: "🇮🇳", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. यह एक डमी टेक्स्ट है जो डिज़ाइन में उपयोग होता है।" },
+  KO: { name: "한국어", flag: "🇰🇷", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. 더미 텍스트는 디자인에 사용됩니다." },
+  AR: { name: "العربية", flag: "🇸🇦", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. هذا نص وهمي يستخدم في التصميم." },
+  RU: { name: "Русский", flag: "🇷🇺", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Это фиктивный текст используемый в дизайне." },
+  TR: { name: "Türkçe", flag: "🇹🇷", text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Bu tasarımda kullanılan sahte bir metindir." },
+};
 
-export default function Home() {
-  const [lang, setLang] = useState('en');
+export default function Page() {
+  const [lang, setLang] = useState("EN");
   const [count, setCount] = useState(3);
-  const [type, setType] = useState('paragraph');
-  const [topic, setTopic] = useState('');
-  const [output, setOutput] = useState('');
-  const [history, setHistory] = useState<string[]>([]);
+  const [type, setType] = useState("paragraphs");
+  const [output, setOutput] = useState("");
+  const [topic, setTopic] = useState("");
   const [copied, setCopied] = useState(false);
 
   const generate = () => {
-    let base = languages[lang].text;
-    if(topic) base = `About ${topic}: ` + base;
-    let result = '';
-    if(type === 'paragraph') result = Array(count).fill(base).join('\n\n');
-    else if(type === 'words') result = base.split(' ').slice(0, count*10).join(' ');
-    else if(type === 'seo') result = `SEO Optimized Content for ${topic || 'website'}: \n\n` + Array(count).fill(base + ' This content is SEO friendly and keyword rich.').join('\n\n');
-    else if(type === 'product') result = `Product: ${topic || 'Amazing Product'}\nDescription: ` + base + ' Best quality, fast delivery.';
-    else result = base;
-
+    let base = LANGUAGES[lang].text;
+    if(topic) base = `${topic} - ` + base;
+    let result = "";
+    if(type==="paragraphs") result = Array(count).fill(base).join("\n\n");
+    if(type==="sentences") result = Array(count).fill(base).join(" ");
+    if(type==="words") result = base.split(" ").slice(0,count).join(" ") + ".";
     setOutput(result);
-    const newHist = [result.slice(0,60)+'...',...history].slice(0,5);
-    setHistory(newHist);
-    localStorage.setItem('lorem_hist', JSON.stringify(newHist));
-  }
-
-  useEffect(()=>{ generate(); const h = localStorage.getItem('lorem_hist'); if(h) setHistory(JSON.parse(h)); },[lang])
-
-  const copy = () => { navigator.clipboard.writeText(output); setCopied(true); setTimeout(()=>setCopied(false),2000); }
-  const downloadTxt = () => { const blob = new Blob([output], {type:'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`lorem-${lang}.txt`; a.click(); }
+  };
+  useEffect(()=>{generate()}, [lang]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-hidden relative">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-purple-600/30 rounded-full blur-[120px] -z-10 animate-pulse"></div>
+    <div className="min-h-screen bg-[#050507] text-white overflow-hidden relative selection:bg-violet-500/30">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-900/20 via-transparent to-fuchsia-900/20" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-violet-600/30 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-0 right-0 w-[800px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse delay-1000" />
+      </div>
 
-      <header className="flex justify-between items-center p-5 max-w-7xl mx-auto">
-        <div className="flex items-center gap-2 font-bold text-xl"><div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg"></div> LoremPro</div>
-        <a href="mailto:contact.loremipsumpro@gmail.com" className="bg-white text-black px-5 py-2 rounded-full font-semibold hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)]">Hire Me ✨</a>
-      </header>
-
-      <main className="max-w-7xl mx-auto p-5 grid lg:grid-cols-3 gap-6 mt-6">
-        <div className="lg:col-span-1 space-y-5">
-          <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-[24px] p-6 hover:border-violet-500/30 transition-all duration-500">
-            <h3 className="font-semibold mb-4">🌍 Language (12)</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {Object.keys(languages).map((k:any)=>(
-                <button key={k} onClick={()=>setLang(k)} className={`p-2.5 rounded-xl text-sm border transition-all hover:scale-105 ${lang===k? 'bg-violet-600 border-violet-500 shadow-lg shadow-violet-600/20 scale-105' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}>{languages[k].flag} {k.toUpperCase()}</button>
-              ))}
+      <div className="relative z-10">
+        {/* NAV */}
+        <nav className="border-b border-white/[0.08] backdrop-blur-xl bg-black/20 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-6 h-[68px] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-black">L</div>
+              <span className="font-bold text-[17px] tracking-tight">lorempro<span className="text-white/40">.tool</span></span>
+              <span className="ml-3 px-2.5 py-1 rounded-full bg-white/[0.08] border border-white/[0.1] text-[10px] font-bold tracking-widest">PRO</span>
             </div>
+            <a href="#" className="px-4 py-2 rounded-full bg-white text-black text-sm font-bold hover:scale-105 transition">Hire Me →</a>
           </div>
+        </nav>
 
-          <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-[24px] p-6 hover:border-violet-500/30 transition-all">
-            <h3 className="font-semibold mb-4">⚙️ Settings</h3>
-            <label className="text-sm opacity-70">Type</label>
-            <select value={type} onChange={e=>setType(e.target.value)} className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl p-3 outline-none focus:border-violet-500 transition">
-              <option value="paragraph">Paragraph</option>
-              <option value="words">Words</option>
-              <option value="seo">SEO Paragraph</option>
-              <option value="product">Product Description</option>
-            </select>
-            <div className="mt-4">
-              <label className="text-sm opacity-70">Count: {count}</label>
-              <input type="range" min={1} max={10} value={count} onChange={e=>setCount(Number(e.target.value))} className="w-full mt-2 accent-violet-600" />
-            </div>
-            <div className="mt-4">
-              <label className="text-sm opacity-70">AI Topic (Optional)</label>
-              <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="e.g. tech blog, shoes..." className="w-full mt-1 bg-black/50 border border-white/10 rounded-xl p-3 outline-none focus:border-violet-500" />
-            </div>
-            <button onClick={generate} className="w-full mt-5 bg-gradient-to-r from-violet-600 to-fuchsia-600 p-3 rounded-xl font-bold hover:shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all">Generate ✨</button>
-          </div>
-
-          <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-[24px] p-6">
-            <h3 className="font-semibold mb-3">🕒 History</h3>
-            {history.map((h,i)=><div key={i} className="text-xs p-2 bg-white/5 rounded-lg mb-2 truncate opacity-70">{h}</div>)}
-          </div>
-        </div>
-
-        <div className="lg:col-span-2">
-          <div className="bg-white/[0.06] backdrop-blur-xl border border-white/10 rounded-[32px] p-7 min-h-[600px] flex flex-col hover:border-violet-500/20 transition-all duration-700 group">
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex gap-3 text-xs opacity-60"><span>{output.split(' ').length} Words</span><span>{output.length} Chars</span></div>
-              <div className="flex gap-2">
-                <button onClick={downloadTxt} className="px-4 py-2 bg-white/10 rounded-full text-sm hover:bg-white/20 transition">Export.TXT</button>
-                <button onClick={copy} className={`px-5 py-2 rounded-full text-sm font-bold transition-all hover:scale-105 ${copied? 'bg-green-500' : 'bg-white text-black shadow-lg'}`}>{copied? 'Copied! ✓' : 'Copy'}</button>
+        <div className="max-w-7xl mx-auto px-6 py-10 grid lg:grid-cols-[1.1fr_0.9fr] gap-6">
+          {/* LEFT - Controls */}
+          <div className="space-y-4">
+            <div className="rounded-[24px] border border-white/[0.08] bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-xl p-6 shadow-2xl">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[13px] font-bold tracking-[0.2em] text-white/40 uppercase">Languages • 12</h2>
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.8)] animate-pulse" />
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+                {Object.keys(LANGUAGES).map((k:any)=>(
+                  <button key={k} onClick={()=>{setLang(k);}}
+                  className={`group relative rounded-2xl border p-3 text-left transition-all duration-300 ${lang===k? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.3)] scale-[1.02]' : 'bg-white/[0.04] border-white/[0.06] hover:bg-white/[0.08] hover:border-white/[0.15] hover:-translate-y-0.5'}`}>
+                    <div className="text-[18px]">{LANGUAGES[k].flag}</div>
+                    <div className={`text-[11px] font-bold mt-1 ${lang===k?'text-black':'text-white/70'}`}>{k}</div>
+                    <div className={`text-[9px] truncate ${lang===k?'text-black/60':'text-white/30'}`}>{LANGUAGES[k].name}</div>
+                  </button>
+                ))}
               </div>
             </div>
-            <textarea value={output} onChange={e=>setOutput(e.target.value)} className="flex-1 w-full bg-transparent outline-none resize-none leading-7 text-[15px] opacity-90" />
-            <div className="mt-6 p-4 bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/20 rounded-2xl flex justify-between items-center">
-              <div><p className="font-bold">Need Custom Tool?</p><p className="text-xs opacity-60">I build SEO tools for international clients</p></div>
-              <a href="mailto:contact.loremipsumpro@gmail.com" className="bg-white text-black px-4 py-2 rounded-full text-sm font-bold hover:scale-105 transition">Hire Me →</a>
+
+            <div className="rounded-[24px] border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6">
+              <h3 className="text-[13px] font-bold tracking-[0.2em] text-white/40 uppercase mb-5">Generator Settings</h3>
+              <div className="grid grid-cols-2 gap-4 mb-5">
+                <div className="space-y-2">
+                  <label className="text-[11px] text-white/50 font-bold uppercase">Type</label>
+                  <select value={type} onChange={e=>setType(e.target.value)} className="w-full h-11 rounded-xl bg-black/50 border border-white/10 px-3 text-sm outline-none focus:border-violet-500/50 transition">
+                    <option value="paragraphs">Paragraphs</option>
+                    <option value="sentences">Sentences</option>
+                    <option value="words">Words</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[11px] text-white/50 font-bold uppercase">Count: {count}</label>
+                  <input type="range" min="1" max="20" value={count} onChange={e=>setCount(Number(e.target.value))} className="w-full accent-violet-500 h-1" />
+                </div>
+              </div>
+              <input value={topic} onChange={e=>setTopic(e.target.value)} placeholder="⚡ AI Topic (e.g. tech, crypto, yoga...) - optional" className="w-full h-12 rounded-xl bg-black/60 border border-white/[0.08] px-4 text-sm placeholder:text-white/20 outline-none focus:border-violet-500/50 mb-5" />
+              <button onClick={generate} className="w-full h-[52px] rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 font-black text-sm tracking-wide shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:shadow-[0_0_50px_rgba(124,58,237,0.7)] hover:scale-[1.01] active:scale-[0.99] transition-all">
+                ✨ GENERATE MAGIC
+              </button>
+            </div>
+          </div>
+
+          {/* RIGHT - Output */}
+          <div className="rounded-[24px] border border-white/[0.08] bg-gradient-to-b from-white/[0.06] to-transparent backdrop-blur-xl p-2 shadow-2xl flex flex-col min-h-[640px]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500/80"/><div className="w-3 h-3 rounded-full bg-yellow-500/80"/><div className="w-3 h-3 rounded-full bg-green-500/80"/></div>
+                <span className="text-[11px] text-white/30 font-mono ml-3">output.lorem • {output.split(' ').length} words</span>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={()=>{navigator.clipboard.writeText(output); setCopied(true); setTimeout(()=>setCopied(false),2000)}} className="px-3 py-1.5 rounded-full bg-white text-black text-xs font-bold hover:scale-105 transition">{copied?'✓ Copied':'Copy'}</button>
+                <button onClick={()=>{const blob=new Blob([output],{type:'text/plain'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='lorem.txt'; a.click()}} className="px-3 py-1.5 rounded-full bg-white/10 border border-white/10 text-xs font-bold hover:bg-white/15 transition">Export</button>
+              </div>
+            </div>
+            <div className="flex-1 p-6 overflow-auto">
+              <pre className="whitespace-pre-wrap font-[450] leading-[1.8] text-[15px] text-white/80">{output || "Click GENERATE MAGIC..."}</pre>
+            </div>
+            <div className="m-2 rounded-2xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/20 p-4 flex items-center justify-between">
+              <div>
+                <div className="text-[12px] font-black tracking-wide">Need Custom SEO Tools?</div>
+                <div className="text-[11px] text-white/50 mt-1">I build tools for international clients - $150+</div>
+              </div>
+              <a href="mailto:yourmail@gmail.com" className="px-4 py-2 rounded-full bg-white text-black text-xs font-black">Hire Me</a>
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
-  )
+  );
 }
