@@ -77,7 +77,8 @@ export default function Page(){
       <style>{`* {box-sizing:border-box} @keyframes shine{0%{background-position:-200% 0}100%{background-position:200% 0}}.shine-btn{background:linear-gradient(90deg,#111 0%,#333 20%,#f59e0b 50%,#333 80%,#111 100%); background-size:300% 100%; animation:shine 2.5s linear infinite; border:2px solid #f59e0b;}`}</style>
       <header style={{background:"rgba(255,255,255,0.95)", backdropFilter:"blur(12px)", position:"sticky", top:0, zIndex:50}}>
         <div style={{maxWidth:"1150px", margin:"0 auto", padding:"14px", display:"flex", alignItems:"center", gap:"12px"}}>
-          <div style={{width:"44px", height:"44px", background:"linear-gradient(135deg,#111,#764ba2)", borderRadius:"12px", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontWeight:900}}>L</div>
+         /* <div style={{width:"44px", height:"44px", background:"linear-gradient(135deg,#111,#764ba2)", borderRadius:"12px", display:"flex", alignItems:"center", justifyContent:"center", color:"white", fontWeight:900}}>L</div> */
+          <img src="/icon.png" alt="Logo" style={{width:"44px", height:"44px", borderRadius:"12px"}} />
           <div><div style={{fontWeight:900, fontSize:"19px", color:"#111"}}>LoremGen PRO</div><div style={{fontSize:"11px", color:"#764ba2", fontWeight:800}}>12 LANGUAGES • AI TOPIC GENERATOR</div></div>
         </div>
         <nav style={{background:"#111"}}><div style={{maxWidth:"1150px", margin:"0 auto", padding:"8px 10px", display:"flex", flexWrap:"wrap", gap:"6px"}}>
