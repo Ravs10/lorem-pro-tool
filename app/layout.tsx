@@ -23,11 +23,9 @@ export const metadata: Metadata = {
     icon: "/icon.png",
     apple: "/icon.png",
   },
-  verification: {
-    google: "  verification: {
+    verification: {
     google: "iKilQkNiLUK2e2WF8WHLvKYEEhS_PBhnR88mViZSufQ",
-  },", // Search Console se aayega
-  }
+  },
 };
 
 export default function RootLayout({
