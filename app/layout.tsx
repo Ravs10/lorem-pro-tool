@@ -24,7 +24,9 @@ export const metadata: Metadata = {
     apple: "/icon.png",
   },
   verification: {
-    google: "your-google-verification-code", // Search Console se aayega
+    google: "  verification: {
+    google: "iKilQkNiLUK2e2WF8WHLvKYEEhS_PBhnR88mViZSufQ",
+  },", // Search Console se aayega
   }
 };
 
