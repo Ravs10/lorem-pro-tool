@@ -1,3 +1,12 @@
-export default function sitemap(){
-  return [{url: "https://your-tool.vercel.app", lastModified: new Date()}]
+import { MetadataRoute } from 'next'
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  return [
+    {
+      url: 'https://lorem-pro-tool.vercel.app',
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 1,
+    },
+  ]
 }
