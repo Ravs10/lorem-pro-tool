@@ -131,4 +131,23 @@ export default function Page(){
             </div>
           </div>
         ):(
-          <div style={{background:"rgba(255,255,
+          <div style={{background:"rgba(255,255,255,0.97)", backdropFilter:"blur(10px)", borderRadius:"20px", padding:"24px", border:"1px solid rgba(255,255,255,0.5)", color:"#111", lineHeight:"1.7", boxShadow:"0 8px 32px rgba(0,0,0,0.15)"}}>
+            {page==="about" && <><h1>About LoremGen PRO</h1><p><b>AI Topic Feature:</b> Type any topic like political, social, cricket, education, tech, food, travel, health, business - and select language. Get topic-based sentences.</p><p>12 Languages here + 5 on Blogger = 17 total.</p></>}
+            {page==="privacy" && <><h1>Privacy Policy</h1><p>No data collection. All in browser. AdSense may use cookies.</p></>}
+            {page==="disclaimer" && <><h1>Disclaimer</h1><p>Dummy placeholder only. Not real advice.</p></>}
+            {page==="contact" && <><h1>Contact Us</h1><p>Email: support@loremgen.pro</p></>}
+            {page==="hire" && <><h1>Hire Me</h1><div style={{background:"#f0f9ff", border:"2px solid #0ea5e9", borderRadius:"14px", padding:"18px"}}><h3 style={{margin:0}}>Need website like this?</h3><p>I build fast, SEO-ready tools. Low cost, 2-3 days.</p><p><b>Email:</b> support@loremgen.pro</p><a href="mailto:support@loremgen.pro" style={{display:"inline-block", background:"#111", color:"white", padding:"10px 18px", borderRadius:"8px", textDecoration:"none", fontWeight:900}}>Send Email</a></div></>}
+            <button onClick={()=>setPage("home")} style={{marginTop:"18px", background:"#111", color:"white", border:"none", padding:"10px 18px", borderRadius:"8px", fontWeight:900}}>← BACK</button>
+          </div>
+        )}
+      </div>
+
+      <footer style={{background:"rgba(17,17,17,0.95)", backdropFilter:"blur(10px)", color:"#94a3b8", marginTop:"24px", padding:"22px", textAlign:"center", fontSize:"12px", borderTop:"1px solid rgba(255,255,255,0.1)"}}>
+        <div style={{display:"flex", justifyContent:"center", flexWrap:"wrap", gap:"12px", marginBottom:"10px"}}>
+          {["home","about","privacy","disclaimer","contact","hire"].map(p=><button key={p} onClick={()=>{setPage(p); window.scrollTo(0,0)}} style={{background:"none", border:"none", color:"#cbd5e1", cursor:"pointer", fontSize:"12px", fontWeight:700}}>{p.toUpperCase()}</button>)}
+        </div>
+        <div>© 2026 LoremGen PRO • 17 Languages • <a href="https://loremipsumpro.blogspot.com" target="_blank" style={{color:"#f59e0b", fontWeight:800}}>Blogger Version</a> • support@loremgen.pro</div>
+      </footer>
+    </div>
+  )
+}
