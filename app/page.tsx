@@ -1,50 +1,25 @@
 "use client"
-import {useState} from "react"
-const DB:any={
-"HI":["स्वस्थ जीवन के लिए रोज़ योग ज़रूरी है","सुबह टहलना शरीर को फिट रखता है","पानी खूब पीना चाहिए","जल्दी सोने से दिमाग तेज़ होता है","हरी सब्जियां खाना सेहत के लिए अच्छा है"],
-"EN":["Healthy life needs daily yoga","Morning walk keeps body fit","Drink more water daily","Early to bed makes brain sharp","Green vegetables are good for health"],
-"OR":["ସୁସ୍ଥ ଜୀବନ ପାଇଁ ରୋଜ ଯୋଗ ଜରୁରୀ","ସକାଳ ଭ୍ରମଣ ଶରୀରକୁ ଫିଟ ରଖେ","ପାଣି ଅଧିକ ପିଅନ୍ତୁ","ଶୀଘ୍ର ଶୋଇବା ବୁଦ୍ଧି ତୀକ୍ଷ୍ଣ କରେ","ସବୁଜ ପନିପରିବା ସ୍ୱାସ୍ଥ୍ୟ ପାଇଁ ଭଲ"],
-"BN":["সুস্থ জীবনের জন্য রোজ যোগ জরুরি","সকালে হাঁটা শরীরকে ফিট রাখে","বেশি জল পান করুন","তাড়াতাড়ি ঘুমালে বুদ্ধি বাড়ে","সবুজ শাকসবজি স্বাস্থ্যের জন্য ভালো"],
-"TE":["ఆరోగ్యకర జీవనానికి రోజూ యోగా అవసరం","ఉదయం నడక ఆరోగ్యానికి మంచిది","నీళ్లు ఎక్కువ తాగండి","త్వరగా నిద్రపోవడం మేధస్సును పెంచుతుంది","ఆకుకూరలు ఆరోగ్యానికి మంచిది"],
-"TA":["ஆரோக்கியமான வாழ்க்கைக்கு தினமும் யோகா அவசியம்","காலை நடை உடலுக்கு நல்லது","தண்ணீர் அதிகம் குடியுங்கள்","சீக்கிரம் தூங்குவது மூளையை கூர்மையாக்கும்","கீரைகள் உடலுக்கு நல்லது"],
-"KN":["ಆರೋಗ್ಯಕರ ಜೀವನಕ್ಕೆ ಪ್ರತಿದಿನ ಯೋಗ ಬೇಕು","ಬೆಳಗಿನ ನಡಿಗೆ ಆರೋಗ್ಯಕ್ಕೆ ಒಳ್ಳೆಯದು","ಹೆಚ್ಚು ನೀರು ಕುಡಿಯಿರಿ","ಬೇಗ ಮಲಗುವುದು ಬುದ್ಧಿವಂತಿಕೆ ಹೆಚ್ಚಿಸುತ್ತದೆ","ಸೊಪ್ಪು ತರಕಾರಿ ಆರೋಗ್ಯಕ್ಕೆ ಒಳ್ಳೆಯದು"],
-"ML":["ആരോഗ്യകരമായ ജീവിതത്തിന് ദിവസവും യോഗ വേണം","രാവിലെ നടക്കുന്നത് ആരോഗ്യത്തിന് നല്ലതാണ്","വെള്ളം കൂടുതൽ കുടിക്കുക","പെട്ടെന്ന് ഉറങ്ങുന്നത് ബുദ്ധി കൂട്ടും","പച്ചക്കറികൾ ആരോഗ്യത്തിന് നല്ലതാണ്"],
-"MR":["निरोगी जीवनासाठी दररोज योग हवा","सकाळी फिरणे शरीराला फिट ठेवते","पाणी जास्त प्या","लवकर झोपल्याने बुद्धी कुशाग्र होते","हिरव्या भाज्या आरोग्यासाठी चांगल्या"],
-"GU":["સ્વસ્થ જીવન માટે રોજ યોગ જરૂરી છે","સવારમાં ચાલવું શરીરને ફિટ રાખે છે","પાણી વધુ પીવો","વહેલા સૂવાથી બુદ્ધિ તેજ થાય છે","લીલા શાકભાજી સ્વાસ્થ્ય માટે સારા છે"],
-"PA":["ਸਿਹਤਮੰਦ ਜੀਵਨ ਲਈ ਰੋਜ਼ ਯੋਗਾ ਜ਼ਰੂਰੀ ਹੈ","ਸਵੇਰ ਦੀ ਸੈਰ ਸਿਹਤ ਲਈ ਚੰਗੀ ਹੈ","ਪਾਣੀ ਵੱਧ ਪੀਓ","ਜਲਦੀ ਸੌਣ ਨਾਲ ਦਿਮਾਗ ਤੇਜ਼ ਹੁੰਦਾ ਹੈ","ਹਰੀਆਂ ਸਬਜ਼ੀਆਂ ਸਿਹਤ ਲਈ ਚੰਗੀਆਂ ਹਨ"]
-}
-
+import {useState,useEffect} from "react"
+const DB:any={HI:["स्वस्थ जीवन के लिए रोज योग जरूरी है","सुबह टहलना शरीर को फिट रखता है","फल और सब्जियां इम्युनिटी बढ़ाती हैं","पानी खूब पियो","हरी सब्जियां अच्छी हैं"],EN:["Healthy life needs daily yoga","Morning walk keeps body fit","Fruits boost immunity","Drink more water","Green vegetables are good"],OR:["ସୁସ୍ଥ ଜୀବନ ପାଇଁ ପ୍ରତିଦିନ ଯୋଗ ଦରକାର","ସକାଳ ଭ୍ରମଣ ଶରୀରକୁ ଫିଟ୍ ରଖେ","ଫଳ ରୋଗ ପ୍ରତିରୋଧକ ଶକ୍ତି ବଢାଏ","ପାଣି ଅଧିକ ପିଅ","ସବୁଜ ପନିପରିବା ଭଲ"],BN:["স্বাস্থ্যকর জীবনের জন্য প্রতিদিন যোগব্যায়াম প্রয়োজন","সকালের হাঁটা শরীরকে ফিট রাখে","ফল রোগ প্রতিরোধ ক্ষমতা বাড়ায়","বেশি জল পান করুন","সবুজ শাকসবজি ভালো"],TE:["ఆరోగ్యకర జీవితానికి రోజూ యోగా అవసరం","ఉదయం నడక శరీరాన్ని ఫిట్‌గా ఉంచుతుంది","పండ్లు రోగనిరోధక శక్తిని పెంచుతాయి","నీళ్లు ఎక్కువ తాగండి","ఆకుకూరలు మంచిది"],TA:["ஆரோக்கியமான வாழ்க்கைக்கு தினமும் யோகா தேவை","காலை நடை உடலை ஃபிட்டாக வைக்கிறது","பழங்கள் நோய் எதிர்ப்பு சக்தியை அதிகரிக்கும்","தண்ணீர் அதிகம் குடியுங்கள்","கீரைகள் நல்லது"],KN:["ಆರೋಗ್ಯಕರ ಜೀವನಕ್ಕೆ ದಿನನಿತ್ಯ ಯೋಗ ಬೇಕು","ಬೆಳಗಿನ ನಡಿಗೆ ದೇಹವನ್ನು ಫಿಟ್ ಆಗಿಡುತ್ತದೆ","ಹಣ್ಣುಗಳು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತವೆ","ಹೆಚ್ಚು ನೀರು ಕುಡಿಯಿರಿ","ಸೊಪ್ಪು ಒಳ್ಳೆಯದು"],ML:["ആരോഗ്യകരമായ ജീവിതത്തിന് ദിവസവും യോഗ വേണം","രാവിലത്തെ നടത്തം ശരീരത്തെ ഫിറ്റ് ആക്കുന്നു","പഴങ്ങൾ പ്രതിരോധശേഷി വർദ്ധിപ്പിക്കുന്നു","വെള്ളം കൂടുതൽ കുടിക്കുക","പച്ചക്കറികൾ നല്ലതാണ്"],MR:["निरोगी जीवनासाठी रोज योग हवा","सकाळी चालणे शरीर तंदुरुस्त ठेवते","फळे प्रतिकारशक्ती वाढवतात","पाणी जास्त प्या","हिरव्या भाज्या चांगल्या"],GU:["સ્વસ્થ જીવન માટે રોજ યોગ જરૂરી છે","સવારે ચાલવું શરીરને ફિટ રાખે છે","ફળો રોગપ્રતિકારક શક્તિ વધારે છે","પાણી વધુ પીવો","લીલા શાકભાજી સારા છે"],PA:["ਸਿਹਤਮੰਦ ਜੀਵਨ ਲਈ ਰੋਜ਼ ਯੋਗਾ ਜ਼ਰੂਰੀ ਹੈ","ਸਵੇਰ ਦੀ ਸੈਰ ਸਰੀਰ ਨੂੰ ਫਿੱਟ ਰੱਖਦੀ ਹੈ","ਫਲ ਇਮਿਊਨਿਟੀ ਵਧਾਉਂਦੇ ਹਨ","ਪਾਣੀ ਵੱਧ ਪੀਓ","ਹਰੀਆਂ ਸਬਜ਼ੀਆਂ ਚੰਗੀਆਂ ਹਨ"]}
+const LANGS=[["HI","हिन्दी"],["EN","English"],["OR","ଓଡ଼ିଆ"],["BN","বাংলা"],["TE","తెలుగు"],["TA","தமிழ்"],["KN","ಕನ್ನಡ"],["ML","മലയാളം"],["MR","मराठी"],["GU","ગુજરાતી"],["PA","ਪੰਜਾਬੀ"]]
 export default function Page(){
-const [lang,setLang]=useState("HI")
-const [cnt,setCnt]=useState(5)
-const [out,setOut]=useState(DB["HI"].join("\n\n"))
-
-const make=(l=lang,c=cnt)=>{
- let t=(DB[l]||DB.EN).slice(0,c).join("\n\n")
- setOut(t)
-}
-
-return(
-<div style={{background:"#6366f1",minHeight:"100vh",padding:12,fontFamily:"system-ui"}}>
-<div style={{maxWidth:600,margin:"auto",background:"#fff",borderRadius:20,padding:16,boxShadow:"0 10px 30px rgba(0,0,0,0.2)"}}>
-<h2 style={{textAlign:"center",margin:"0 0 12px",color:"#111"}}>Lorem Pro - {lang}</h2>
-
-<select value={lang} onChange={e=>{setLang(e.target.value); make(e.target.value,cnt)}} style={{width:"100%",padding:14,borderRadius:10,border:"2px solid #6366f1",fontWeight:700,color:"#000",background:"#fff",fontSize:16}}>
-<option value="HI">HI - हिन्दी</option><option value="EN">EN - English</option><option value="OR">OR - ଓଡିଆ</option><option value="BN">BN - বাংলা</option><option value="TE">TE - తెలుగు</option><option value="TA">TA - தமிழ்</option><option value="KN">KN - ಕನ್ನಡ</option><option value="ML">ML - മലയാളം</option><option value="MR">MR - मराठी</option><option value="GU">GU - ગુજરાતી</option><option value="PA">PA - ਪੰਜਾਬੀ</option>
-</select>
-
-<div style={{marginTop:14,background:"#f3f4f6",padding:10,borderRadius:10}}>
-<label style={{fontWeight:700,color:"#111",fontSize:14}}>कितने वाक्य चाहिए? - {cnt}</label>
-<input type="range" min={1} max={5} value={cnt} onChange={e=>{let v=Number(e.target.value); setCnt(v); make(lang,v)}} style={{width:"100%",marginTop:6}}/>
+const [lang,setLang]=useState("HI");const [mode,setMode]=useState("SENTENCE");const [cnt,setCnt]=useState(5);const [out,setOut]=useState("");const [menu,setMenu]=useState(false);const [showTop,setShowTop]=useState(false)
+const gen=()=>{let b=DB[lang]||DB.EN;let base=b;let big=[];for(let i=0;i<cnt;i++)big.push(base[i%base.length]);let r=big.join("\n\n");if(mode==="WORD")r=big.join(" ").split(" ").slice(0,cnt).join(" ");if(mode==="LIST")r=big.map((x:string)=>"• "+x).join("\n");if(mode==="PARAGRAPH")r=Array(Math.ceil(cnt/2)).fill(0).map(()=>big.slice(0,2).join(" ")).join("\n\n");setOut(r)}
+useEffect(()=>{const h=()=>setShowTop(window.scrollY>300);window.addEventListener("scroll",h);gen();return()=>window.removeEventListener("scroll",h)},[]);useEffect(()=>{gen()},[lang,mode,cnt])
+return(<div style={{background:"linear-gradient(135deg,#667eea,#764ba2)",minHeight:"100vh",fontFamily:"system-ui",color:"#000"}}>
+<header style={{background:"#fff",padding:12,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10}}><b style={{color:"#111"}}>LP - LoremPro 75</b><button onClick={()=>setMenu(!menu)} style={{background:"#111",color:"#fff",borderRadius:999,padding:"8px 16px",border:"none",fontWeight:700}}>{menu?"Close":"Menu"}</button></header>
+{menu&&<div style={{background:"#fff",margin:12,borderRadius:16,padding:16}}><h3 style={{margin:0,color:"#111"}}>🌍 75 Counter PRO</h3><p style={{color:"#333",fontSize:14}}>Ab aap 1 se 75 tak kitne bhi vakya generate kar sakte ho. Slider ko 75 tak kheecho. 11+ languages, 4 modes.</p><div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginTop:10}}>{LANGS.map(([c,n]:any)=><div key={c} style={{background:"#f3f4f6",padding:6,borderRadius:6,fontSize:11,fontWeight:700,color:"#111"}}>{c} - {n}</div>)}</div></div>}
+<div style={{maxWidth:680,margin:"auto",padding:12}}>
+<div style={{background:"#fff",borderRadius:20,padding:16,boxShadow:"0 20px 40px rgba(0,0,0,.15)"}}>
+<select value={lang} onChange={e=>setLang(e.target.value)} style={{width:"100%",padding:12,borderRadius:10,border:"2px solid #6366f1",fontWeight:800,fontSize:16,color:"#000",background:"#fff"}}>{LANGS.map(([c,n]:any)=><option key={c} value={c}>{c} - {n}</option>)}</select>
+<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:12}}>{["PARAGRAPH","SENTENCE","WORD","LIST"].map(m=><button key={m} onClick={()=>setMode(m)} style={{padding:10,borderRadius:10,background:mode===m?"#6366f1":"#f3f4f6",color:mode===m?"#fff":"#111",border:"none",fontSize:11,fontWeight:800}}>{m}</button>)}</div>
+<div style={{marginTop:12,background:"#f3f4f6",padding:10,borderRadius:10}}><label style={{fontWeight:800,color:"#111",fontSize:14}}>कितने वाक्य चाहिए? - {cnt} / 75</label><input type="range" min={1} max={75} value={cnt} onChange={e=>setCnt(Number(e.target.value))} style={{width:"100%",marginTop:6}}/></div>
+<button onClick={gen} style={{width:"100%",background:"#111",color:"#fff",padding:14,borderRadius:12,marginTop:12,fontWeight:900,fontSize:16,border:"none"}}>GENERATE {lang} - {cnt}</button>
+<div style={{border:"2px solid #111",borderRadius:12,padding:12,marginTop:12,whiteSpace:"pre-wrap",minHeight:120,background:"#ffffff",color:"#000000",fontWeight:700,fontSize:16,lineHeight:1.6}}>{out}</div>
+<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>navigator.clipboard.writeText(out)} style={{flex:1,background:"#111",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800}}>Copy</button><button onClick={()=>{let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/plain"}));a.download=`lorem-${lang}-${cnt}.txt`;a.click()}} style={{flex:1,background:"#6366f1",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800}}>Download</button></div>
 </div>
-
-<button onClick={()=>make(lang,cnt)} style={{width:"100%",background:"#111",color:"#fff",padding:14,borderRadius:12,marginTop:12,fontWeight:900,border:"none",fontSize:17}}>GENERATE {lang}</button>
-
-<div style={{border:"2px solid #111",borderRadius:12,padding:14,marginTop:12,minHeight:150,background:"#fff",color:"#000",fontSize:16,lineHeight:"1.7",whiteSpace:"pre-wrap"}}>{out}</div>
-
-<div style={{display:"flex",gap:8,marginTop:12}}>
-<button onClick={()=>{navigator.clipboard.writeText(out);alert("Copied!")}} style={{flex:1,background:"#111",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800}}>Copy</button>
-<button onClick={()=>{let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/plain"}));a.download=`lorem-${lang}.txt`;a.click()}} style={{flex:1,background:"#6366f1",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800}}>Download</button>
+<div style={{background:"#fff",borderRadius:16,padding:16,marginTop:16}}><h3 style={{margin:"0 0 8px 0",color:"#111"}}>What is 75 Counter?</h3><p style={{color:"#444",fontSize:14,lineHeight:1.6,margin:0}}>Ab aap 75 tak sentences, words ya paragraphs generate kar sakte ho. Pehle 5 tak limit tha, ab 75 tak full PRO feature.</p></div>
 </div>
-</div>
+<footer style={{textAlign:"center",padding:20,color:"#fff",fontSize:12}}>© 2026 Lorem Pro Tool - 75 Counter • Made with ❤️</footer>
+{showTop&&<button onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} style={{position:"fixed",bottom:20,right:20,background:"#111",color:"#fff",width:50,height:50,borderRadius:999,border:"none",fontSize:22}}>↑</button>}
 </div>)}
