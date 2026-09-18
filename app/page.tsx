@@ -305,7 +305,43 @@ return(
 </div>
 </div>}
 </div>
-
+{/* OTHER USEFUL TOOLS - 6 DUMMY LINKS */}
+<div style={{marginTop:20,background:"#fff",border:"2px solid #000",borderRadius:16,padding:14}}>
+<h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools</h3>
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+<a href="/word-counter" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
+<div style={{fontSize:20}}>📝</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Word Counter</div>
+<div style={{fontSize:9,color:"#555"}}>Count words & chars</div>
+</a>
+<a href="/case-converter" style={{textDecoration:"none",background:"#fef9c3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
+<div style={{fontSize:20}}>🔄</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Case Converter</div>
+<div style={{fontSize:9,color:"#555"}}>UPPER to lower</div>
+</a>
+<a href="/image-to-text" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
+<div style={{fontSize:20}}>🖼️</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Image to Text</div>
+<div style={{fontSize:9,color:"#555"}}>OCR Tool</div>
+</a>
+<a href="/qr-generator" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
+<div style={{fontSize:20}}>📱</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>QR Generator</div>
+<div style={{fontSize:9,color:"#555"}}>Make QR Code</div>
+</a>
+<a href="/password-generator" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
+<div style={{fontSize:20}}>🔑</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Password Gen</div>
+<div style={{fontSize:9,color:"#555"}}>Strong Password</div>
+</a>
+<a href="/age-calculator" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
+<div style={{fontSize:20}}>🎂</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Age Calculator</div>
+<div style={{fontSize:9,color:"#555"}}>Find your age</div>
+</a>
+</div>
+<p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>More tools coming soon - Stay tuned!</p>
+</div>
 <footer style={{background:"#000",color:"#fff",padding:20,marginTop:24,textAlign:"center"}}>
 <div style={{fontWeight:900,fontSize:14}}>© 2026 LoremPro - {LANGS.length} Languages</div>
 <div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:12,justifyContent:"center",fontSize:12}}>
