@@ -98,6 +98,7 @@ else{let a=[];for(let i=0;i<cnt;i++){a.push(b[i%b.length])};r=a.join("\n\n")}
 setOut(r)
 }
 useEffect(()=>{gen()},[lang,mode,cnt])
+useEffect(()=>{gen()},[])
 const wc=out?out.split(/\s+/).filter(Boolean).length:0
 const cc=out.length
 const pc=out?out.split(/\n\n/).filter(Boolean).length:0
