@@ -18,14 +18,14 @@ setOut(r)
 useEffect(()=>{gen()},[])
 useEffect(()=>{gen()},[lang,mode,cnt])
 return(<div style={{background:"linear-gradient(135deg,#667eea,#764ba2)",minHeight:"100vh",fontFamily:"system-ui"}}>
-<header style={{background:"#fff",padding:12,display:"flex",justifyContent:"space-between"}}><b>LP - LoremPro 75</b><button style={{background:"#111",color:"#fff",borderRadius:999,padding:"6px 12px",border:"none"}}>Menu</button></header>
+<header style={{background:"#fff",padding:12,display:"flex",justifyContent:"space-between"}}><b>LP - LoremPro 39</b><button style={{background:"#111",color:"#fff",borderRadius:999,padding:"6px 12px",border:"none"}}>Menu</button></header>
 <div style={{maxWidth:660,margin:"auto",padding:12}}>
 <div style={{background:"#fff",borderRadius:16,padding:12}}>
 <select value={lang} onChange={e=>setLang(e.target.value)} style={{width:"100%",padding:10,borderRadius:8,border:"2px solid #6366f1",fontWeight:700}}>{LANGS.map(([c,n])=><option key={c} value={c}>{c} - {n}</option>)}</select>
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginTop:8}}>{["PARAGRAPH","SENTENCE","WORD","LIST"].map(m=><button key={m} onClick={()=>setMode(m)} style={{padding:8,borderRadius:8,background:mode===m?"#6366f1":"#eee",color:mode===m?"#fff":"#111",border:"none",fontSize:10,fontWeight:800}}>{m}</button>)}</div>
 <input type="range" min={1} max={20} value={cnt} onChange={e=>setCnt(Number(e.target.value))} style={{width:"100%",marginTop:8}}/>
 <button onClick={gen} style={{width:"100%",background:"#111",color:"#fff",padding:10,borderRadius:8,marginTop:8,fontWeight:800}}>GENERATE {lang} - {cnt}</button>
-<div style={{border:"2px solid #111",borderRadius:8,padding:10,marginTop:8,whiteSpace:"pre-wrap",minHeight:80,background:"#f9f9ff"}}>{out||"Loading..."}</div>
+<div style={{border:"2px solid #111",borderRadius:8,padding:10,marginTop:8,whiteSpace:"pre-wrap",minHeight:80,background:"#fff",color:"#111",fontWeight:700,fontSize:16}}>{out||"Loading..."}</div>
 <div style={{display:"flex",gap:6,marginTop:8}}><button onClick={()=>navigator.clipboard.writeText(out)} style={{flex:1,background:"#111",color:"#fff",padding:8,borderRadius:999,border:"none"}}>Copy</button><button onClick={()=>{let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/plain"}));a.download=`lorem-${lang}.txt`;a.click()}} style={{flex:1,background:"#6366f1",color:"#fff",padding:8,borderRadius:999,border:"none"}}>Download</button></div>
 </div></div></div>)
 }
