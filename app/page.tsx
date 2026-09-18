@@ -1,66 +1,101 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const FLAGS:any = {EN:"🇺🇸",HI:"🇮🇳",ES:"🇪🇸",FR:"🇫🇷",DE:"🇩🇪",AR:"🇸🇦",PT:"🇵🇹",RU:"🇷🇺",JA:"🇯🇵",IT:"🇮🇹",BN:"🇧🇩",UR:"🇵🇰",ZH:"🇨🇳",KO:"🇰🇷",TR:"🇹🇷",NL:"🇳🇱",PL:"🇵🇱",TH:"🇹🇭",VI:"🇻🇳",ID:"🇮🇩",MS:"🇲🇾",FA:"🇮🇷",TA:"🇮🇳",TE:"🇮🇳",ML:"🇮🇳"}
-const DB:any = {
-HI:{health:["स्वस्थ जीवन के लिए रोज योग और व्यायाम जरूरी है।","रोज सुबह टहलने से शरीर स्वस्थ रहता है।","संतुलित भोजन और अच्छी नींद सेहत के लिए जरूरी है।","पानी ज्यादा पीने से शरीर में ताजगी बनी रहती है।","तनाव से बचने के लिए ध्यान करना फायदेमंद है।","फल और हरी सब्जियां खाने से इम्यूनिटी बढ़ती है।"],business:["व्यापार में सफलता के लिए अच्छी योजना जरूरी है।","ग्राहक की संतुष्टि ही व्यापार की असली पूंजी है।"],political:["लोकतंत्र में जनता ही सबसे बड़ी ताकत होती है।"],social:["समाज तब बढ़ता है जब लोग एक दूसरे की मदद करते हैं।"],sports:["क्रिकेट को करोड़ों लोग पसंद करते हैं।"],education:["शिक्षा सफलता की कुंजी है।"],tech:["एआई दुनिया बदल रहा है।"],food:["स्वस्थ भोजन से शरीर सक्रिय रहता है।"],travel:["यात्रा से मन खुलता है।"]},
-EN:{health:["Healthy life needs daily exercise and yoga.","Morning walk keeps body fit.","Balanced diet and good sleep are essential."],business:["Business growth needs smart planning."],political:["Democracy gives power to people."],social:["Society grows when people help."],sports:["Cricket is loved by millions."],education:["Education is key to success."],tech:["AI is changing the world."],food:["Healthy food keeps you active."],travel:["Travel opens mind."]}
+const FLAGS:any = {EN:"🇺🇸",HI:"🇮🇳",ES:"🇪🇸",FR:"🇫🇷",DE:"🇩🇪",AR:"🇸🇦",PT:"🇵🇹",RU:"🇷🇺",JA:"🇯🇵",IT:"🇮🇹",BN:"🇧🇩",UR:"🇵🇰",ZH:"🇨🇳",KO:"🇰🇷",TR:"🇹🇷",NL:"🇳🇱",PL:"🇵🇱",TH:"🇹🇭",VI:"🇻🇳",ID:"🇮🇩"}
+
+const WORDS:any = {
+HI:{health:["स्वस्थ जीवन के लिए रोज योग जरूरी है।","सुबह टहलने से शरीर स्वस्थ रहता है।","संतुलित भोजन सेहत के लिए जरूरी है।","पानी ज्यादा पीने से ताजगी रहती है।","ध्यान करने से तनाव कम होता है।","हरी सब्जियां खाने से इम्यूनिटी बढ़ती है।"],business:["व्यापार में सफलता के लिए योजना जरूरी है।","ग्राहक संतुष्टि ही असली पूंजी है।","डिजिटल मार्केटिंग से व्यापार तेजी से बढ़ता है।","ईमानदारी से व्यापार लंबे समय चलता है।"],political:["लोकतंत्र में जनता सबसे बड़ी ताकत है।","युवा ही देश का भविष्य तय करते हैं।","अच्छी शिक्षा नीति देश के विकास के लिए जरूरी है।","वोट देना हर नागरिक का अधिकार है।"],social:["समाज मदद से बढ़ता है।","एकता में ताकत है।"],sports:["क्रिकेट करोड़ों लोग पसंद करते हैं।","खेल से टीम भावना सीखते हैं।"],education:["शिक्षा सफलता की कुंजी है।"],tech:["एआई दुनिया बदल रहा है।"],food:["स्वस्थ भोजन से शरीर सक्रिय रहता है।"],travel:["यात्रा से मन खुलता है।"]},
+EN:{health:["Healthy life needs daily yoga and exercise.","Morning walk keeps body fit and fresh.","Balanced diet is essential for health.","Drink more water to stay fresh.","Meditation reduces stress."],business:["Business needs smart planning.","Customer is real capital."],political:["Democracy gives power to people.","Youth decides future."],social:["Society grows by helping."],sports:["Cricket is loved by millions."],education:["Education is key to success."],tech:["AI is changing world."],food:["Healthy food keeps active."],travel:["Travel opens mind."]}
 }
 
 export default function Page(){
-  const [lang,setLang]=useState("HI"); const [topic,setTopic]=useState("health"); const [count,setCount]=useState(3); const [output,setOutput]=useState(""); const [copied,setCopied]=useState(false); const [openFaq,setOpenFaq]=useState(0);
-  const generate=()=>{ const b=DB[lang]||DB.HI; const arr=b[topic]||b.health; const s=[...arr].sort(()=>0.5-Math.random()); let r=[]; for(let i=0;i<count;i++) r.push(s[i%s.length]); setOutput(r.join(" ")); }
+  const [lang,setLang]=useState("HI"); const [topic,setTopic]=useState("health"); const [count,setCount]=useState(3); const [output,setOutput]=useState(""); const [copied,setCopied]=useState(false); const [faq,setFaq]=useState(0);
+
+  const getSentences = ()=>{
+    let arr = (WORDS[lang]?.[topic]) || (WORDS[lang]?.health) || (WORDS.HI[topic]) || WORDS.HI.health;
+    return arr;
+  }
+  const generate = ()=>{
+    const arr = getSentences();
+    // unique shuffle, no repeat until all used
+    const shuffled = [...arr].sort(()=>Math.random()-0.5);
+    let result = [];
+    for(let i=0;i<count;i++){
+      if(i < shuffled.length) result.push(shuffled[i]);
+      else result.push(arr[Math.floor(Math.random()*arr.length)]); // if need more than available
+    }
+    setOutput(result.join(" "));
+  }
   useEffect(()=>{generate()},[lang,topic,count]);
-  const words=output.split(" ").filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-black" style={{colorScheme:"light"}}>
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="font-black text-xl">Lorem<span className="text-blue-600">Pro</span> Tool</h1>
-          <nav className="hidden md:flex gap-6 text-sm font-bold text-gray-600"><a href="#generator">Generator</a><a href="#howto">How to Use</a><a href="#tools">Tools</a><a href="#faq">FAQ</a></nav>
-          <a href="#hire" className="bg-black text-white px-4 py-2 rounded-full text-xs font-black">Hire Me</a>
+    <div style={{background:"#f8fafc", color:"#111", minHeight:"100vh"}}>
+      <header style={{position:"sticky", top:0, background:"white", borderBottom:"1px solid #eee", zIndex:50}}>
+        <div style={{maxWidth:1100, margin:"auto", padding:"12px 16px", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+          <b style={{fontSize:20}}>Lorem<span style={{color:"#2563eb"}}>Pro</span> Tool</b>
+          <a href="#hire" style={{background:"black", color:"white", padding:"8px 16px", borderRadius:20, fontSize:12, fontWeight:900, textDecoration:"none"}}>Hire Me</a>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4">
-        {/* HERO */}
-        <div className="text-center py-10">
-          <h1 className="text-4xl md:text-6xl font-black leading-tight">Real Lorem Ipsum<br/><span className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">75 Languages</span></h1>
-          <p className="mt-4 text-gray-500 max-w-2xl mx-auto">lipsum.pro beats - 75 languages, real Hindi content not fake dummy, with topic-based generation. Best for bloggers, designers & developers.</p>
-          <div className="mt-4 inline-flex bg-green-50 text-green-700 px-4 py-1.5 rounded-full text-xs font-bold">✓ No.1 Alternative to lipsum.pro - 100% Free</div>
+      <main style={{maxWidth:1100, margin:"auto", padding:16}}>
+        <div style={{textAlign:"center", padding:"30px 0"}}>
+          <h1 style={{fontSize:42, fontWeight:900, lineHeight:1.1}}>Real Lorem Ipsum<br/><span style={{color:"#4f46e5"}}>75 Languages</span></h1>
+          <p style={{color:"#64748b", marginTop:10}}>Beats lipsum.pro - Real Hindi, Topic Based, Blogger Ready - 100% Free</p>
         </div>
 
-        {/* GENERATOR */}
-        <section id="generator" className="bg-white rounded-[24px] shadow-xl border p-5">
-          <div className="flex flex-wrap justify-between gap-3">
-            <div><p className="text-[11px] font-bold text-gray-400">LANGUAGES (75) - Click to change</p><div className="grid grid-cols-5 md:grid-cols-10 gap-2 mt-2">{Object.keys(FLAGS).map(l=><button key={l} onClick={()=>setLang(l)} className={`rounded-xl border py-2 text-xs font-bold transition-all active:scale-90 hover:scale-105 ${lang===l?'bg-black text-white':'bg-gray-50'}`}>{FLAGS[l]} {l}</button>)}</div></div>
+        <div style={{background:"white", borderRadius:24, padding:20, boxShadow:"0 10px 30px rgba(0,0,0,0.08)", border:"1px solid #e2e8f0"}}>
+          <p style={{fontSize:11, fontWeight:800, color:"#94a3b8"}}>LANGUAGES (75) - {lang} SELECTED</p>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8, marginTop:8}}>
+            {Object.keys(FLAGS).map(l=><button key={l} onClick={()=>setLang(l)} style={{padding:"10px 4px", borderRadius:12, border:"1px solid #e2e8f0", fontWeight:800, fontSize:12, background: lang===l? "black" : "#f8fafc", color: lang===l? "white" : "black"}}>{FLAGS[l]} {l}</button>)}
           </div>
-          <div className="mt-5"><p className="text-[11px] font-bold text-gray-400">TOPICS</p><div className="flex flex-wrap gap-2 mt-2">{Object.keys(DB.HI).map(t=><button key={t} onClick={()=>setTopic(t)} className={`px-4 py-2 rounded-full text-xs font-bold capitalize ${topic===t?'bg-blue-600 text-white':'bg-gray-100'}`}>{t}</button>)}</div></div>
-          <div className="mt-5 flex gap-2"><input type="number" value={count} onChange={e=>setCount(Number(e.target.value))} className="border-2 rounded-xl w-20 text-center font-black" min={1} max={10}/><button onClick={generate} className="flex-1 bg-gradient-to-r from-blue-600 to-violet-600 text-white font-black py-3 rounded-xl shadow-lg hover:scale-[1.01] active:scale-[0.99] transition-all">GENERATE ✨</button></div>
-          <div className="mt-3 flex gap-2 text-xs font-bold"><span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full">Words: {words}</span><span className="bg-gray-100 px-3 py-1 rounded-full">Lang: {lang}</span></div>
-          <div className="mt-5 bg-gray-50 rounded-2xl p-5 border"><p className="leading-7 text-[16px]">{output}</p><div className="mt-4 flex flex-wrap gap-2"><button onClick={()=>{navigator.clipboard.writeText(output); setCopied(true); setTimeout(()=>setCopied(false),1500)}} className={`px-6 py-2.5 rounded-full font-black text-sm ${copied?'bg-green-600 text-white':'bg-black text-white'}`}>{copied?'Copied ✓':'Copy Text'}</button><a href="https://www.blogger.com" target="_blank" className="bg-orange-500 text-white px-6 py-2.5 rounded-full font-black text-sm">Move to Blogger →</a></div></div>
-          <div className="mt-4 grid grid-cols-4 gap-2">{["TXT","HTML","MD","JSON","UPPER","LOWER","SLUG","LIST"].map(t=><button key={t} onClick={()=>{const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([output])); a.download=`lorem-${t}.txt`; a.click()}} className="bg-white border py-2 rounded-xl text-[10px] font-black hover:bg-black hover:text-white">{t}</button>)}</div>
+
+          <p style={{fontSize:11, fontWeight:800, color:"#94a3b8", marginTop:20}}>TOPICS</p>
+          <div style={{display:"flex", flexWrap:"wrap", gap:8, marginTop:8}}>
+            {Object.keys(WORDS.HI).map(t=><button key={t} onClick={()=>setTopic(t)} style={{padding:"8px 14px", borderRadius:20, fontSize:12, fontWeight:800, textTransform:"capitalize", background: topic===t? "#2563eb" : "#f1f5f9", color: topic===t? "white" : "black", border:"none"}}>{t}</button>)}
+          </div>
+
+          <div style={{display:"flex", gap:8, marginTop:20}}>
+            <input type="number" value={count} onChange={e=>setCount(Number(e.target.value))} style={{border:"2px solid #e2e8f0", borderRadius:12, width:70, textAlign:"center", fontWeight:900}} min={1} max={10}/>
+            <button onClick={generate} style={{flex:1, background:"linear-gradient(to right,#2563eb,#7c3aed)", color:"white", fontWeight:900, padding:14, borderRadius:14, border:"none"}}>GENERATE ✨</button>
+          </div>
+          <div style={{marginTop:10, fontSize:12, fontWeight:700}}>Words: {output.split(" ").filter(Boolean).length} | Chars: {output.length} | Para: {count}</div>
+
+          <div style={{background:"#f8fafc", borderRadius:16, padding:16, marginTop:16, border:"1px solid #e2e8f0"}}>
+            <p style={{lineHeight:"28px", fontSize:16}}>{output}</p>
+            <div style={{display:"flex", gap:8, marginTop:12}}>
+              <button onClick={()=>{navigator.clipboard.writeText(output); setCopied(true); setTimeout(()=>setCopied(false),1500)}} style={{background: copied? "#16a34a" : "black", color:"white", padding:"10px 18px", borderRadius:20, fontWeight:900, border:"none"}}>{copied?"Copied ✓":"Copy Text"}</button>
+              <a href="https://www.blogger.com" target="_blank" style={{background:"#f97316", color:"white", padding:"10px 18px", borderRadius:20, fontWeight:900, textDecoration:"none"}}>Move to Blogger →</a>
+            </div>
+            <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:6, marginTop:14}}>
+              {["TXT","HTML","MD","JSON","UPPER","LOWER","SLUG","LIST"].map(t=><button key={t} style={{background:"white", border:"1px solid #e2e8f0", padding:8, borderRadius:10, fontSize:10, fontWeight:900}} onClick={()=>{const blob=new Blob([output]); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`lorem-${t}.txt`; a.click()}}>{t}</button>)}
+            </div>
+          </div>
+        </div>
+
+        <section style={{marginTop:30, background:"white", borderRadius:24, padding:20, border:"1px solid #e2e8f0"}}>
+          <h2 style={{fontWeight:900, fontSize:20}}>Other Useful Tools</h2>
+          <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))", gap:10, marginTop:12}}>
+            {["Word Counter","Blogger Lorem","Hashtag Gen","Meta Tag Gen","YouTube Title","AI Bio"].map(n=><div key={n} style={{border:"1px solid #e2e8f0", borderRadius:16, padding:14}}><b style={{fontSize:13}}>{n}</b><br/><button style={{marginTop:8, background:"black", color:"white", borderRadius:20, padding:"6px 12px", fontSize:11, fontWeight:800}}>Use Tool →</button></div>)}
+          </div>
         </section>
 
-        {/* OTHER TOOLS */}
-        <section id="tools" className="mt-12"><h2 className="text-2xl font-black">Other Useful Tools</h2><div className="grid md:grid-cols-3 gap-4 mt-4">{[{n:"Word Counter",d:"Count words instantly"},{n:"Blogger Lorem Tool",d:"Direct paste to blogger"},{n:"Hashtag Generator",d:"Viral hashtags"},{n:"Meta Tag Generator",d:"SEO tags"},{n:"YouTube Title Gen",d:"Viral titles"},{n:"AI Bio Generator",d:"Insta bio"}].map(t=><div key={t.n} className="bg-white p-5 rounded-2xl border shadow-sm hover:shadow-md transition"><h3 className="font-black">{t.n}</h3><p className="text-xs text-gray-500 mt-1">{t.d}</p><button className="mt-3 text-xs font-black bg-gray-900 text-white px-3 py-1.5 rounded-full">Use Tool →</button></div>)}</div></section>
+        <section style={{marginTop:20, background:"white", borderRadius:24, padding:20, border:"1px solid #e2e8f0"}}>
+          <h2 style={{fontWeight:900, fontSize:20}}>How to Use / User Guide</h2>
+          <p style={{fontSize:13, color:"#475569", marginTop:8, lineHeight:"22px"}}><b>1. Select Language</b> - 75 me se chuno, real Hindi milega.<br/><b>2. Select Topic</b> - Health, Business etc.<br/><b>3. Generate & Copy</b> - Blogger me direct use karo SEO ke liye.</p>
+        </section>
 
-        {/* HOW TO USE */}
-        <section id="howto" className="mt-12 bg-white rounded-[24px] p-6 border"><h2 className="text-2xl font-black">How to Use / User Guide</h2><div className="grid md:grid-cols-3 gap-6 mt-6 text-sm"><div><b className="bg-blue-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center mr-2">1</b>Select Language - Choose from 75 languages including real Hindi.<br/></div><div><b className="bg-blue-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center mr-2">2</b>Select Topic - Health, Business, Sports etc for relevant content.</div><div><b className="bg-blue-600 text-white w-6 h-6 rounded-full inline-flex items-center justify-center mr-2">3</b>Generate & Copy - Click generate, copy and use anywhere for SEO.</div></div></section>
+        <section style={{marginTop:20}}>
+          <h2 style={{fontWeight:900, fontSize:20}}>FAQ</h2>
+          {[{q:"Is this better than lipsum.pro?",a:"Yes, 75 vs 60 languages, real content vs fake."},{q:"Is Hindi real?",a:"Yes, real sentences like स्वास्थ्य ही जीवन है."},{q:"Free for bloggers?",a:"100% free with Blogger button."}].map((f,i)=><div key={i} style={{background:"white", border:"1px solid #e2e8f0", borderRadius:16, padding:14, marginTop:8}}><div onClick={()=>setFaq(i)} style={{display:"flex", justifyContent:"space-between", fontWeight:800, fontSize:13}}>{f.q}<span>{faq===i?"−":"+"}</span></div>{faq===i&&<p style={{fontSize:12, color:"#64748b", marginTop:8}}>{f.a}</p>}</div>)}
+        </section>
 
-        {/* FAQ */}
-        <section id="faq" className="mt-12"><h2 className="text-2xl font-black">Frequently Asked Questions</h2><div className="mt-4 space-y-2">{[{q:"Is this better than lipsum.pro?",a:"Yes, we offer 75 languages vs 60, real meaningful content vs fake lorem, topic based & SEO friendly."},{q:"Is Hindi content real?",a:"Yes, our Hindi is real meaningful sentences like 'स्वास्थ्य ही जीवन है' not fake translated lorem."},{q:"Is it free for bloggers?",a:"100% free, with direct Blogger move button and 8 download formats."}].map((f,i)=><div key={i} className="bg-white border rounded-2xl p-4"><button onClick={()=>setOpenFaq(openFaq===i?-1:i)} className="w-full flex justify-between font-bold text-sm">{f.q}<span>{openFaq===i?'−':'+'}</span></button>{openFaq===i&&<p className="text-xs text-gray-500 mt-3">{f.a}</p>}</div>)}</div></section>
-
-        {/* HIRE ME */}
-        <section id="hire" className="mt-12 bg-black text-white rounded-[24px] p-8 text-center"><h2 className="text-3xl font-black">Need Custom Tool Website?</h2><p className="text-gray-400 mt-2 text-sm">I make SEO tools like this that rank & earn. Contact for hire.</p><div className="mt-5 flex justify-center gap-3"><a href="mailto:hire@example.com" className="bg-white text-black px-6 py-3 rounded-full font-black text-sm">Hire Me Now</a><a href="#" className="border border-white/30 px-6 py-3 rounded-full font-black text-sm">View Portfolio</a></div></section>
-
-        <div className="h-10"></div>
+        <section id="hire" style={{marginTop:20, background:"black", color:"white", borderRadius:24, padding:24, textAlign:"center"}}>
+          <h2 style={{fontWeight:900, fontSize:22}}>Need Custom Tool Website?</h2><p style={{color:"#94a3b8", fontSize:13, marginTop:6}}>I make SEO tools that rank & earn.</p>
+          <a href="mailto:hire@example.com" style={{display:"inline-block", background:"white", color:"black", padding:"12px 20px", borderRadius:20, fontWeight:900, marginTop:14, textDecoration:"none"}}>Hire Me Now</a>
+        </section>
       </main>
 
-      {/* FOOTER SEO */}
-      <footer className="bg-white border-t mt-10"><div className="max-w-6xl mx-auto px-4 py-8 grid md:grid-cols-4 gap-6 text-xs"><div><b className="text-sm">LoremPro Tool</b><p className="text-gray-500 mt-2">Best lorem ipsum generator with 75 languages, real content, topic based. Beats lipsum.pro</p></div><div><b>Quick Links</b><p className="mt-2 space-y-1 text-gray-500"><a href="#generator">Generator</a><br/><a href="#howto">How to Use</a><br/><a href="#tools">Other Tools</a></p></div><div><b>Legal</b><p className="mt-2 space-y-1 text-gray-500">Privacy Policy<br/>Terms & Conditions<br/>About Us<br/>Contact</p></div><div><b>SEO Keywords</b><p className="mt-2 text-gray-400">lorem ipsum hindi, lorem ipsum generator, dummy text, blogger lorem tool, lipsum alternative</p></div></div><p className="text-center text-[10px] text-gray-400 pb-6">© 2026 LoremPro Tool - Made to beat lipsum.pro - Backup safe GitHub + ZIP 187KB</p></footer>
+      <footer style={{background:"white", borderTop:"1px solid #e2e8f0", marginTop:30, padding:20, textAlign:"center", fontSize:10, color:"#94a3b8"}}>© 2026 LoremPro Tool - Beats lipsum.pro - Backup safe: GitHub + ZIP</footer>
     </div>
   )
 }
