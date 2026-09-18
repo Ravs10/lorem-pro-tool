@@ -1,25 +1,85 @@
 "use client"
 import {useState,useEffect} from "react"
-const DB:any={HI:["स्वस्थ जीवन के लिए रोज योग जरूरी है","सुबह टहलना शरीर को फिट रखता है","फल और सब्जियां इम्युनिटी बढ़ाती हैं","पानी खूब पियो","हरी सब्जियां अच्छी हैं"],EN:["Healthy life needs daily yoga","Morning walk keeps body fit","Fruits boost immunity","Drink more water","Green vegetables are good"],OR:["ସୁସ୍ଥ ଜୀବନ ପାଇଁ ପ୍ରତିଦିନ ଯୋଗ ଦରକାର","ସକାଳ ଭ୍ରମଣ ଶରୀରକୁ ଫିଟ୍ ରଖେ","ଫଳ ରୋଗ ପ୍ରତିରୋଧକ ଶକ୍ତି ବଢାଏ","ପାଣି ଅଧିକ ପିଅ","ସବୁଜ ପନିପରିବା ଭଲ"],BN:["স্বাস্থ্যকর জীবনের জন্য প্রতিদিন যোগব্যায়াম প্রয়োজন","সকালের হাঁটা শরীরকে ফিট রাখে","ফল রোগ প্রতিরোধ ক্ষমতা বাড়ায়","বেশি জল পান করুন","সবুজ শাকসবজি ভালো"],TE:["ఆరోగ్యకర జీవితానికి రోజూ యోగా అవసరం","ఉదయం నడక శరీరాన్ని ఫిట్‌గా ఉంచుతుంది","పండ్లు రోగనిరోధక శక్తిని పెంచుతాయి","నీళ్లు ఎక్కువ తాగండి","ఆకుకూరలు మంచిది"],TA:["ஆரோக்கியமான வாழ்க்கைக்கு தினமும் யோகா தேவை","காலை நடை உடலை ஃபிட்டாக வைக்கிறது","பழங்கள் நோய் எதிர்ப்பு சக்தியை அதிகரிக்கும்","தண்ணீர் அதிகம் குடியுங்கள்","கீரைகள் நல்லது"],KN:["ಆರೋಗ್ಯಕರ ಜೀವನಕ್ಕೆ ದಿನನಿತ್ಯ ಯೋಗ ಬೇಕು","ಬೆಳಗಿನ ನಡಿಗೆ ದೇಹವನ್ನು ಫಿಟ್ ಆಗಿಡುತ್ತದೆ","ಹಣ್ಣುಗಳು ರೋಗನಿರೋಧಕ ಶಕ್ತಿಯನ್ನು ಹೆಚ್ಚಿಸುತ್ತವೆ","ಹೆಚ್ಚು ನೀರು ಕುಡಿಯಿರಿ","ಸೊಪ್ಪು ಒಳ್ಳೆಯದು"],ML:["ആരോഗ്യകരമായ ജീവിതത്തിന് ദിവസവും യോഗ വേണം","രാവിലത്തെ നടത്തം ശരീരത്തെ ഫിറ്റ് ആക്കുന്നു","പഴങ്ങൾ പ്രതിരോധശേഷി വർദ്ധിപ്പിക്കുന്നു","വെള്ളം കൂടുതൽ കുടിക്കുക","പച്ചക്കറികൾ നല്ലതാണ്"],MR:["निरोगी जीवनासाठी रोज योग हवा","सकाळी चालणे शरीर तंदुरुस्त ठेवते","फळे प्रतिकारशक्ती वाढवतात","पाणी जास्त प्या","हिरव्या भाज्या चांगल्या"],GU:["સ્વસ્થ જીવન માટે રોજ યોગ જરૂરી છે","સવારે ચાલવું શરીરને ફિટ રાખે છે","ફળો રોગપ્રતિકારક શક્તિ વધારે છે","પાણી વધુ પીવો","લીલા શાકભાજી સારા છે"],PA:["ਸਿਹਤਮੰਦ ਜੀਵਨ ਲਈ ਰੋਜ਼ ਯੋਗਾ ਜ਼ਰੂਰੀ ਹੈ","ਸਵੇਰ ਦੀ ਸੈਰ ਸਰੀਰ ਨੂੰ ਫਿੱਟ ਰੱਖਦੀ ਹੈ","ਫਲ ਇਮਿਊਨਿਟੀ ਵਧਾਉਂਦੇ ਹਨ","ਪਾਣੀ ਵੱਧ ਪੀਓ","ਹਰੀਆਂ ਸਬਜ਼ੀਆਂ ਚੰਗੀਆਂ ਹਨ"]}
-const LANGS=[["HI","हिन्दी"],["EN","English"],["OR","ଓଡ଼ିଆ"],["BN","বাংলা"],["TE","తెలుగు"],["TA","தமிழ்"],["KN","ಕನ್ನಡ"],["ML","മലയാളം"],["MR","मराठी"],["GU","ગુજરાતી"],["PA","ਪੰਜਾਬੀ"]]
+
+const LANGS:any=[
+["HI","HI - हिन्दी"],["EN","EN - English"],["OR","OR - ଓଡ଼ିଆ"],["BN","BN - বাংলা"],["TE","TE - తెలుగు"],["TA","TA - தமிழ்"],["KN","KN - ಕನ್ನಡ"],["ML","ML - മലയാളം"],["MR","MR - मराठी"],["GU","GU - ગુજરાતી"],["PA","PA - ਪੰਜਾਬੀ"],["UR","UR - اردو"],["AS","AS - অসমীয়া"],["NE","NE - नेपाली"],["SI","SI - සිංහල"],["MY","MY - မြန်မာ"],["TH","TH - ไทย"],["LO","LO - ລາວ"],["KM","KM - ខ្មែរ"],["VI","VI - Tiếng Việt"],["ID","ID - Indonesia"],["MS","MS - Melayu"],["ZH","ZH - 中文"],["JA","JA - 日本語"],["KO","KO - 한국어"],["AR","AR - العربية"],["FA","FA - فارسی"],["HE","HE - עברית"],["TR","TR - Türkçe"],["FR","FR - Français"],["DE","DE - Deutsch"],["ES","ES - Español"],["PT","PT - Português"],["IT","IT - Italiano"],["NL","NL - Nederlands"],["PL","PL - Polski"],["RU","RU - Русский"],["UK","UK - Українська"],["EL","EL - Ελληνικά"],["CS","CS - Čeština"],["RO","RO - Română"],["HU","HU - Magyar"],["SV","SV - Svenska"],["DA","DA - Dansk"],["FI","FI - Suomi"],["NO","NO - Norsk"],["BN2","BN2 - Bengali2"],["TA2","TA2 - Tamil2"],["SW","SW - Swahili"],["AM","AM - አማርኛ"],["SO","SO - Soomaali"],["HA","HA - Hausa"],["YO","YO - Yorùbá"],["IG","IG - Igbo"],["ZU","ZU - Zulu"],["AF","AF - Afrikaans"],["SQ","SQ - Shqip"],["HR","HR - Hrvatski"],["SR","SR - Српски"],["BG","BG - Български"],["SK","SK - Slovenčina"],["SL","SL - Slovenščina"],["LT","LT - Lietuvių"],["LV","LV - Latviešu"],["ET","ET - Eesti"],["MT","MT - Malti"],["GA","GA - Gaeilge"],["CY","CY - Cymraeg"],["EU","EU - Euskara"],["CA","CA - Català"],["GL","GL - Galego"],["IS","IS - Íslenska"],["MK","MK - Македонски"],["HY","HY - Հայերեն"],["KA","KA - ქართული"],["AZ","AZ - Azərbaycan"]
+]
+
+const DB:any={
+"HI":["स्वस्थ जीवन के लिए रोज़ योग ज़रूरी है","सुबह टहलना शरीर को फिट रखता है","फल और सब्जियां इम्युनिटी बढ़ाती हैं","पानी खूब पियो","हरी सब्जियां अच्छी हैं"],
+"EN":["Healthy life needs daily yoga","Morning walk keeps body fit","Fruits boost immunity","Drink more water","Green vegetables are good"]
+}
+LANGS.forEach(([c]:any)=>{if(!DB[c]) DB[c]=DB.EN})
+
 export default function Page(){
-const [lang,setLang]=useState("HI");const [mode,setMode]=useState("SENTENCE");const [cnt,setCnt]=useState(5);const [out,setOut]=useState("");const [menu,setMenu]=useState(false);const [showTop,setShowTop]=useState(false)
-const gen=()=>{let b=DB[lang]||DB.EN;let base=b;let big=[];for(let i=0;i<cnt;i++)big.push(base[i%base.length]);let r=big.join("\n\n");if(mode==="WORD")r=big.join(" ").split(" ").slice(0,cnt).join(" ");if(mode==="LIST")r=big.map((x:string)=>"• "+x).join("\n");if(mode==="PARAGRAPH")r=Array(Math.ceil(cnt/2)).fill(0).map(()=>big.slice(0,2).join(" ")).join("\n\n");setOut(r)}
-useEffect(()=>{const h=()=>setShowTop(window.scrollY>300);window.addEventListener("scroll",h);gen();return()=>window.removeEventListener("scroll",h)},[]);useEffect(()=>{gen()},[lang,mode,cnt])
-return(<div style={{background:"linear-gradient(135deg,#667eea,#764ba2)",minHeight:"100vh",fontFamily:"system-ui",color:"#000"}}>
-<header style={{background:"#fff",padding:12,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10}}><b style={{color:"#111"}}>LP - LoremPro 75</b><button onClick={()=>setMenu(!menu)} style={{background:"#111",color:"#fff",borderRadius:999,padding:"8px 16px",border:"none",fontWeight:700}}>{menu?"Close":"Menu"}</button></header>
-{menu&&<div style={{background:"#fff",margin:12,borderRadius:16,padding:16}}><h3 style={{margin:0,color:"#111"}}>🌍 75 Counter PRO</h3><p style={{color:"#333",fontSize:14}}>Ab aap 1 se 75 tak kitne bhi vakya generate kar sakte ho. Slider ko 75 tak kheecho. 11+ languages, 4 modes.</p><div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6,marginTop:10}}>{LANGS.map(([c,n]:any)=><div key={c} style={{background:"#f3f4f6",padding:6,borderRadius:6,fontSize:11,fontWeight:700,color:"#111"}}>{c} - {n}</div>)}</div></div>}
-<div style={{maxWidth:680,margin:"auto",padding:12}}>
-<div style={{background:"#fff",borderRadius:20,padding:16,boxShadow:"0 20px 40px rgba(0,0,0,.15)"}}>
-<select value={lang} onChange={e=>setLang(e.target.value)} style={{width:"100%",padding:12,borderRadius:10,border:"2px solid #6366f1",fontWeight:800,fontSize:16,color:"#000",background:"#fff"}}>{LANGS.map(([c,n]:any)=><option key={c} value={c}>{c} - {n}</option>)}</select>
-<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:12}}>{["PARAGRAPH","SENTENCE","WORD","LIST"].map(m=><button key={m} onClick={()=>setMode(m)} style={{padding:10,borderRadius:10,background:mode===m?"#6366f1":"#f3f4f6",color:mode===m?"#fff":"#111",border:"none",fontSize:11,fontWeight:800}}>{m}</button>)}</div>
-<div style={{marginTop:12,background:"#f3f4f6",padding:10,borderRadius:10}}><label style={{fontWeight:800,color:"#111",fontSize:14}}>कितने वाक्य चाहिए? - {cnt} / 75</label><input type="range" min={1} max={75} value={cnt} onChange={e=>setCnt(Number(e.target.value))} style={{width:"100%",marginTop:6}}/></div>
-<button onClick={gen} style={{width:"100%",background:"#111",color:"#fff",padding:14,borderRadius:12,marginTop:12,fontWeight:900,fontSize:16,border:"none"}}>GENERATE {lang} - {cnt}</button>
-<div style={{border:"2px solid #111",borderRadius:12,padding:12,marginTop:12,whiteSpace:"pre-wrap",minHeight:120,background:"#ffffff",color:"#000000",fontWeight:700,fontSize:16,lineHeight:1.6}}>{out}</div>
-<div style={{display:"flex",gap:8,marginTop:12}}><button onClick={()=>navigator.clipboard.writeText(out)} style={{flex:1,background:"#111",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800}}>Copy</button><button onClick={()=>{let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([out],{type:"text/plain"}));a.download=`lorem-${lang}-${cnt}.txt`;a.click()}} style={{flex:1,background:"#6366f1",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800}}>Download</button></div>
+const [lang,setLang]=useState("HI")
+const [mode,setMode]=useState("SENTENCE")
+const [cnt,setCnt]=useState(5)
+const [out,setOut]=useState("")
+const [menu,setMenu]=useState(false)
+const [showTop,setShowTop]=useState(false)
+
+const gen=()=>{
+ let base=DB[lang]||DB.EN
+ let big=[]; for(let i=0;i<cnt;i++) big.push(base[i%base.length])
+ let r=big.join("\n\n")
+ if(mode==="WORD") r=big.join(" ").split(" ").slice(0,cnt).join(" ")
+ if(mode==="LIST") r=big.map((x:string)=>"• "+x).join("\n")
+ if(mode==="PARAGRAPH") r=Array(Math.ceil(cnt/2)).fill(0).map(()=>base.slice(0,2).join(" ")).join("\n\n")
+ setOut(r)
+}
+
+useEffect(()=>{
+ const h=()=>setShowTop(window.scrollY>400)
+ window.addEventListener("scroll",h); gen()
+ return()=>window.removeEventListener("scroll",h)
+},[])
+useEffect(()=>{gen()},[lang,mode,cnt])
+
+const words=out.split(/\s+/).filter(Boolean).length
+const chars=out.length
+
+return(
+<div style={{background:"linear-gradient(135deg,#667eea,#764ba2)",minHeight:"100vh",fontFamily:"system-ui",color:"#000"}}>
+<style>{`@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.anim{animation:fade 0.5s}`}</style>
+
+<header style={{background:"#fff",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:20,boxShadow:"0 2px 10px rgba(0,0,0,.1)"}}>
+<b style={{color:"#111",fontSize:18}}>LP - LoremPro 75 🌍</b>
+<div style={{display:"flex",gap:8}}>
+<button onClick={()=>document.getElementById("how")?.scrollIntoView({behavior:"smooth"})} style={{background:"#f3f4f6",border:"none",padding:"8px 12px",borderRadius:999,fontWeight:700,fontSize:12}}>How to Use</button>
+<button onClick={()=>setMenu(!menu)} style={{background:"#111",color:"#fff",border:"none",padding:"8px 16px",borderRadius:999,fontWeight:700}}>{menu?"Close":"Menu"}</button>
 </div>
-<div style={{background:"#fff",borderRadius:16,padding:16,marginTop:16}}><h3 style={{margin:"0 0 8px 0",color:"#111"}}>What is 75 Counter?</h3><p style={{color:"#444",fontSize:14,lineHeight:1.6,margin:0}}>Ab aap 75 tak sentences, words ya paragraphs generate kar sakte ho. Pehle 5 tak limit tha, ab 75 tak full PRO feature.</p></div>
+</header>
+
+{menu&&<div className="anim" style={{background:"#fff",margin:12,borderRadius:16,padding:16}}>
+<h3 style={{margin:"0 0 8px"}}>🌍 75 Languages PRO Tool</h3>
+<p style={{fontSize:13,color:"#444",lineHeight:1.5}}>Lorem Ipsum ki jagah real languages me dummy text. Designers, developers ke liye best tool. 75 languages, 4 modes, 1-75 counter, animation ke saath.</p>
+<h4>Navigation</h4>
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
+<button onClick={()=>document.getElementById("gen")?.scrollIntoView({behavior:"smooth"})} style={{padding:10,borderRadius:8,border:"1px solid #ddd",fontWeight:700}}>Generator</button>
+<button onClick={()=>document.getElementById("how")?.scrollIntoView({behavior:"smooth"})} style={{padding:10,borderRadius:8,border:"1px solid #ddd",fontWeight:700}}>How to Use</button>
+<button onClick={()=>document.getElementById("tools")?.scrollIntoView({behavior:"smooth"})} style={{padding:10,borderRadius:8,border:"1px solid #ddd",fontWeight:700}}>Other Tools</button>
+<button style={{padding:10,borderRadius:8,border:"1px solid #ddd",fontWeight:700}}>Hire Me</button>
 </div>
-<footer style={{textAlign:"center",padding:20,color:"#fff",fontSize:12}}>© 2026 Lorem Pro Tool - 75 Counter • Made with ❤️</footer>
-{showTop&&<button onClick={()=>window.scrollTo({top:0,behavior:"smooth"})} style={{position:"fixed",bottom:20,right:20,background:"#111",color:"#fff",width:50,height:50,borderRadius:999,border:"none",fontSize:22}}>↑</button>}
-</div>)}
+<div style={{marginTop:12,maxHeight:200,overflowY:"auto",display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}}>
+{LANGS.map(([c,n]:any)=><div key={c} style={{background:"#f3f4f6",padding:6,borderRadius:6,fontSize:10,fontWeight:700}}>{n}</div>)}
+</div>
+</div>}
+
+<div style={{maxWidth:700,margin:"auto",padding:12}}>
+
+<div id="gen" className="anim" style={{background:"#fff",borderRadius:20,padding:16,boxShadow:"0 20px 40px rgba(0,0,0,.15)"}}>
+<label style={{fontWeight:800,fontSize:12,color:"#6366f1"}}>SELECT LANGUAGE - 75 OPTIONS</label>
+<select value={lang} onChange={e=>setLang(e.target.value)} style={{width:"100%",padding:14,borderRadius:12,border:"2px solid #6366f1",fontWeight:800,fontSize:15,color:"#000",background:"#fff",marginTop:6}}>
+{LANGS.map(([c,n]:any)=><option key={c} value={c}>{n}</option>)}
+</select>
+
+<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:12}}>
+{["PARAGRAPH","SENTENCE","WORD","LIST"].map(m=><button key={m} onClick={()=>setMode(m)} style={{padding:10,borderRadius:10,background:mode===m?"#6366f1":"#f3f4f6",color:mode===m?"#fff":"#111",border:"none",fontSize:11,fontWeight:800,transition:"0.2s"}}>{m}</button>)}
+</div>
+
+<div style={{marginTop:12,background:"#f3f4f6",padding:12,borderRadius:12}}>
+<label style={{fontWeight:800,color:"#111",fontSize:13}}>कितने चाहिए? - {cnt} / 75</label>
+<input type="range" min={1} max={75} value={cnt} onChange={e=>setCnt(Number(e.target.value))} style={{width:"100%",marginTop:8}}/>
+<div style={{display:"flex",justifyContent:"space-between",fontSize:11,fontWeight:700,marginTop:4,color:"#666"}}><span>1</span><span>75 Pura ek sath!</span></div>
+</
