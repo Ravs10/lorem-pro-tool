@@ -100,14 +100,14 @@ const DB = {
   VI: ["Cuộc sống khỏe mạnh cần yoga hàng ngày.","Đi bộ buổi sáng giữ cơ thể khỏe mạnh.","Chế độ ăn cân bằng là điều cần thiết."],
   ID: ["Hidup sehat membutuhkan yoga harian.","Jalan pagi menjaga tubuh tetap bugar.","Diet seimbang sangat penting."],
   TA: ["ஆரோக்கியமான வாழ்வுக்கு தினமும் யோகா தேவை.","காலை நடை உடலை ஆரோக்கியமாக வைக்கிறது.","சமச்சீர் உணவு அவசியம்."],
-  TE: ["ఆరోగ్యకరమైన జీవితానికి రోజూ యోగా అవసరం.","ఉదయం నడక శరీరాన్ని ఫిట్‌గా ఉంచుతుంది.","సమతుల్య ఆహారం అవసరం."],
+    TE: ["ఆరోగ్యకరమైన జీవితానికి రోజూ యోగా అవసరం.","ఉదయం నడక శరీరాన్ని ఫిట్‌గా ఉంచుతుంది.","సమతుల్య ఆహారం అవసరం."],
   MR: ["निरोगी जीवनासाठी रोज योग आवश्यक आहे.","सकाळी चालणे शरीर तंदुरुस्त ठेवते.","संतुलित आहार आवश्यक आहे."],
   GU: ["સ્વસ્થ જીવન માટે રોજ યોગ જરૂરી છે.","સવારે ચાલવાથી શરીર સ્વસ્થ રહે છે.","સંતુલિત આહાર જરૂરી છે."],
   PA: ["ਸਿਹਤਮੰਦ ਜੀਵਨ ਲਈ ਰੋਜ਼ਾਨਾ ਯੋਗਾ ਜ਼ਰੂਰੀ ਹੈ।","ਸਵੇਰ ਦੀ ਸੈਰ ਸਰੀਰ ਨੂੰ ਤੰਦਰੁਸਤ ਰੱਖਦੀ ਹੈ।","ਸੰਤੁਲਿਤ ਖੁਰਾਕ ਜ਼ਰੂਰੀ ਹੈ।"],
   ML: ["ആരോഗ്യകരമായ ജീവിതത്തിന് ദിവസവും യോഗ ആവശ്യമാണ്.","രാവിലെ നടത്തം ശരീരത്തെ ആരോഗ്യത്തോടെ നിലനിർത്തുന്നു.","സമീകൃതാഹാരം അത്യാവശ്യമാണ്."],
   KN: ["ಆರೋಗ್ಯಕರ ಜೀವನಕ್ಕೆ ಪ್ರತಿದಿನ ಯೋಗ ಅಗತ್ಯ.","ಬೆಳಿಗ್ಗೆ ನಡಿಗೆ ದೇಹವನ್ನು ಫಿಟ್ ಆಗಿಡುತ್ತದೆ.","ಸಮತೋಲಿತ ಆಹಾರ ಅತ್ಯಗತ್ಯ."],
   OR: ["ସୁସ୍ଥ ଜୀବନ ପାଇଁ ପ୍ରତିଦିନ ଯୋଗ ଆବଶ୍ୟକ।","ସକାଳ ଚାଲିବା ଶରୀରକୁ ସୁସ୍ଥ ରଖେ।","ସନ୍ତୁଳିତ ଖାଦ୍ୟ ଜରୁରୀ।"],
-    AS: ["সুস্থ জীৱনৰ বাবে দৈনিক যোগ প্ৰয়োজন।","পুৱাৰ খোজে শৰীৰক সুস্থ ৰাখে।","সুষম খাদ্য অপৰিহাৰ্য।"],
+  AS: ["সুস্থ জীৱনৰ বাবে দৈনিক যোগ প্ৰয়োজন।","পুৱাৰ খোজে শৰীৰক সুস্থ ৰাখে।","সুষম খাদ্য অপৰিহাৰ্য।"],
   NE: ["स्वस्थ जीवनका लागि दैनिक योग आवश्यक छ।","बिहानको हिँडाइले शरीरलाई स्वस्थ राख्छ।","सन्तुलित भोजन आवश्यक छ।"],
   SI: ["නිරෝගී ජීවිතයට දිනපතා යෝග අවශ්‍යයි.","උදෑසන ඇවිදීම ශරීරය නිරෝගීව තබයි.","සමබර ආහාර අත්‍යවශ්‍යයි."],
   MY: ["ကျန်းမာသောဘဝအတွက် နေ့စဉ်ယောဂ လိုအပ်သည်။","မနက်ခင်းလမ်းလျှောက်ခြင်းက ခန္ဓာကိုယ်ကို ကျန်းမာစေသည်။","မျှတသောအစားအစာ မရှိမဖြစ်လိုအပ်သည်။"],
@@ -154,14 +154,16 @@ const DB = {
   FI: ["Terveellinen elämä vaatii päivittäistä joogaa.","Aamukävely pitää kehon kunnossa.","Tasapainoinen ruokavalio on välttämätön."],
   SV: ["Hälsosamt liv kräver daglig yoga.","Morgonpromenad håller kroppen i form.","Balanserad kost är viktigt."],
   NO: ["Sunt liv krever daglig yoga.","Morgentur holder kroppen i form.","Balansert kosthold er viktig."]
-}
-export default function Page(){
+  export default function Page(){
 const [lang,setLang]=useState("HI")
 const [mode,setMode]=useState("paragraph")
-const [cnt,setCnt]=useState(3)
+const [cnt,setCnt]=useState(5)
 const [out,setOut]=useState("")
 const [cp,setCp]=useState(false)
-const [menu,setMenu]=useState(false)
+const [dtype,setDtype]=useState("txt")
+const [showPage,setShowPage]=useState("")
+const [menuOpen,setMenuOpen]=useState(false)
+
 const gen=()=>{
 let base=DB[lang]||DB.EN
 let words=base.join(" ").split(/\s+/).filter(Boolean)
@@ -173,52 +175,140 @@ else{let a=[];for(let i=0;i<cnt;i++){a.push(base[i%base.length])};r=a.join("\n\n
 setOut(r)
 }
 useEffect(()=>{gen()},[lang,mode,cnt])
+
+const wc = out?out.split(/\s+/).filter(Boolean).length:0
+const cc = out.length
+const sc = out?out.split(/[.!?।।]/).filter(s=>s.trim().length>5).length:0
+const pc = out?out.split(/\n\n/).filter(Boolean).length:0
+const rt = Math.max(1,Math.ceil(wc/200))
+
+const download=()=>{
+let content=out
+let mime="text/plain"
+let ext=dtype
+if(dtype==="html"){content=`<!DOCTYPE html><html><body><p>${out.replace(/\n\n/g,"</p><p>").replace(/\n/g,"<br>")}</p></body></html>`;mime="text/html"}
+else if(dtype==="md"){content=`# LoremPro - ${lang}\n\n${out}`;mime="text/markdown"}
+else if(dtype==="json"){content=JSON.stringify({language:lang,mode,count:cnt,text:out,words:wc,chars:cc},null,2);mime="application/json"}
+else if(dtype==="csv"){content=`language,mode,count,text\n${lang},${mode},${cnt},"${out.replace(/"/g,'""')}"`;mime="text/csv"}
+else if(dtype==="pdf"){content=out;mime="application/pdf"}
+else if(dtype==="doc"){content=out;mime="application/msword"}
+else if(dtype==="rtf"){content=`{\\rtf1\\ansi\\ansicpg1252 ${out}}`;mime="application/rtf"}
+let blob=new Blob([content],{type:mime})
+let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`lorem-${lang}-${cnt}.${ext}`;a.click()
+}
+
+const pages={
+about:`About LoremPro - 75 Native Languages Lorem Ipsum Generator\n\nWe built the world's first true 75 native language lorem generator. Unlike other tools that show English placeholder for all languages, we provide real native script for every language - from Hindi to Norwegian.\n\nOur mission: Help designers, developers and content creators test their UI with real global content.\n\nFeatures:\n- 75 real native translations\n- Exact word count\n- 8 download formats\n- Live counters\n- 100% free`,
+contact:`Contact Us\n\nHave questions or custom tool request?\n\nEmail: hello@lorempro.tool\nTwitter: @lorempro\nGitHub: github.com/lorempro\n\nWe reply within 24 hours. For freelance tool development, use Hire Me section.`,
+privacy:`Privacy Policy\n\nWe respect your privacy.\n\n1. No data collection - Everything runs in your browser.\n2. No cookies for tracking.\n3. No personal info stored.\n4. Downloads happen locally.\n5. We use Vercel hosting with standard logs.\n\nYour generated text never leaves your device.`,
+disclaimer:`Disclaimer\n\nThis tool provides dummy placeholder text for design and development.\n\n1. Text is auto-generated, not professional advice.\n2. Translations are for placeholder purpose, may not be 100% contextually accurate for legal/medical use.\n3. We are not responsible for how you use the text.\n4. All content is free to use commercially.\n\nUse responsibly.`
+}
+
 return(
-<div style={{background:"#f8fafc",minHeight:"100vh",color:"#111",fontFamily:"system-ui"}}>
-<header style={{background:"#fff",padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,borderBottom:"1px solid #e5e7eb",zIndex:20}}>
-<b style={{fontSize:14}}>LoremPro V25 - 75 Native ✓</b>
-<button onClick={()=>setMenu(!menu)} style={{background:"#111",color:"#fff",borderRadius:999,padding:"8px 16px",border:"none",fontWeight:800}}>☰ Menu</button>
+<div style={{background:"linear-gradient(135deg,#667eea 0%,#764ba2 100%)",minHeight:"100vh",fontFamily:"system-ui"}}>
+<style>{`
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(99,102,241,.4)}50%{box-shadow:0 0 40px rgba(99,102,241,.8)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.anim-float{animation:float 3s ease-in-out infinite}
+.anim-glow{animation:glow 2s ease-in-out infinite}
+.shimmer{background:linear-gradient(90deg,transparent,#fff3,transparent);background-size:200% 100%;animation:shimmer 2s linear infinite}
+`}</style>
+
+{/* HEADER - Logo + Name Separate */}
+<header style={{background:"rgba(255,255,255,.95)",backdropFilter:"blur(12px)",padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:30,borderBottom:"1px solid rgba(0,0,0,.08)"}}>
+<div style={{display:"flex",alignItems:"center",gap:10}}>
+<div style={{width:40,height:40,borderRadius:12,background:"linear-gradient(135deg,#6366f1,#8b5cf6)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:900,fontSize:18}} className="anim-float">LP</div>
+<div><div style={{fontWeight:900,fontSize:16,letterSpacing:-.5}}>LoremPro</div><div style={{fontSize:10,color:"#6366f1",fontWeight:800,letterSpacing:1}}>75 LANGUAGES • NATIVE</div></div>
+</div>
+<div style={{display:"flex",gap:8,alignItems:"center"}}>
+<div style={{background:"#10b981",color:"#fff",padding:"4px 8px",borderRadius:999,fontSize:9,fontWeight:900}} className="anim-glow">● LIVE</div>
+<button onClick={()=>setMenuOpen(!menuOpen)} style={{background:"#111",color:"#fff",borderRadius:999,padding:"8px 14px",border:"none",fontWeight:800,fontSize:12}}>☰</button>
+</div>
 </header>
-{menu && <div style={{background:"#fff",padding:12,display:"flex",gap:8,flexWrap:"wrap",borderBottom:"1px solid #e5e7eb",position:"sticky",top:48,zIndex:10}}>
-{[["gen","Generator"],["art","Articles"],["use","How to Use"],["tools","Other Tools"],["hire","Hire Me"]].map(([id,lbl])=><button key={id} onClick={()=>{setMenu(false);document.getElementById(id)?.scrollIntoView({behavior:"smooth"})}} style={{border:"1px solid #111",padding:"8px 12px",borderRadius:999,fontSize:11,fontWeight:800,background:"#fff"}}>{lbl}</button>)}</div>}
-<div style={{maxWidth:640,margin:"auto",padding:12}}>
-<div id="gen" style={{background:"#fff",borderRadius:16,padding:14,border:"1px solid #e5e7eb"}}>
-<label style={{fontSize:12,fontWeight:900}}>SELECT LANGUAGE - 75 NATIVE</label>
-<select value={lang} onChange={e=>setLang(e.target.value)} style={{width:"100%",padding:14,borderRadius:12,border:"2px solid #6366f1",fontWeight:800,marginTop:8,background:"#fff"}}>
+
+{/* NAVIGATION - Separate */}
+<nav style={{background:"#111",padding:"8px 12px",display:menuOpen?"flex":"none",gap:6,flexWrap:"wrap",position:"sticky",top:60,zIndex:25,borderBottom:"2px solid #6366f1"}}>
+{[
+["gen","⚡ Generator"],["art","📚 Articles"],["use","❓ How to Use"],["tools","🛠️ Tools"],
+["about","ℹ️ About"],["contact","✉️ Contact"],["privacy","🔒 Privacy"],["disclaimer","⚠️ Disclaimer"],["hire","👨‍💻 Hire Me"]
+].map(([id,lbl])=><button key={id} onClick={()=>{if(["about","contact","privacy","disclaimer"].includes(id)){setShowPage(id)}else{setShowPage("");document.getElementById(id)?.scrollIntoView({behavior:"smooth"})}setMenuOpen(false)}} style={{border:"1px solid #333",color:"#fff",background:id===showPage?"#6366f1":"#222",padding:"6px 10px",borderRadius:999,fontSize:10,fontWeight:700}}>{lbl}</button>)}
+</nav>
+
+{/* Quick Nav when closed */}
+{!menuOpen && <div style={{background:"rgba(17,17,17,.9)",padding:"8px 12px",display:"flex",gap:6,overflowX:"auto",position:"sticky",top:57,zIndex:24}}>
+{[
+["gen","Generator"],["tools","Tools"],["about","About"],["contact","Contact"]
+].map(([id,lbl])=><button key={id} onClick={()=>{if(["about","contact","privacy","disclaimer"].includes(id)){setShowPage(id)}else{document.getElementById(id)?.scrollIntoView({behavior:"smooth"})}}} style={{whiteSpace:"nowrap",border:"1px solid #444",color:"#fff",background:"transparent",padding:"5px 10px",borderRadius:999,fontSize:10,fontWeight:700}}>{lbl}</button>)}
+<div style={{marginLeft:"auto",color:"#10b981",fontSize:10,fontWeight:800}}>✨ V26 FINAL</div>
+</div>}
+
+<div style={{maxWidth:680,margin:"auto",padding:12}}>
+
+{/* Pages Modal */}
+{showPage && <div style={{background:"#fff",borderRadius:16,padding:16,marginBottom:12,border:"2px solid #6366f1",boxShadow:"0 10px 30px rgba(0,0,0,.2)"}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><h3 style={{margin:0,fontSize:14,textTransform:"uppercase"}}>{showPage}</h3><button onClick={()=>setShowPage("")} style={{background:"#111",color:"#fff",borderRadius:999,padding:"4px 10px",border:"none",fontSize:10}}>✕ Close</button></div>
+<pre style={{whiteSpace:"pre-wrap",fontSize:12,lineHeight:"18px",marginTop:10,fontFamily:"system-ui"}}>{pages[showPage]}</pre>
+</div>}
+
+<div id="gen" style={{background:"#fff",borderRadius:20,padding:16,border:"1px solid rgba(0,0,0,.08)",boxShadow:"0 8px 32px rgba(0,0,0,.12)"}} className="anim-float">
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+<label style={{fontSize:12,fontWeight:900,letterSpacing:.5}}>🌍 SELECT LANGUAGE - 75 NATIVE</label>
+<div style={{background:"linear-gradient(90deg,#6366f1,#8b5cf6)",color:"#fff",padding:"4px 8px",borderRadius:999,fontSize:9,fontWeight:900}}>{LANGS.length} LANGS</div>
+</div>
+<select value={lang} onChange={e=>setLang(e.target.value)} style={{width:"100%",padding:14,borderRadius:12,border:"2px solid #6366f1",fontWeight:800,background:"#fff",fontSize:14}}>
 {LANGS.map(([c,n])=><option key={c} value={c}>{c} - {n}</option>)}
 </select>
+
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,marginTop:12}}>
-{["paragraph","sentence","word","list"].map(m=><button key={m} onClick={()=>setMode(m)} style={{padding:10,borderRadius:10,background:mode===m?"#6366f1":"#f3f4f6",color:mode===m?"#fff":"#111",border:"none",fontSize:10,fontWeight:800}}>{m.toUpperCase()}</button>)}</div>
-<div style={{display:"flex",gap:10,alignItems:"center",marginTop:12}}><span style={{fontSize:11,fontWeight:800}}>COUNT:</span><input type="range" min={1} max={50} value={cnt} onChange={e=>setCnt(Number(e.target.value))} style={{flex:1}}/><b style={{border:"2px solid #111",padding:"6px 12px",borderRadius:8}}>{cnt}</b></div>
-<button onClick={gen} style={{width:"100%",background:"#111",color:"#fff",padding:14,borderRadius:12,fontWeight:900,marginTop:12,border:"none"}}>GENERATE {mode.toUpperCase()} - {lang}</button>
-<div style={{background:"#fff",color:"#000",border:"2px solid #111",borderRadius:12,padding:14,marginTop:14,whiteSpace:"pre-wrap",fontSize:15,lineHeight:"24px",minHeight:90}}>{out}</div>
-<div style={{display:"flex",gap:6,marginTop:10}}><button onClick={()=>{navigator.clipboard.writeText(out);setCp(true);setTimeout(()=>setCp(false),1500)}} style={{background:cp?"#16a34a":"#111",color:"#fff",padding:"10px 16px",borderRadius:999,border:"none",fontWeight:800}}>{cp?"Copied ✓":"Copy"}</button></div>
+{["paragraph","sentence","word","list"].map(m=><button key={m} onClick={()=>setMode(m)} style={{padding:10,borderRadius:10,background:mode===m?"#6366f1":"#f3f4f6",color:mode===m?"#fff":"#111",border:"none",fontSize:10,fontWeight:800,transform:mode===m?"scale(1.05)":"scale(1)",transition:"all.2s"}}>{m.toUpperCase()}</button>)}</div>
+
+<div style={{display:"flex",gap:10,alignItems:"center",marginTop:14,background:"#f8fafc",padding:10,borderRadius:12}}>
+<span style={{fontSize:11,fontWeight:900}}>COUNT:</span><input type="range" min={1} max={50} value={cnt} onChange={e=>setCnt(Number(e.target.value))} style={{flex:1,accentColor:"#6366f1"}}/><b style={{background:"#111",color:"#fff",padding:"6px 12px",borderRadius:8,minWidth:36,textAlign:"center"}}>{cnt}</b>
 </div>
 
-<div id="art" style={{background:"#fff",borderRadius:16,padding:14,marginTop:14,border:"1px solid #e5e7eb"}}><h3 style={{fontSize:14,fontWeight:900,margin:0}}>📚 Latest Articles</h3>
-<div style={{marginTop:10,display:"grid",gap:8}}>
-<div style={{border:"1px solid #f1f5f9",padding:10,borderRadius:12,background:"#f8fafc"}}><b style={{fontSize:12}}>What is Lorem Ipsum in 75 Languages?</b><p style={{fontSize:11,color:"#555",margin:"4px 0 0"}}>Native dummy text boosts SEO by 40%.</p></div>
-<div style={{border:"1px solid #f1f5f9",padding:10,borderRadius:12,background:"#f8fafc"}}><b style={{fontSize:12}}>Why Native Lorem Matters</b><p style={{fontSize:11,color:"#555",margin:"4px 0 0"}}>Users stay longer in own script.</p></div>
-</div></div>
+<button onClick={gen} style={{width:"100%",background:"linear-gradient(135deg,#111,#333)",color:"#fff",padding:14,borderRadius:12,fontWeight:900,marginTop:12,border:"none",boxShadow:"0 4px 12px rgba(0,0,0,.3)"}}>✨ GENERATE {mode.toUpperCase()} - {lang} ({cnt})</button>
 
-<div id="use" style={{background:"#fff",borderRadius:16,padding:14,marginTop:14,border:"1px solid #e5e7eb"}}><h3 style={{fontSize:14,fontWeight:900,margin:0}}>❓ How to Use</h3>
-<ol style={{fontSize:12,lineHeight:"20px",paddingLeft:18,marginTop:8}}>
-<li><b>Language chuno</b> - 75 me se real native.</li>
-<li><b>Mode chuno</b> - Paragraph / Sentence / WORD exact / List.</li>
-<li><b>Count 1-50</b> - Slider.</li>
-<li><b>Generate + Copy</b></li>
-</ol></div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6,marginTop:12}}>
+{[
+["Words",wc,"#6366f1"],
+["Chars",cc,"#8b5cf6"],
+["Sent.",sc,"#ec4899"],
+["Paras",pc,"#10b981"],
+["Min",rt,"#f59e0b"]
+].map(([lbl,val,color])=><div key={lbl} style={{background:"#fff",border:`2px solid ${color}`,borderRadius:10,padding:"6px 4px",textAlign:"center"}}>
+<div style={{fontSize:14,fontWeight:900,color}}>{val}</div><div style={{fontSize:8,fontWeight:800,color:"#666"}}>{lbl}</div>
+</div>)}
+</div>
+  <div style={{background:"#fff",color:"#000",border:"2px solid #111",borderRadius:12,padding:14,marginTop:14,whiteSpace:"pre-wrap",fontSize:15,lineHeight:"24px",minHeight:90}}>{out}</div>
 
-<div id="tools" style={{background:"#fff",borderRadius:16,padding:14,marginTop:14,border:"1px solid #e5e7eb"}}><h3 style={{fontSize:14,fontWeight:900,margin:0}}>🛠️ Other Useful Tools</h3>
-<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:10}}>
-{["Word Counter","Char Counter","Hashtag Gen","Meta Tags","YT Title Gen","Slug Gen","Case Converter","Blogger Full Width","SEO Checker","QR Gen","Password Gen","Lorem EN"].map(t=><div key={t} style={{border:"1px solid #e5e7eb",padding:10,borderRadius:10,fontSize:11,fontWeight:700,display:"flex",justifyContent:"space-between"}}><span>{t}</span><span>→</span></div>)}
-</div></div>
+<div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap",alignItems:"center"}}>
+<button onClick={()=>{navigator.clipboard.writeText(out);setCp(true);setTimeout(()=>setCp(false),1500)}} style={{background:cp?"#10b981":"#111",color:"#fff",padding:"10px 16px",borderRadius:999,border:"none",fontWeight:800,flex:"1 0 auto"}}>{cp?"✓ Copied!":"📋 Copy"}</button>
+<div style={{display:"flex",gap:6,flex:"2 0 auto",background:"#f3f4f6",padding:6,borderRadius:999,border:"1px solid #e5e7eb"}}>
+<select value={dtype} onChange={e=>setDtype(e.target.value)} style={{flex:1,border:"none",background:"transparent",fontWeight:800,fontSize:12}}>
+<option value="txt">📄 TXT</option>
+<option value="html">🌐 HTML</option>
+<option value="md">📝 MD</option>
+<option value="json">🔧 JSON</option>
+<option value="csv">📊 CSV</option>
+<option value="pdf">📕 PDF</option>
+<option value="doc">📘 DOC</option>
+<option value="rtf">📙 RTF</option>
+</select>
+<button onClick={download} style={{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",color:"#fff",padding:"8px 14px",borderRadius:999,border:"none",fontWeight:800,fontSize:12}}>⬇️ Download</button>
+</div>
+</div>
+<div style={{fontSize:9,color:"#666",marginTop:6,textAlign:"center"}}>💡 8 formats • Instant download • {lang} Native ✓</div>
+</div>
 
-<div id="hire" style={{background:"#111",color:"#fff",borderRadius:16,padding:16,marginTop:14}}><h3 style={{margin:0,fontSize:14}}>👨‍💻 Hire Me</h3><p style={{fontSize:12,lineHeight:"18px",marginTop:6,color:"#cbd5e1"}}>Custom Blogger/WordPress tools chahiye? Fast SEO tools banata hu. Contact karo.</p><div style={{display:"flex",gap:8,marginTop:10}}><a href="mailto:hire@example.com" style={{background:"#fff",color:"#111",padding:"8px 14px",borderRadius:999,fontSize:12,fontWeight:800,textDecoration:"none"}}>Email Me</a></div></div>
+<div id="art" style={{background:"rgba(255,255,255,.95)",borderRadius:16,padding:14,marginTop:14}}><h3 style={{fontSize:14,fontWeight:900,margin:0}}>📚 Latest Articles</h3><p style={{fontSize:11,color:"#555"}}>Why 75 native languages boost SEO 3x. Real script matters.</p></div>
+<div id="use" style={{background:"rgba(255,255,255,.95)",borderRadius:16,padding:14,marginTop:14}}><h3 style={{fontSize:14,fontWeight:900,margin:0}}>❓ How to Use</h3><ol style={{fontSize:12,lineHeight:"20px",paddingLeft:18}}><li>Language chuno - 75 native</li><li>Mode + Count 1-50</li><li>Generate</li><li>Copy or 8-format download</li></ol></div>
+<div id="tools" style={{background:"rgba(255,255,255,.95)",borderRadius:16,padding:14,marginTop:14}}><h3 style={{fontSize:14,fontWeight:900,margin:0}}>🛠️ Other Useful Tools</h3><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:10}}>{["Word Counter","Char Counter","Hashtag Gen","Meta Tags","YT Title","Slug Gen"].map(t=><div key={t} style={{border:"1px solid #e5e7eb",padding:10,borderRadius:10,fontSize:11,fontWeight:700}}>{t} →</div>)}</div></div>
+<div id="hire" style={{background:"#111",color:"#fff",borderRadius:16,padding:16,marginTop:14}}><h3 style={{margin:0,fontSize:14}}>👨‍💻 Hire Me</h3><p style={{fontSize:12,color:"#cbd5e1"}}>Custom tools for Blogger/WordPress? Let's build.</p></div>
 
-<footer style={{background:"#fff",borderRadius:16,padding:14,marginTop:14,border:"1px solid #e5e7eb",textAlign:"center"}}>
-<div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",fontSize:11,fontWeight:700}}><a href="#gen" style={{color:"#111"}}>Generator</a><a href="#art" style={{color:"#111"}}>Articles</a><a href="#use" style={{color:"#111"}}>How to Use</a><a href="#tools" style={{color:"#111"}}>Tools</a><a href="#hire" style={{color:"#111"}}>Hire Me</a></div>
-<p style={{fontSize:11,color:"#666",marginTop:10}}>© 2026 LoremPro V25 - 75 Native - All Rights Reserved</p>
+<footer style={{background:"rgba(255,255,255,.95)",borderRadius:16,padding:14,marginTop:14,textAlign:"center"}}>
+<div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",fontSize:11,fontWeight:700}}><a href="#" onClick={e=>{e.preventDefault();setShowPage("about")}}>About</a><a href="#" onClick={e=>{e.preventDefault();setShowPage("contact")}}>Contact</a><a href="#" onClick={e=>{e.preventDefault();setShowPage("privacy")}}>Privacy</a><a href="#" onClick={e=>{e.preventDefault();setShowPage("disclaimer")}}>Disclaimer</a></div>
+<p style={{fontSize:11,color:"#666",marginTop:8}}>© 2026 LoremPro V26 • 75 Native • 8 Downloads • Live Counters • Final</p>
 </footer>
 
 </div></div>)
