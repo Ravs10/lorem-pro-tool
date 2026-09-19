@@ -150,24 +150,24 @@ return(
 <p><b>Version:</b> 4.0 | <b>Last Updated:</b> September 2026</p>
 </Wrap>}
 
-{page==="how"&&<Wrap t="How to Use - Kaise Use Kare">
-<h3>Step 1: Language Select Karo</h3>
-<p>Upar dropdown se apni bhasha chuno. Jaise HI - Hindi, EN - USA/UK English, ZH - China Chinese, JA - Japan Japanese etc. Popular desho ke naam saath me likhe hain.</p>
-<h3>Step 2: Mode Select Karo</h3>
+{page==="how"&&<Wrap t="How to Use">
+<h3>Step 1: Select Language</h3>
+<p>Choose your desired language from the dropdown menu at the top. We support over {LANGS.length} languages worldwide.</p>
+<h3>Step 2: Select Mode</h3>
 <ul>
-<li><b>SENTENCE:</b> Lagatar sentences, bina gap ke. Example: cnt=5 → 5 sentences ek line me jud jayenge.</li>
-<li><b>PARAGRAPH:</b> Variable paragraphs. Har para 2, 3 ya 4 sentences ka hoga (2+ p%3). Example: cnt=3 → 3 paragraphs.</li>
-<li><b>WORD:</b> Sirf words chahiye to. Example: cnt=20 → 20 words.</li>
-<li><b>LIST:</b> Bullet list • ke saath.</li>
+<li><b>SENTENCE:</b> Generate continuous sentences without line breaks, perfect for paragraph filling.</li>
+<li><b>PARAGRAPH:</b> Generate variable-length paragraphs for layouts and articles.</li>
+<li><b>WORD:</b> Generate only random words. Best for titles and short headings.</li>
+<li><b>LIST:</b> Generate a bullet list format.</li>
 </ul>
-<h3>Step 3: Counter Set Karo (0-100)</h3>
-<p>Slider khisakao ya number box me 0-100 kuch bhi type karo. 0 ka matlab empty output. Auto generate hota hai.</p>
+<h3>Step 3: Set Counter (0-100)</h3>
+<p>Use the slider or number box to set how many sentences, paragraphs, or words you need. You can generate from 0 to 100 at once.</p>
 <h3>Step 4: Generate & Copy</h3>
-<p>GENERATE button dabao (waise auto bhi hota hai). Niche Word/Char/Sent/Para counter dekho. Copy button dabao to green ho jayega + Copied dikhega.</p>
-<h3>Step 5: Download Karo</h3>
-<p>Colorful Download button dabao → 8 types ka dropdown khulega - TXT, HTML, JSON, CSV, MD, JS, RTF, PDF. Jo chahiye uspar click karo.</p>
+<p>Click the GENERATE button. The text is generated automatically. Then click the Copy button to copy it to your clipboard instantly.</p>
+<h3>Step 5: Download</h3>
+<p>Click the Colorful Download button to get your text in 8 different formats - TXT, PDF, DOC, and more.</p>
 <h3>Pro Tips</h3>
-<p>• SEO ke liye Word count dekho<br/>• Design ke liye Paragraph variable use karo - natural lagega<br/>• Different language test karne ke liye menu me saare languages hain</p>
+<p>• For SEO, check the live word count below the output.<br/>• Use WORD mode for brainstorming names.<br/>• Use PARAGRAPH mode for website design mockups.</p>
 </Wrap>}
 
 {page==="contact"&&<Wrap t="Contact Us">
