@@ -197,20 +197,20 @@ return(
 
 {page==="privacy"&&<Wrap t="Privacy Policy">
 <p><b>Last Updated:</b> 18 September 2026</p>
-<p>LoremPro aapki privacy ka pura samman karta hai. Humara Privacy Policy bahut simple hai.</p>
-<h3>1. Data Collection - Kya Data Lete Hain?</h3>
-<p>Hum <b>koi personal data collect nahi karte.</b> No login, no signup, no email required. Aap seedha tool use kar sakte hain.</p>
-<h3>2. Generated Text Kaha Jata Hai?</h3>
-<p>Jo bhi text aap generate karte hain, wo <b>aapke browser me hi banta hai.</b> Hamare server par save nahi hota. Aapka data aapke paas hi rehta hai.</p>
+<p>At LoremPro, we take your privacy seriously. This Privacy Policy explains how we handle information when you use our website.</p>
+<h3>1. Data Collection</h3>
+<p>We do not collect any personal information. You can use our tools without creating an account, login, or providing any email address.</p>
+<h3>2. How Generated Text is Processed</h3>
+<p>All text generation happens locally in your browser. The content you generate is not sent to, stored on, or accessed by our servers.</p>
 <h3>3. Cookies & Tracking</h3>
-<p>Hum sirf basic analytics (Google Analytics jaise) ka use kar sakte hain ye dekhne ke liye ki kitne log aaye. Personal info track nahi karte.</p>
+<p>We use only basic, privacy-friendly analytics such as Google Analytics to understand total visitor traffic. We do not track your personal identity. For advertising, Google AdSense may use cookies to show relevant ads.</p>
 <h3>4. Third Party Links</h3>
-<p>Hamari site par koi third party ad ya link nahi hai jo aapka data le.</p>
+<p>Our website does not contain any malicious third-party links. Any external links are for reference purposes only.</p>
 <h3>5. Children's Privacy</h3>
-<p>Ye website sabhi umar ke logon ke liye safe hai. Bacche bhi use kar sakte hain.</p>
+<p>Our website is safe and suitable for users of all ages. We do not knowingly collect any data from children.</p>
 <h3>6. Contact</h3>
-<p>Agar privacy ko leke koi sawal ho to: <b>lorempro75@gmail.com</b></p>
-<p><b>Summary:</b> No data collection, No tracking, 100% Safe.</p>
+<p>If you have any questions regarding privacy, please contact us via our Contact page.</p>
+<p><b>Summary:</b> No data collection, No tracking, No personal information stored.</p>
 </Wrap>}
 
 {page==="disclaimer"&&<Wrap t="Disclaimer">
