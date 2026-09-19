@@ -1,6 +1,6 @@
 "use client"
 import {useState,useEffect} from "react"
-
+import Header from "./components/Header";
 const LANGS=[
 ["EN","English - USA UK"],["HI","हिन्दी - India"],["ZH","中文 - China"],
 ["ES","Español - Spain Mexico"],["FR","Français - France"],["DE","Deutsch - Germany"],
@@ -183,10 +183,7 @@ const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,pa
 
 return(
 <div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
-<header style={{background:"#fff",padding:12,display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:50}}>
-<b style={{color:"#000"}}>LP - {LANGS.length} Langs</b>
-<button onClick={()=>setPage(page==="home"?"menu":"home")} style={{background:"#000",color:"#fff",border:"none",padding:"10px 20px",borderRadius:999,fontWeight:800}}>{page==="home"?"Menu":"Home"}</button>
-</header>
+<Header />
 
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
 {page==="menu"&&<div style={{background:"#fff",borderRadius:20,padding:16}}>
