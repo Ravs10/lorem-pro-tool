@@ -74,28 +74,71 @@ LANGS.forEach(([c]:any)=>{if(!DB[c] || DB[c].length<2){DB[c]=DB[c]||["Native con
 const ARTICLES = [
   {
     id: 1,
-    slug: "what-is-lorempro",
+    icon: "🚀",
+    cat: "LOREM GUIDE",
+    read: "4 Min Read",
     title: "What is LoremPro? The World's Most Advanced Generator",
     date: "19 Sep 2026",
-    excerpt: "LoremPro is the world's first 75+ language generator made by Ravish from India. Learn its features and benefits...",
-    content: `<p><b>LoremPro</b> is the world's most advanced multilingual Lorem Ipsum Generator, created by <b>Ravish from India</b>. Unlike traditional tools that only provide English or Latin text, LoremPro supports over 75 languages. Our mission is to help developers, designers, and writers get realistic dummy text in their native language.</p><h3>What is Lorem Ipsum?</h3><p>Lorem Ipsum is dummy text used since the 1500s. It helps designers focus on design, not content.</p><h3>Normal vs LoremPro?</h3><p>Normal generators give only English, fixed-length paragraphs. LoremPro gives 75+ languages, variable length, 4 modes, live counters, and 8 download formats. 100% free.</p>`
+    excerpt: "LoremPro is the world's first 75+ language generator made by Ravish from India. Learn its features and benefits.",
+    content: `
+      <div style="background:linear-gradient(135deg,#FFF7ED,#FFFFFF);border:1px solid #FFEDD5;padding:16px;border-radius:12px;margin-bottom:16px">
+        <b>📋 In this article:</b><br/>
+        <span style="color:#FF6A00">●</span> What is LoremPro?<br/>
+        <span style="color:#FF6A00">●</span> Why it's better than old tools?<br/>
+        <span style="color:#FF6A00">●</span> How to use it?
+      </div>
+      <p><b>LoremPro</b> is the world's most advanced multilingual Lorem Ipsum Generator, created by <b>Ravish from India</b>. Unlike traditional generators, it supports 75+ native languages.</p>
+      <h3>Why Choose LoremPro?</h3>
+      <ul>
+        <li>Supports 75+ languages with native content</li>
+        <li>One-click copy, no annoying popups</li>
+        <li>4 modes: Sentence, Paragraph, Words, List</li>
+      </ul>
+      <div style="border-left:4px solid #FF6A00;background:#FFF7ED;padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0">
+        <b>💡 Pro Tip:</b> Use LoremPro with Figma to speed up your design workflow by 50%.
+      </div>
+      <p>This tool was built to solve the problem of boring, single-language dummy text.</p>
+    `
   },
   {
     id: 2,
-    slug: "history-of-lorem-ipsum",
+    icon: "🎨",
+    cat: "HISTORY",
+    read: "3 Min Read",
     title: "History of Lorem Ipsum - Why Do We Use It Since 1500s?",
     date: "18 Sep 2026",
-    excerpt: "Did you know Lorem Ipsum is 500 years old? Know its full history...",
-    content: `<p>Lorem Ipsum is 500 years old, created by an unknown printer in the 1500s. It became standard because it looks like real text but is not readable.</p>`
+    excerpt: "Did you know Lorem Ipsum is 500 years old? Know its full history and why it became standard.",
+    content: `
+      <p>Lorem Ipsum is 500 years old, created by an unknown printer in the 1500s. It became standard because it looks like real text but is unreadable.</p>
+      <h3>Key Historical Points</h3>
+      <ul>
+        <li>Originated from Cicero's writings in 45 BC</li>
+        <li>Popularized by printer Aldus Manutius</li>
+        <li>Still used in 2026 because it works</li>
+      </ul>
+      <div style="border-left:4px solid #FF6A00;background:#FFF7ED;padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0">
+        <b>🔥 Fun Fact:</b> Lorem Ipsum is not random, it has a proper Latin root.
+      </div>
+    `
   },
   {
     id: 3,
-    slug: "sentence-vs-paragraph",
-    title: "Sentence vs Paragraph vs Word Mode - Which One to Use?",
+    icon: "💻",
+    cat: "DEVELOPER",
+    read: "5 Min Read",
+    title: "Sentence vs Paragraph vs Word Mode - Explained",
     date: "17 Sep 2026",
-    excerpt: "Confused between modes? This guide explains which mode to use when...",
-    content: `<p>LoremPro has 4 modes: SENTENCE for continuous text, PARAGRAPH for natural variable paragraphs, WORD for titles, and LIST for bullet points. Use counter 0-100 as needed.</p>`
-  }
+    excerpt: "Confused between modes? This guide explains when to use sentence, paragraph, or word mode.",
+    content: `
+      <p>LoremPro has 4 modes: SENTENCE, PARAGRAPH, WORDS, and LIST. Each mode is for a different use case.</p>
+      <h3>Which Mode to Use?</h3>
+      <ul>
+        <li><b>Sentence:</b> For headings and small texts</li>
+        <li><b>Paragraph:</b> For full content blocks</li>
+        <li><b>Words:</b> For checking font width</li>
+      </ul>
+    `
+  },
 ];
 export default function Page(){
 const [lang,setLang]=useState("HI")
