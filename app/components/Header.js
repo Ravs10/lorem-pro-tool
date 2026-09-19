@@ -1,7 +1,7 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
 
-export default function Header({ onCloseMenu }: { onCloseMenu?: () => void }) {
+export default function Header({ onCloseMenu }) {
   const pathname = usePathname();
   const router = useRouter();
   const isToolsPage = pathname === "/tools";
@@ -9,7 +9,7 @@ export default function Header({ onCloseMenu }: { onCloseMenu?: () => void }) {
   const handleClick = () => {
     if (isToolsPage) {
       router.push("/");
-      onCloseMenu?.();
+      if (onCloseMenu) onCloseMenu();
     } else {
       router.push("/tools");
     }
