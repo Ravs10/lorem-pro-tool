@@ -324,14 +324,53 @@ return(
 <p style={{background:"#000",color:"#fff",padding:"12px",borderRadius:"10px",textAlign:"center"}}>Let's build your next tool website together!</p>
 </Wrap>}
 
-{page==="article"&&<Wrap t="Article - LoremPro Kya Hai?">
-<p><b>LoremPro 75+</b> duniya ka pehla aisa Lorem Ipsum generator hai jo 75+ bhashaon me real native dummy text deta hai.</p>
-<h3>Normal Lorem Ipsum vs LoremPro?</h3>
-<p>Normal Lorem sirf English/Latin me hota hai - "Lorem ipsum dolor sit amet...". Par agar aap Hindi website bana rahe hain to English Lorem ajeeb lagega. Isliye LoremPro me Hindi me "स्वस्थ जीवन के लिए योग जरूरी है" jaise real sentences milenge.</p>
-<h3>Popular Countries Kaise Shamil Kiye?</h3>
-<p>Humne duniya ke sabse popular desho ki bhashaye jodi hain: USA/UK (English), China (Chinese), Japan (Japanese), Russia (Russian), France (French), Germany (German), Spain/Mexico (Spanish), Brazil (Portuguese), Saudi/UAE (Arabic), Philippines (Filipino), Nepal, Sri Lanka, Myanmar etc.</p>
-<h3>Paragraph Variable Kyu?</h3>
-<p>Pehle har paragraph 2 lines ka fixed tha, jo unnatural lagta tha. Ab logic hai 2+(p%3) = Pehla para 2 lines, dusra 3 lines, teesra 4 lines, phir wapas 2... Isse design ekdum natural lagta hai.</p>
+{page==="article"&&<Wrap t={selectedArticle ? selectedArticle.title : "Blog - Articles & Guides"}>
+<style>{`
+  .article-content ul{list-style:none;padding-left:0}
+  .article-content li{position:relative;padding-left:26px;margin-bottom:10px;line-height:1.7}
+  .article-content li:before{content:'●';position:absolute;left:0;top:0;color:#FF6A00;font-size:18px}
+  .fanta-card{border:1px solid #FFEDD5;border-left:6px solid #FF6A00;padding:18px;border-radius:16px;cursor:pointer;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,0.06);display:flex;gap:14px;transition:0.2s}
+  .fanta-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(255,106,0,0.18)}
+  .icon-box{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#FF6A00,#FF9A44);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+`}</style>
+
+{!selectedArticle ? (
+  <div>
+    <div style={{background:"linear-gradient(135deg,#111,#333)",color:"#fff",padding:"20px",borderRadius:"16px",marginBottom:"18px"}}>
+      <h2 style={{margin:"0 0 6px 0"}}>📚 LoremPro Blog</h2>
+      <p style={{margin:0,opacity:0.8}}>Guides, Tips & Inspiration - By Ravish, India</p>
+    </div>
+    <div style={{display:"grid",gap:"16px"}}>
+      {ARTICLES.map((a:any)=>(
+        <div key={a.id} onClick={()=>setSelectedArticle(a)} className="fanta-card">
+          <div className="icon-box">{a.icon}</div>
+          <div>
+            <div style={{display:"flex",gap:"6px",marginBottom:"6px"}}>
+              <span style={{background:"#FFF7ED",color:"#FF6A00",fontSize:"10px",fontWeight:800,padding:"3px 8px",borderRadius:"20px"}}>{a.cat}</span>
+              <span style={{background:"#F3F4F6",color:"#6B7280",fontSize:"10px",padding:"3px 8px",borderRadius:"20px"}}>{a.read}</span>
+            </div>
+            <b style={{fontSize:"16px"}}>{a.title}</b>
+            <p style={{color:"#6B7280",fontSize:"12px",margin:"4px 0"}}>{a.date}</p>
+            <p style={{color:"#4B5563",fontSize:"13px",marginTop:"6px"}}>{a.excerpt}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+) : (
+  <div className="article-content">
+    <button onClick={()=>setSelectedArticle(null)} style={{marginBottom:"16px",background:"#111",color:"#fff",padding:"8px 18px",borderRadius:"24px",border:"none",fontWeight:700}}>← Back</button>
+    <div style={{background:"linear-gradient(135deg,#FFF7ED,#fff)",border:"1px solid #FFEDD5",padding:"18px",borderRadius:"16px",marginBottom:"16px"}}>
+      <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"10px"}}>
+        <span style={{fontSize:"32px"}}>{selectedArticle.icon}</span>
+        <span style={{background:"#111",color:"#fff",fontSize:"11px",padding:"4px 10px",borderRadius:"20px"}}>{selectedArticle.cat} • {selectedArticle.read}</span>
+      </div>
+      <h1 style={{fontSize:"24px",margin:"0 0 8px 0"}}>{selectedArticle.title}</h1>
+      <p style={{color:"#FF6A00",fontSize:"13px",fontWeight:700}}>{selectedArticle.date} | By Ravish from India 🇮🇳</p>
+    </div>
+    <div dangerouslySetInnerHTML={{__html: selectedArticle.content}} />
+  </div>
+)}
 </Wrap>}
 
 {page==="home"&&<div style={{background:"#fff",borderRadius:20,padding:14}}>
