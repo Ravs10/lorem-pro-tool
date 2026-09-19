@@ -230,26 +230,26 @@ return(
 <p>By using this website, you agree to this disclaimer. If you find any error in any language, please contact us so we can fix it.</p>
 </Wrap>}
 
-{page==="hire"&&<Wrap t="Hire Me - Mujhe Kaam Do 💼">
-<p>Namaste! Main aapke liye aise hi <b>Pro Tools</b> bana sakta hu.</p>
-<h3>🛠️ Main Kya Bana Sakta Hu?</h3>
+{page==="hire"&&<Wrap t="Hire Me">
+<p>Hi! I am <b>Ravish</b> from India, the creator of LoremPro. I can build the same kind of professional, fast, and SEO-ready tools for you.</p>
+<h3>🛠️ What Can I Build For You?</h3>
 <ul>
-<li>✅ Lorem Ipsum Generators (jaise ye wala)</li>
-<li>✅ Text Tools - Word Counter, Case Converter, etc</li>
+<li>✅ Lorem Ipsum Generators (like this one)</li>
+<li>✅ Text Tools - Word Counter, Case Converter, etc.</li>
 <li>✅ SEO Tools - Meta Tag Generator, Keyword Tools</li>
-<li>✅ Calculator Tools - Age, BMI, Loan, etc</li>
+<li>✅ Calculator Tools - Age, BMI, Loan, etc.</li>
 <li>✅ Converter Tools - Image, PDF, Unit Converter</li>
-<li>✅ Aur koi bhi custom tool</li>
+<li>✅ And any other custom tool you need</li>
 </ul>
-<h3>💰 Price Kitna?</h3>
-<p><b>Single Tool:</b> Starting ₹1999<br/><b>5 Tools Combo:</b> ₹6999<br/><b>Full Website (20+ Tools):</b> ₹19999</p>
-<h3>⏰ Kitna Time Lagega?</h3>
-<p>Single Tool - 2-3 din me delivery<br/>Full Website - 7-10 din me</p>
-<h3>📦 Kya Milega?</h3>
-<p>• Next.js / React Code<br/>• Mobile Responsive<br/>• SEO Ready<br/>• Free Deployment Help<br/>• 1 Month Free Support</p>
-<h3>📞 Contact Karo</h3>
-<p><b>Email:</b> lorempro75@gmail.com<br/><b>Location:</b> Raebareli, UP, India<br/><b>Response:</b> 24 ghante ke andar</p>
-<p style={{background:"#000",color:"#fff",padding:12,borderRadius:12,textAlign:"center",fontWeight:800,marginTop:12}}>Email karo - lorempro75@gmail.com - Abhi!</p>
+<h3>💰 What is the Price?</h3>
+<p><b>Single Tool:</b> Starting from $25 / ₹1999<br/><b>Full Website (10+ Tools):</b> Contact me for a best price</p>
+<h3>⏰ How Much Time?</h3>
+<p>Single Tool - Delivery in 2-3 days<br/>Full Website - Delivery in 7-10 days</p>
+<h3>📦 What Will You Get?</h3>
+<p>• Next.js / React Clean Code<br/>• Mobile Responsive & Fast<br/>• SEO Optimized<br/>• AdSense Ready Layout<br/>• Free Deployment on Vercel</p>
+<h3>📞 Contact Me</h3>
+<p><b>Email:</b> lorempro75@gmail.com<br/><b>Location:</b> India<br/><b>Name:</b> Ravish</p>
+<p style={{background:"#000",color:"#fff",padding:"12px",borderRadius:"10px",textAlign:"center"}}>Let's build your next tool website together!</p>
 </Wrap>}
 
 {page==="article"&&<Wrap t="Article - LoremPro Kya Hai?">
