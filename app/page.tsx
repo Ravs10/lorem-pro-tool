@@ -184,7 +184,7 @@ const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,pa
 return(
 <div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
 <Header />
-
+<div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage("menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
 {page==="menu"&&<div style={{background:"#fff",borderRadius:20,padding:16}}>
 <h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
