@@ -2,71 +2,71 @@
 import {useState,useEffect} from "react"
 import Header from "./components/Header";
 const LANGS=[
-["EN","English - USA UK"],["HI","हिन्दी - India"],["ZH","中文 - China"],
-["ES","Español - Spain Mexico"],["FR","Français - France"],["DE","Deutsch - Germany"],
-["JA","日本語 - Japan"],["KO","한국어 - Korea"],["RU","Русский - Russia"],
-["PT","Português - Brazil"],["AR","العربية - Saudi UAE"],["TR","Türkçe - Turkey"],
-["IT","Italiano - Italy"],["NL","Nederlands"],["PL","Polski"],["VI","Tiếng Việt"],
-["TH","ไทย - Thailand"],["ID","Indonesia"],["TL","Filipino - Philippines"],
-["BN","বাংলা - Bangladesh"],["TE","తెలుగు"],["TA","தமிழ்"],["MR","मराठी"],
-["GU","ગુજરાતી"],["KN","ಕನ್ನಡ"],["ML","മലയാളം"],["OR","ଓଡ଼ିଆ"],
-["PA","ਪੰਜਾਬੀ"],["UR","اردو - Pakistan"],["FA","فارسی - Iran"],
-["HE","עברית - Israel"],["EL","Ελληνικά - Greece"],["UK","Українська - Ukraine"],
-["CS","Čeština"],["RO","Română"],["HU","Magyar"],["SV","Svenska"],["DA","Dansk"],
-["FI","Suomi"],["NO","Norsk"],["SW","Swahili - Kenya"],["AM","አማርኛ - Ethiopia"],
-["HA","Hausa - Nigeria"],["AF","Afrikaans - SA"],["NE","नेपाली - Nepal"],
-["SI","සිංහල - Sri Lanka"],["MY","မြန်မာ - Myanmar"],["LO","ລາວ - Laos"],
-["KM","ខ្មែរ - Cambodia"],["AS","অসমীয়া"],["SD","سنڌي"],["PS","پښتو - Afghan"],
-["KU","Kurdî"],["AZ","Azərbaycan"],["KK","Қазақ"],["UZ","Oʻzbek"],
-["HY","Հայերեն"],["KA","ქართული"],["MK","Македонски"],["IS","Íslenska"],
+["EN","English - USA UK"],["HI","à¤¹à¤¿à¤¨à¥à¤¦à¥€ - India"],["ZH","ä¸­æ–‡ - China"],
+["ES","EspaÃ±ol - Spain Mexico"],["FR","FranÃ§ais - France"],["DE","Deutsch - Germany"],
+["JA","æ—¥æœ¬èªž - Japan"],["KO","í•œêµ­ì–´ - Korea"],["RU","Ð ÑƒÑÑÐºÐ¸Ð¹ - Russia"],
+["PT","PortuguÃªs - Brazil"],["AR","Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© - Saudi UAE"],["TR","TÃ¼rkÃ§e - Turkey"],
+["IT","Italiano - Italy"],["NL","Nederlands"],["PL","Polski"],["VI","Tiáº¿ng Viá»‡t"],
+["TH","à¹„à¸—à¸¢ - Thailand"],["ID","Indonesia"],["TL","Filipino - Philippines"],
+["BN","à¦¬à¦¾à¦‚à¦²à¦¾ - Bangladesh"],["TE","à°¤à±†à°²à±à°—à±"],["TA","à®¤à®®à®¿à®´à¯"],["MR","à¤®à¤°à¤¾à¤ à¥€"],
+["GU","àª—à«àªœàª°àª¾àª¤à«€"],["KN","à²•à²¨à³à²¨à²¡"],["ML","à´®à´²à´¯à´¾à´³à´‚"],["OR","à¬“à¬¡à¬¼à¬¿à¬†"],
+["PA","à¨ªà©°à¨œà¨¾à¨¬à©€"],["UR","Ø§Ø±Ø¯Ùˆ - Pakistan"],["FA","ÙØ§Ø±Ø³ÛŒ - Iran"],
+["HE","×¢×‘×¨×™×ª - Israel"],["EL","Î•Î»Î»Î·Î½Î¹ÎºÎ¬ - Greece"],["UK","Ð£ÐºÑ€Ð°Ñ—Ð½ÑÑŒÐºÐ° - Ukraine"],
+["CS","ÄŒeÅ¡tina"],["RO","RomÃ¢nÄƒ"],["HU","Magyar"],["SV","Svenska"],["DA","Dansk"],
+["FI","Suomi"],["NO","Norsk"],["SW","Swahili - Kenya"],["AM","áŠ áˆ›áˆ­áŠ› - Ethiopia"],
+["HA","Hausa - Nigeria"],["AF","Afrikaans - SA"],["NE","à¤¨à¥‡à¤ªà¤¾à¤²à¥€ - Nepal"],
+["SI","à·ƒà·’à¶‚à·„à¶½ - Sri Lanka"],["MY","á€™á€¼á€”á€ºá€™á€¬ - Myanmar"],["LO","àº¥àº²àº§ - Laos"],
+["KM","ážáŸ’áž˜áŸ‚ážš - Cambodia"],["AS","à¦…à¦¸à¦®à§€à¦¯à¦¼à¦¾"],["SD","Ø³Ù†ÚŒÙŠ"],["PS","Ù¾ÚšØªÙˆ - Afghan"],
+["KU","KurdÃ®"],["AZ","AzÉ™rbaycan"],["KK","ÒšÐ°Ð·Ð°Ò›"],["UZ","OÊ»zbek"],
+["HY","Õ€Õ¡ÕµÕ¥Ö€Õ¥Õ¶"],["KA","áƒ¥áƒáƒ áƒ—áƒ£áƒšáƒ˜"],["MK","ÐœÐ°ÐºÐµÐ´Ð¾Ð½ÑÐºÐ¸"],["IS","Ãslenska"],
 ["MT","Malti"],["GA","Gaeilge"],["CY","Cymraeg"],["EU","Euskara"],
-["CA","Català"],["GL","Galego"],["LT","Lietuvių"],["LV","Latviešu"],
-["ET","Eesti"],["HR","Hrvatski"],["SR","Српски"],["BG","Български"],
-["SK","Slovenčina"],["SL","Slovenščina"],["SQ","Shqip"],["BO","བོད་ཡིག - Tibet"],
-["DZ","རྫོང་ཁ - Bhutan"]
+["CA","CatalÃ "],["GL","Galego"],["LT","LietuviÅ³"],["LV","LatvieÅ¡u"],
+["ET","Eesti"],["HR","Hrvatski"],["SR","Ð¡Ñ€Ð¿ÑÐºÐ¸"],["BG","Ð‘ÑŠÐ»Ð³Ð°Ñ€ÑÐºÐ¸"],
+["SK","SlovenÄina"],["SL","SlovenÅ¡Äina"],["SQ","Shqip"],["BO","à½–à½¼à½‘à¼‹à½¡à½²à½‚ - Tibet"],
+["DZ","à½¢à¾«à½¼à½„à¼‹à½ - Bhutan"]
 ]
 
 const DB:any={
-"HI":["स्वस्थ जीवन के लिए योग जरूरी है","सुबह टहलना फिट रखता है","फल इम्युनिटी बढ़ाते हैं","पानी खूब पियो","हरी सब्जियां अच्छी हैं"],
+"HI":["à¤¸à¥à¤µà¤¸à¥à¤¥ à¤œà¥€à¤µà¤¨ à¤•à¥‡ à¤²à¤¿à¤ à¤¯à¥‹à¤— à¤œà¤°à¥‚à¤°à¥€ à¤¹à¥ˆ","à¤¸à¥à¤¬à¤¹ à¤Ÿà¤¹à¤²à¤¨à¤¾ à¤«à¤¿à¤Ÿ à¤°à¤–à¤¤à¤¾ à¤¹à¥ˆ","à¤«à¤² à¤‡à¤®à¥à¤¯à¥à¤¨à¤¿à¤Ÿà¥€ à¤¬à¤¢à¤¼à¤¾à¤¤à¥‡ à¤¹à¥ˆà¤‚","à¤ªà¤¾à¤¨à¥€ à¤–à¥‚à¤¬ à¤ªà¤¿à¤¯à¥‹","à¤¹à¤°à¥€ à¤¸à¤¬à¥à¤œà¤¿à¤¯à¤¾à¤‚ à¤…à¤šà¥à¤›à¥€ à¤¹à¥ˆà¤‚"],
 "EN":["Healthy life needs yoga for fitness","Morning walk keeps body active","Fresh fruits boost immunity naturally","Drink plenty of water daily","Green vegetables are very healthy"],
-"OR":["ସୁସ୍ଥ ଜୀବନ ପାଇଁ ଯୋଗ ଜରୁରୀ","ସକାଳେ ବୁଲିବା ଭଲ","ଫଳ ଭଲ","ପାଣି ପିଅ"], "BN":["সুস্থ জীবনের জন্য যোগ জরুরি","সকালে হাঁটা ভালো","ফল ভালো","জল খাও"],
-"TE":["ఆరోగ్యానికి యోగా అవసరం","ఉదయం నడక మంచిది","పండ్లు మంచివి"], "TA":["ஆரோக்கியத்திற்கு யோகா தேவை","காலை நடை நல்லது","பழங்கள் நல்லது"],
-"KN":["ಆರೋಗ್ಯಕ್ಕೆ ಯೋಗ ಬೇಕು","ಬೆಳಗಿನ ನಡಿಗೆ ಒಳ್ಳೆಯದು"], "ML":["ആരോഗ്യത്തിന് യോഗ വേണം","രാവിലെ നടത്തം നല്ലതാണ്"],
-"MR":["आरोग्यासाठी योग हवा","सकाळी चालणे चांगले"], "GU":["સ્વાસ્થ્ય માટે યોગ જરૂરી છે","સવારમાં ચાલવું સારું"],
-"PA":["ਸਿਹਤ ਲਈ ਯੋਗਾ ਜ਼ਰੂਰੀ ਹੈ","ਸਵੇਰ ਦੀ ਸੈਰ ਚੰਗੀ ਹੈ"], "UR":["صحت کے لیے یوگا ضروری ہے","صبح کی سیر اچھی ہے"],
-"AS":["স্বাস্থ্যৰ বাবে যোগ জৰুৰী","পুৱা খোজ ভাল"], "NE":["स्वास्थ्यको लागि योग चाहिन्छ","बिहान हिँड्नु राम्रो"],
-"SI":["සෞඛ්‍යයට යෝග අවශ්‍යයි","උදේ ඇවිදීම හොඳයි"], "MY":["ကျန်းမာရေးအတွက် ယောဂ လိုသည်","မနက်လမ်းလျှောက် ကောင်းသည်"],
-"TH":["สุขภาพต้องโยคะ","เดินตอนเช้าดี"], "LO":["ສຸຂະພາບຕ້ອງການໂຍຄະ","ຍ່າງເຊົ້າດີ"],
-"KM":["សុខភាពត្រូវការយូហ្គា","ដើរព្រឹកល្អ"], "VI":["Sức khỏe cần yoga","Đi bộ sáng tốt"],
+"OR":["à¬¸à­à¬¸à­à¬¥ à¬œà­€à¬¬à¬¨ à¬ªà¬¾à¬‡à¬ à¬¯à­‹à¬— à¬œà¬°à­à¬°à­€","à¬¸à¬•à¬¾à¬³à­‡ à¬¬à­à¬²à¬¿à¬¬à¬¾ à¬­à¬²","à¬«à¬³ à¬­à¬²","à¬ªà¬¾à¬£à¬¿ à¬ªà¬¿à¬…"], "BN":["à¦¸à§à¦¸à§à¦¥ à¦œà§€à¦¬à¦¨à§‡à¦° à¦œà¦¨à§à¦¯ à¦¯à§‹à¦— à¦œà¦°à§à¦°à¦¿","à¦¸à¦•à¦¾à¦²à§‡ à¦¹à¦¾à¦à¦Ÿà¦¾ à¦­à¦¾à¦²à§‹","à¦«à¦² à¦­à¦¾à¦²à§‹","à¦œà¦² à¦–à¦¾à¦“"],
+"TE":["à°†à°°à±‹à°—à±à°¯à°¾à°¨à°¿à°•à°¿ à°¯à±‹à°—à°¾ à°…à°µà°¸à°°à°‚","à°‰à°¦à°¯à°‚ à°¨à°¡à°• à°®à°‚à°šà°¿à°¦à°¿","à°ªà°‚à°¡à±à°²à± à°®à°‚à°šà°¿à°µà°¿"], "TA":["à®†à®°à¯‹à®•à¯à®•à®¿à®¯à®¤à¯à®¤à®¿à®±à¯à®•à¯ à®¯à¯‹à®•à®¾ à®¤à¯‡à®µà¯ˆ","à®•à®¾à®²à¯ˆ à®¨à®Ÿà¯ˆ à®¨à®²à¯à®²à®¤à¯","à®ªà®´à®™à¯à®•à®³à¯ à®¨à®²à¯à®²à®¤à¯"],
+"KN":["à²†à²°à³‹à²—à³à²¯à²•à³à²•à³† à²¯à³‹à²— à²¬à³‡à²•à³","à²¬à³†à²³à²—à²¿à²¨ à²¨à²¡à²¿à²—à³† à²’à²³à³à²³à³†à²¯à²¦à³"], "ML":["à´†à´°àµ‹à´—àµà´¯à´¤àµà´¤à´¿à´¨àµ à´¯àµ‹à´— à´µàµ‡à´£à´‚","à´°à´¾à´µà´¿à´²àµ† à´¨à´Ÿà´¤àµà´¤à´‚ à´¨à´²àµà´²à´¤à´¾à´£àµ"],
+"MR":["à¤†à¤°à¥‹à¤—à¥à¤¯à¤¾à¤¸à¤¾à¤ à¥€ à¤¯à¥‹à¤— à¤¹à¤µà¤¾","à¤¸à¤•à¤¾à¤³à¥€ à¤šà¤¾à¤²à¤£à¥‡ à¤šà¤¾à¤‚à¤—à¤²à¥‡"], "GU":["àª¸à«àªµàª¾àª¸à«àª¥à«àª¯ àª®àª¾àªŸà«‡ àª¯à«‹àª— àªœàª°à«‚àª°à«€ àª›à«‡","àª¸àªµàª¾àª°àª®àª¾àª‚ àªšàª¾àª²àªµà«àª‚ àª¸àª¾àª°à«àª‚"],
+"PA":["à¨¸à¨¿à¨¹à¨¤ à¨²à¨ˆ à¨¯à©‹à¨—à¨¾ à¨œà¨¼à¨°à©‚à¨°à©€ à¨¹à©ˆ","à¨¸à¨µà©‡à¨° à¨¦à©€ à¨¸à©ˆà¨° à¨šà©°à¨—à©€ à¨¹à©ˆ"], "UR":["ØµØ­Øª Ú©Û’ Ù„ÛŒÛ’ ÛŒÙˆÚ¯Ø§ Ø¶Ø±ÙˆØ±ÛŒ ÛÛ’","ØµØ¨Ø­ Ú©ÛŒ Ø³ÛŒØ± Ø§Ú†Ú¾ÛŒ ÛÛ’"],
+"AS":["à¦¸à§à¦¬à¦¾à¦¸à§à¦¥à§à¦¯à§° à¦¬à¦¾à¦¬à§‡ à¦¯à§‹à¦— à¦œà§°à§à§°à§€","à¦ªà§à§±à¦¾ à¦–à§‹à¦œ à¦­à¦¾à¦²"], "NE":["à¤¸à¥à¤µà¤¾à¤¸à¥à¤¥à¥à¤¯à¤•à¥‹ à¤²à¤¾à¤—à¤¿ à¤¯à¥‹à¤— à¤šà¤¾à¤¹à¤¿à¤¨à¥à¤›","à¤¬à¤¿à¤¹à¤¾à¤¨ à¤¹à¤¿à¤à¤¡à¥à¤¨à¥ à¤°à¤¾à¤®à¥à¤°à¥‹"],
+"SI":["à·ƒà·žà¶›à·Šâ€à¶ºà¶ºà¶§ à¶ºà·à¶œ à¶…à·€à·à·Šâ€à¶ºà¶ºà·’","à¶‹à¶¯à·š à¶‡à·€à·’à¶¯à·“à¶¸ à·„à·œà¶³à¶ºà·’"], "MY":["á€€á€»á€”á€ºá€¸á€™á€¬á€›á€±á€¸á€¡á€á€½á€€á€º á€šá€±á€¬á€‚ á€œá€­á€¯á€žá€Šá€º","á€™á€”á€€á€ºá€œá€™á€ºá€¸á€œá€»á€¾á€±á€¬á€€á€º á€€á€±á€¬á€„á€ºá€¸á€žá€Šá€º"],
+"TH":["à¸ªà¸¸à¸‚à¸ à¸²à¸žà¸•à¹‰à¸­à¸‡à¹‚à¸¢à¸„à¸°","à¹€à¸”à¸´à¸™à¸•à¸­à¸™à¹€à¸Šà¹‰à¸²à¸”à¸µ"], "LO":["àºªàº¸àº‚àº°àºžàº²àºšàº•à»‰àº­àº‡àºàº²àº™à»‚àºàº„àº°","àºà»ˆàº²àº‡à»€àºŠàº»à»‰àº²àº”àºµ"],
+"KM":["ážŸáž»ážáž—áž¶áž–ážáŸ’ážšáž¼ážœáž€áž¶ážšáž™áž¼áž áŸ’áž‚áž¶","ážŠáž¾ážšáž–áŸ’ážšáž¹áž€áž›áŸ’áž¢"], "VI":["Sá»©c khá»e cáº§n yoga","Äi bá»™ sÃ¡ng tá»‘t"],
 "ID":["Sehat butuh yoga","Jalan pagi baik"], "TL":["Kalusugan nangangailangan ng yoga","Lakad sa umaga mabuti"],
-"ZH":["健康需要瑜伽","晨走很好"], "JA":["健康にはヨガが必要","朝の散歩は良い"],
-"KO":["건강에는 요가가 필요","아침 산책은 좋다"], "AR":["الصحة تحتاج يوجا","المشي صباحا جيد"],
-"FA":["سلامتی به یوگا نیاز دارد","پیاده روی صبح خوب است"], "HE":["בריאות צריכה יוגה","הליכת בוקר טובה"],
-"TR":["Sağlık için yoga gerek","Sabah yürüyüşü iyi"], "FR":["Santé a besoin de yoga","Marche matinale bonne"],
-"DE":["Gesundheit braucht Yoga","Morgenspaziergang gut"], "ES":["Salud necesita yoga","Caminata mañana buena"],
-"PT":["Saúde precisa yoga","Caminhada manhã boa"], "IT":["Salute ha bisogno di yoga","Passeggiata mattina buona"],
+"ZH":["å¥åº·éœ€è¦ç‘œä¼½","æ™¨èµ°å¾ˆå¥½"], "JA":["å¥åº·ã«ã¯ãƒ¨ã‚¬ãŒå¿…è¦","æœã®æ•£æ­©ã¯è‰¯ã„"],
+"KO":["ê±´ê°•ì—ëŠ” ìš”ê°€ê°€ í•„ìš”","ì•„ì¹¨ ì‚°ì±…ì€ ì¢‹ë‹¤"], "AR":["Ø§Ù„ØµØ­Ø© ØªØ­ØªØ§Ø¬ ÙŠÙˆØ¬Ø§","Ø§Ù„Ù…Ø´ÙŠ ØµØ¨Ø§Ø­Ø§ Ø¬ÙŠØ¯"],
+"FA":["Ø³Ù„Ø§Ù…ØªÛŒ Ø¨Ù‡ ÛŒÙˆÚ¯Ø§ Ù†ÛŒØ§Ø² Ø¯Ø§Ø±Ø¯","Ù¾ÛŒØ§Ø¯Ù‡ Ø±ÙˆÛŒ ØµØ¨Ø­ Ø®ÙˆØ¨ Ø§Ø³Øª"], "HE":["×‘×¨×™××•×ª ×¦×¨×™×›×” ×™×•×’×”","×”×œ×™×›×ª ×‘×•×§×¨ ×˜×•×‘×”"],
+"TR":["SaÄŸlÄ±k iÃ§in yoga gerek","Sabah yÃ¼rÃ¼yÃ¼ÅŸÃ¼ iyi"], "FR":["SantÃ© a besoin de yoga","Marche matinale bonne"],
+"DE":["Gesundheit braucht Yoga","Morgenspaziergang gut"], "ES":["Salud necesita yoga","Caminata maÃ±ana buena"],
+"PT":["SaÃºde precisa yoga","Caminhada manhÃ£ boa"], "IT":["Salute ha bisogno di yoga","Passeggiata mattina buona"],
 "NL":["Gezondheid heeft yoga nodig","Ochtendwandeling goed"], "PL":["Zdrowie potrzebuje jogi","Poranny spacer dobry"],
-"RU":["Здоровой жизни нужна йога","Утренняя прогулка хороша"], "UK":["Здоровому життю потрібна йога","Ранкова прогулянка добра"],
-"EL":["Υγεία χρειάζεται γιόγκα","Πρωινός περίπατος καλός"], "CS":["Zdraví potřebuje jógu","Ranní procházka dobrá"],
-"RO":["Sănătate are nevoie de yoga","Plimbarea dimineața bună"], "HU":["Egészségnek jóga kell","Reggeli séta jó"],
-"SV":["Hälsa behöver yoga","Morgonpromenad bra"], "DA":["Sundhed har brug for yoga","Morgentur god"],
-"FI":["Terveys tarvitsee joogaa","Aamukävely hyvä"], "NO":["Helse trenger yoga","Morgentur god"],
-"SW":["Afya inahitaji yoga","Kutembea asubuhi nzuri"], "AM":["ጤናማ ሕይወት ዮጋ ያስፈልገዋል","ጠዋት ጉዞ ጥሩ"],
+"RU":["Ð—Ð´Ð¾Ñ€Ð¾Ð²Ð¾Ð¹ Ð¶Ð¸Ð·Ð½Ð¸ Ð½ÑƒÐ¶Ð½Ð° Ð¹Ð¾Ð³Ð°","Ð£Ñ‚Ñ€ÐµÐ½Ð½ÑÑ Ð¿Ñ€Ð¾Ð³ÑƒÐ»ÐºÐ° Ñ…Ð¾Ñ€Ð¾ÑˆÐ°"], "UK":["Ð—Ð´Ð¾Ñ€Ð¾Ð²Ð¾Ð¼Ñƒ Ð¶Ð¸Ñ‚Ñ‚ÑŽ Ð¿Ð¾Ñ‚Ñ€Ñ–Ð±Ð½Ð° Ð¹Ð¾Ð³Ð°","Ð Ð°Ð½ÐºÐ¾Ð²Ð° Ð¿Ñ€Ð¾Ð³ÑƒÐ»ÑÐ½ÐºÐ° Ð´Ð¾Ð±Ñ€Ð°"],
+"EL":["Î¥Î³ÎµÎ¯Î± Ï‡ÏÎµÎ¹Î¬Î¶ÎµÏ„Î±Î¹ Î³Î¹ÏŒÎ³ÎºÎ±","Î ÏÏ‰Î¹Î½ÏŒÏ‚ Ï€ÎµÏÎ¯Ï€Î±Ï„Î¿Ï‚ ÎºÎ±Î»ÏŒÏ‚"], "CS":["ZdravÃ­ potÅ™ebuje jÃ³gu","RannÃ­ prochÃ¡zka dobrÃ¡"],
+"RO":["SÄƒnÄƒtate are nevoie de yoga","Plimbarea dimineaÈ›a bunÄƒ"], "HU":["EgÃ©szsÃ©gnek jÃ³ga kell","Reggeli sÃ©ta jÃ³"],
+"SV":["HÃ¤lsa behÃ¶ver yoga","Morgonpromenad bra"], "DA":["Sundhed har brug for yoga","Morgentur god"],
+"FI":["Terveys tarvitsee joogaa","AamukÃ¤vely hyvÃ¤"], "NO":["Helse trenger yoga","Morgentur god"],
+"SW":["Afya inahitaji yoga","Kutembea asubuhi nzuri"], "AM":["áŒ¤áŠ“áˆ› áˆ•á‹­á‹ˆá‰µ á‹®áŒ‹ á‹«áˆµáˆáˆáŒˆá‹‹áˆ","áŒ á‹‹á‰µ áŒ‰á‹ž áŒ¥áˆ©"],
 "HA":["Lafiya na bukatar yoga","Tafiya da safe kyau"], "AF":["Gesondheid het joga nodig","Oggendstaptog goed"],
-"SQ":["Shëndeti ka nevojë për joga","Shëtitja mëngjesit mirë"], "HR":["Zdravlje treba jogu","Jutarnja šetnja dobra"],
-"SR":["Здравље треба јогу","Јутарња шетња добра"], "BG":["Здравето се нуждае от йога","Сутрешна разходка добра"],
-"SK":["Zdravie potrebuje jogu","Ranná prechádzka dobrá"], "SL":["Zdravje potrebuje jogo","Jutranji sprehod dober"],
-"LT":["Sveikatai reikia jogos","Rytinis pasivaikščiojimas geras"], "LV":["Veselībai vajag jogu","Rīta pastaiga laba"],
-"ET":["Tervis vajab joogat","Hommikune jalutus hea"], "MT":["Saħħa teħtieġ yoga","Mixja filgħodu tajba"],
-"GA":["Sláinte teastaíonn yoga","Siúlóid maidin maith"], "CY":["Iechyd angen yoga","Taith bore da"],
-"EU":["Osasunak yoga behar du","Goizeko ibilaldia ona"], "CA":["Salut necessita ioga","Passeig matí bo"],
-"GL":["Saúde precisa ioga","Paseo mañá bo"], "IS":["Heilsa þarf jóga","Morgunganga góð"],
-"MK":["Здравјето има потреба од јога","Утринска прошетка добра"], "HY":["Առողջ կյանքը յոգայի կարիք ունի","Առավոտյան զբոսանքը լավ է"],
-"KA":["ჯანსაღ ცხოვრებას იოგა სჭირდება","დილის გასეირნება კარგია"], "AZ":["Sağlamlıq yoqaya ehtiyac duyur","Səhər gəzintisi yaxşıdır"],
-"KK":["Денсаулыққа йога қажет","Таңертеңгі серуен жақсы"], "UZ":["Sog'lom hayot yoga kerak","Ertalab yurish yaxshi"],
-"PS":["روغ ژوند یوګا ته اړتیا لري","سهار ګرځېدل ښه دی"], "SD":["صحت کي يوگا جي ضرورت آهي","صبح جو گهمڻ سٺو"],
-"KU":["Tenduristî bi yoga heye","Meşa sibehê baş e"], "BO":["བདེ་ཐང་ལ་ཡོ་ག་དགོས།","སྔ་དྲོའི་འཆམ་འགྲོ་ལེགས།"],
-"DZ":["གཟུགས་གཞི་ལུ་ཡོ་ག་དགོ།","དྲོ་པའི་འཆམ་འགྲོ་ལེགས།"]
+"SQ":["ShÃ«ndeti ka nevojÃ« pÃ«r joga","ShÃ«titja mÃ«ngjesit mirÃ«"], "HR":["Zdravlje treba jogu","Jutarnja Å¡etnja dobra"],
+"SR":["Ð—Ð´Ñ€Ð°Ð²Ñ™Ðµ Ñ‚Ñ€ÐµÐ±Ð° Ñ˜Ð¾Ð³Ñƒ","ÐˆÑƒÑ‚Ð°Ñ€ÑšÐ° ÑˆÐµÑ‚ÑšÐ° Ð´Ð¾Ð±Ñ€Ð°"], "BG":["Ð—Ð´Ñ€Ð°Ð²ÐµÑ‚Ð¾ ÑÐµ Ð½ÑƒÐ¶Ð´Ð°Ðµ Ð¾Ñ‚ Ð¹Ð¾Ð³Ð°","Ð¡ÑƒÑ‚Ñ€ÐµÑˆÐ½Ð° Ñ€Ð°Ð·Ñ…Ð¾Ð´ÐºÐ° Ð´Ð¾Ð±Ñ€Ð°"],
+"SK":["Zdravie potrebuje jogu","RannÃ¡ prechÃ¡dzka dobrÃ¡"], "SL":["Zdravje potrebuje jogo","Jutranji sprehod dober"],
+"LT":["Sveikatai reikia jogos","Rytinis pasivaikÅ¡Äiojimas geras"], "LV":["VeselÄ«bai vajag jogu","RÄ«ta pastaiga laba"],
+"ET":["Tervis vajab joogat","Hommikune jalutus hea"], "MT":["SaÄ§Ä§a teÄ§tieÄ¡ yoga","Mixja filgÄ§odu tajba"],
+"GA":["SlÃ¡inte teastaÃ­onn yoga","SiÃºlÃ³id maidin maith"], "CY":["Iechyd angen yoga","Taith bore da"],
+"EU":["Osasunak yoga behar du","Goizeko ibilaldia ona"], "CA":["Salut necessita ioga","Passeig matÃ­ bo"],
+"GL":["SaÃºde precisa ioga","Paseo maÃ±Ã¡ bo"], "IS":["Heilsa Ã¾arf jÃ³ga","Morgunganga gÃ³Ã°"],
+"MK":["Ð—Ð´Ñ€Ð°Ð²Ñ˜ÐµÑ‚Ð¾ Ð¸Ð¼Ð° Ð¿Ð¾Ñ‚Ñ€ÐµÐ±Ð° Ð¾Ð´ Ñ˜Ð¾Ð³Ð°","Ð£Ñ‚Ñ€Ð¸Ð½ÑÐºÐ° Ð¿Ñ€Ð¾ÑˆÐµÑ‚ÐºÐ° Ð´Ð¾Ð±Ñ€Ð°"], "HY":["Ô±Õ¼Õ¸Õ²Õ» Õ¯ÕµÕ¡Õ¶Ö„Õ¨ ÕµÕ¸Õ£Õ¡ÕµÕ« Õ¯Õ¡Ö€Õ«Ö„ Õ¸Ö‚Õ¶Õ«","Ô±Õ¼Õ¡Õ¾Õ¸Õ¿ÕµÕ¡Õ¶ Õ¦Õ¢Õ¸Õ½Õ¡Õ¶Ö„Õ¨ Õ¬Õ¡Õ¾ Õ§"],
+"KA":["áƒ¯áƒáƒœáƒ¡áƒáƒ¦ áƒªáƒ®áƒáƒ•áƒ áƒ”áƒ‘áƒáƒ¡ áƒ˜áƒáƒ’áƒ áƒ¡áƒ­áƒ˜áƒ áƒ“áƒ”áƒ‘áƒ","áƒ“áƒ˜áƒšáƒ˜áƒ¡ áƒ’áƒáƒ¡áƒ”áƒ˜áƒ áƒœáƒ”áƒ‘áƒ áƒ™áƒáƒ áƒ’áƒ˜áƒ"], "AZ":["SaÄŸlamlÄ±q yoqaya ehtiyac duyur","SÉ™hÉ™r gÉ™zintisi yaxÅŸÄ±dÄ±r"],
+"KK":["Ð”ÐµÐ½ÑÐ°ÑƒÐ»Ñ‹Ò›Ò›Ð° Ð¹Ð¾Ð³Ð° Ò›Ð°Ð¶ÐµÑ‚","Ð¢Ð°Ò£ÐµÑ€Ñ‚ÐµÒ£Ð³Ñ– ÑÐµÑ€ÑƒÐµÐ½ Ð¶Ð°Ò›ÑÑ‹"], "UZ":["Sog'lom hayot yoga kerak","Ertalab yurish yaxshi"],
+"PS":["Ø±ÙˆØº Ú˜ÙˆÙ†Ø¯ ÛŒÙˆÚ«Ø§ ØªÙ‡ Ø§Ú“ØªÛŒØ§ Ù„Ø±ÙŠ","Ø³Ù‡Ø§Ø± Ú«Ø±ÚÛØ¯Ù„ ÚšÙ‡ Ø¯ÛŒ"], "SD":["ØµØ­Øª Ú©ÙŠ ÙŠÙˆÚ¯Ø§ Ø¬ÙŠ Ø¶Ø±ÙˆØ±Øª Ø¢Ù‡ÙŠ","ØµØ¨Ø­ Ø¬Ùˆ Ú¯Ù‡Ù…Ú» Ø³ÙºÙˆ"],
+"KU":["TenduristÃ® bi yoga heye","MeÅŸa sibehÃª baÅŸ e"], "BO":["à½–à½‘à½ºà¼‹à½à½„à¼‹à½£à¼‹à½¡à½¼à¼‹à½‚à¼‹à½‘à½‚à½¼à½¦à¼","à½¦à¾”à¼‹à½‘à¾²à½¼à½ à½²à¼‹à½ à½†à½˜à¼‹à½ à½‚à¾²à½¼à¼‹à½£à½ºà½‚à½¦à¼"],
+"DZ":["à½‚à½Ÿà½´à½‚à½¦à¼‹à½‚à½žà½²à¼‹à½£à½´à¼‹à½¡à½¼à¼‹à½‚à¼‹à½‘à½‚à½¼à¼","à½‘à¾²à½¼à¼‹à½”à½ à½²à¼‹à½ à½†à½˜à¼‹à½ à½‚à¾²à½¼à¼‹à½£à½ºà½‚à½¦à¼"]
 }
 LANGS.forEach(([c]:any)=>{if(!DB[c] || DB[c].length<2){DB[c]=DB[c]||["Native content for "+c,"Second sentence native for "+c]}})
 
@@ -74,7 +74,7 @@ LANGS.forEach(([c]:any)=>{if(!DB[c] || DB[c].length<2){DB[c]=DB[c]||["Native con
 const ARTICLES = [
   {
     id: 1,
-    icon: "🚀",
+    icon: "ðŸš€",
     cat: "LOREM GUIDE",
     read: "4 Min Read",
     title: "What is LoremPro? The World's Most Advanced Generator",
@@ -82,10 +82,10 @@ const ARTICLES = [
     excerpt: "LoremPro is the world's first 75+ language generator made by Ravish from India. Learn its features and benefits.",
     content: `
       <div style="background:linear-gradient(135deg,#FFF7ED,#FFFFFF);border:1px solid #FFEDD5;padding:16px;border-radius:12px;margin-bottom:16px">
-        <b>📋 In this article:</b><br/>
-        <span style="color:#FF6A00">●</span> What is LoremPro?<br/>
-        <span style="color:#FF6A00">●</span> Why it's better than old tools?<br/>
-        <span style="color:#FF6A00">●</span> How to use it?
+        <b>ðŸ“‹ In this article:</b><br/>
+        <span style="color:#FF6A00">â—</span> What is LoremPro?<br/>
+        <span style="color:#FF6A00">â—</span> Why it's better than old tools?<br/>
+        <span style="color:#FF6A00">â—</span> How to use it?
       </div>
       <p><b>LoremPro</b> is the world's most advanced multilingual Lorem Ipsum Generator, created by <b>Ravish from India</b>. Unlike traditional generators, it supports 75+ native languages.</p>
       <h3>Why Choose LoremPro?</h3>
@@ -95,14 +95,14 @@ const ARTICLES = [
         <li>4 modes: Sentence, Paragraph, Words, List</li>
       </ul>
       <div style="border-left:4px solid #FF6A00;background:#FFF7ED;padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0">
-        <b>💡 Pro Tip:</b> Use LoremPro with Figma to speed up your design workflow by 50%.
+        <b>ðŸ’¡ Pro Tip:</b> Use LoremPro with Figma to speed up your design workflow by 50%.
       </div>
       <p>This tool was built to solve the problem of boring, single-language dummy text.</p>
     `
   },
   {
     id: 2,
-    icon: "🎨",
+    icon: "ðŸŽ¨",
     cat: "HISTORY",
     read: "3 Min Read",
     title: "History of Lorem Ipsum - Why Do We Use It Since 1500s?",
@@ -117,13 +117,13 @@ const ARTICLES = [
         <li>Still used in 2026 because it works</li>
       </ul>
       <div style="border-left:4px solid #FF6A00;background:#FFF7ED;padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0">
-        <b>🔥 Fun Fact:</b> Lorem Ipsum is not random, it has a proper Latin root.
+        <b>ðŸ”¥ Fun Fact:</b> Lorem Ipsum is not random, it has a proper Latin root.
       </div>
     `
   },
   {
     id: 3,
-    icon: "💻",
+    icon: "ðŸ’»",
     cat: "DEVELOPER",
     read: "5 Min Read",
     title: "Sentence vs Paragraph vs Word Mode - Explained",
@@ -157,7 +157,7 @@ const gen=()=>{
  if(mode==="SENTENCE"){ const a=[]; for(let i=0;i<cnt;i++) a.push(base[i%base.length]); r=a.join(" ") }
  if(mode==="PARAGRAPH"){ const paras=[]; for(let p=0;p<cnt;p++){ const len=2+(p%3); const s=[]; for(let j=0;j<len;j++) s.push(base[(p*len+j)%base.length]); paras.push(s.join(" ")); } r=paras.join("\n\n") }
  if(mode==="WORD"){ const all=base.join(" ").split(" "); const a=[]; for(let i=0;i<cnt;i++) a.push(all[i%all.length]); r=a.join(" ") }
- if(mode==="LIST"){ const a=[]; for(let i=0;i<cnt;i++) a.push(`• ${base[i%base.length]}`); r=a.join("\n") }
+ if(mode==="LIST"){ const a=[]; for(let i=0;i<cnt;i++) a.push(`â€¢ ${base[i%base.length]}`); r=a.join("\n") }
  setOut(r)
 }
 useEffect(()=>{gen()},[lang,cnt,mode])
@@ -165,7 +165,7 @@ useEffect(()=>{gen()},[lang,cnt,mode])
 const words = out.trim()?out.trim().split(/\s+/).length:0
 const chars = out.length
 const charsNoSpace = out.replace(/\s/g,"").length
-const sentences = out.trim()?out.split(/[.!?।]/).filter(s=>s.trim().length>2).length:0
+const sentences = out.trim()?out.split(/[.!?à¥¤]/).filter(s=>s.trim().length>2).length:0
 const paras = out.trim()?out.split("\n\n").filter(b=>b.trim()).length:0
 const reading = Math.max(1,Math.ceil(words/200))
 
@@ -179,20 +179,20 @@ const doDownload=(type:string)=>{
  setShowDL(false)
 }
 
-const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,padding:20,color:"#000",lineHeight:1.8}}><button onClick={()=>setPage("menu")} style={{padding:"8px 16px",borderRadius:999,border:"2px solid #000",background:"#fff",fontWeight:800}}>← Back to Menu</button><h1 style={{fontSize:22,margin:"10px 0"}}>{t}</h1><div style={{fontSize:14}}>{children}</div></div>
+const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,padding:20,color:"#000",lineHeight:1.8}}><button onClick={()=>setPage("menu")} style={{padding:"8px 16px",borderRadius:999,border:"2px solid #000",background:"#fff",fontWeight:800}}>â† Back to Menu</button><h1 style={{fontSize:22,margin:"10px 0"}}>{t}</h1><div style={{fontSize:14}}>{children}</div></div>
 
 return(
 <div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
 <Header />
-<div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(p=>p==="menu"? "home" : "menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
+<div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage("menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>â˜° Menu</button></div>
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
 {page==="menu"&&<div style={{background:"#fff",borderRadius:20,padding:16}}>
 <h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
 {[
-["home","🏠 Generator"],["how","📖 How to Use"],["about","ℹ️ About Us"],
-["contact","📞 Contact"],["privacy","🔒 Privacy Policy"],["disclaimer","⚠️ Disclaimer"],
-["hire","💼 Hire Me"],["article","📰 Article"]
+["home","ðŸ  Generator"],["how","ðŸ“– How to Use"],["about","â„¹ï¸ About Us"],
+["contact","ðŸ“ž Contact"],["privacy","ðŸ”’ Privacy Policy"],["disclaimer","âš ï¸ Disclaimer"],
+["hire","ðŸ’¼ Hire Me"],["article","ðŸ“° Article"]
 ].map(([k,l]:any)=><button key={k} onClick={()=>setPage(k)} style={{padding:"12px", borderRadius:"10px", border:"1px solid #eee", background:"#fff", fontWeight:"700"}}>
 </div>
 <div style={{marginTop:12,border:"2px solid #000",borderRadius:12,padding:8,maxHeight:350,overflowY:"auto",display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}}>
@@ -202,19 +202,19 @@ return(
 
 {page==="about"&&<Wrap t="About Us">
 <p><b>LoremPro</b> is the world's most advanced Lorem Ipsum Generator, built for developers, designers, and content creators worldwide.</p>
-<h3>🎯 Our Mission</h3>
+<h3>ðŸŽ¯ Our Mission</h3>
 <p>To help every developer, designer, and writer get high-quality, meaningful dummy text in their own native language, quickly and for free.</p>
-<h3>⭐ What Makes Us Special?</h3>
+<h3>â­ What Makes Us Special?</h3>
 <ul>
-<li>✅ <b>{LANGS.length} Languages</b> - The world's largest collection</li>
-<li>✅ <b>4 Modes:</b> Sentence, Paragraph, Word, List</li>
-<li>✅ <b>Counter 0-100</b> - Generate up to 100 items at once</li>
-<li>✅ <b>Live Counters:</b> Words, Characters & Sentences</li>
-<li>✅ <b>8 Download Types:</b> TXT, PDF, DOC, and more</li>
-<li>✅ <b>100% Free & No Login Required</b></li>
+<li>âœ… <b>{LANGS.length} Languages</b> - The world's largest collection</li>
+<li>âœ… <b>4 Modes:</b> Sentence, Paragraph, Word, List</li>
+<li>âœ… <b>Counter 0-100</b> - Generate up to 100 items at once</li>
+<li>âœ… <b>Live Counters:</b> Words, Characters & Sentences</li>
+<li>âœ… <b>8 Download Types:</b> TXT, PDF, DOC, and more</li>
+<li>âœ… <b>100% Free & No Login Required</b></li>
 </ul>
-<h3>👨‍💻 Founder</h3>
-<p>Created with ❤️ by <b>Ravish</b> from <b>India</b>.</p>
+<h3>ðŸ‘¨â€ðŸ’» Founder</h3>
+<p>Created with â¤ï¸ by <b>Ravish</b> from <b>India</b>.</p>
 <p><b>Version:</b> 4.0 | <b>Last Updated:</b> September 2026</p>
 </Wrap>}
 
@@ -235,26 +235,26 @@ return(
 <h3>Step 5: Download</h3>
 <p>Click the Colorful Download button to get your text in 8 different formats - TXT, PDF, DOC, and more.</p>
 <h3>Pro Tips</h3>
-<p>• For SEO, check the live word count below the output.<br/>• Use WORD mode for brainstorming names.<br/>• Use PARAGRAPH mode for website design mockups.</p>
+<p>â€¢ For SEO, check the live word count below the output.<br/>â€¢ Use WORD mode for brainstorming names.<br/>â€¢ Use PARAGRAPH mode for website design mockups.</p>
 </Wrap>}
 
 {page==="contact"&&<Wrap t="Contact Us">
 <p>Have any questions or suggestions? Feel free to contact us anytime. We would love to hear from you.</p>
-<h3>📧 Email</h3>
+<h3>ðŸ“§ Email</h3>
 <p><b>lorempro75@gmail.com</b> - We will reply within 24 hours</p>
-<h3>📍 Location</h3>
+<h3>ðŸ“ Location</h3>
 <p>India</p>
 <p>Managed by <b>Ravish</b></p>
-<h3>💬 What Can You Ask?</h3>
+<h3>ðŸ’¬ What Can You Ask?</h3>
 <ul>
 <li>Request to add a new language</li>
 <li>Bug report</li>
 <li>Feature request</li>
 <li>Get a custom tool built</li>
 </ul>
-<h3>💼 Hire Me - Get a Custom Tool Built</h3>
+<h3>ðŸ’¼ Hire Me - Get a Custom Tool Built</h3>
 <p>If you need a similar tool for your website, feel free to contact me.</p>
-<p><b>Price:</b> Starting from $25 / ₹1999 per tool</p>
+<p><b>Price:</b> Starting from $25 / â‚¹1999 per tool</p>
 <div style={{background:"#f3f4f6",padding:"16px",borderRadius:"12px",marginTop:"12px"}}>
 <b>Quick Message (Demo Form):</b><br/>
 <input placeholder="Your Name" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ccc"}}/>
@@ -301,22 +301,22 @@ return(
 
 {page==="hire"&&<Wrap t="Hire Me">
 <p>Hi! I am <b>Ravish</b> from India, the creator of LoremPro. I can build the same kind of professional, fast, and SEO-ready tools for you.</p>
-<h3>🛠️ What Can I Build For You?</h3>
+<h3>ðŸ› ï¸ What Can I Build For You?</h3>
 <ul>
-<li>✅ Lorem Ipsum Generators (like this one)</li>
-<li>✅ Text Tools - Word Counter, Case Converter, etc.</li>
-<li>✅ SEO Tools - Meta Tag Generator, Keyword Tools</li>
-<li>✅ Calculator Tools - Age, BMI, Loan, etc.</li>
-<li>✅ Converter Tools - Image, PDF, Unit Converter</li>
-<li>✅ And any other custom tool you need</li>
+<li>âœ… Lorem Ipsum Generators (like this one)</li>
+<li>âœ… Text Tools - Word Counter, Case Converter, etc.</li>
+<li>âœ… SEO Tools - Meta Tag Generator, Keyword Tools</li>
+<li>âœ… Calculator Tools - Age, BMI, Loan, etc.</li>
+<li>âœ… Converter Tools - Image, PDF, Unit Converter</li>
+<li>âœ… And any other custom tool you need</li>
 </ul>
-<h3>💰 What is the Price?</h3>
-<p><b>Single Tool:</b> Starting from $25 / ₹1999<br/><b>Full Website (10+ Tools):</b> Contact me for a best price</p>
-<h3>⏰ How Much Time?</h3>
+<h3>ðŸ’° What is the Price?</h3>
+<p><b>Single Tool:</b> Starting from $25 / â‚¹1999<br/><b>Full Website (10+ Tools):</b> Contact me for a best price</p>
+<h3>â° How Much Time?</h3>
 <p>Single Tool - Delivery in 2-3 days<br/>Full Website - Delivery in 7-10 days</p>
-<h3>📦 What Will You Get?</h3>
-<p>• Next.js / React Clean Code<br/>• Mobile Responsive & Fast<br/>• SEO Optimized<br/>• AdSense Ready Layout<br/>• Free Deployment on Vercel</p>
-<h3>📞 Contact Me</h3>
+<h3>ðŸ“¦ What Will You Get?</h3>
+<p>â€¢ Next.js / React Clean Code<br/>â€¢ Mobile Responsive & Fast<br/>â€¢ SEO Optimized<br/>â€¢ AdSense Ready Layout<br/>â€¢ Free Deployment on Vercel</p>
+<h3>ðŸ“ž Contact Me</h3>
 <p><b>Email:</b> lorempro75@gmail.com<br/><b>Location:</b> India<br/><b>Name:</b> Ravish</p>
 <p style={{background:"#000",color:"#fff",padding:"12px",borderRadius:"10px",textAlign:"center"}}>Let's build your next tool website together!</p>
 </Wrap>}
@@ -325,7 +325,7 @@ return(
 <style>{`
   .article-content ul{list-style:none;padding-left:0}
   .article-content li{position:relative;padding-left:26px;margin-bottom:10px;line-height:1.7}
-  .article-content li:before{content:'●';position:absolute;left:0;top:0;color:#FF6A00;font-size:18px}
+  .article-content li:before{content:'â—';position:absolute;left:0;top:0;color:#FF6A00;font-size:18px}
   .fanta-card{border:1px solid #FFEDD5;border-left:6px solid #FF6A00;padding:18px;border-radius:16px;cursor:pointer;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,0.06);display:flex;gap:14px;transition:0.2s}
   .fanta-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(255,106,0,0.18)}
   .icon-box{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#FF6A00,#FF9A44);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
@@ -334,7 +334,7 @@ return(
 {!selectedArticle ? (
   <div>
     <div style={{background:"linear-gradient(135deg,#111,#333)",color:"#fff",padding:"20px",borderRadius:"16px",marginBottom:"18px"}}>
-      <h2 style={{margin:"0 0 6px 0"}}>📚 LoremPro Blog</h2>
+      <h2 style={{margin:"0 0 6px 0"}}>ðŸ“š LoremPro Blog</h2>
       <p style={{margin:0,opacity:0.8}}>Guides, Tips & Inspiration - By Ravish, India</p>
     </div>
     <div style={{display:"grid",gap:"16px"}}>
@@ -356,14 +356,14 @@ return(
   </div>
 ) : (
   <div className="article-content">
-    <button onClick={()=>setSelectedArticle(null)} style={{marginBottom:"16px",background:"#111",color:"#fff",padding:"8px 18px",borderRadius:"24px",border:"none",fontWeight:700}}>← Back</button>
+    <button onClick={()=>setSelectedArticle(null)} style={{marginBottom:"16px",background:"#111",color:"#fff",padding:"8px 18px",borderRadius:"24px",border:"none",fontWeight:700}}>â† Back</button>
     <div style={{background:"linear-gradient(135deg,#FFF7ED,#fff)",border:"1px solid #FFEDD5",padding:"18px",borderRadius:"16px",marginBottom:"16px"}}>
       <div style={{display:"flex",gap:"10px",alignItems:"center",marginBottom:"10px"}}>
         <span style={{fontSize:"32px"}}>{selectedArticle.icon}</span>
-        <span style={{background:"#111",color:"#fff",fontSize:"11px",padding:"4px 10px",borderRadius:"20px"}}>{selectedArticle.cat} • {selectedArticle.read}</span>
+        <span style={{background:"#111",color:"#fff",fontSize:"11px",padding:"4px 10px",borderRadius:"20px"}}>{selectedArticle.cat} â€¢ {selectedArticle.read}</span>
       </div>
       <h1 style={{fontSize:"24px",margin:"0 0 8px 0"}}>{selectedArticle.title}</h1>
-      <p style={{color:"#FF6A00",fontSize:"13px",fontWeight:700}}>{selectedArticle.date} | By Ravish from India 🇮🇳</p>
+      <p style={{color:"#FF6A00",fontSize:"13px",fontWeight:700}}>{selectedArticle.date} | By Ravish from India ðŸ‡®ðŸ‡³</p>
     </div>
     <div dangerouslySetInnerHTML={{__html: selectedArticle.content}} />
   </div>
@@ -400,12 +400,12 @@ return(
 <div style={{border:"2px solid #000",borderRadius:12,padding:14,marginTop:12,minHeight:90,background:"#fff",color:"#000",fontSize:14,whiteSpace:"pre-wrap",fontWeight:600,lineHeight:mode==="SENTENCE"?1.4:1.8}}>{out||"Counter 0 hai - 1-100 daalo"}</div>
 
 <div style={{display:"flex",gap:8,marginTop:10}}>
-<button onClick={()=>{if(!out) return; navigator.clipboard.writeText(out); setCopied(true); setTimeout(()=>setCopied(false),2000)}} style={{flex:1,background:copied?"#16a34a":"#000",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800,transition:"all 0.3s"}}>{copied?"Copied ✅ - Green!":"Copy Text"}</button>
+<button onClick={()=>{if(!out) return; navigator.clipboard.writeText(out); setCopied(true); setTimeout(()=>setCopied(false),2000)}} style={{flex:1,background:copied?"#16a34a":"#000",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800,transition:"all 0.3s"}}>{copied?"Copied âœ… - Green!":"Copy Text"}</button>
 <button onClick={()=>{setOut(""); setCnt(0)}} style={{background:"#fff",color:"#000",padding:12,borderRadius:999,border:"2px solid #000",fontWeight:800}}>Clear</button>
 </div>
 
 <div style={{marginTop:12,position:"relative"}}>
-<button onClick={()=>setShowDL(!showDL)} style={{width:"100%",padding:14,borderRadius:12,background:"linear-gradient(90deg,#f43f5e,#8b5cf6,#3b82f6)",color:"#fff",border:"2px solid #000",fontWeight:900}}>📥 DOWNLOAD 8 Types {showDL?"▲":"▼"}</button>
+<button onClick={()=>setShowDL(!showDL)} style={{width:"100%",padding:14,borderRadius:12,background:"linear-gradient(90deg,#f43f5e,#8b5cf6,#3b82f6)",color:"#fff",border:"2px solid #000",fontWeight:900}}>ðŸ“¥ DOWNLOAD 8 Types {showDL?"â–²":"â–¼"}</button>
 {showDL&&<div style={{position:"absolute",top:"56px",left:0,right:0,background:"#fff",border:"2px solid #000",borderRadius:14,zIndex:20,overflow:"hidden"}}>
 {["TXT","HTML","JSON","CSV","MD","JS","RTF","PDF"].map(code=><button key={code} onClick={()=>doDownload(code)} style={{width:"100%",padding:12,background:"#fff",color:"#000",border:"none",borderBottom:"1px solid #eee",fontWeight:800,textAlign:"left",fontSize:12,display:"flex",justifyContent:"space-between"}}><span>{code}</span><span style={{fontSize:10,opacity:0.6}}>.{code.toLowerCase()}</span></button>)}
 </div>}
@@ -414,35 +414,35 @@ return(
 </div>
 {/* OTHER USEFUL TOOLS - 6 DUMMY LINKS */}
 <div style={{marginTop:20,background:"#fff",border:"2px solid #000",borderRadius:16,padding:14}}>
-<h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools</h3>
+<h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>ðŸ”§ Other Useful Tools</h3>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
 <a href="/word-counter" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
-<div style={{fontSize:20}}>📝</div>
+<div style={{fontSize:20}}>ðŸ“</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Word Counter</div>
 <div style={{fontSize:9,color:"#555"}}>Count words & chars</div>
 </a>
 <a href="/case-converter" style={{textDecoration:"none",background:"#fef9c3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
-<div style={{fontSize:20}}>🔄</div>
+<div style={{fontSize:20}}>ðŸ”„</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Case Converter</div>
 <div style={{fontSize:9,color:"#555"}}>UPPER to lower</div>
 </a>
 <a href="/image-to-text" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
-<div style={{fontSize:20}}>🖼️</div>
+<div style={{fontSize:20}}>ðŸ–¼ï¸</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Image to Text</div>
 <div style={{fontSize:9,color:"#555"}}>OCR Tool</div>
 </a>
 <a href="/qr-generator" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
-<div style={{fontSize:20}}>📱</div>
+<div style={{fontSize:20}}>ðŸ“±</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>QR Generator</div>
 <div style={{fontSize:9,color:"#555"}}>Make QR Code</div>
 </a>
 <a href="/password-generator" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
-<div style={{fontSize:20}}>🔑</div>
+<div style={{fontSize:20}}>ðŸ”‘</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Password Gen</div>
 <div style={{fontSize:9,color:"#555"}}>Strong Password</div>
 </a>
 <a href="/age-calculator" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
-<div style={{fontSize:20}}>🎂</div>
+<div style={{fontSize:20}}>ðŸŽ‚</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Age Calculator</div>
 <div style={{fontSize:9,color:"#555"}}>Find your age</div>
 </a>
@@ -450,7 +450,7 @@ return(
 <p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>More tools coming soon - Stay tuned!</p>
 </div>
 <footer style={{background:"#000",color:"#fff",padding:20,marginTop:24,textAlign:"center"}}>
-<div style={{fontWeight:900,fontSize:14}}>© 2026 LoremPro - {LANGS.length} Languages</div>
+<div style={{fontWeight:900,fontSize:14}}>Â© 2026 LoremPro - {LANGS.length} Languages</div>
 <div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:12,justifyContent:"center",fontSize:12}}>
 <button onClick={()=>setPage("about")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>About</button>
 <button onClick={()=>setPage("contact")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>Contact</button>
@@ -459,6 +459,6 @@ return(
 <button onClick={()=>setPage("how")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>How to Use</button>
 <button onClick={()=>setPage("hire")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>Hire Me</button>
 </div>
-<div style={{marginTop:12,fontSize:10,opacity:0.7}}>Made with ❤️ in Raebareli, UP, India | All Native Languages | No English Fallback | Words:{words} Chars:{chars} Tested ✅</div>
+<div style={{marginTop:12,fontSize:10,opacity:0.7}}>Made with â¤ï¸ in Raebareli, UP, India | All Native Languages | No English Fallback | Words:{words} Chars:{chars} Tested âœ…</div>
 </footer>
 </div>)}
