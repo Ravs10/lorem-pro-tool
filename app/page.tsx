@@ -132,22 +132,22 @@ return(
 </div>
 </div>}
 
-{page==="about"&&<Wrap t="About Us - LoremPro">
-<p><b>LoremPro</b> duniya ka sabse bada multilingual Lorem Ipsum generator hai. Isko <b>Raebareli, UP, India</b> se banaya gaya hai.</p>
-<h3>🎯 Hamara Mission</h3>
-<p>Har developer, designer aur content writer ko apni matra bhasha me dummy text dena. Ab tak sirf English Lorem Ipsum milta tha, ab 75+ languages me.</p>
-<h3>⭐ Kya Khas Hai?</h3>
+{page==="about"&&<Wrap t="About Us">
+<p><b>LoremPro</b> is the world's most advanced Lorem Ipsum Generator, built for developers, designers, and content creators worldwide.</p>
+<h3>🎯 Our Mission</h3>
+<p>To help every developer, designer, and writer get high-quality, meaningful dummy text in their own native language, quickly and for free.</p>
+<h3>⭐ What Makes Us Special?</h3>
 <ul>
-<li>✅ <b>{LANGS.length} Languages</b> - USA, UK, India, China, Japan, Korea, Russia, France, Germany, Spain, Brazil, Saudi, Philippines sab popular desh shamil</li>
-<li>✅ <b>4 Modes:</b> Sentence (continuous), Paragraph (variable 2-4 lines), Word, List</li>
-<li>✅ <b>Counter 0-100</b> - Free input, 0 par empty</li>
-<li>✅ <b>Live Counters:</b> Word, Character, Sentence, Paragraph, Reading Time</li>
-<li>✅ <b>8 Download Types:</b> TXT, HTML, JSON, CSV, MD, JS, RTF, PDF</li>
-<li>✅ <b>100% Free & No Login</b></li>
+<li>✅ <b>{LANGS.length} Languages</b> - The world's largest collection</li>
+<li>✅ <b>4 Modes:</b> Sentence, Paragraph, Word, List</li>
+<li>✅ <b>Counter 0-100</b> - Generate up to 100 items at once</li>
+<li>✅ <b>Live Counters:</b> Words, Characters & Sentences</li>
+<li>✅ <b>8 Download Types:</b> TXT, PDF, DOC, and more</li>
+<li>✅ <b>100% Free & No Login Required</b></li>
 </ul>
 <h3>👨‍💻 Founder</h3>
-<p>Banane wala - Raebareli ka ek developer jisko laga ki Hindi, Odia, Bengali jaise bhashaon me bhi Lorem hona chahiye.</p>
-<p><b>Version:</b> 4.0 | <b>Launched:</b> Sep 2026 | <b>Made with ❤️ in India</b></p>
+<p>Created with ❤️ by <b>Ravish</b> from <b>India</b>.</p>
+<p><b>Version:</b> 4.0 | <b>Last Updated:</b> September 2026</p>
 </Wrap>}
 
 {page==="how"&&<Wrap t="How to Use - Kaise Use Kare">
