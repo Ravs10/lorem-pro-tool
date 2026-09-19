@@ -170,28 +170,29 @@ return(
 <p>• SEO ke liye Word count dekho<br/>• Design ke liye Paragraph variable use karo - natural lagega<br/>• Different language test karne ke liye menu me saare languages hain</p>
 </Wrap>}
 
-{page==="contact"&&<Wrap t="Contact Us - Sampark Kare">
-<p>Aap humse kabhi bhi sampark kar sakte hain!</p>
+{page==="contact"&&<Wrap t="Contact Us">
+<p>Have any questions or suggestions? Feel free to contact us anytime. We would love to hear from you.</p>
 <h3>📧 Email</h3>
-<p><b>lorempro75@gmail.com</b> - 24 ghante me reply</p>
+<p><b>lorempro75@gmail.com</b> - We will reply within 24 hours</p>
 <h3>📍 Location</h3>
-<p>Raebareli, Uttar Pradesh, India - 229001<br/>Made in India, Used Worldwide 🌍</p>
-<h3>💬 Kya Puchh Sakte Hain?</h3>
+<p>India</p>
+<p>Managed by <b>Ravish</b></p>
+<h3>💬 What Can You Ask?</h3>
 <ul>
-<li>Naya language add karwana</li>
+<li>Request to add a new language</li>
 <li>Bug report</li>
 <li>Feature request</li>
-<li>Custom tool banwana</li>
+<li>Get a custom tool built</li>
 </ul>
-<h3>💼 Hire Me - Custom Tool Banwaye</h3>
-<p>Agar aapko aisa hi koi tool chahiye - Lorem Generator, Text Tools, SEO Tools, Calculator etc to contact karo.</p>
-<p><b>Price:</b> Starting ₹1999 per tool<br/><b>Delivery:</b> 2-3 din me<br/><b>Contact:</b> lorempro75@gmail.com</p>
-<div style={{background:"#f3f4f6",padding:12,borderRadius:12,marginTop:12,border:"1px solid #ddd"}}>
+<h3>💼 Hire Me - Get a Custom Tool Built</h3>
+<p>If you need a similar tool for your website, feel free to contact me.</p>
+<p><b>Price:</b> Starting from $25 / ₹1999 per tool</p>
+<div style={{background:"#f3f4f6",padding:"16px",borderRadius:"12px",marginTop:"12px"}}>
 <b>Quick Message (Demo Form):</b><br/>
-<input placeholder="Aapka Naam" style={{width:"100%",padding:10,marginTop:8,borderRadius:8,border:"1px solid #000"}}/>
-<input placeholder="Email" style={{width:"100%",padding:10,marginTop:8,borderRadius:8,border:"1px solid #000"}}/>
-<textarea placeholder="Aapka Message" style={{width:"100%",padding:10,marginTop:8,borderRadius:8,border:"1px solid #000"}} rows={3}></textarea>
-<button style={{marginTop:8,background:"#000",color:"#fff",padding:"10px 20px",borderRadius:999,border:"none",fontWeight:800}}>Send Message</button>
+<input placeholder="Your Name" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ccc"}}/>
+<input placeholder="Your Email" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ccc"}}/>
+<textarea placeholder="Your Message" style={{width:"100%",padding:"10px",marginTop:"8px",borderRadius:"8px",border:"1px solid #ccc",minHeight:"80px"}}></textarea>
+<button style={{marginTop:8,background:"#000",color:"#fff",padding:"10px 20px",borderRadius:"8px",border:"none"}}>Send Message</button>
 </div>
 </Wrap>}
 
