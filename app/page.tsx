@@ -70,6 +70,33 @@ const DB:any={
 }
 LANGS.forEach(([c]:any)=>{if(!DB[c] || DB[c].length<2){DB[c]=DB[c]||["Native content for "+c,"Second sentence native for "+c]}})
 
+
+const ARTICLES = [
+  {
+    id: 1,
+    slug: "what-is-lorempro",
+    title: "What is LoremPro? The World's Most Advanced Generator",
+    date: "19 Sep 2026",
+    excerpt: "LoremPro is the world's first 75+ language generator made by Ravish from India. Learn its features and benefits...",
+    content: `<p><b>LoremPro</b> is the world's most advanced multilingual Lorem Ipsum Generator, created by <b>Ravish from India</b>. Unlike traditional tools that only provide English or Latin text, LoremPro supports over 75 languages. Our mission is to help developers, designers, and writers get realistic dummy text in their native language.</p><h3>What is Lorem Ipsum?</h3><p>Lorem Ipsum is dummy text used since the 1500s. It helps designers focus on design, not content.</p><h3>Normal vs LoremPro?</h3><p>Normal generators give only English, fixed-length paragraphs. LoremPro gives 75+ languages, variable length, 4 modes, live counters, and 8 download formats. 100% free.</p>`
+  },
+  {
+    id: 2,
+    slug: "history-of-lorem-ipsum",
+    title: "History of Lorem Ipsum - Why Do We Use It Since 1500s?",
+    date: "18 Sep 2026",
+    excerpt: "Did you know Lorem Ipsum is 500 years old? Know its full history...",
+    content: `<p>Lorem Ipsum is 500 years old, created by an unknown printer in the 1500s. It became standard because it looks like real text but is not readable.</p>`
+  },
+  {
+    id: 3,
+    slug: "sentence-vs-paragraph",
+    title: "Sentence vs Paragraph vs Word Mode - Which One to Use?",
+    date: "17 Sep 2026",
+    excerpt: "Confused between modes? This guide explains which mode to use when...",
+    content: `<p>LoremPro has 4 modes: SENTENCE for continuous text, PARAGRAPH for natural variable paragraphs, WORD for titles, and LIST for bullet points. Use counter 0-100 as needed.</p>`
+  }
+];
 export default function Page(){
 const [lang,setLang]=useState("HI")
 const [cnt,setCnt]=useState(5)
