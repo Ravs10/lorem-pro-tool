@@ -99,6 +99,7 @@ const ARTICLES = [
 ];
 export default function Page(){
 const [lang,setLang]=useState("HI")
+const [selectedArticle, setSelectedArticle] = useState<any>(null);
 const [cnt,setCnt]=useState(5)
 const [out,setOut]=useState("")
 const [page,setPage]=useState("home")
