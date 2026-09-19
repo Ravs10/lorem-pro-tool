@@ -215,20 +215,19 @@ return(
 
 {page==="disclaimer"&&<Wrap t="Disclaimer">
 <p><b>Last Updated:</b> 18 September 2026</p>
-<p>Is website / tool ko use karne se pehle ye disclaimer padh le.</p>
+<p>Please read this disclaimer carefully before using this website / tool. This website is operated by Ravish from India.</p>
 <h3>1. Dummy Text Only</h3>
-<p>Is website par diya gaya saara text <b>sirf design, development aur testing ke liye dummy text hai.</b> Ye real information nahi hai.</p>
+<p>All text provided on this website is <b>dummy and placeholder text</b> for design and content layout purposes only. It is generated automatically and should not be considered as real content.</p>
 <h3>2. No Professional Advice</h3>
-<p>Yaha ka content <b>medical, legal, financial ya kisi bhi professional advice ke roop me na le.</b> Ye sirf placeholder text hai.</p>
+<p>The content here is not <b>medical, legal, financial, or any professional advice</b>. You should not rely on generated text for any professional decision.</p>
 <h3>3. No Warranty</h3>
-<p>Hum guarantee nahi dete ki har language ka translation 100% perfect hoga. Humne koshish ki hai native content dene ki, par kuch jagah sudhar ki gunjaish ho sakti hai.</p>
+<p>We do not guarantee that text in every language is 100% accurate or error-free. The tool is provided on an "as is" basis without any warranties. We are not responsible for any loss or damage from using it.</p>
 <h3>4. Fair Use</h3>
-<p>Aap generated text ko <b>kahin bhi free me use kar sakte hain</b> - website, app, design, project me. Koi copyright nahi.</p>
+<p>You can use the generated text <b>anywhere for free</b> for personal or commercial projects. No attribution is required.</p>
 <h3>5. External Links</h3>
-<p>Agar hum kisi bahari site ka link dete hain, to uski jimmedari unki hai, hamari nahi.</p>
+<p>If we provide a link to any external website, it is for reference only. We are not responsible for the content or privacy of those external sites.</p>
 <h3>6. Agreement</h3>
-<p>Is website ko use karke aap is disclaimer se sehmat hote hain.</p>
-<p>Agar aapko kisi language me galat lage to hame mail kare - hum turant sahi karenge.</p>
+<p>By using this website, you agree to this disclaimer. If you find any error in any language, please contact us so we can fix it.</p>
 </Wrap>}
 
 {page==="hire"&&<Wrap t="Hire Me - Mujhe Kaam Do 💼">
