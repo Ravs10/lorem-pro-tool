@@ -193,7 +193,7 @@ return(
 ["home","🏠 Generator"],["how","📖 How to Use"],["about","ℹ️ About Us"],
 ["contact","📞 Contact"],["privacy","🔒 Privacy Policy"],["disclaimer","⚠️ Disclaimer"],
 ["hire","💼 Hire Me"],["article","📰 Article"]
-].map(([k,l]:any)=><button key={k} onClick={()=>setPage(k)} style={{padding:"12px", borderRadius:"10px", border:"1px solid #eee", background:"#fff", fontWeight:"700"}}>
+].map(([k,l]:any)=><button key={k} onClick={()=>setPage(k)} style={{padding:14,borderRadius:12,background:k==="home"?"#000":"#fff",color:k==="home"?"#fff":"#000",border:"2px solid #000",fontWeight:800,fontSize:13}}>{l}</button>)}
 </div>
 <div style={{marginTop:12,border:"2px solid #000",borderRadius:12,padding:8,maxHeight:350,overflowY:"auto",display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}}>
 {LANGS.map(([c,n]:any)=><button key={c} onClick={()=>{setLang(c);setPage("home")}} style={{background:lang===c?"#000":"#f3f4f6",color:lang===c?"#fff":"#000",padding:8,borderRadius:8,fontSize:11,fontWeight:700,border:"none",textAlign:"left"}}>{n}</button>)}
