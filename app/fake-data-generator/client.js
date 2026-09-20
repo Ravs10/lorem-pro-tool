@@ -10,14 +10,14 @@ export default function FakeClient(){
   const [activeBtn,setActiveBtn]=React.useState("");
 
   const namesDB = {
-    hi: ["Aarav Sharma","Vivaan Gupta","Aditya Yadav","Sai Patel","Pooja Verma","Neha Singh","Ananya Mishra","Kavya Dubey","Rahul Kumar","Aman Tiwari","Suresh Chaurasia","Priya Pandey","Arjun Singh","Rohit Verma","Kajal Yadav","Sakshi Gupta","Divya Singh","Mohit Sharma","Nisha Patel","Deepak Kumar","Sunita Devi","Ramesh Kumar"],
+    hi: ["राहुल शर्मा","पूजा वर्मा","अमन यादव","नेहा सिंह","अनन्या मिश्रा","काव्या दुबे","आरव गुप्ता","विवान पटेल","सुरेश चौरसिया","प्रिया पांडेय","अर्जुन सिंह","रोहित वर्मा","काजल यादव","साक्षी गुप्ता","दिव्या सिंह","मोहित शर्मा","निशा पटेल","दीपक कुमार","सुनीता देवी","रमेश कुमार","विकास तिवारी","अंकित मिश्रा","रितु सिंह","संजय यादव","मनोज कुमार"],
     en: ["John Doe","Emma Smith","Michael Brown","Sophia Wilson","James Johnson","Olivia Davis","Robert Miller","Ava Garcia","William Jones","Isabella Martinez"],
     es: ["Carlos Garcia","Maria Lopez","Juan Perez","Sofia Martinez","Diego Sanchez","Lucia Gomez"],
     fr: ["Jean Dupont","Marie Dubois","Pierre Martin","Sophie Bernard","Luc Moreau"],
     de: ["Hans Mueller","Greta Schmidt","Klaus Weber","Anna Fischer"],
     ja: ["Hiroshi Tanaka","Yuki Sato","Kenji Watanabe","Sakura Yamamoto"],
-    bn: ["Arjun Das","Mamata Banerjee","Rahul Chatterjee","Anirban Ghosh","Srabanti Das"],
-    ta: ["Kumar Murugan","Lakshmi Priya","Arjun Raj","Meena Kumari"]
+    bn: ["অর্জুন দাস","মমতা ব্যানার্জী","রাহুল চ্যাটার্জী","অনির্বাণ ঘোষ","শ্রাবন্তী দাস"],
+    ta: ["குமார் முருகன்","லட்சுமி பிரியா","அர்ஜுன் ராஜ்","மீனா குமாரி"]
   };
 
   const citiesDB = {
