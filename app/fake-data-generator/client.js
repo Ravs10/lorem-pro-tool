@@ -68,7 +68,7 @@ export default function FakeClient(){
 
   return (
     <div style={{background:"#0a0a0a", minHeight:"100vh", color:"white"}}>
-      <header style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 16px", borderBottom:"1px solid #222", background:"#111", position:"sticky", top:0, zIndex:20}}>
+     /* <header style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 16px", borderBottom:"1px solid #222", background:"#111", position:"sticky", top:0, zIndex:20}}>
         <div style={{fontWeight:900, fontSize:18, letterSpacing:0.5}}>⚡ Lorem Pro Tool</div>
         <nav style={{display:"flex", gap:14, fontSize:12, opacity:0.8}}>
           <a href="/" style={{color:"white", textDecoration:"none"}}>Home</a>
@@ -76,7 +76,7 @@ export default function FakeClient(){
           <a href="/privacy-policy" style={{color:"white", textDecoration:"none"}}>Privacy</a>
           <a href="/contact" style={{color:"white", textDecoration:"none"}}>Contact</a>
         </nav>
-      </header>
+      </header> */
       <div style={{maxWidth:680, margin:"0 auto", padding:16}}>
         <div style={{background:"#171717", borderRadius:24, padding:20, border:"1px solid #2a2a2a"}}>
           <h1 style={{fontSize:26, fontWeight:800}}>Fake Data Generator</h1>
