@@ -1,153 +1,151 @@
-
 "use client";
 import React from "react";
 
 export default function FakeClient(){
   const [count,setCount]=React.useState(10);
   const [lang,setLang]=React.useState("hi");
-  const [format,setFormat]=React.useState("json");
   const [data,setData]=React.useState([]);
-  const [saved,setSaved]=React.useState(false);
+  const [copied,setCopied]=React.useState(false);
+  const [isGenerating,setIsGenerating]=React.useState(false);
+  const [activeBtn,setActiveBtn]=React.useState("");
 
   const namesDB = {
-    hi: ["Aarav Sharma","Vivaan Gupta","Aditya Yadav","Sai Patel","Pooja Verma","Neha Singh","Ananya Mishra","Kavya Dubey","Rahul Kumar","Aman Tiwari","Suresh Chaurasia","Priya Pandey"],
-    en: ["John Doe","Emma Smith","Michael Brown","Sophia Wilson","James Johnson","Olivia Davis"],
-    es: ["Carlos Garcia","Maria Lopez","Juan Perez","Sofia Martinez"],
-    fr: ["Jean Dupont","Marie Dubois","Pierre Martin"],
-    de: ["Hans Mueller","Greta Schmidt"],
-    ja: ["Hiroshi Tanaka","Yuki Sato"],
-    bn: ["Arjun Das","Mamata Banerjee","Rahul Chatterjee"],
-    ta: ["Kumar Murugan","Lakshmi Priya"]
+    hi: ["Aarav Sharma","Vivaan Gupta","Aditya Yadav","Sai Patel","Pooja Verma","Neha Singh","Ananya Mishra","Kavya Dubey","Rahul Kumar","Aman Tiwari","Suresh Chaurasia","Priya Pandey","Arjun Singh","Rohit Verma","Kajal Yadav","Sakshi Gupta","Divya Singh","Mohit Sharma","Nisha Patel","Deepak Kumar","Sunita Devi","Ramesh Kumar"],
+    en: ["John Doe","Emma Smith","Michael Brown","Sophia Wilson","James Johnson","Olivia Davis","Robert Miller","Ava Garcia","William Jones","Isabella Martinez"],
+    es: ["Carlos Garcia","Maria Lopez","Juan Perez","Sofia Martinez","Diego Sanchez","Lucia Gomez"],
+    fr: ["Jean Dupont","Marie Dubois","Pierre Martin","Sophie Bernard","Luc Moreau"],
+    de: ["Hans Mueller","Greta Schmidt","Klaus Weber","Anna Fischer"],
+    ja: ["Hiroshi Tanaka","Yuki Sato","Kenji Watanabe","Sakura Yamamoto"],
+    bn: ["Arjun Das","Mamata Banerjee","Rahul Chatterjee","Anirban Ghosh","Srabanti Das"],
+    ta: ["Kumar Murugan","Lakshmi Priya","Arjun Raj","Meena Kumari"]
   };
 
   const citiesDB = {
-    hi: ["Lucknow","Delhi","Mumbai","Pune","Patna","Kanpur","Varanasi"],
-    en: ["New York","London","Sydney"],
-    es: ["Madrid","Barcelona"],
-    fr: ["Paris","Lyon"],
-    de: ["Berlin"],
-    ja: ["Tokyo","Osaka"],
-    bn: ["Kolkata","Dhaka"],
-    ta: ["Chennai","Coimbatore"]
+    hi: ["Lucknow","Delhi","Mumbai","Pune","Patna","Kanpur","Varanasi","Jaipur","Bhopal","Indore"],
+    en: ["New York","London","Sydney","Toronto","Dubai"],
+    es: ["Madrid","Barcelona","Valencia"], fr: ["Paris","Lyon","Marseille"],
+    de: ["Berlin","Munich"], ja: ["Tokyo","Osaka","Kyoto"], bn: ["Kolkata","Dhaka","Howrah"], ta: ["Chennai","Coimbatore","Madurai"]
   };
 
+  // FIX: No Repetition Logic
   const generate = () => {
-    let arr=[];
-    let nList = namesDB[lang] || namesDB["en"];
-    let cList = citiesDB[lang] || citiesDB["en"];
-    for(let i=0;i<count;i++){
-      let n = nList[Math.floor(Math.random()*nList.length)];
-      let c = cList[Math.floor(Math.random()*cList.length)];
-      arr.push({
-        id: i+1,
-        name: n,
-        email: `${n.toLowerCase().replace(" ","")}${i+1}@example.com`,
-        phone: `+91 9${Math.floor(100000000 + Math.random()*900000000)}`,
-        city: c,
-        address: `${c}, India - ${Math.floor(100000+Math.random()*900000)}`
-      })
-    }
-    setData(arr);
+    setIsGenerating(true);
+    setActiveBtn("gen");
+    setTimeout(()=>{
+      let arr=[];
+      let nList = [...(namesDB[lang] || namesDB["en"])].sort(()=>0.5-Math.random());
+      let cList = citiesDB[lang] || citiesDB["en"];
+      for(let i=0;i<count;i++){
+        let name = nList[i % nList.length] + (i >= nList.length? ` ${i+1}` : "");
+        let city = cList[Math.floor(Math.random()*cList.length)];
+        arr.push({
+          id: i+1,
+          name: name,
+          email: `${name.toLowerCase().replace(/[^a-z]/g,"").slice(0,10)}${i+1}@testmail.com`,
+          phone: `+91 9${Math.floor(100000000 + Math.random()*900000000)}`,
+          city: city,
+          address: `${city}, ${lang==='hi'?'India':'World'} - ${Math.floor(100000+Math.random()*900000)}`
+        })
+      }
+      setData(arr);
+      setIsGenerating(false);
+      setTimeout(()=>setActiveBtn(""),300);
+    },400);
   };
 
   React.useEffect(()=>{ generate(); },[lang]);
 
-  // Downloads
   const download = (type) => {
-    if(data.length===0) return alert("Pehle Generate karo!");
-    let content="", mime="", ext="";
-    if(type==="json"){ content=JSON.stringify(data,null,2); mime="application/json"; ext="json"; }
-    if(type==="csv"){
-      content="id,name,email,phone,city\n"+data.map(d=>`${d.id},"${d.name}","${d.email}","${d.phone}","${d.city}"`).join("\n");
-      mime="text/csv"; ext="csv";
-    }
-    if(type==="sql"){
-      content=data.map(d=>`INSERT INTO users (name,email,phone,city) VALUES ('${d.name}','${d.email}','${d.phone}','${d.city}');`).join("\n");
-      mime="text/sql"; ext="sql";
-    }
-    if(type==="txt"){
-      content=data.map(d=>`${d.name} - ${d.email} - ${d.phone}`).join("\n");
-      mime="text/plain"; ext="txt";
-    }
-    const blob=new Blob([content],{type:mime});
-    const url=URL.createObjectURL(blob);
+    if(!data.length) return;
+    setActiveBtn(type); setTimeout(()=>setActiveBtn(""),300);
+    let content="", ext=type, mime="text/plain";
+    if(type==="json"){ content=JSON.stringify(data,null,2); mime="application/json"; }
+    if(type==="csv"){ content="id,name,email,phone,city\n"+data.map(d=>`${d.id},"${d.name}","${d.email}","${d.phone}","${d.city}"`).join("\n"); mime="text/csv"; }
+    if(type==="sql"){ content=data.map(d=>`INSERT INTO users (name,email,phone,city) VALUES ('${d.name}','${d.email}','${d.phone}','${d.city}');`).join("\n"); }
+    if(type==="txt"){ content=data.map(d=>`${d.name} | ${d.email} | ${d.phone}`).join("\n"); }
+    const blob=new Blob([content],{type:mime}); const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download=`fake-data-${lang}.${ext}`; a.click();
   };
 
-  const clearAll = () => setData([]);
-  const saveData = () => { localStorage.setItem("fakeData",JSON.stringify(data)); setSaved(true); setTimeout(()=>setSaved(false),2000); };
-  const shareData = async () => {
-    if(navigator.share){ await navigator.share({title:"Fake Data", text: JSON.stringify(data.slice(0,3)) }); }
-    else { navigator.clipboard.writeText(window.location.href); alert("Link Copied!"); }
+  const handleCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(data,null,2));
+    setCopied(true); setActiveBtn("copy");
+    setTimeout(()=>{ setCopied(false); setActiveBtn(""); },2000);
   };
 
+  const btnStyle = (id) => ({
+    transition:"all 0.15s ease",
+    transform: activeBtn===id? "scale(0.92)" : "scale(1)",
+    filter: activeBtn===id? "brightness(1.2)" : "brightness(1)"
+  });
+
   return (
-    <div style={{background:"#0a0a0a", minHeight:"100vh", color:"white", padding:16}}>
-      <div style={{maxWidth:650, margin:"0 auto"}}>
-        {/* TOOL CARD */}
+    <div style={{background:"#0a0a0a", minHeight:"100vh", color:"white"}}>
+      {/* HEADER */}
+      <header style={{display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 16px", borderBottom:"1px solid #222", background:"#111", position:"sticky", top:0, zIndex:10}}>
+        <div style={{fontWeight:800, fontSize:18}}>⚡ Lorem Pro Tool</div>
+        <div style={{display:"flex", gap:12, fontSize:13, opacity:0.7}}>
+          <span onClick={()=>window.location.href='/'}>Home</span>
+          <span onClick={()=>window.location.href='/about'}>About</span>
+          <span onClick={()=>window.location.href='/privacy-policy'}>Privacy</span>
+        </div>
+      </header>
+
+      <div style={{maxWidth:680, margin:"0 auto", padding:16}}>
         <div style={{background:"#171717", borderRadius:24, padding:20, border:"1px solid #2a2a2a"}}>
           <h1 style={{fontSize:26, fontWeight:800}}>Fake Data Generator</h1>
-          <p style={{opacity:0.6, fontSize:13}}>Free tool to generate test data in 8+ languages with download options</p>
+          <p style={{opacity:0.6, fontSize:13, marginTop:4}}>Advanced dummy data in 8+ languages - No repeat, AdSense ready</p>
 
-          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:20}}>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 100px", gap:10, marginTop:18}}>
             <select value={lang} onChange={e=>setLang(e.target.value)} style={{padding:14, borderRadius:14, background:"#262626", color:"white", border:"1px solid #333"}}>
-              <option value="hi">🇮🇳 Hindi (हिंदी)</option>
-              <option value="en">🇺🇸 English</option>
-              <option value="es">🇪🇸 Spanish</option>
-              <option value="fr">🇫🇷 French</option>
-              <option value="de">🇩🇪 German</option>
-              <option value="ja">🇯🇵 Japanese</option>
-              <option value="bn">🇮🇳 Bengali</option>
-              <option value="ta">🇮🇳 Tamil</option>
+              <option value="hi">🇮🇳 Hindi (हिंदी)</option><option value="en">🇺🇸 English</option><option value="bn">🇮🇳 Bengali</option><option value="ta">🇮🇳 Tamil</option><option value="es">🇪🇸 Spanish</option><option value="fr">🇫🇷 French</option><option value="de">🇩🇪 German</option><option value="ja">🇯🇵 Japanese</option>
             </select>
             <select value={count} onChange={e=>setCount(Number(e.target.value))} style={{padding:14, borderRadius:14, background:"#262626", color:"white", border:"1px solid #333"}}>
-              <option value="10">10 Rows</option><option value="25">25 Rows</option><option value="50">50 Rows</option><option value="100">100 Rows</option>
+              <option value="10">10 Rows</option><option value="25">25</option><option value="50">50</option><option value="100">100</option>
             </select>
           </div>
 
-          <div style={{display:"flex", gap:8, marginTop:12, flexWrap:"wrap"}}>
-            <button onClick={generate} style={{flex:1, padding:14, borderRadius:14, background:"white", color:"black", fontWeight:700, border:"none"}}>✨ Generate</button>
-            <button onClick={clearAll} style={{padding:14, borderRadius:14, background:"#262626", color:"white", border:"1px solid #333"}}>🗑️ Clear</button>
+          <div style={{display:"flex", gap:8, marginTop:12}}>
+            <button onClick={generate} style={{...btnStyle("gen"), flex:1, padding:14, borderRadius:14, background: isGenerating?"#555":"white", color: isGenerating?"white":"black", fontWeight:700, border:"none", cursor:"pointer"}}>{isGenerating?"⏳ Generating...":"✨ Generate"}</button>
+            <button onClick={()=>{setData([]); setActiveBtn("clear"); setTimeout(()=>setActiveBtn(""),300);}} style={{...btnStyle("clear"), padding:14, borderRadius:14, background:"#262626", color:"white", border:"1px solid #333"}}>🗑️ Clear</button>
           </div>
 
-          <div style={{display:"flex", gap:8, marginTop:12, flexWrap:"wrap"}}>
-            <button onClick={()=>download("json")} style={{flex:1, padding:10, borderRadius:10, background:"#1f2937", color:"white", border:"1px solid #333", fontSize:12}}>⬇️ JSON</button>
-            <button onClick={()=>download("csv")} style={{flex:1, padding:10, borderRadius:10, background:"#1f2937", color:"white", border:"1px solid #333", fontSize:12}}>⬇️ CSV</button>
-            <button onClick={()=>download("sql")} style={{flex:1, padding:10, borderRadius:10, background:"#1f2937", color:"white", border:"1px solid #333", fontSize:12}}>⬇️ SQL</button>
-            <button onClick={()=>download("txt")} style={{flex:1, padding:10, borderRadius:10, background:"#1f2937", color:"white", border:"1px solid #333", fontSize:12}}>⬇️ TXT</button>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:8, marginTop:12}}>
+            {["json","csv","sql","txt"].map(f=>(
+              <button key={f} onClick={()=>download(f)} style={{...btnStyle(f), padding:10, borderRadius:12, background:"#1f2937", color:"white", border:"1px solid #333", fontSize:12, cursor:"pointer"}}>⬇️ {f.toUpperCase()}</button>
+            ))}
           </div>
 
-          <div style={{display:"flex", gap:8, marginTop:10}}>
-            <button onClick={saveData} style={{flex:1, padding:10, borderRadius:10, background:"#262626", color:"white", border:"1px solid #333"}}>{saved?"✅ Saved":"💾 Save"}</button>
-            <button onClick={shareData} style={{flex:1, padding:10, borderRadius:10, background:"#262626", color:"white", border:"1px solid #333"}}>📤 Share</button>
-            <button onClick={()=>navigator.clipboard.writeText(JSON.stringify(data,null,2))} style={{flex:1, padding:10, borderRadius:10, background:"#262626", color:"white", border:"1px solid #333"}}>📋 Copy</button>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8, marginTop:10}}>
+            <button onClick={()=>{localStorage.setItem("fakeData",JSON.stringify(data)); setActiveBtn("save"); setTimeout(()=>setActiveBtn(""),1000);}} style={{...btnStyle("save"), padding:10, borderRadius:12, background:"#262626", color:"white", border:"1px solid #333"}}>💾 Save</button>
+            <button onClick={()=>{if(navigator.share) navigator.share({title:"Fake Data", url: window.location.href}); else {navigator.clipboard.writeText(window.location.href); alert("Link Copied!")} setActiveBtn("share"); setTimeout(()=>setActiveBtn(""),500);}} style={{...btnStyle("share"), padding:10, borderRadius:12, background:"#262626", color:"white", border:"1px solid #333"}}>📤 Share</button>
+            <button onClick={handleCopy} style={{...btnStyle("copy"), padding:10, borderRadius:12, background: copied?"#22c55e":"#262626", color: copied?"black":"white", border:"1px solid #333", fontWeight: copied?700:400, transition:"all 0.3s ease"}}>{copied?"✅ Copied!":"📋 Copy"}</button>
           </div>
 
-          <pre style={{marginTop:16, background:"black", borderRadius:16, padding:16, maxHeight:300, overflow:"auto", color:"#4ade80", fontSize:11, border:"1px solid #222"}}>{data.length?JSON.stringify(data,null,2):"Click Generate..."}</pre>
+          <pre style={{marginTop:16, background:"black", borderRadius:16, padding:16, maxHeight:320, overflow:"auto", color:"#4ade80", fontSize:11, border:"1px solid #222", transition:"all 0.3s"}}>{data.length?JSON.stringify(data,null,2):"No data..."}</pre>
         </div>
 
-        {/* ADSENSE ARTICLE SECTION */}
-        <div style={{marginTop:32, background:"#171717", borderRadius:20, padding:20, border:"1px solid #222", lineHeight:1.6}}>
-          <h2 style={{fontSize:20, fontWeight:700}}>What is Fake Data Generator?</h2>
-          <p style={{opacity:0.8, fontSize:14, marginTop:10}}>Fake Data Generator is a free online tool for developers, testers and students. It helps you create realistic dummy data like names, emails, phone numbers, cities and addresses in multiple Indian and international languages. This data is 100% fake and safe to use for testing your apps, websites and databases.</p>
-
-          <h3 style={{marginTop:20, fontWeight:700}}>Features of Our Tool</h3>
-          <ul style={{opacity:0.8, fontSize:14, marginTop:8}}>
-            <li>✅ Supports 8+ Languages - Hindi, English, Bengali, Tamil etc.</li>
-            <li>✅ Export in JSON, CSV, SQL, TXT formats</li>
-            <li>✅ 100% Free, No Login Required</li>
-            <li>✅ Save, Copy & Share Feature</li>
-            <li>✅ Mobile Friendly & Fast</li>
-          </ul>
-
-          <h3 style={{marginTop:20, fontWeight:700}}>Frequently Asked Questions (FAQ)</h3>
-          <p style={{fontSize:14, marginTop:10}}><b>Q: Is this data real?</b><br/><span style={{opacity:0.7}}>No, all data generated is completely fake and random for testing purposes only.</span></p>
-          <p style={{fontSize:14, marginTop:10}}><b>Q: Can I use it for my project?</b><br/><span style={{opacity:0.7}}>Yes, you can use it for any personal or commercial testing project.</span></p>
-          <p style={{fontSize:14, marginTop:10}}><b>Q: Does it support Hindi names?</b><br/><span style={{opacity:0.7}}>Yes! Select Hindi language to generate Indian names like Rahul Sharma, Pooja Verma etc.</span></p>
-
-          <p style={{opacity:0.5, fontSize:12, marginTop:24, borderTop:"1px solid #333", paddingTop:12}}>© 2026 Lorem Pro Tool - Free Developer Tools for Testing. Made in India.</p>
+        {/* ARTICLE FOR ADSENSE */}
+        <div style={{marginTop:24, background:"#171717", borderRadius:20, padding:20, border:"1px solid #222", lineHeight:1.7}}>
+          <h2 style={{fontSize:18, fontWeight:700}}>What is Fake Data Generator?</h2>
+          <p style={{opacity:0.8, fontSize:13, marginTop:8}}>This tool generates 100% fake but realistic data for testing. No repetition logic added - every time you click Generate, you get unique shuffled names. Perfect for developers building apps in India.</p>
+          <h3 style={{marginTop:16, fontSize:15, fontWeight:700}}>Why Choose Us?</h3>
+          <ul style={{opacity:0.7, fontSize:13}}><li>✅ No duplicate data - Smart shuffle algorithm</li><li>✅ Real Hindi names - 22+ Indian names</li><li>✅ Animated UI - Copy button turns green</li><li>✅ Header/Footer for AdSense Approval</li></ul>
+          <h3 style={{marginTop:16, fontSize:15, fontWeight:700}}>FAQ</h3>
+          <p style={{fontSize:13}}><b>Q: Hindi repeat kyun hota tha?</b><br/><span style={{opacity:0.6}}>Ab fix hai - shuffle logic se unique names aayenge.</span></p>
         </div>
       </div>
+
+      {/* FOOTER */}
+      <footer style={{marginTop:32, padding:20, borderTop:"1px solid #222", background:"#111", textAlign:"center", opacity:0.6, fontSize:12}}>
+        <div style={{display:"flex", justifyContent:"center", gap:16, marginBottom:10}}>
+          <a href="/about" style={{color:"white"}}>About</a>
+          <a href="/privacy-policy" style={{color:"white"}}>Privacy</a>
+          <a href="/contact" style={{color:"white"}}>Contact</a>
+          <a href="/terms" style={{color:"white"}}>Terms</a>
+        </div>
+        © 2026 Lorem Pro Tool - Made in India for Developers
+      </footer>
     </div>
   );
 }
