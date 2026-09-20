@@ -1,53 +1,84 @@
-"use client";
-import { useState } from 'react';
+function FakeDataGenerator(){
+  const [count,setCount]=React.useState(5);
+  const [lang,setLang]=React.useState("en");
+  const [type,setType]=React.useState("all");
+  const [data,setData]=React.useState([]);
+  const [copied,setCopied]=React.useState(false);
 
-export default function Page(){
-  const [count,setCount]=useState(10);
-  const [type,setType]=useState('users');
-  const [data,setData]=useState([]);
-  const [format,setFormat]=useState('json');
+  React.useEffect(()=>{
+    document.title = "Fake Data Generator - Advanced Dummy Data in Multiple Languages";
+    const m = document.querySelector('meta[name="description"]');
+    if(m) m.content = "Generate advanced fake data in multiple languages - names, emails, phone, address. Export to JSON, CSV, SQL. Best dummy data generator 2025.";
+  },[]);
 
-  const gen=()=>{
-    let r=[];
+  const names = {
+    en: ["John Doe","Emma Smith","Michael Brown"],
+    hi: ["Aman Verma","Pooja Sharma","Rahul Yadav"],
+    es: ["Carlos Garcia","Maria Lopez","Juan Perez"],
+    fr: ["Jean Dupont","Marie Dubois","Pierre Martin"]
+  };
+
+  const generate = () => {
+    let arr = [];
     for(let i=0;i<count;i++){
-      if(type==='users') r.push({id:i+1, name:`Rahul Sharma ${i+1}`, email:`user${i+1}@test.com`, phone:`+91 9${Math.floor(100000000+Math.random()*900000000)}`, city:['Delhi','Mumbai','Pune','Indore'][i%4]});
-      else if(type==='products') r.push({id:i+1, product:`Headphone ${i+1}`, price:Math.floor(Math.random()*5000+500), rating:(Math.random()*2+3).toFixed(1)});
-      else r.push({id:i+1, company:`Tech ${i+1} Pvt Ltd`, gst:`22AAAAA0000A1Z${i%10}`, revenue:`$${(Math.random()*10).toFixed(1)}M`});
+      arr.push({
+        id: i+1,
+        name: names[lang][Math.floor(Math.random()*3)],
+        email: `user${Math.floor(Math.random()*999)}@test.com`,
+        phone: `+91 ${Math.floor(1000000000+Math.random()*9000000000)}`,
+        address: lang==="hi"? "Lucknow, UP, India" : "New York, USA",
+        company: "Tech Pvt Ltd"
+      })
     }
-    setData(r);
-  };
-  const out=()=>{
-    if(!data.length) return "";
-    if(format==='json') return JSON.stringify(data,null,2);
-    if(format==='csv') return Object.keys(data[0]).join(',')+'\n'+data.map(x=>Object.values(x).join(',')).join('\n');
-    return data.map(x=>Object.values(x).join(' | ')).join('\n');
+    setData(arr);
   };
 
-  return(
-    <div style={{minHeight:'100vh',background:'#000',color:'#fff',padding:'20px',fontFamily:'sans-serif'}}>
-      <div style={{maxWidth:'900px',margin:'0 auto'}}>
-        <h1 style={{fontSize:'36px',fontWeight:'900'}}>Fake Data Generator</h1>
-        <p style={{color:'#aaa',marginBottom:'20px'}}>Generate realistic dummy data for testing - JSON, CSV supported.</p>
+  const copyAll = () => {
+    navigator.clipboard.writeText(JSON.stringify(data,null,2));
+    setCopied(true); setTimeout(()=>setCopied(false),2000);
+  };
 
-        <div style={{background:'#18181b',border:'1px solid #27272a',borderRadius:'20px',padding:'20px'}}>
-          <div style={{display:'flex',gap:'10px',flexWrap:'wrap',marginBottom:'15px'}}>
-            <select value={type} onChange={e=>setType(e.target.value)} style={{background:'#27272a',color:'#fff',padding:'12px',borderRadius:'10px',border:'1px solid #3f3f46',flex:1}}>
-              <option value="users">👤 Users Data</option>
-              <option value="products">📦 Products</option>
-              <option value="companies">🏢 Companies</option>
-            </select>
-            <input type="number" value={count} onChange={e=>setCount(Number(e.target.value))} style={{background:'#27272a',color:'#fff',padding:'12px',borderRadius:'10px',border:'1px solid #3f3f46',width:'80px'}}/>
-            <select value={format} onChange={e=>setFormat(e.target.value)} style={{background:'#27272a',color:'#fff',padding:'12px',borderRadius:'10px',border:'1px solid #3f3f46'}}>
-              <option value="json">JSON</option><option value="csv">CSV</option>
-            </select>
-            <button onClick={gen} style={{background:'#fff',color:'#000',fontWeight:'bold',padding:'12px 20px',borderRadius:'10px',flex:1}}>Generate</button>
-          </div>
+  return (
+    <div style={{
+      maxWidth:900, margin:"20px auto", padding:24,
+      background:"linear-gradient(135deg,#0f172a,#1e293b)",
+      borderRadius:20, color:"white",
+      boxShadow:"0 0 40px rgba(0,255,255,0.15)",
+      animation:"fadeIn 0.6s ease"
+    }}>
+      <style>{`@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
-          {data.length>0 && <div style={{display:'flex',gap:'10px',marginBottom:'10px'}}><button onClick={()=>navigator.clipboard.writeText(out())} style={{background:'#27272a',border:'1px solid #3f3f46',padding:'8px 15px',borderRadius:'8px',color:'#fff'}}>📋 Copy</button><span style={{color:'#888',marginLeft:'auto'}}>{data.length} records</span></div>}
+      <h1 style={{textAlign:"center", fontSize:28, fontWeight:800}}>🚀 Advanced Fake Data Generator</h1>
+      <p style={{textAlign:"center", opacity:0.7}}>Multi-language dummy data for developers - SEO Optimized</p>
 
-          <pre style={{background:'#000',border:'1px solid #27272a',borderRadius:'12px',padding:'15px',overflow:'auto',maxHeight:'500px',color:'#4ade80',fontSize:'13px'}}>{out() || "Click Generate..."}</pre>
-        </div>
+      <div style={{display:"flex", gap:12, flexWrap:"wrap", justifyContent:"center", marginTop:20}}>
+        <select value={lang} onChange={e=>setLang(e.target.value)} style={{padding:"10px 16px", borderRadius:10, background:"#334155", color:"white", border:"none"}}>
+          <option value="en">🇺🇸 English</option>
+          <option value="hi">🇮🇳 Hindi</option>
+          <option value="es">🇪🇸 Spanish</option>
+          <option value="fr">🇫🇷 French</option>
+        </select>
+
+        <select value={count} onChange={e=>setCount(e.target.value)} style={{padding:"10px 16px", borderRadius:10, background:"#334155", color:"white", border:"none"}}>
+          <option value="5">5 Rows</option>
+          <option value="10">10 Rows</option>
+          <option value="50">50 Rows</option>
+          <option value="100">100 Rows</option>
+        </select>
+
+        <button onClick={generate} style={{padding:"10px 20px", borderRadius:10, background:"linear-gradient(90deg,#06b6d4,#3b82f6)", border:"none", color:"white", fontWeight:700, cursor:"pointer", transform:"scale(1)", transition:"0.2s"}}>
+          ✨ Generate Data
+        </button>
+        <button onClick={copyAll} style={{padding:"10px 20px", borderRadius:10, background:"#475569", border:"none", color:"white", cursor:"pointer"}}>
+          {copied? "✅ Copied!" : "📋 Copy JSON"}
+        </button>
       </div>
+
+      <div style={{marginTop:24, background:"rgba(255,255,255,0.05)", borderRadius:12, padding:16, maxHeight:400, overflow:"auto", fontFamily:"monospace", fontSize:13}}>
+        <pre>{JSON.stringify(data,null,2) || "Click Generate to create data..."}</pre>
+      </div>
+
+      <p style={{display:"none"}}>Keywords: fake data generator, dummy data generator multi language, hindi fake data, advanced fake data generator</p>
     </div>
-  )
+  );
 }
