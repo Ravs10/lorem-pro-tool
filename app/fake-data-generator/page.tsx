@@ -6,22 +6,22 @@ const ALL_FIELDS = ["Full Name","Email","Mobile","Address","City","Pincode","Com
 const LANGS = ["English","Hindi","Hinglish","Marathi","Tamil","Telugu","Bengali","Gujarati","Malayalam","Kannada","Punjabi","Marwari","Urdu","Bhojpuri","Odia","English (US)"];
 
 const NAMES: any = {
-  Hindi: ["Amit Sharma","Ravi Verma","Sunil Kumar","Vikram Singh","Anjali Patel","Pooja Gupta","Deepak Yadav","Neha Singh"],
-  Tamil: ["Arjun Kumar","Karthi Raja","Surya Sivakumar","Priya Lakshmi","Lakshmi Menon","Vijay Sethupathi"],
-  Telugu: ["Ravi Teja","Pawan Kalyan","Mahesh Babu","Samantha Akkineni","Anushka Shetty"],
-  Marathi: ["Sahil Joshi","Omkar Patil","Sneha Kulkarni","Madhuri Dixit","Sachin Tendulkar"],
-  Bengali: ["Arindam Das","Sourav Ganguly","Riya Sen","Mishti Chatterjee","Jeet Banerjee"],
-  Gujarati: ["Hardik Patel","Jigar Shah","Kinjal Dave","Dhara Mehta","Ketan Patel"],
-  Malayalam: ["Mohanlal Kumar","Dulquer Salmaan","Nayan Thara","Manju Warrier"],
-  Kannada: ["Yash Gowda","Darshan Kumar","Rashmika Mandanna","Ramya Krishnan"],
-  Punjabi: ["Jassi Gill","Harman Singh","Simran Kaur","Gurpreet Dhillon","Diljit Dosanjh"],
-  Marwari: ["Bhanwar Singh","Ghewar Mal","Kamla Devi","Sunita Agarwal"],
-  Urdu: ["Imran Khan","Faizan Ahmed","Zoya Sheikh","Ayesha Siddiqui","Salman Khan"],
-  Bhojpuri: ["Khesari Lal","Pawan Singh","Akshara Singh","Amrapali Dubey"],
-  Odia: ["Subham Mohanty","Sambit Patra","Sonal Mohapatra","Pragya Alka"],
+  Hindi: ["Amit Sharma","Ravi Verma","Sunil Kumar","Vikram Singh","Anjali Patel","Pooja Gupta","Deepak Yadav","Neha Singh","Aman Mishra","Priya Tiwari"],
+  Tamil: ["Arjun Kumar","Karthi Raja","Surya Sivakumar","Priya Lakshmi","Lakshmi Menon","Vijay Sethupathi","Dhanush Kumar"],
+  Telugu: ["Ravi Teja","Pawan Kalyan","Mahesh Babu","Samantha Akkineni","Anushka Shetty","Allu Arjun"],
+  Marathi: ["Sahil Joshi","Omkar Patil","Sneha Kulkarni","Madhuri Dixit","Sachin Tendulkar","Riteish Deshmukh"],
+  Bengali: ["Arindam Das","Sourav Ganguly","Riya Sen","Mishti Chatterjee","Jeet Banerjee","Koel Mallick"],
+  Gujarati: ["Hardik Patel","Jigar Shah","Kinjal Dave","Dhara Mehta","Ketan Patel","Alpesh Thakor"],
+  Malayalam: ["Mohanlal Kumar","Dulquer Salmaan","Nayan Thara","Manju Warrier","Fahadh Faasil"],
+  Kannada: ["Yash Gowda","Darshan Kumar","Rashmika Mandanna","Ramya Krishnan","Kichcha Sudeep"],
+  Punjabi: ["Jassi Gill","Harman Singh","Simran Kaur","Gurpreet Dhillon","Diljit Dosanjh","Ammy Virk"],
+  Marwari: ["Bhanwar Singh","Ghewar Mal","Kamla Devi","Sunita Agarwal","Pukhraj Suthar"],
+  Urdu: ["Imran Khan","Faizan Ahmed","Zoya Sheikh","Ayesha Siddiqui","Salman Khan","Nawazuddin"],
+  Bhojpuri: ["Khesari Lal","Pawan Singh","Akshara Singh","Amrapali Dubey","Ravi Kishan"],
+  Odia: ["Subham Mohanty","Sambit Patra","Sonal Mohapatra","Pragya Alka","Anubhav Mohanty"],
   English: ["Aarav Mehta","Vivaan Shah","Rahul Kumar","Sai Kapoor","Ananya Singh","Ishaan Verma"],
   "English (US)": ["John Smith","Emma Johnson","Michael Brown","Sophia Williams","David Miller"],
-  Hinglish: ["Aarav Sharma","Rahul Verma","Sai Kumar","Pooja Singh","Riya Patel"]
+  Hinglish: ["Aarav Sharma","Rahul Verma","Sai Kumar","Pooja Singh","Riya Patel","Rohit Bhai"]
 };
 
 function genOne(fields: string[], lang: string){
@@ -30,7 +30,7 @@ function genOne(fields: string[], lang: string){
   const parts = fullName.split(" ");
   const first = parts[0];
   const last = parts[1] || "Kumar";
-  const city = ["Delhi","Mumbai","Suratgarh","Jaipur","Pune","Kolkata","Chennai","Lucknow"][Math.floor(Math.random()*8)];
+  const city = ["Delhi","Mumbai","Suratgarh","Jaipur","Pune","Kolkata","Chennai","Lucknow","Ahmedabad","Hyderabad"][Math.floor(Math.random()*10)];
   const o: any = {};
   if(fields.includes("Full Name")) o["Full Name"] = fullName;
   if(fields.includes("Email")) o["Email"] = `${first.toLowerCase()}${Math.floor(Math.random()*900)}@gmail.com`;
@@ -53,7 +53,6 @@ export default function Page(){
   const [view,setView]=useState("table");
   const [copyText,setCopyText]=useState("Copy");
   const [saveText,setSaveText]=useState("💾 Save");
-  const [menuOpen,setMenuOpen]=useState(false);
   const [showArticle,setShowArticle]=useState(false);
   const [faqOpen,setFaqOpen]=useState<number | null>(0);
 
@@ -63,6 +62,7 @@ export default function Page(){
   };
 
   useEffect(() => { generate(); }, []);
+  useEffect(() => { generate(); }, [lang]);
 
   const jsonStr = JSON.stringify(data, null, 2);
   const csvStr = data.length? [Object.keys(data[0]).join(","),...data.map((r:any) => Object.values(r).map((v:any) => `"${v}"`).join(","))].join("\n") : "";
@@ -79,17 +79,6 @@ export default function Page(){
 
   return (
     <div className="min-h-screen bg-[#f8f8f7] text-zinc-900">
-      <header className="sticky top-0 z-50 bg-black text-white px-4 py-3 flex justify-between items-center">
-        <h1 className="text-base font-black tracking-tight">⚡ Lorem Pro Tool</h1>
-        <button className="bg-zinc-800 px-3 py-2 rounded-lg text-sm" onClick={()=>setMenuOpen(!menuOpen)}>☰ Menu</button>
-        {menuOpen && (
-          <div className="absolute top-[52px] left-0 w-full bg-black p-4 flex flex-col gap-3 text-sm border-t border-zinc-800">
-            <a href="/" className="py-2 border-b border-zinc-800">🏠 Home</a>
-            <a href="/fake-data-generator" className="py-2 text-yellow-400 font-bold">📊 Fake Data - 15 Languages</a>
-          </div>
-        )}
-      </header>
-
       <main className="max-w-[1100px] mx-auto px-3 py-4">
         <div className="mb-2">
           <h1 className="text-[26px] font-black leading-tight">Fake Data Generator - Indian Pro Tool</h1>
@@ -98,9 +87,10 @@ export default function Page(){
 
         <div className="bg-white rounded-[24px] border shadow-sm p-5 mt-4">
           <label className="font-bold text-[14px]">🌐 Select Language (15 Languages Supported)</label>
-          <select value={lang} onChange={e=>setLang(e.target.value)} className="w-full mt-2 border-2 border-zinc-200 rounded-full px-5 py-4 text-[14px] bg-zinc-50 font-bold outline-none">
+          <select value={lang} onChange={e=>{setLang(e.target.value)}} className="w-full mt-2 border-2 border-zinc-200 rounded-full px-5 py-4 text-[14px] bg-zinc-50 font-bold outline-none">
             {LANGS.map(l=><option key={l} value={l}>{l}</option>)}
           </select>
+          <p className="text-[11px] text-zinc-500 mt-2">Selected: {lang} - Generate dabao to see {lang} names</p>
 
           <h3 className="font-bold text-[14px] mt-6">Select Fields ({fields.length} / 10 Selected)</h3>
           <div className="grid grid-cols-2 gap-2.5 mt-3">
@@ -122,7 +112,7 @@ export default function Page(){
 
         {data.length>0 && (
           <div className="mt-5 bg-white rounded-[24px] border shadow-sm p-4">
-            <div className="flex gap-2 overflow-auto pb-2 no-scrollbar">
+            <div className="flex gap-2 overflow-auto pb-2">
               {["table","json","csv","txt","sql"].map(v=>(
                 <button key={v} onClick={()=>setView(v)} className={`px-6 h-10 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap ${view===v?"bg-black text-white":"bg-zinc-100 text-zinc-600"}`}>{v}</button>
               ))}
@@ -148,17 +138,16 @@ export default function Page(){
         )}
 
         <div className="mt-5 bg-white rounded-[24px] border shadow-sm overflow-hidden">
-          <button onClick={()=>setShowArticle(!showArticle)} className="w-full p-5 flex justify-between items-center font-black text-left text-[15px]">📘 What is Fake Data Generator? Complete Guide <span className="text-xl">{showArticle?"−":"+"}</span></button>
-          {showArticle && <div className="px-5 pb-5 text-[13px] text-zinc-600 leading-7">Fake Data Generator is free tool for developers. Generate realistic but fake Indian data like PAN, Aadhaar, UPI, Mobile in 15 languages: Hindi, Marathi, Tamil, Telugu, Bengali, Gujarati, Malayalam, Kannada, Punjabi, Marwari, Urdu, Bhojpuri, Odia. Export to JSON, CSV, TXT, SQL. No real data is used.</div>}
+          <button onClick={()=>setShowArticle(!showArticle)} className="w-full p-5 flex justify-between items-center font-black text-left text-[15px]">📘 What is Fake Data Generator? <span className="text-xl">{showArticle?"−":"+"}</span></button>
+          {showArticle && <div className="px-5 pb-5 text-[13px] text-zinc-600 leading-7">Generate fake Indian data like PAN, Aadhaar, UPI in 15 languages. 100% fake for testing only.</div>}
         </div>
 
         <div className="mt-5 bg-white rounded-[24px] border shadow-sm p-5">
           <h3 className="font-black text-[16px]">❓ FAQ</h3>
           <div className="mt-4 space-y-2.5">
             {[
-              {q:"Is this data real? Can I use for official work?", a:"No, 100% fake and random data. Only for testing and development. Never use for real KYC or official work."},
-              {q:"15 languages kaise kaam karta hai?", a:"Upar dropdown se language select karo - Hindi, Marathi, Tamil, Telugu, Bengali etc. Fir Generate dabao, naam usi language style ke aayenge."},
-              {q:"SQL file kaise download karu?", a:"SQL tab pe click karo > Download button dabao. Direct.sql file download hogi."},
+              {q:"Is this data real?", a:"No, 100% fake random data only for testing."},
+              {q:"15 languages kaise?", a:"Dropdown se select karo, Generate dabao - usi language ke naam ayenge."},
             ].map((f:any,i:number)=>(
               <div key={i} className="border rounded-xl overflow-hidden">
                 <button onClick={()=>setFaqOpen(faqOpen===i?null:i)} className="w-full text-left p-4 font-bold flex justify-between items-center text-[13px] bg-zinc-50">{f.q}<span className="text-lg">{faqOpen===i?"−":"+"}</span></button>
