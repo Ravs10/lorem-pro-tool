@@ -1,120 +1,73 @@
 "use client";
 import { useState } from "react";
 
-const ALL_FIELDS = [
-  { id: "name", label: "Full Name" },
-  { id: "email", label: "Email" },
-  { id: "mobile", label: "Mobile (+91)" },
-  { id: "address", label: "Address" },
-  { id: "city", label: "City" },
-  { id: "pincode", label: "Pincode" },
-  { id: "company", label: "Company" },
-  { id: "pan", label: "PAN" },
-  { id: "aadhaar", label: "Aadhaar" },
-  { id: "upi", label: "UPI ID" },
-];
-
-const fake = {
-  name: () => ["Rahul Sharma","Priya Verma","Aman Singh","Neha Gupta"][Math.floor(Math.random()*4)],
-  email: () => `user${Math.floor(Math.random()*9000)}@gmail.com`,
-  mobile: () => `+91 98${Math.floor(10000000 + Math.random()*89999999)}`,
-  address: () => "MG Road, Suratgarh",
-  city: () => ["Jaipur","Delhi","Mumbai","Suratgarh"][Math.floor(Math.random()*4)],
-  pincode: () => "335804",
-  company: () => "ToolBaba Pvt Ltd",
-  pan: () => "ABCDE1234F",
-  aadhaar: () => "XXXX-XXXX-1234",
-  upi: () => `user${Math.floor(Math.random()*99)}@okaxis`,
-};
-
-export default function FakeDataPage() {
-  const [selected, setSelected] = useState<string[]>(["name","email","mobile"]);
+export default function Page() {
+  const fields = ["Full Name","Email","Mobile","Address","City","Pincode","Company","PAN","Aadhaar","UPI ID"];
+  const [selected, setSelected] = useState([0,1,2]);
   const [count, setCount] = useState(1);
-  const [showArticle, setShowArticle] = useState(false);
-  const [records, setRecords] = useState<any[]>([]);
+  const [show, setShow] = useState(false);
+  const [data, setData] = useState([]);
 
-  const toggle = (id: string) => {
-    if (selected.includes(id)) {
-      if (selected.length > 1) setSelected(selected.filter(f => f!== id));
+  function toggle(i){
+    if(selected.includes(i)){
+      if(selected.length > 1){
+        setSelected(selected.filter(x=>x!==i));
+      }
     } else {
-      if (selected.length < 10) setSelected([...selected, id]);
+      if(selected.length < 10){
+        setSelected([...selected, i]);
+      }
     }
-  };
+  }
 
-  const generate = () => {
-    const newRecs = Array.from({ length: count }).map(() => {
-      let obj: any = {};
-      selected.forEach(f => { obj[f] = (fake as any)[f](); });
-      return obj;
-    });
-    setRecords(newRecs);
-  };
+  function gen(){
+    const arr = [];
+    for(let k=0;k<count;k++){
+      const obj = {};
+      selected.forEach((i)=>{
+        obj[fields[i]] = "Test-"+Math.floor(Math.random()*9999);
+      });
+      arr.push(obj);
+    }
+    setData(arr);
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-3 md:p-6">
-      <h1 className="text-2xl md:text-3xl font-bold">Fake Data Generator - Pro</h1>
-      <p className="text-sm text-gray-600 mt-1">1 se 10 field tak select karo, mobile friendly</p>
+    <div className="max-w-4xl mx-auto p-4">
+      <h1 className="text-2xl font-bold">Fake Data Generator - Pro</h1>
+      <p className="text-sm text-gray-600">Select 1 to 10 fields</p>
 
-      <div className="mt-4 p-4 border rounded-2xl bg-white shadow-sm">
-        <h3 className="font-semibold text-sm">1. Fields Select Karo ({selected.length}/10)</h3>
-        <div className="grid grid-cols-2 gap-2 mt-3">
-          {ALL_FIELDS.map(f => (
-            <button key={f.id} onClick={()=>toggle(f.id)}
-              className={`p-3 text-xs md:text-sm border rounded-xl text-left font-medium ${selected.includes(f.id)? 'bg-black text-white border-black' : 'bg-gray-50'}`}>
-              {selected.includes(f.id)? '✓ ' : '+ '}{f.label}
+      <div className="mt-4 p-4 border rounded-2xl bg-white">
+        <p className="font-bold text-sm">Fields ({selected.length}/10)</p>
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          {fields.map((f,i)=>(
+            <button key={i} onClick={()=>toggle(i)} className={selected.includes(i)? "p-2 text-sm border rounded-xl bg-black text-white" : "p-2 text-sm border rounded-xl bg-gray-50"}>
+              {f}
             </button>
           ))}
         </div>
-
-        <h3 className="font-semibold text-sm mt-6">2. Kitne Records? - {count}</h3>
-        <input type="range" min={1} max={50} value={count} onChange={e=>setCount(parseInt(e.target.value))} className="w-full mt-2" />
-
-        <button onClick={generate} className="mt-5 w-full bg-black text-white py-3 rounded-xl font-bold">Generate {count} Record</button>
+        <p className="mt-4 font-bold text-sm">Records: {count}</p>
+        <input type="range" min="1" max="50" value={count} onChange={(e)=>setCount(Number(e.target.value))} className="w-full"/>
+        <button onClick={gen} className="w-full mt-4 bg-black text-white py-3 rounded-xl">Generate</button>
       </div>
 
-      {records.length > 0 && (
-        <div className="mt-5">
-          <div className="space-y-3">
-            {records.map((r, i) => (
-              <div key={i} className="bg-white border rounded-xl p-3 text-xs">
-                {Object.entries(r).map(([k, v]) => (
-                  <div key={k} className="flex justify-between py-1 border-b last:border-0">
-                    <span className="font-bold uppercase text-gray-500">{k}</span>
-                    <span className="font-medium">{String(v)}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-          <pre className="mt-3 bg-gray-900 text-green-400 p-3 rounded-xl text-[10px] overflow-auto">{JSON.stringify(records, null, 2)}</pre>
-        </div>
+      {data.length > 0 && (
+        <pre className="mt-4 bg-black text-green-400 p-3 rounded-xl text-xs overflow-auto">
+          {JSON.stringify(data, null, 2)}
+        </pre>
       )}
 
-      {/* Article Section - Root Style + Hide Show */}
-      <div className="mt-8">
-        <button onClick={()=>setShowArticle(!showArticle)} className="w-full flex justify-between items-center bg-white border p-4 rounded-2xl shadow-sm">
-          <span className="font-bold">📝 Articles & Guide</span>
-          <span className="text-xs bg-black text-white px-3 py-1 rounded-full">{showArticle? 'Hide ▲' : 'Show ▼'}</span>
-        </button>
+      <button onClick={()=>setShow(!show)} className="w-full mt-6 border p-4 rounded-2xl flex justify-between bg-white">
+        <span className="font-bold">Articles & Guide</span>
+        <span>{show? "Hide" : "Show"}</span>
+      </button>
 
-        {showArticle && (
-          <div className="mt-4 space-y-4">
-            <div className="bg-white border rounded-2xl p-5 shadow-sm">
-              <h2 className="text-xl font-bold">What is Fake Data Generator?</h2>
-              <p className="mt-2 text-sm text-gray-600 leading-6">Free tool for developers to generate Indian fake data. Useful for testing forms, database seeding, and UI design without using real data.</p>
-              <ul className="list-disc ml-5 mt-3 text-sm text-gray-600 space-y-1">
-                <li>No signup, 100% free</li>
-                <li>Indian data: +91, Pincode, PAN, UPI</li>
-                <li>Select 1 to 10 fields</li>
-              </ul>
-            </div>
-            <div className="bg-white border rounded-2xl p-5 shadow-sm">
-              <h2 className="text-xl font-bold">How to Use 1 to 10 Fields?</h2>
-              <p className="mt-2 text-sm text-gray-600 leading-6">Just tick the fields you need. If you want only 2 fields, select only 2. Our system will generate only selected fields. Perfect for custom testing.</p>
-            </div>
-          </div>
-        )}
-      </div>
+      {show && (
+        <div className="mt-3 bg-white border rounded-2xl p-5">
+          <h2 className="font-bold text-xl">What is Fake Data Generator?</h2>
+          <p className="text-sm text-gray-600 mt-2 leading-6">This tool helps you generate fake Indian data for testing. You can select 1 to 10 fields as needed.</p>
+        </div>
+      )}
     </div>
   );
 }
