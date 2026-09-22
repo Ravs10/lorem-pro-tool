@@ -71,13 +71,27 @@ export default function Page(){
   const [view,setView]=useState("table");
   const [copyText,setCopyText]=useState("Copy");
   const [saveText,setSaveText]=useState("💾 Save");
-  const [showArticle,setShowArticle]=useState(false);
+  const [showArticle,setShowArticle]=useState(true);
   const [faqOpen,setFaqOpen]=useState<number | null>(0);
 
   const generate = () => {
     const newData = Array.from({length: count}, () => genOne(fields, lang));
     setData(newData);
   };
+
+  useEffect(()=>{
+    document.title = "Fake Data Generator - 30 Languages | Indian & Global Fake Data Tool";
+    const setMeta = (name:string, content:string) => {
+      let tag = document.querySelector('meta[name="' + name + '"]');
+      if(!tag){ tag = document.createElement('meta'); tag.setAttribute("name",name); document.head.appendChild(tag); }
+      tag.setAttribute("content", content);
+    };
+    setMeta("description","Generate fake data in 30 languages - 15 Indian + 15 Global. Fake Name, Address, City, Company in Hindi, Tamil, Telugu, Bhojpuri, Japanese, Spanish etc. Email always in English. Free tool for testing & development.");
+    setMeta("keywords","fake data generator, indian fake data generator, hindi fake name generator, bhojpuri fake data, tamil fake address, fake data generator 30 languages, dummy data generator, test data generator, fake email generator, fake company generator");
+    let og = document.querySelector('meta[property="og:title"]');
+    if(!og){ og = document.createElement('meta'); og.setAttribute("property","og:title"); document.head.appendChild(og); }
+    og.setAttribute("content","Fake Data Generator - 30 Languages | Free Testing Tool");
+  },[]);
 
   useEffect(()=>{ generate(); }, []);
   useEffect(()=>{ generate(); }, [lang]);
@@ -107,16 +121,16 @@ export default function Page(){
   return (
     <div className="min-h-screen bg-[#f8f8f7] text-zinc-900">
       <main className="max-w-[1100px] mx-auto px-3 py-4">
-        <h1 className="text-[24px] font-black">Fake Data Generator - 30 Languages</h1>
-        <p className="text-zinc-500 text-[12px] mt-1">🌐 15 Indian + 15 Global • Email Always English</p>
+        <h1 className="text-[26px] font-black leading-tight">Fake Data Generator - 30 Languages</h1>
+        <p className="text-zinc-500 text-[12px] mt-1">Generate fake data in 15 Indian + 15 Global languages. Email always in English for validity.</p>
 
         <div className="bg-white rounded-[24px] border shadow-sm p-5 mt-4">
-          <label className="font-bold text-[14px]">🌐 Select Language (30 Languages)</label>
+          <label className="font-bold text-[14px]">🌐 Select Language (30 Languages - All Fields Change Except Email)</label>
           <select value={lang} onChange={e=>setLang(e.target.value)} className="w-full mt-2 border-2 border-black rounded-full px-5 py-4 text-[15px] bg-yellow-50 font-bold outline-none">
             <optgroup label="🇮🇳 Indian (15)">{LANGS.slice(0,16).map(l=><option key={l} value={l}>{l}</option>)}</optgroup>
             <optgroup label="🌍 Global (14)">{LANGS.slice(16).map(l=><option key={l} value={l}>{l}</option>)}</optgroup>
           </select>
-          <div className="mt-2 bg-green-100 border text-green-800 text-[12px] font-bold px-3 py-2 rounded-full">Active: {lang} - Email hamesha English me rahega</div>
+          <div className="mt-2 bg-green-100 border text-green-800 text-[12px] font-bold px-3 py-2 rounded-full">Active: {lang} - City, Address, Company in {lang}, Email always English</div>
 
           <h3 className="font-bold text-[14px] mt-6">Select Fields ({fields.length} / 10)</h3>
           <div className="grid grid-cols-2 gap-2.5 mt-3">
@@ -137,7 +151,7 @@ export default function Page(){
             <div className="flex gap-2 mt-4">
               <button onClick={()=>{ localStorage.setItem('saved-data', getStr()); setSaveText("✓ Saved!"); setTimeout(()=>setSaveText("💾 Save"),2000); }} className={`flex-1 h-12 rounded-full text-[14px] font-bold transition-all ${saveText.includes("Saved")?"bg-green-500 text-white":"bg-zinc-100 text-black"}`}>{saveText}</button>
               <button onClick={()=>{ navigator.clipboard.writeText(getStr()); setCopyText("✓ Copied!"); setTimeout(()=>setCopyText("Copy"),2000); }} className={`flex-1 h-12 rounded-full text-[14px] font-bold transition-all ${copyText.includes("Copied")?"bg-green-500 text-white":"bg-black text-white"}`}>{copyText}</button>
-              <a href={"data:text/plain;charset=utf-8," + encodeURIComponent(getStr())} download={"fake-data." + (view==="table"?"json":view)} className="flex-1 h-12 rounded-full bg-yellow-400 text-black text-[14px] font-black flex items-center justify-center">Download</a>
+              <a href={"data:text/plain;charset=utf-8,[STRIPPED] + encodeURIComponent(getStr())} download={"fake-data." + (view==="table"?"json":view)} className="flex-1 h-12 rounded-full bg-yellow-400 text-black text-[14px] font-black flex items-center justify-center">Download</a>
             </div>
             <div className="mt-4 border rounded-2xl overflow-auto max-h-[500px] bg-white">
               {view==="table"? <table className="w-full text-[13px]"><thead className="bg-zinc-50 sticky top-0"><tr>{Object.keys(data[0]||{}).map(k=><th key={k} className="text-left p-3.5 font-bold border-b">{k}</th>)}</tr></thead><tbody>{data.map((r:any,i:number)=><tr key={i} className="border-t hover:bg-zinc-50"><td colSpan={20}><div className="flex">{Object.values(r).map((v:any,j:number)=><div key={j} className="p-3.5 min-w-[150px] border-r last:border-r-0">{String(v)}</div>)}</div></td></tr>)}</tbody></table> : <pre className="p-4 text-[12px] whitespace-pre-wrap bg-zinc-50 font-mono">{getStr()}</pre>}
@@ -146,18 +160,24 @@ export default function Page(){
         )}
 
         <div className="mt-5 bg-white rounded-[24px] border shadow-sm overflow-hidden">
-          <button onClick={()=>setShowArticle(!showArticle)} className="w-full p-5 flex justify-between items-center font-black text-left text-[15px]">📘 What is Fake Data Generator? <span className="text-xl">{showArticle?"−":"+"}</span></button>
-          {showArticle && <div className="px-5 pb-5 text-[13px] text-zinc-600 leading-7">Generate fake Indian + Global data in 30 languages. Email is always in English format for validity, while Name, City, Address, Company change as per language. 100% fake for testing only. Supports JSON, CSV, TXT, SQL. No real PAN/Aadhaar.</div>}
+          <button onClick={()=>setShowArticle(!showArticle)} className="w-full p-5 flex justify-between items-center font-black text-left text-[15px]">📘 What is Fake Data Generator? - SEO Article <span className="text-xl">{showArticle?"−":"+"}</span></button>
+          {showArticle && <div className="px-5 pb-5 text-[13px] text-zinc-600 leading-7 space-y-3">
+            <p><b>Fake Data Generator</b> is a free online tool to generate fake and dummy data for testing and development. Our tool supports <b>30 languages</b> including 15 Indian languages like Hindi, Tamil, Telugu, Marathi, Bengali, Gujarati, Malayalam, Kannada, Punjabi, Marwari, Urdu, Bhojpuri, Odia and 15 Global languages like Spanish, French, German, Portuguese, Japanese, Chinese, Russian, Arabic, Korean, Italian and more.</p>
+            <p><b>Key Feature:</b> When you select any language, Name, City, Address, Company will be generated in that language, but <b>Email is always generated in English</b> because email IDs like अमित@gmail.com are not valid. Only amit@gmail.com is valid format.</p>
+            <p>This tool is 100% safe, no real data is used. All PAN, Aadhaar, Mobile numbers are randomly generated fake numbers for testing purposes only. You can export data in JSON, CSV, TXT, SQL formats.</p>
+          </div>}
         </div>
 
         <div className="mt-5 bg-white rounded-[24px] border shadow-sm p-5">
-          <h3 className="font-black text-[16px]">❓ FAQ</h3>
+          <h3 className="font-black text-[16px]">❓ Frequently Asked Questions (FAQ)</h3>
           <div className="mt-4 space-y-2.5">
             {[
-              {q:"Is this data real?", a:"No, 100% fake random data only for testing."},
-              {q:"Email hamesha English me kyu?", a:"Email ID kabhi bhi Hindi/Japanese script me valid nahi hota, isliye Email hamesha English me rakha hai."},
-              {q:"15 Indian + 15 Global kaise?", a:"Dropdown se select karo, Generate dabao - Name, City, Address, Company usi language me ayega, Email English me."},
-              {q:"Save kya karta hai?", a:"Aapka generated data browser me save ho jata hai."},
+              {q:"Is this data real?", a:"No, this is 100% fake and randomly generated data. It is only for testing, development and educational purposes. Do not use it for any official documents or KYC."},
+              {q:"Why is Email always in English?", a:"Email IDs are never valid in Hindi, Japanese or Arabic script. For example, amit@gmail.com is valid but अमित@gmail.com is invalid worldwide. That is why Email is always kept in English format for all 30 languages to ensure validity."},
+              {q:"How does the 15 Indian + 15 Global language system work?", a:"Just select any language from the dropdown and click Generate. Your Name, City, Address and Company will be generated in that selected language, while Email will always remain in English format."},
+              {q:"What does the Save button do?", a:"Save button stores your currently generated data in your browser's local storage, so you can use it later even after refreshing the page. Copy button copies the data to clipboard."},
+              {q:"Is PAN and Aadhaar number valid for verification?", a:"No, all PAN and Aadhaar numbers are random fake numbers for testing only. They will not pass any government verification or KYC check."},
+              {q:"Can I download the data?", a:"Yes, you can download your generated fake data in 5 formats - Table, JSON, CSV, TXT, and SQL. Just select the view and click Download button."},
             ].map((f:any,i:number)=>(
               <div key={i} className="border rounded-xl overflow-hidden">
                 <button onClick={()=>setFaqOpen(faqOpen===i?null:i)} className="w-full text-left p-4 font-bold flex justify-between items-center text-[13px] bg-zinc-50">{f.q}<span className="text-lg">{faqOpen===i?"−":"+"}</span></button>
@@ -167,6 +187,7 @@ export default function Page(){
           </div>
         </div>
 
+        <div className="mt-6 text-center text-[11px] text-zinc-400">SEO Title: Fake Data Generator - 30 Languages | Description: 15 Indian + 15 Global Languages Tool | Keywords: fake data generator, indian fake data</div>
       </main>
     </div>
   )
