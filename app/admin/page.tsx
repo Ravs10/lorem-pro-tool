@@ -7,9 +7,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// === YE AAPKI MASTER KEY HAI - ISE DAIRY ME LIKH LO ===
-const MASTER_KEY = "LoremMaster@123"; 
-// Isko aap badal sakte ho
+// === YE AAPKI MASTER KEY HAI - DAIRY ME LIKH LO ===
+const MASTER_KEY = "LoremMaster@123";
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -18,6 +17,12 @@ export default function AdminPage() {
   const [content, setContent] = useState("");
 
   useEffect(() => {
+    // Google ko admin page index karne se rokne ke liye
+    const meta = document.createElement("meta");
+    meta.name = "robots";
+    meta.content = "noindex, nofollow";
+    document.head.appendChild(meta);
+
     if (localStorage.getItem("lorem_admin") === "true") setIsLoggedIn(true);
   }, []);
 
