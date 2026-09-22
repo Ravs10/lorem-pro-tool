@@ -14,31 +14,25 @@ export default function AdminPage() {
   const [showMasterInfo, setShowMasterInfo] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("lorem_admin") === "true") {
-      setIsLoggedIn(true);
-    }
+    if (localStorage.getItem("lorem_admin") === "true") setIsLoggedIn(true);
   }, []);
 
   const handleLogin = async () => {
-    if(!pass) return alert("Password dalo");
+    if(!pass) return alert("Please enter password");
     setLoading(true);
     try {
-      const res = await fetch("/api/admin-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pass }),
-      });
+      const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pass }) });
       const data = await res.json();
       if (data.success) {
         if (data.isMaster) {
-          alert("Master Key se login hua! Ab aap naya admin password set kar sakte ho.");
+          alert("Logged in with Master Key! You have admin access now.");
         }
         localStorage.setItem("lorem_admin", "true");
         setIsLoggedIn(true);
       } else {
-        alert("Galat password!");
+        alert("Invalid password!");
       }
-    } catch { alert("Error"); }
+    } catch { alert("Something went wrong"); }
     setLoading(false);
   };
 
@@ -59,34 +53,20 @@ export default function AdminPage() {
           </div>
           <h2 className="text-4xl font-bold text-white text-center mb-2">Admin Login</h2>
           <p className="text-slate-400 text-center text-sm mb-8">Sign in securely to access dashboard</p>
-
-          <label className="text-white/80 text-sm mb-2 block">🔒 Admin Password</label>
+          <label className="text-white/80 text-sm mb-2 block">Admin Password</label>
           <div className="relative mb-3">
-            <input
-              type={showPass? "text" : "password"}
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
-              placeholder="••••••••••••"
-              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3.5 text-white outline-none focus:border-cyan-400 pr-12"
-            />
+            <input type={showPass? "text" : "password"} value={pass} onChange={(e) => setPass(e.target.value)} placeholder="••••••••••••" className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3.5 text-white outline-none focus:border-cyan-400 pr-12" />
             <button onClick={() => setShowPass(!showPass)} className="absolute right-4 top-3.5 text-white/50">👁️</button>
           </div>
-
           <div className="text-right mb-6">
-            <button onClick={() => setShowMasterInfo(!showMasterInfo)} className="text-cyan-300 text-sm hover:underline">
-              🔑 Forgot password? Use Master Key
-            </button>
+            <button onClick={() => setShowMasterInfo(!showMasterInfo)} className="text-cyan-300 text-sm hover:underline">Forgot password? Use Master Key</button>
           </div>
-
           {showMasterInfo && (
-            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 mb-4 text-cyan-200 text-xs">
-              Master Key aapka backup password hai. Agar admin password bhul gaye ho to wahi password box me <b>LoremMaster@123</b> dal ke login karo.
+            <div className="bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3 mb-4 text-cyan-200 text-xs leading-5">
+              Your Master Key is your backup access. If you forgot your admin password, enter your Master Key in the password field above to log in.
             </div>
           )}
-
-          <button onClick={handleLogin} disabled={loading} className="w-full bg-gradient-to-r from-cyan-400 to-indigo-500 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition">
-            {loading? "Logging..." : "Login →"}
-          </button>
+          <button onClick={handleLogin} disabled={loading} className="w-full bg-gradient-to-r from-cyan-400 to-indigo-500 text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition">{loading? "Logging..." : "Login →"}</button>
           <p className="text-center text-[11px] text-slate-500 mt-6">Protected by end-to-end encryption • Session timeout: 12 hours</p>
         </div>
       </div>
@@ -98,7 +78,7 @@ export default function AdminPage() {
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Publish Blog Post</h1>
-          <button onClick={handleLogout} className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm hover:bg-red-600 transition">⏻ Logout</button>
+          <button onClick={handleLogout} className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm hover:bg-red-600 transition">Logout</button>
         </div>
         <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title" className="w-full border rounded-xl px-4 py-3 mb-4" />
         <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder="Content" className="w-full border rounded-xl px-4 py-3 h-40 mb-4"></textarea>
