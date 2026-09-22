@@ -7,57 +7,49 @@ const LANGS = ['Hindi','Tamil','Telugu','Marathi','Bengali','Gujarati','Malayala
 
 const FULL_DATA: any = {
   Hindi: { names: ['अमित शर्मा','रवि वर्मा','सुनील कुमार','पूजा गुप्ता','नेहा सिंह','विजय यादव','अंजली मिश्रा','राहुल तिवारी','सीमा चौधरी','अजय कुमार','प्रिया शुक्ला','मनोज पांडे','सुरेश गुप्ता','राधा वर्मा','किशोर सिंह','संजय गुप्ता','अनिल कुमार','गीता देवी','राजेश सिंह','सुनीता वर्मा'], cities: ['दिल्ली','मुंबई','जयपुर','सूरतगढ़','लखनऊ','पटना','भोपाल','इंदौर'], addr: 'एमजी रोड', comp: 'प्रा. लि.' },
-  Tamil: { names: ['அர்ஜுன் குமார்','சூர்யா சிவகுமார்','பிரியா லட்சுமி','விஜய் சேதுபதி','நயன்தாரா','தனுஷ்'], cities: ['சென்னை','கோயம்புத்தூர்','மதுரை'], addr: 'எம்.ஜி. சாலை', comp: 'டெக்' },
-  Telugu: { names: ['రవి తేజ','పవన్ కళ్యాణ్','సమంత అక్కినేని','అల్లు అర్జున్'], cities: ['హైదరాబాద్','విజయవాడ'], addr: 'ఎంజి రోడ్', comp: 'టెక్' },
-  Marathi: { names: ['साहिल जोशी','ओंकार पाटील','स्नेहा कुलकर्णी'], cities: ['पुणे','मुंबई'], addr: 'एमजी रस्ता', comp: 'टेक' },
-  Bengali: { names: ['অরিন্দম দাস','সৌরভ গাঙ্গুলী','রিয়া সেন'], cities: ['কলকাতা','হাওড়া'], addr: 'এমজি রোড', comp: 'টেক' },
+  Bhojpuri: { names: ['खेसारी लाल','पवन सिंह','अक्षरा सिंह','रानी चटर्जी','दिनेश लाल','आम्रपाली दुबे','मनोज तिवारी','काजल राघवानी','निरहुआ','अंजना सिंह','प्रदीप पांडे','मोनालिसा','रवि किशन','समर सिंह','शुभी शर्मा','यश कुमार','अनारा गुप्ता','संचिता बनर्जी','गौरव झा','रक्षा गुप्ता'], cities: ['पटना','आरा','बलिया','छपरा','बक्सर','सीवान'], addr: 'एमजी रोड', comp: 'टेक प्रा. लि.' },
+  English: { names: ['Aarav Mehta','Ananya Singh','Rahul Kumar','Priya Sharma','Vijay Patel','Neha Gupta','Amit Verma','Pooja Yadav','Sanjay Rao','Kavita Desai'], cities: ['Delhi','Mumbai','Jaipur','Bangalore'], addr: 'MG Road', comp: 'Tech Pvt Ltd' },
+  'English (US)': { names: ['John Smith','Emma Johnson','Michael Brown'], cities: ['New York','Los Angeles'], addr: '5th Avenue', comp: 'Inc.' },
+  Japanese: { names: ['田中太郎','佐藤花子','鈴木一郎','高橋美咲','渡辺健太','伊藤さくら','山本大輔','中村優子','小林誠','加藤愛'], cities: ['東京','大阪','京都','横浜'], addr: '中央通り', comp: '株式会社' },
+  Chinese: { names: ['张伟','王芳','李强','刘洋','陈静','杨敏','黄磊','赵丽','周杰','吴倩','孙浩','马丽','朱明','胡斌','郭婷','林峰','何静','高翔','罗娟','梁超','范冰冰','章子怡','杨幂','刘德华','张学友'], cities: ['北京','上海','广州','深圳','成都','杭州'], addr: '中山路', comp: '有限公司' },
+  Spanish: { names: ['Jose Garcia','Maria Lopez','Carlos Ruiz'], cities: ['Madrid','Barcelona'], addr: 'Calle Mayor', comp: 'S.L.' },
+  French: { names: ['Pierre Dupont','Marie Dubois'], cities: ['Paris','Lyon'], addr: 'Rue de la Paix', comp: 'SARL' },
+  German: { names: ['Hans Muller','Greta Schmidt'], cities: ['Berlin','Munich'], addr: 'Hauptstrasse', comp: 'GmbH' },
+  Russian: { names: ['Иван Иванов','Анна Петрова'], cities: ['Москва','Санкт-Петербург'], addr: 'ул. Ленина', comp: 'ООО' },
+  Arabic: { names: ['محمد أحمد','فاطمة علي'], cities: ['دبي','الرياض'], addr: 'شارع الملك', comp: 'ذ.م.م' },
+  Korean: { names: ['김민준','박지연'], cities: ['서울','부산'], addr: '강남대로', comp: '주식회사' },
+  Tamil: { names: ['அர்ஜுன் குமார்','சூர்யா சிவகுமார்'], cities: ['சென்னை','கோயம்புத்தூர்'], addr: 'எம்.ஜி. சாலை', comp: 'டெக்' },
+  Telugu: { names: ['రవి తేజ','పవన్ కళ్యాణ్'], cities: ['హైదరాబాద్','విజయవాడ'], addr: 'ఎంజి రోడ్', comp: 'టెక్' },
+  Marathi: { names: ['साहिल जोशी','ओंकार पाटील'], cities: ['पुणे','मुंबई'], addr: 'एमजी रस्ता', comp: 'टेक' },
+  Bengali: { names: ['অরিন্দম দাস','সৌরভ গাঙ্গুলী'], cities: ['কলকাতা','হাওড়া'], addr: 'এমজি রোড', comp: 'টেক' },
   Gujarati: { names: ['હાર્દિક પટેલ','કિંજલ દવે'], cities: ['અમદાવાદ','સુરત'], addr: 'એમજી રોડ', comp: 'ટેક' },
-  Malayalam: { names: ['മോഹൻലാൽ','ദുൽഖർ'], cities: ['കൊച്ചി','തിരുവനന്തപുരം'], addr: 'എംജി റോഡ്', comp: 'ടെക്' },
-  Kannada: { names: ['ಯಶ್ ಗೌಡ','ರಶ್ಮಿಕಾ ಮಂದಣ್ಣ'], cities: ['ಬೆಂಗಳೂರು','ಮೈಸೂರು'], addr: 'ಎಂಜಿ ರಸ್ತೆ', comp: 'ಟೆಕ್' },
-  Punjabi: { names: ['ਜੱਸੀ ਗਿੱਲ','ਸਿਮਰਨ ਕੌਰ'], cities: ['ਲੁਧਿਆਣਾ','ਅੰਮ੍ਰਿਤਸਰ'], addr: 'ਐਮਜੀ ਰੋਡ', comp: 'ਟੈਕ' },
-  Marwari: { names: ['भंवर सिंह','कमला देवी'], cities: ['बीकानेर','जोधपुर','सूरतगढ़'], addr: 'एमजी रोड़', comp: 'टेक' },
-  Urdu: { names: ['عمران خان','زویا شیخ'], cities: ['کراچی','لاہور'], addr: 'ایم جی روڈ', comp: 'ٹیک' },
-  Bhojpuri: { names: ['खेसारी लाल','पवन सिंह','अक्षरा सिंह','रानी चटर्जी','दिनेश लाल','आम्रपाली दुबे','मनोज तिवारी','काजल राघवानी','निरहुआ','अंजना सिंह','प्रदीप पांडे','मोनालिसा','रवि किशन','समर सिंह','शुभी शर्मा','यश कुमार','अनारा गुप्ता','संचिता बनर्जी','गौरव झा','रक्षा गुप्ता'], cities: ['पटना','आरा','बलिया','छपरा','बक्सर','सीवान','गोपालगंज','मुजफ्फरपुर'], addr: 'एमजी रोड', comp: 'टेक प्रा. लि.' },
-  Odia: { names: ['ଶୁଭମ ମହାନ୍ତି','ସୋନଲ ମହାପାତ୍ର'], cities: ['ଭୁବନେଶ୍ୱର','କଟକ'], addr: 'ଏମଜି ରୋଡ', comp: 'ଟେକ୍' },
-  English: { names: ['Aarav Mehta','Ananya Singh','Rahul Kumar','Priya Sharma','Vijay Patel','Neha Gupta','Amit Verma','Pooja Yadav','Sanjay Rao','Kavita Desai','Rohit Shetty','Sneha Kulkarni','Vikram Malhotra','Anjali Nair','Arjun Reddy'], cities: ['Delhi','Mumbai','Jaipur','Bangalore','Chennai','Kolkata'], addr: 'MG Road', comp: 'Tech Pvt Ltd' },
-  Hinglish: { names: ['Aarav Sharma','Pooja Singh'], cities: ['Delhi','Mumbai'], addr: 'MG Road', comp: 'Tech Pvt Ltd' },
-  'English (US)': { names: ['John Smith','Emma Johnson','Michael Brown','Olivia Davis','James Wilson'], cities: ['New York','Los Angeles','Chicago'], addr: '5th Avenue', comp: 'Inc.' },
-  Spanish: { names: ['Jose Garcia','Maria Lopez','Carlos Ruiz','Ana Martinez','Luis Hernandez'], cities: ['Madrid','Barcelona','Valencia'], addr: 'Calle Mayor', comp: 'S.L.' },
-  French: { names: ['Pierre Dupont','Marie Dubois','Luc Bernard'], cities: ['Paris','Lyon'], addr: 'Rue de la Paix', comp: 'SARL' },
-  German: { names: ['Hans Muller','Greta Schmidt','Klaus Weber'], cities: ['Berlin','Munich'], addr: 'Hauptstrasse', comp: 'GmbH' },
-  Portuguese: { names: ['Joao Silva','Ana Santos'], cities: ['Lisboa','Porto'], addr: 'Rua Augusta', comp: 'Lda.' },
-  Japanese: { names: ['田中太郎','佐藤花子','鈴木一郎','高橋美咲','渡辺健太','伊藤さくら','山本大輔','中村優子','小林誠','加藤愛','吉田翔太','山田彩乃','佐々木蓮','松本結衣','井上拓海'], cities: ['東京','大阪','京都','横浜','名古屋','札幌'], addr: '中央通り', comp: '株式会社' },
-  Chinese: { names: ['张伟','王芳','李强','刘洋','陈静','杨敏','黄磊','赵丽','周杰','吴倩','孙浩','马丽','朱明','胡斌','郭婷','林峰','何静','高翔','罗娟','梁超','唐娜','韩梅','冯刚','于娜','董强','萧蔷','程琳','曹阳','袁泉','邓超','范冰冰','李冰冰','章子怡','杨幂','刘德华','张学友','郭富城','黎明','周星驰','成龙'], cities: ['北京','上海','广州','深圳','成都','杭州','南京','武汉','西安','重庆'], addr: '中山路', comp: '有限公司' },
-  Russian: { names: ['Иван Иванов','Анна Петрова','Сергей Смирнов'], cities: ['Москва','Санкт-Петербург'], addr: 'ул. Ленина', comp: 'ООО' },
-  Arabic: { names: ['محمد أحمد','فاطمة علي','أحمد حسن'], cities: ['دبي','الرياض','القاهرة'], addr: 'شارع الملك', comp: 'ذ.م.م' },
-  Korean: { names: ['김민준','박지연','이서준'], cities: ['서울','부산'], addr: '강남대로', comp: '주식회사' },
-  Italian: { names: ['Marco Rossi','Giulia Bianchi'], cities: ['Roma','Milano'], addr: 'Via Roma', comp: 'S.r.l.' },
-  Turkish: { names: ['Mehmet Yilmaz','Ayse Kaya'], cities: ['Istanbul','Ankara'], addr: 'Ataturk Caddesi', comp: 'A.S.' },
-  Dutch: { names: ['Jan Jansen','Emma de Vries'], cities: ['Amsterdam','Rotterdam'], addr: 'Damstraat', comp: 'B.V.' },
-  Thai: { names: ['สมชาย ใจดี','สมหญิง รักไทย'], cities: ['กรุงเทพ','เชียงใหม่'], addr: 'ถนนสุขุมวิท', comp: 'จำกัด' },
-  Vietnamese: { names: ['Nguyen Van A','Tran Thi B'], cities: ['Ha Noi','Ho Chi Minh'], addr: 'Duong Le Loi', comp: 'TNHH' },
+  Malayalam: { names: ['മോഹൻലാൽ','ദുൽഖർ'], cities: ['കൊച്ചി'], addr: 'എംജി റോഡ്', comp: 'ടെക്' },
+  Kannada: { names: ['ಯಶ್ ಗೌಡ','ರಶ್ಮಿಕಾ ಮಂದಣ್ಣ'], cities: ['ಬೆಂಗಳೂರು'], addr: 'ಎಂಜಿ ರಸ್ತೆ', comp: 'ಟೆಕ್' },
+  Punjabi: { names: ['ਜੱਸੀ ਗਿੱਲ','ਸਿਮਰਨ ਕੌਰ'], cities: ['ਲੁਧਿਆਣਾ'], addr: 'ਐਮਜੀ ਰੋਡ', comp: 'ਟੈਕ' },
+  Marwari: { names: ['भंवर सिंह','कमला देवी'], cities: ['बीकानेर','जोधपुर'], addr: 'एमजी रोड़', comp: 'टेक' },
+  Urdu: { names: ['عمران خان','زویا شیخ'], cities: ['کراچی'], addr: 'ایم جی روڈ', comp: 'ٹیک' },
+  Odia: { names: ['ଶୁଭମ ମହାନ୍ତି'], cities: ['ଭୁବନେଶ୍ୱର'], addr: 'ଏମଜି ରୋଡ', comp: 'ଟେକ୍' },
+  Hinglish: { names: ['Aarav Sharma','Pooja Singh'], cities: ['Delhi'], addr: 'MG Road', comp: 'Tech Pvt Ltd' },
+  Portuguese: { names: ['Joao Silva'], cities: ['Lisboa'], addr: 'Rua Augusta', comp: 'Lda.' },
+  Italian: { names: ['Marco Rossi'], cities: ['Roma'], addr: 'Via Roma', comp: 'S.r.l.' },
+  Turkish: { names: ['Mehmet Yilmaz'], cities: ['Istanbul'], addr: 'Ataturk Caddesi', comp: 'A.S.' },
+  Dutch: { names: ['Jan Jansen'], cities: ['Amsterdam'], addr: 'Damstraat', comp: 'B.V.' },
+  Thai: { names: ['สมชาย ใจดี'], cities: ['กรุงเทพ'], addr: 'ถนนสุขุมวิท', comp: 'จำกัด' },
+  Vietnamese: { names: ['Nguyen Van A'], cities: ['Ha Noi'], addr: 'Duong Le Loi', comp: 'TNHH' },
 };
 
-const DEFAULT_POSTS = [
-  { id: 1, date: '2025-05-20', title: 'How to Use Fake Data for App Testing', content: 'Developers need dummy data to test apps without using real user information. Our Fake Data Generator creates realistic names, addresses, cities in 30 languages. You can generate 1000 records in one click and export as JSON for API testing, CSV for Excel, or SQL for database. This keeps your testing safe, fast and GDPR compliant because no real personal data is used.' },
-  { id: 2, date: '2025-05-21', title: 'Why Bhojpuri Fake Data is Important for Bihar UP Apps', content: 'If you are building an app for Bihar or UP, your users have names like खेसारी लाल, पवन सिंह and cities like पटना, आरा, बलिया. Using English dummy data like John Smith will not give real testing experience. Our tool provides 20+ Bhojpuri names and 8 Bhojpuri cities with native script, so your UI testing looks real for regional users.' },
-  { id: 3, date: '2025-05-22', title: 'Japanese and Chinese Testing Made Easy', content: 'Building a global app? You need to test if your app supports Japanese characters like 田中太郎 and Chinese like 张伟. Our generator provides 40 Chinese names and 15 Japanese names with native cities like 東京, 北京. This helps you check font support, database UTF-8 handling, and UI layout for Asian languages.' },
-];
-
-const REAL_FAQS = [
-  { q: 'Is this fake data real? Can I use it for official work?', a: 'No, all data is 100% fake and randomly generated for testing only. Names, mobile numbers, Aadhaar, PAN are not real. Do not use for KYC, bank, or government work. It is only for developers, testers, and designers to test apps and websites.' },
-  { q: 'How many languages are supported?', a: 'Total 30 languages - 15 Indian: Hindi, Tamil, Telugu, Marathi, Bengali, Gujarati, Malayalam, Kannada, Punjabi, Marwari, Urdu, Bhojpuri, Odia, English, Hinglish and 15 Global: Spanish, French, German, Portuguese, Japanese, Chinese, Russian, Arabic, Korean, Italian, Turkish, Dutch, Thai, Vietnamese.' },
-  { q: 'Why is Email always in English even when I select Hindi or Chinese?', a: 'Because email addresses with Hindi or Chinese script like अमित@gmail.com or 张伟@gmail.com are invalid worldwide. Email system only accepts English letters. So we always generate valid English emails like amit.sharma1234@gmail.com for all languages.' },
-  { q: 'Is this tool free? How many records can I generate?', a: 'Yes, 100% free with no login. You can generate from 1 to 1000 records in one click. Select up to 10 fields like Name, Email, Mobile, Address, City, Company, PAN, Aadhaar, UPI ID.' },
-  { q: 'In which formats can I download data?', a: '5 formats: Table view for preview, JSON for API developers, CSV for Excel, TXT for quick reading, SQL INSERT query for direct database import. All files support Hindi, Chinese, Japanese with UTF-8.' },
-  { q: 'Can I use this for my college project or startup demo?', a: 'Yes, perfect for college projects, startup MVPs, UI design mockups, and client demos. You get realistic data without asking real users for their personal details.' },
-  { q: 'Will my generated data be saved? Is it private?', a: 'Data is generated in your browser only. We do not store your data on server. Save button stores in your own browser localStorage. Your data is private to you.' },
-  { q: 'What is the Daily Article section?', a: 'We publish a new helpful article every day about testing, fake data tips, and regional app development. Users can only read articles. Only admin can post new articles after login.' },
+// ROZ YAHAN NAYA ARTICLE ADD KARO - YE BLOG HAI
+const BLOG_POSTS = [
+  { id: 1, date: '2025-05-20', title: 'What is Fake Data? Complete Guide for Beginners', content: 'Fake data is artificially created information that looks real but is not linked to any real person. For example, name like Aarav Mehta, email like aarav.mehta1234@gmail.com, address like 123 MG Road, Delhi. Developers use it to test apps, websites and databases without risking real user privacy. Our tool generates this fake data in 30 languages including Hindi, Bhojpuri, Tamil, Japanese, Chinese etc. It is 100% safe and free.', comments: [{name:'Rahul', text:'Very useful for my college project!'}, {name:'Priya', text:'Bhojpuri data helped a lot'}] },
+  { id: 2, date: '2025-05-21', title: 'Why Bhojpuri and Hindi Fake Data is Important?', content: 'Most fake data tools only give English names like John Smith. But if you are building an app for Bihar, UP, or MP, you need names like खेसारी लाल, पवन सिंह, अक्षरा सिंह and cities like पटना, आरा, बलिया. Our tool is special because we provide 20+ Bhojpuri names with proper Hindi script. This makes your app testing feel real for local users and helps you find UI issues with Hindi fonts.', comments: [{name:'Khesari Fan', text:'Finally Bhojpuri support!'}] },
+  { id: 3, date: '2025-05-22', title: 'How to Test Global Apps with Chinese and Japanese Data', content: 'If your app will be used in China or Japan, you must test if it can handle characters like 张伟 (Chinese) or 田中太郎 (Japanese). Many apps break because database is not UTF-8 or fonts dont support Asian scripts. With our generator, you can create 1000 Chinese names like 张伟, 王芳, 范冰冰 with cities like 北京, 上海 and check if your app displays them correctly. We include 40 Chinese and 15 Japanese names to avoid repetition.', comments: [] },
+  { id: 4, date: '2025-05-23', title: 'JSON vs CSV vs SQL - Which Format to Choose?', content: 'Beginners get confused which format to download. Here is simple guide: Use JSON if you are a developer testing APIs or React apps. Use CSV if you want to open in Excel or Google Sheets. Use SQL if you want to directly insert into MySQL or PostgreSQL database. Use TXT if you just want to quickly read data. All formats in our tool support Hindi and Chinese because we add UTF-8 BOM so file opens correctly on mobile and computer.', comments: [] },
+  { id: 5, date: '2025-05-24', title: 'Top 5 Use Cases of Fake Data Generator', content: '1) App Testing - Test signup, login pages without real data. 2) UI Design - Show realistic names in Figma designs. 3) Database Seeding - Fill empty database with 1000 rows. 4) Demo for Investors - Show your startup app with populated data. 5) College Projects - Submit projects with realistic test data. All without violating privacy or GDPR.', comments: [] },
 ];
 
 const FIRST = ['amit','ravi','sunil','pooja','neha','rahul','ananya','arjun','priya','vijay','john','emma'];
-const LAST = ['sharma','verma','gupta','singh','yadav','kumar','patel','smith','johnson','brown'];
-const DOMAINS = ['gmail.com','yahoo.com','outlook.com','testmail.com'];
+const LAST = ['sharma','verma','gupta','singh','yadav','kumar','patel','smith','johnson'];
+const DOMAINS = ['gmail.com','yahoo.com','outlook.com'];
 
 function genOne(fields: any, lang: any){
   var d = FULL_DATA[lang] || FULL_DATA.English;
@@ -86,27 +78,25 @@ export default function Page(){
   var [count,setCount]=useState(124);
   var [data,setData]=useState<any[]>([]);
   var [view,setView]=useState('table');
+  var [copyText,setCopyText]=useState('Copy');
+  var [saveText,setSaveText]=useState('Save');
   var [showArticle,setShowArticle]=useState(true);
   var [faqOpen,setFaqOpen]=useState(0);
   var [showTopBtn,setShowTopBtn]=useState(false);
-  var [posts,setPosts]=useState(DEFAULT_POSTS);
-  var [isAdmin,setIsAdmin]=useState(false);
-  var [adminPass,setAdminPass]=useState('');
-  var [showAdminLogin,setShowAdminLogin]=useState(false);
-  var [newTitle,setNewTitle]=useState('');
-  var [newContent,setNewContent]=useState('');
-  var [selectedPost,setSelectedPost]=useState(null as any);
+  var [activeTab,setActiveTab]=useState('tool');
+  var [posts,setPosts]=useState(BLOG_POSTS);
+  var [openPost,setOpenPost]=useState(null as any);
+  var [commentName,setCommentName]=useState('');
+  var [commentText,setCommentText]=useState('');
 
   useEffect(function(){
-    document.title = 'Fake Data Generator - 30 Languages | Free Test Data Tool';
+    document.title = 'Fake Data Generator - 30 Languages | Free Tool + Daily Blog';
     var m1 = document.createElement('meta');
     m1.name = 'description';
-    m1.content = 'Free Fake Data Generator in 30 Languages - Hindi, Bhojpuri, Tamil, Japanese, Chinese, Spanish. Generate fake name, email, mobile, address for testing.';
+    m1.content = 'Free Fake Data Generator in 30 Languages + Daily Articles Blog. Hindi, Bhojpuri, Chinese, Japanese.';
     document.head.appendChild(m1);
-    var saved = localStorage.getItem('admin-posts');
-    if(saved){ try{ setPosts(JSON.parse(saved)); }catch(e){} }
-    var admin = localStorage.getItem('isAdmin');
-    if(admin==='true') setIsAdmin(true);
+    var saved = localStorage.getItem('blog-comments');
+    if(saved){ try{ var c = JSON.parse(saved); setPosts(c); }catch(e){} }
     var onScroll = function(){ setShowTopBtn(window.scrollY > 400); };
     window.addEventListener('scroll', onScroll);
     return function(){ window.removeEventListener('scroll', onScroll); };
@@ -127,7 +117,7 @@ export default function Page(){
       var r = data.map(function(x){ return Object.values(x).map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\r\n');
       return h + '\r\n' + r;
     }
-    if(view==='txt') return data.map(function(r,i){ return (i+1) + '. ' + Object.entries(r).map(function(kv){ return kv[0] + ': ' + kv[1]; }).join(' | '); }).join('\r\n\r\n');
+    if(view==='txt') return data.map(function(r,i){ return (i+1) + '. Full Name: ' + (r['Full Name']||'') + ' | Email: ' + (r['Email']||'') + ' | City: ' + (r['City']||''); }).join('\r\n\r\n');
     if(view==='sql'){
       if(!data.length) return '';
       var cols = Object.keys(data[0]).join(', ');
@@ -148,114 +138,136 @@ export default function Page(){
     URL.revokeObjectURL(url);
   };
 
-  var adminLogin = function(){
-    if(adminPass==='admin123'){
-      setIsAdmin(true);
-      localStorage.setItem('isAdmin','true');
-      setShowAdminLogin(false);
-      setAdminPass('');
-    } else { alert('Wrong password'); }
+  var addComment = function(postId: any){
+    if(!commentName ||!commentText){ alert('Name and comment required'); return; }
+    var updated = posts.map(function(p:any){
+      if(p.id===postId){
+        var newC = {name: commentName, text: commentText};
+        return {...p, comments: [...(p.comments||[]), newC]};
+      }
+      return p;
+    });
+    setPosts(updated);
+    localStorage.setItem('blog-comments', JSON.stringify(updated));
+    setCommentName(''); setCommentText('');
   };
 
   return (
     <div className='min-h-screen bg-[#f8f8f7] text-zinc-900'>
-      <main className='max-w-[1100px] mx-auto px-3 py-4 pb-28'>
-        <h1 className='text-[26px] font-black'>Fake Data Generator - 30 Languages</h1>
-        <p className='text-zinc-500 text-[12px] mt-1'>Free Tool for Developers & Testers | 15 Indian + 15 Global Languages</p>
-
-        <div className='bg-white rounded-[24px] border p-5 mt-4'>
-          <label className='font-bold text-[14px]'>Select Language</label>
-          <select value={lang} onChange={function(e){ setLang(e.target.value); }} className='w-full mt-2 border-2 border-black rounded-full px-5 py-4 text-[15px] bg-yellow-50 font-bold'>
-            {LANGS.map(function(l){ return <option key={l} value={l}>{l}</option>; })}
-          </select>
-          <div className='mt-2 bg-green-100 text-green-800 text-[12px] font-bold px-3 py-2 rounded-full text-center'>Active: {lang} - {FULL_DATA[lang]?.names?.length} Names | Email Always English</div>
-          <div className='grid grid-cols-2 gap-2.5 mt-4'>
-            {ALL_FIELDS.map(function(f){ var a=fields.includes(f); return <button key={f} onClick={function(){ if(a) setFields(fields.filter(function(x){return x!==f;})); else if(fields.length<10) setFields([...fields,f]); }} className={'h-[48px] rounded-full text-[13px] font-bold ' + (a?'bg-black text-white':'bg-zinc-100')}>{f}</button>; })}
-          </div>
-          <div className='mt-5'><label className='font-bold text-[14px]'>Records: {count}</label><input type='range' min={1} max={1000} value={count} onChange={function(e){ setCount(parseInt(e.target.value)); }} className='w-full mt-2 accent-black' /></div>
-          <button onClick={generate} className='mt-5 w-full h-[56px] bg-black text-white rounded-full font-black'>Generate {count} Records</button>
+      <header className='sticky top-0 z-40 bg-black text-white px-4 py-3 flex justify-between items-center'>
+        <h1 className='font-black text-[18px]'>⚡ Lorem Pro Tool</h1>
+        <div className='flex gap-2'>
+          <button onClick={function(){ setActiveTab('tool'); }} className={'px-4 py-2 rounded-full text-[12px] font-bold ' + (activeTab==='tool'?'bg-white text-black':'bg-zinc-800')}>Generator</button>
+          <button onClick={function(){ setActiveTab('articles'); }} className={'px-4 py-2 rounded-full text-[12px] font-bold ' + (activeTab==='articles'?'bg-yellow-400 text-black':'bg-zinc-800')}>Articles</button>
         </div>
+      </header>
 
-        {data.length>0 && (
-          <div className='mt-5 bg-white rounded-[24px] border p-4'>
-            <div className='flex gap-2 overflow-auto pb-2'>
-              {['table','json','csv','txt','sql'].map(function(v){ return <button key={v} onClick={function(){ setView(v); }} className={'px-6 h-10 rounded-full text-xs font-black uppercase ' + (view===v?'bg-black text-white':'bg-zinc-100')}>{v}</button>; })}
+      <main className='max-w-[1100px] mx-auto px-3 py-4 pb-28'>
+        {activeTab==='tool' && (
+          <>
+            <h1 className='text-[24px] font-black mt-2'>Fake Data Generator - 30 Languages</h1>
+            <p className='text-zinc-500 text-[12px] mt-1'>Free Tool | 15 Indian + 15 Global | No Repeat | Readable Download</p>
+
+            <div className='bg-white rounded-[24px] border p-5 mt-4'>
+              <label className='font-bold text-[14px]'>Select Language</label>
+              <select value={lang} onChange={function(e){ setLang(e.target.value); }} className='w-full mt-2 border-2 border-black rounded-full px-5 py-4 text-[15px] bg-yellow-50 font-bold'>
+                {LANGS.map(function(l){ return <option key={l} value={l}>{l}</option>; })}
+              </select>
+              <div className='mt-2 bg-green-100 text-green-800 text-[12px] font-bold px-3 py-2 rounded-full text-center'>{lang} - {FULL_DATA[lang]?.names?.length} Names | Email Always English</div>
+              <div className='grid grid-cols-2 gap-2.5 mt-4'>
+                {ALL_FIELDS.map(function(f){ var a=fields.includes(f); return <button key={f} onClick={function(){ if(a) setFields(fields.filter(function(x){return x!==f;})); else if(fields.length<10) setFields([...fields,f]); }} className={'h-[48px] rounded-full text-[13px] font-bold ' + (a?'bg-black text-white':'bg-zinc-100')}>{f}</button>; })}
+              </div>
+              <div className='mt-5'><label className='font-bold text-[14px]'>Records: {count}</label><input type='range' min={1} max={1000} value={count} onChange={function(e){ setCount(parseInt(e.target.value)); }} className='w-full mt-2 accent-black' /></div>
+              <button onClick={generate} className='mt-5 w-full h-[56px] bg-black text-white rounded-full font-black'>Generate {count} Records in {lang}</button>
             </div>
-            <button onClick={handleDownload} className='mt-3 w-full h-12 rounded-full bg-yellow-400 font-black'>Download {view.toUpperCase()} - Readable File</button>
-            <div className='mt-4 border-2 border-zinc-900 rounded-2xl overflow-auto max-h-[500px]'>
-              {view==='table'?
-                <table className='w-full text-[13px] border-collapse'>
-                  <thead className='bg-zinc-900 text-white sticky top-0'><tr>{Object.keys(data[0]||{}).map(function(k){ return <th key={k} className='text-center p-4 border-r last:border-0 whitespace-nowrap'>{k}</th>; })}</tr></thead>
-                  <tbody>{data.map(function(r,i){ return <tr key={i} className={'border-t ' + (i%2===0?'bg-white':'bg-zinc-50')}>{Object.values(r).map(function(v,j){ return <td key={j} className='text-center p-4 border-r last:border-0 min-w-[150px] whitespace-nowrap'>{String(v)}</td>; })}</tr>; })}</tbody>
-                </table>
-              : <pre className='p-4 text-[12px] whitespace-pre-wrap font-mono'>{getStr()}</pre>}
+
+            {data.length>0 && (
+              <div className='mt-5 bg-white rounded-[24px] border p-4'>
+                <div className='flex gap-2 overflow-auto pb-2'>
+                  {['table','json','csv','txt','sql'].map(function(v){ return <button key={v} onClick={function(){ setView(v); }} className={'px-6 h-10 rounded-full text-xs font-black uppercase ' + (view===v?'bg-black text-white':'bg-zinc-100')}>{v}</button>; })}
+                </div>
+                <div className='flex gap-2 mt-4'>
+                  <button onClick={function(){ localStorage.setItem('saved-data', getStr()); setSaveText('✓ Saved!'); setTimeout(function(){ setSaveText('Save'); },2000); }} className={'flex-1 h-12 rounded-full font-bold ' + (saveText.indexOf('Saved')>-1?'bg-green-500 text-white':'bg-zinc-100')}>{saveText}</button>
+                  <button onClick={function(){ navigator.clipboard.writeText(getStr()); setCopyText('✓ Copied!'); setTimeout(function(){ setCopyText('Copy'); },2000); }} className={'flex-1 h-12 rounded-full font-bold ' + (copyText.indexOf('Copied')>-1?'bg-green-500 text-white':'bg-black text-white')}>{copyText}</button>
+                  <button onClick={handleDownload} className='flex-1 h-12 rounded-full bg-yellow-400 font-black text-[13px]'>Download</button>
+                </div>
+                <div className='mt-4 border-2 border-zinc-900 rounded-2xl overflow-auto max-h-[500px]'>
+                  {view==='table'?
+                    <table className='w-full text-[13px] border-collapse'>
+                      <thead className='bg-zinc-900 text-white sticky top-0'><tr>{Object.keys(data[0]||{}).map(function(k){ return <th key={k} className='text-center p-4 border-r last:border-0 whitespace-nowrap'>{k}</th>; })}</tr></thead>
+                      <tbody>{data.map(function(r,i){ return <tr key={i} className={'border-t ' + (i%2===0?'bg-white':'bg-zinc-50')}>{Object.values(r).map(function(v,j){ return <td key={j} className='text-center p-4 border-r last:border-0 min-w-[150px] whitespace-nowrap'>{String(v)}</td>; })}</tr>; })}</tbody>
+                    </table>
+                  : <pre className='p-4 text-[12px] whitespace-pre-wrap font-mono'>{getStr()}</pre>}
+                </div>
+              </div>
+            )}
+
+            <div className='mt-6 bg-white rounded-[24px] border overflow-hidden'>
+              <button onClick={function(){ setShowArticle(!showArticle); }} className='w-full p-5 flex justify-between font-black text-left'>What is Fake Data Generator? <span>{showArticle?'−':'+'}</span></button>
+              {showArticle && <div className='px-5 pb-6 text-[14px] text-zinc-700 leading-8 space-y-4'>
+                <p><b>Fake Data Generator</b> is a free online tool for developers, testers, designers and students to create realistic-looking dummy data for testing apps and websites without using real people's personal information.</p>
+                <p><b>Why do you need it?</b> When you build a login page, a shopping app, or a database, you need names, emails, phone numbers, addresses to test if your design works. Using real data is illegal and unsafe. Our tool generates 100% fake data like <b>अमित शर्मा, खेसारी लाल, 张伟, 田中太郎, John Smith</b> in seconds.</p>
+                <p><b>30 Languages Support:</b> We support 15 Indian languages including Hindi, Bhojpuri, Tamil, Telugu, Marathi, Bengali and 15 global languages including Japanese, Chinese, Spanish, French, Arabic. Select any language and Name, City, Address, Company will change to native script. Email is always in English because <b>अमित@gmail.com</b> is technically invalid.</p>
+                <p><b>Key Features:</b> Generate 1 to 1000 records, choose 10 fields, export to JSON, CSV, TXT, SQL, center-aligned preview, UTF-8 readable download, and daily helpful articles in Articles section.</p>
+              </div>}
+            </div>
+
+            <div className='mt-5 bg-white rounded-[24px] border p-5'>
+              <h3 className='font-black text-[18px]'>FAQ - Real User Questions</h3>
+              <div className='mt-4 space-y-2'>
+                {[
+                  {q:'Is this data real? Can I use for official work?', a:'No, 100% fake for testing only. Do not use for KYC, bank, government.'},
+                  {q:'How many languages?', a:'30 languages - 15 Indian + 15 Global. Hindi, Bhojpuri, Tamil, Japanese, Chinese, Spanish etc.'},
+                  {q:'Why Email always English?', a:'Because email with Hindi/Chinese script like अमित@gmail.com is invalid worldwide. Only English email works.'},
+                  {q:'Is it free? How many records?', a:'100% free, no login. Generate 1 to 1000 records in one click.'},
+                  {q:'Which download format?', a:'JSON for API, CSV for Excel, SQL for database, TXT for reading. All UTF-8 readable.'},
+                ].map(function(f,i){ return <div key={i} className='border rounded-xl overflow-hidden'><button onClick={function(){ setFaqOpen(faqOpen===i?null:i); }} className='w-full text-left p-4 font-bold flex justify-between bg-zinc-50 text-[13px]'>{f.q}<span>{faqOpen===i?'−':'+'}</span></button>{faqOpen===i && <div className='px-4 py-3 text-[13px] bg-white leading-6 text-zinc-600'>{f.a}</div>}</div>; })}
+              </div>
+            </div>
+
+            <div className='mt-6 bg-yellow-100 border-2 border-yellow-400 rounded-[20px] p-5 text-center'>
+              <p className='font-black text-[15px]'>Want to read daily tips?</p>
+              <p className='text-[13px] text-zinc-600 mt-1'>We post new articles daily about testing and fake data</p>
+              <button onClick={function(){ setActiveTab('articles'); window.scrollTo({top:0, behavior:'smooth'}); }} className='mt-3 px-8 py-3 bg-black text-white rounded-full font-bold text-[13px]'>Go to Articles →</button>
+            </div>
+          </>
+        )}
+
+        {activeTab==='articles' && (
+          <div>
+            <div className='flex items-center gap-2 mt-2'>
+              <button onClick={function(){ setActiveTab('tool'); }} className='text-[13px] font-bold bg-zinc-200 px-4 py-2 rounded-full'>← Back to Tool</button>
+              <h1 className='text-[22px] font-black'>Daily Articles Blog</h1>
+            </div>
+            <p className='text-[12px] text-zinc-500 mt-2'>Read daily tips about fake data, testing, and regional app development. You can comment on articles.</p>
+            <p className='text-[11px] text-zinc-400 mt-1 bg-white border rounded-full px-3 py-1 inline-block'>Admin: To add new article daily, edit BLOG_POSTS array in page.tsx and push</p>
+
+            <div className='mt-5 space-y-4'>
+              {posts.map(function(post){
+                var isOpen = openPost===post.id;
+                return <div key={post.id} className='bg-white rounded-[24px] border p-5'>
+                  <div className='flex gap-2 items-center'><span className='bg-black text-white text-[10px] font-bold px-2 py-1 rounded-full'>{post.date}</span><span className='text-[11px] text-zinc-400'>Article #{post.id}</span></div>
+                  <h2 className='font-black text-[17px] mt-3 leading-tight'>{post.title}</h2>
+                  <p className='text-[14px] text-zinc-600 mt-3 leading-7'>{isOpen? post.content : post.content.substring(0,150) + '...'}</p>
+                  <button onClick={function(){ setOpenPost(isOpen?null:post.id); }} className='mt-3 text-[13px] font-black text-blue-600'>{isOpen?'Show Less':'Read Full Article →'}</button>
+
+                  <div className='mt-5 border-t pt-4'>
+                    <h4 className='font-bold text-[13px]'>Comments ({(post.comments||[]).length}) - User can comment</h4>
+                    <div className='mt-3 space-y-2'>
+                      {(post.comments||[]).map(function(c:any,i:number){ return <div key={i} className='bg-zinc-50 border rounded-xl p-3'><div className='font-bold text-[12px]'>{c.name}</div><div className='text-[12px] text-zinc-600 mt-1'>{c.text}</div></div>; })}
+                      {(!post.comments||post.comments.length===0) && <p className='text-[12px] text-zinc-400'>No comments yet. Be first to comment!</p>}
+                    </div>
+                    <div className='mt-4 bg-zinc-50 rounded-xl p-3 border'>
+                      <input value={openPost===post.id?commentName:''} onChange={function(e){ setCommentName(e.target.value); if(openPost!==post.id) setOpenPost(post.id); }} placeholder='Your name' className='w-full border rounded-full px-4 py-2.5 text-[13px] outline-none' />
+                      <textarea value={openPost===post.id?commentText:''} onChange={function(e){ setCommentText(e.target.value); if(openPost!==post.id) setOpenPost(post.id); }} placeholder='Write your comment...' className='w-full mt-2 border rounded-xl px-4 py-2.5 text-[13px] h-[60px] outline-none'></textarea>
+                      <button onClick={function(){ addComment(post.id); }} className='mt-2 w-full h-10 bg-black text-white rounded-full font-bold text-[13px]'>Post Comment</button>
+                    </div>
+                  </div>
+                </div>;
+              })}
             </div>
           </div>
         )}
-
-        <div className='mt-6 bg-white rounded-[24px] border overflow-hidden'>
-          <button onClick={function(){ setShowArticle(!showArticle); }} className='w-full p-5 flex justify-between font-black text-left'>What is Fake Data Generator? <span>{showArticle?'−':'+'}</span></button>
-          {showArticle && <div className='px-5 pb-6 text-[14px] text-zinc-700 leading-8 space-y-4'>
-            <p><b>Fake Data Generator</b> is a free online tool for developers, testers, designers and students to create realistic-looking dummy data for testing apps and websites without using real people's personal information.</p>
-            <p><b>Why do you need it?</b> When you build a login page, a shopping app, or a database, you need names, emails, phone numbers, addresses to test if your design works. Using real data is illegal and unsafe. Our tool generates 100% fake data like <b>अमित शर्मा, खेसारी लाल, 张伟, 田中太郎, John Smith</b> in seconds.</p>
-            <p><b>30 Languages Support:</b> We support 15 Indian languages including Hindi, Bhojpuri, Tamil, Telugu, Marathi, Bengali and 15 global languages including Japanese, Chinese, Spanish, French, Arabic. Select any language and Name, City, Address, Company will change to native script. Email is always in English because <b>अमित@gmail.com</b> is technically invalid.</p>
-            <p><b>Key Features:</b> Generate 1 to 1000 records, choose 10 fields (Name, Email, Mobile, Address, City, Pincode, Company, PAN, Aadhaar, UPI), export to JSON, CSV, TXT, SQL, center-aligned preview table, UTF-8 readable download for Hindi/Chinese, and daily helpful articles.</p>
-            <p><b>Who uses it?</b> App developers for API testing, UI designers for mockups, QA testers for database seeding, college students for projects, startups for investor demos.</p>
-          </div>}
-        </div>
-
-        <div className='mt-6'>
-          <div className='flex items-center justify-between mb-3'>
-            <h2 className='text-[20px] font-black'>Daily Articles</h2>
-            {!isAdmin? <button onClick={function(){ setShowAdminLogin(true); }} className='text-[11px] font-bold bg-zinc-900 text-white px-4 py-2 rounded-full'>Admin Login</button>
-            : <div className='flex gap-2'><span className='text-[11px] font-bold bg-green-100 text-green-800 px-3 py-2 rounded-full'>Admin Mode</span><button onClick={function(){ setIsAdmin(false); localStorage.removeItem('isAdmin'); }} className='text-[11px] font-bold bg-red-100 text-red-700 px-3 py-2 rounded-full'>Logout</button></div>}
-          </div>
-
-          {showAdminLogin &&!isAdmin && (
-            <div className='bg-white border-2 border-black rounded-[20px] p-5 mb-4'>
-              <h3 className='font-black text-[14px]'>Admin Login Only</h3>
-              <p className='text-[11px] text-zinc-500 mt-1'>Only admin can post articles. Users can only read.</p>
-              <input type='password' value={adminPass} onChange={function(e){ setAdminPass(e.target.value); }} placeholder='Enter admin password' className='w-full mt-3 border-2 border-zinc-200 rounded-xl px-4 py-3 text-[13px] outline-none' />
-              <button onClick={adminLogin} className='mt-2 w-full h-11 bg-black text-white rounded-full font-bold text-[13px]'>Login as Admin</button>
-              <p className='text-[10px] text-zinc-400 mt-2 text-center'>Demo password: admin123</p>
-            </div>
-          )}
-
-          {isAdmin && (
-            <div className='bg-yellow-50 border-2 border-yellow-400 rounded-[20px] p-5 mb-4'>
-              <h3 className='font-black text-[14px]'>Post New Article - Admin Only</h3>
-              <input value={newTitle} onChange={function(e){ setNewTitle(e.target.value); }} placeholder='Article title' className='w-full mt-3 border rounded-xl px-4 py-3 text-[13px] outline-none' />
-              <textarea value={newContent} onChange={function(e){ setNewContent(e.target.value); }} placeholder='Full article content - 4-5 lines' className='w-full mt-2 border rounded-xl px-4 py-3 text-[13px] h-[100px] outline-none'></textarea>
-              <button onClick={function(){
-                if(!newTitle||!newContent){ alert('Fill both'); return; }
-                var p = { id: Date.now(), date: new Date().toISOString().slice(0,10), title: newTitle, content: newContent };
-                var u = [p].concat(posts);
-                setPosts(u); localStorage.setItem('admin-posts', JSON.stringify(u));
-                setNewTitle(''); setNewContent(''); alert('Posted!');
-              }} className='mt-2 w-full h-11 bg-black text-white rounded-full font-bold'>Publish Article</button>
-            </div>
-          )}
-
-          <div className='space-y-3'>
-            {posts.map(function(p){
-              return <div key={p.id} className='bg-white border rounded-[20px] p-5'>
-                <div className='text-[10px] font-bold text-zinc-400'>{p.date}</div>
-                <h3 className='font-black text-[15px] mt-1 leading-tight'>{p.title}</h3>
-                {selectedPost===p.id? <p className='text-[13px] text-zinc-600 mt-2 leading-6'>{p.content}</p> : <p className='text-[13px] text-zinc-600 mt-2 leading-6 line-clamp-2'>{p.content.substring(0,120)}...</p>}
-                <button onClick={function(){ setSelectedPost(selectedPost===p.id?null:p.id); }} className='mt-2 text-[12px] font-black text-blue-600'>{selectedPost===p.id?'Show Less':'Read Full Article →'}</button>
-                {isAdmin && <button onClick={function(){ var u=posts.filter(function(x){return x.id!==p.id;}); setPosts(u); localStorage.setItem('admin-posts', JSON.stringify(u)); }} className='ml-3 text-[11px] font-bold text-red-600'>Delete</button>}
-              </div>;
-            })}
-          </div>
-          <p className='text-[11px] text-zinc-400 mt-3 text-center'>Users can only read articles. Posting is admin-only.</p>
-        </div>
-
-        <div className='mt-6 bg-white rounded-[24px] border p-5'>
-          <h3 className='font-black text-[18px]'>Frequently Asked Questions</h3>
-          <div className='mt-4 space-y-2'>
-            {REAL_FAQS.map(function(f,i){ return <div key={i} className='border rounded-xl overflow-hidden'><button onClick={function(){ setFaqOpen(faqOpen===i?null:i); }} className='w-full text-left p-4 font-bold flex justify-between bg-zinc-50 text-[13px] leading-tight'>{f.q}<span className='ml-2 shrink-0'>{faqOpen===i?'−':'+'}</span></button>{faqOpen===i && <div className='px-4 py-4 text-[13px] bg-white leading-7 text-zinc-600'>{f.a}</div>}</div>; })}
-          </div>
-        </div>
       </main>
 
       {showTopBtn && (
