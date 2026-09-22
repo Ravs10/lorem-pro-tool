@@ -1,1 +1,0 @@
-export default function About(){ return <div style={{maxWidth:"800px", margin:"40px auto", padding:"20px", background:"white", borderRadius:"20px"}}><h1>About Us</h1><p>LoremGen PRO was built in India for designers who need fast, multilingual dummy text. We support 12 languages with AI topic generation. Contact: support@loremgen.pro</p><a href="/">← Back to Home</a></div> }
