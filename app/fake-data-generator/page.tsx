@@ -5,50 +5,37 @@ import { useState, useEffect } from "react";
 const ALL_FIELDS = ["Full Name","Email","Mobile","Address","City","Pincode","Company","PAN","Aadhaar","UPI ID"];
 const LANGS = ["Hindi","Tamil","Telugu","Marathi","Bengali","Gujarati","Malayalam","Kannada","Punjabi","Marwari","Urdu","Bhojpuri","Odia","English","Hinglish","English (US)","Spanish","French","German","Portuguese","Japanese","Chinese","Russian","Arabic","Korean","Italian","Turkish","Dutch","Thai","Vietnamese"];
 
-const DATA: any = {
-  Hindi: { names: ["Amit Sharma","Ravi Verma"], cities: ["Delhi","Mumbai","Jaipur","Suratgarh"], addr: "MG Road", comp: "Pvt Ltd", localNames: ["अमित शर्मा","रवि वर्मा"] },
-  Tamil: { names: ["Arjun Kumar"], cities: ["Chennai"], addr: "MG Road", comp: "Tech", localNames: ["அர்ஜுன் குமார்"] },
-  Bhojpuri: { names: ["Khesari Lal"], cities: ["Patna","Ara"], addr: "MG Road", comp: "Tech Pvt Ltd", localNames: ["खेसारी लाल","पवन सिंह"] },
-  English: { names: ["Aarav Mehta"], cities: ["Delhi","Mumbai"], addr: "MG Road", comp: "Tech Pvt Ltd", localNames: ["Aarav Mehta"] },
-};
-
 const FULL_DATA: any = {
   Hindi: { names: ["अमित शर्मा","रवि वर्मा","सुनील कुमार","पूजा गुप्ता","नेहा सिंह"], cities: ["दिल्ली","मुंबई","जयपुर","सूरतगढ़","लखनऊ"], addr: "एमजी रोड", comp: "प्रा. लि." },
   Tamil: { names: ["அர்ஜுன் குமார்","சூர்யா சிவகுமார்","பிரியா லட்சுமி"], cities: ["சென்னை","கோயம்புத்தூர்","மதுரை"], addr: "எம்.ஜி. சாலை", comp: "டெக்" },
-  Telugu: { names: ["రవి తేజ","పవన్ కళ్యాణ్","సమంత అక్కినేని"], cities: ["హైదరాబాద్","విజయవాడ"], addr: "ఎంజి రోడ్", comp: "టెక్ ప్రైవేట్" },
-  Marathi: { names: ["साहिल जोशी","ओंकार पाटील"], cities: ["पुणे","मुंबई"], addr: "एमजी रस्ता", comp: "टेक प्रा. लि." },
-  Bengali: { names: ["অরিন্দম দাস","সৌরভ গাঙ্গুলী"], cities: ["কলকাতা","হাওড়া"], addr: "এমজি রোড", comp: "টেক প্রাইভেট" },
-  Gujarati: { names: ["હાર્દિક પટેલ","કિંજલ દવે"], cities: ["અમદાવાદ","સુરત"], addr: "એમજી રોડ", comp: "ટેક પ્રા.લિ." },
-  Malayalam: { names: ["മോഹൻലാൽ","ദുൽഖർ"], cities: ["കൊച്ചി","തിരുവനന്തപുരം"], addr: "എംജി റോഡ്", comp: "ടെക് പ്രൈവറ്റ്" },
+  Telugu: { names: ["రవి తేజ","పవన్ కళ్యాణ్","సమంత అక్కినేని"], cities: ["హైదరాబాద్","విజయవాడ","విశాఖపట్నం"], addr: "ఎంజి రోడ్", comp: "టెక్ ప్రైవేట్" },
+  Marathi: { names: ["साहिल जोशी","ओंकार पाटील","स्नेहा कुलकर्णी"], cities: ["पुणे","मुंबई","नागपूर"], addr: "एमजी रस्ता", comp: "टेक प्रा. लि." },
+  Bengali: { names: ["অরিন্দম দাস","সৌরভ গাঙ্গুলী","রিয়া সেন"], cities: ["কলকাতা","হাওড়া","দার্জিলিং"], addr: "এমজি রোড", comp: "টেক প্রাইভেট" },
+  Gujarati: { names: ["હાર્દિક પટેલ","કિંજલ દવે","ધારા મહેતા"], cities: ["અમદાવાદ","સુરત","વડોદરા"], addr: "એમજી રોડ", comp: "ટેક પ્રા.લિ." },
+  Malayalam: { names: ["മോഹൻലാൽ","ദുൽഖർ","നയൻ താര"], cities: ["കൊച്ചി","തിരുവനന്തപുരം","കോഴിക്കോട്"], addr: "എംജി റോഡ്", comp: "ടെക് പ്രൈവറ്റ്" },
   Kannada: { names: ["ಯಶ್ ಗೌಡ","ರಶ್ಮಿಕಾ ಮಂದಣ್ಣ"], cities: ["ಬೆಂಗಳೂರು","ಮೈಸೂರು"], addr: "ಎಂಜಿ ರಸ್ತೆ", comp: "ಟೆಕ್ ಪ್ರೈ. ಲಿ." },
   Punjabi: { names: ["ਜੱਸੀ ਗਿੱਲ","ਸਿਮਰਨ ਕੌਰ"], cities: ["ਲੁਧਿਆਣਾ","ਅੰਮ੍ਰਿਤਸਰ"], addr: "ਐਮਜੀ ਰੋਡ", comp: "ਟੈਕ ਪ੍ਰਾ. ਲਿ." },
   Marwari: { names: ["भंवर सिंह","कमला देवी"], cities: ["बीकानेर","जोधपुर","सूरतगढ़"], addr: "एमजी रोड़", comp: "टेक प्रा. लि." },
   Urdu: { names: ["عمران خان","زویا شیخ"], cities: ["کراچی","لاہور"], addr: "ایم جی روڈ", comp: "ٹیک پرائیویٹ" },
   Bhojpuri: { names: ["खेसारी लाल","पवन सिंह","अक्षरा सिंह"], cities: ["पटना","आरा","बलिया"], addr: "एमजी रोड", comp: "टेक प्रा. लि." },
   Odia: { names: ["ଶୁଭମ ମହାନ୍ତି","ସୋନଲ ମହାପାତ୍ର"], cities: ["ଭୁବନେଶ୍ୱର","କଟକ"], addr: "ଏମଜି ରୋଡ", comp: "ଟେକ୍ ପ୍ରା" },
-  English: { names: ["Aarav Mehta","Ananya Singh"], cities: ["Delhi","Mumbai","Jaipur"], addr: "MG Road", comp: "Tech Pvt Ltd" },
+  English: { names: ["Aarav Mehta","Ananya Singh","Rahul Kumar"], cities: ["Delhi","Mumbai","Jaipur"], addr: "MG Road", comp: "Tech Pvt Ltd" },
   Hinglish: { names: ["Aarav Sharma","Pooja Singh"], cities: ["Delhi","Mumbai"], addr: "MG Road", comp: "Tech Pvt Ltd" },
-  "English (US)": { names: ["John Smith","Emma Johnson"], cities: ["New York","Los Angeles"], addr: "5th Avenue", comp: "Inc." },
-  Spanish: { names: ["Jose Garcia","Maria Lopez"], cities: ["Madrid","Barcelona"], addr: "Calle Mayor", comp: "S.L." },
-  French: { names: ["Pierre Dupont","Marie Dubois"], cities: ["Paris","Lyon"], addr: "Rue de la Paix", comp: "SARL" },
-  German: { names: ["Hans Muller","Greta Schmidt"], cities: ["Berlin","Munich"], addr: "Hauptstrasse", comp: "GmbH" },
-  Portuguese: { names: ["Joao Silva","Ana Santos"], cities: ["Lisboa","Porto"], addr: "Rua Augusta", comp: "Lda." },
-  Japanese: { names: ["Tanaka Taro","Sato Hanako"], cities: ["Tokyo","Osaka"], addr: "Chuo Street", comp: "Co Ltd" },
-  Chinese: { names: ["Zhang Wei","Wang Fang"], cities: ["Beijing","Shanghai"], addr: "Zhongshan Road", comp: "Co Ltd" },
-  Russian: { names: ["Ivan Ivanov","Anna Petrova"], cities: ["Moscow"], addr: "Lenina Street", comp: "OOO" },
-  Arabic: { names: ["Mohammad Ahmed","Fatima Ali"], cities: ["Dubai","Riyadh"], addr: "King Street", comp: "LLC" },
-  Korean: { names: ["Kim Minjun","Park Jiyeon"], cities: ["Seoul","Busan"], addr: "Gangnam Road", comp: "Corp" },
-  Italian: { names: ["Marco Rossi","Giulia Bianchi"], cities: ["Roma","Milano"], addr: "Via Roma", comp: "S.r.l." },
-  Turkish: { names: ["Mehmet Yilmaz","Ayse Kaya"], cities: ["Istanbul","Ankara"], addr: "Ataturk Street", comp: "A.S." },
+  "English (US)": { names: ["John Smith","Emma Johnson","Michael Brown"], cities: ["New York","Los Angeles","Chicago"], addr: "5th Avenue", comp: "Inc." },
+  Spanish: { names: ["José García","María López","Carlos Ruiz"], cities: ["Madrid","Barcelona","Valencia"], addr: "Calle Mayor", comp: "S.L." },
+  French: { names: ["Pierre Dupont","Marie Dubois","Luc Bernard"], cities: ["Paris","Lyon","Marseille"], addr: "Rue de la Paix", comp: "SARL" },
+  German: { names: ["Hans Müller","Greta Schmidt","Klaus Weber"], cities: ["Berlin","Munich","Hamburg"], addr: "Hauptstrasse", comp: "GmbH" },
+  Portuguese: { names: ["João Silva","Ana Santos","Pedro Costa"], cities: ["Lisboa","Porto","Braga"], addr: "Rua Augusta", comp: "Lda." },
+  Japanese: { names: ["田中太郎","佐藤花子","鈴木一郎"], cities: ["東京","大阪","京都"], addr: "中央通り", comp: "株式会社" },
+  Chinese: { names: ["张伟","王芳","李强"], cities: ["北京","上海","广州"], addr: "中山路", comp: "有限公司" },
+  Russian: { names: ["Иван Иванов","Анна Петрова","Сергей Смирнов"], cities: ["Москва","Санкт-Петербург","Казань"], addr: "ул. Ленина", comp: "ООО" },
+  Arabic: { names: ["محمد أحمد","فاطمة علي","أحمد حسن"], cities: ["دبي","الرياض","القاهرة"], addr: "شارع الملك", comp: "ذ.م.م" },
+  Korean: { names: ["김민준","박지연","이서준"], cities: ["서울","부산","인천"], addr: "강남대로", comp: "주식회사" },
+  Italian: { names: ["Marco Rossi","Giulia Bianchi"], cities: ["Roma","Milano","Napoli"], addr: "Via Roma", comp: "S.r.l." },
+  Turkish: { names: ["Mehmet Yılmaz","Ayşe Kaya"], cities: ["Istanbul","Ankara","Izmir"], addr: "Atatürk Caddesi", comp: "A.Ş." },
   Dutch: { names: ["Jan Jansen","Emma de Vries"], cities: ["Amsterdam","Rotterdam"], addr: "Damstraat", comp: "B.V." },
-  Thai: { names: ["Somchai Jaidee"], cities: ["Bangkok","Chiang Mai"], addr: "Sukhumvit Road", comp: "Co Ltd" },
-  Vietnamese: { names: ["Nguyen Van A","Tran Thi B"], cities: ["Hanoi","Ho Chi Minh"], addr: "Le Loi Street", comp: "Co Ltd" },
-};
-
-const LOCAL_DATA: any = {
-  Hindi: { names: ["अमित शर्मा","रवि वर्मा"], cities: ["दिल्ली","मुंबई"] },
-  Tamil: { names: ["அர்ஜுன் குமார்"], cities: ["சென்னை"] },
-  Bhojpuri: { names: ["खेसारी लाल","पवन सिंह"], cities: ["पटना","आरा"] },
+  Thai: { names: ["สมชาย ใจดี","สมหญิง รักไทย"], cities: ["กรุงเทพ","เชียงใหม่","ภูเก็ต"], addr: "ถนนสุขุมวิท", comp: "จำกัด" },
+  Vietnamese: { names: ["Nguyễn Văn A","Trần Thị B"], cities: ["Hà Nội","Hồ Chí Minh","Đà Nẵng"], addr: "Đường Lê Lợi", comp: "TNHH" },
 };
 
 const ENG_EMAIL = ["amit","ravi","sunil","pooja","neha","rahul","ananya","arjun","priya","vijay"];
@@ -83,7 +70,7 @@ export default function Page(){
   var [showArticle,setShowArticle]=useState(true);
   var [faqOpen,setFaqOpen]=useState(0);
 
-  useEffect(()=>{ document.title = "Fake Data Generator - 30 Languages | Free Tool"; }, []);
+  useEffect(function(){ document.title = "Fake Data Generator - 30 Languages | Free Tool"; }, []);
 
   var generate = function(){
     var newData = Array.from({length: count}, function(){ return genOne(fields, lang); });
@@ -119,10 +106,10 @@ export default function Page(){
     <div className="min-h-screen bg-[#f8f8f7] text-zinc-900">
       <main className="max-w-[1100px] mx-auto px-3 py-4">
         <h1 className="text-[26px] font-black">Fake Data Generator - 30 Languages</h1>
-        <p className="text-zinc-500 text-[12px] mt-1">SEO Ready: 15 Indian + 15 Global - Email Always English</p>
+        <p className="text-zinc-500 text-[12px] mt-1">SEO: 15 Indian + 15 Global | Email Always English for Validity</p>
 
         <div className="bg-white rounded-[24px] border p-5 mt-4">
-          <label className="font-bold text-[14px]">Select Language (All Fields Change Except Email)</label>
+          <label className="font-bold text-[14px]">Select Language - All Fields Change Except Email</label>
           <select value={lang} onChange={function(e){ setLang(e.target.value); }} className="w-full mt-2 border-2 border-black rounded-full px-5 py-4 text-[15px] bg-yellow-50 font-bold">
             {LANGS.map(function(l){ return <option key={l} value={l}>{l}</option>; })}
           </select>
@@ -153,7 +140,7 @@ export default function Page(){
 
         <div className="mt-5 bg-white rounded-[24px] border overflow-hidden">
           <button onClick={function(){ setShowArticle(!showArticle); }} className="w-full p-5 flex justify-between font-black text-left">What is Fake Data Generator? <span>{showArticle?"-":"+"}</span></button>
-          {showArticle && <div className="px-5 pb-5 text-[13px] text-zinc-600 leading-7">This tool generates fake data in 30 languages - 15 Indian and 15 Global. Name, City, Address, Company change as per language. Email is always in English because email IDs like Hindi script are not valid. 100% fake for testing only. Export in JSON, CSV, TXT, SQL.</div>}
+          {showArticle && <div className="px-5 pb-5 text-[13px] text-zinc-600 leading-7">This tool generates fake data in 30 languages - 15 Indian (Hindi, Tamil, Bhojpuri etc) and 15 Global (Japanese, Chinese, Arabic, Spanish, French etc). Name, City, Address, Company change as per language, but Email is always in English because email like Hindi script is invalid worldwide. 100% fake for testing only. Export in JSON, CSV, TXT, SQL.</div>}
         </div>
 
         <div className="mt-5 bg-white rounded-[24px] border p-5">
@@ -161,9 +148,9 @@ export default function Page(){
           <div className="mt-4 space-y-2">
             {[
               {q:"Is this data real?", a:"No, 100% fake random data for testing only."},
-              {q:"Why is Email always in English?", a:"Because email like अमित@gmail.com is invalid worldwide. Only amit@gmail.com is valid, so Email is always English."},
-              {q:"How does 30 language work?", a:"Select language, click Generate. Name City Address Company will be in that language, Email remains English."},
-              {q:"What does Save do?", a:"Save stores data in browser local storage."},
+              {q:"Why is Email always in English?", a:"Because email like Japanese or Hindi script is invalid. Only English format is valid globally."},
+              {q:"How does 30 language work?", a:"Select any language and Generate. Name, City, Address, Company will be in that language with native script like Japanese, Chinese, Arabic."},
+              {q:"What does Save do?", a:"Save stores data in browser local storage. Copy copies to clipboard with green Saved/Copied feedback."},
             ].map(function(f,i){ return <div key={i} className="border rounded-xl"><button onClick={function(){ setFaqOpen(faqOpen===i?null:i); }} className="w-full text-left p-4 font-bold flex justify-between bg-zinc-50 text-[13px]">{f.q}<span>{faqOpen===i?"-":"+"}</span></button>{faqOpen===i && <div className="px-4 py-3 text-[12px] bg-white">{f.a}</div>}</div>; })}
           </div>
         </div>
