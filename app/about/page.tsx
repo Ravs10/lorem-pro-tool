@@ -1,1 +1,11 @@
-export default function About(){ return <div style={{maxWidth:"800px", margin:"40px auto", padding:"20px", background:"white", borderRadius:"20px"}}><h1>About Us</h1><p>LoremGen PRO was built in India for designers who need fast, multilingual dummy text. We support 12 languages with AI topic generation. Contact: support@loremgen.pro</p><a href="/">← Back to Home</a></div> }
+export default function About() {
+  return (
+    <div style={{padding:"40px", maxWidth:"800px", margin:"auto", lineHeight:"1.8"}}>
+      <h1>About LoremPro Tool</h1>
+      <p>
+        LoremPro Tool is a free online tool for developers and designers to generate dummy text.
+        This is the same content that was in your old About file, just fixed for Next.js.
+      </p>
+    </div>
+  );
+}
