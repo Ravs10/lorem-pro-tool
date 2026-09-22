@@ -2,6 +2,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 
+// 🔐 MASTER RECOVERY KEY - SIRF AAPKO PATA HONI CHAHIYE
+// Isko apne hisab se change kar do, ye kisi ko mat batao
+const MASTER_RECOVERY_KEY = 'LOREM2025@SIDHAULI';
+
 const ALL_FIELDS = ['Full Name','Email','Mobile','Address','City','Pincode','Company','PAN','Aadhaar','UPI ID'];
 const LANGS = ['Hindi','Bhojpuri','Tamil','Telugu','English','Japanese','Chinese','Spanish','French','German','Russian','Arabic','Korean','Marathi','Bengali','Gujarati','Malayalam','Kannada','Punjabi','Urdu'];
 
@@ -72,6 +76,7 @@ export default function Page(){
   var [copyText,setCopyText]=useState('Copy');
   var [saveText,setSaveText]=useState('Save');
   var [linkCopyId,setLinkCopyId]=useState(null as any);
+  var [jsonCopyText,setJsonCopyText]=useState('📋 Copy All Blogs JSON for Permanent SEO');
   var [tab,setTab]=useState('tool');
   var [blogs,setBlogs]=useState(DEFAULT_BLOGS);
   var [selectedSlug,setSelectedSlug]=useState(null as any);
@@ -84,6 +89,10 @@ export default function Page(){
   var [oldPass,setOldPass]=useState('');
   var [newPass,setNewPass]=useState('');
   var [faqOpen,setFaqOpen]=useState(0);
+  var [loginFail,setLoginFail]=useState(0);
+  var [recoveryInput,setRecoveryInput]=useState('');
+  var [publishText,setPublishText]=useState('Publish Blog Post');
+  var [passChangeText,setPassChangeText]=useState('Update Password');
 
   useEffect(function(){
     var saved = localStorage.getItem('seo-blogs');
@@ -107,7 +116,6 @@ export default function Page(){
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   };
   var saveBlogs = function(b:any[]){ setBlogs(b); localStorage.setItem('seo-blogs', JSON.stringify(b)); };
-
   var selectedBlog = blogs.find(function(b:any){ return b.slug===selectedSlug; });
 
   return (
@@ -157,11 +165,6 @@ export default function Page(){
                 {REAL_FAQS.map(function(f,i){ return <div key={i} className='border rounded-xl overflow-hidden'><button onClick={function(){ setFaqOpen(faqOpen===i?null:i); }} className='w-full text-left p-4 font-bold flex justify-between bg-zinc-50 text-[13px] leading-tight'>{f.q}<span className='ml-2'>{faqOpen===i?'−':'+'}</span></button>{faqOpen===i && <div className='px-4 py-4 text-[13px] bg-white leading-7 text-zinc-600'>{f.a}</div>}</div>; })}
               </div>
             </div>
-
-            <div className='mt-5 bg-yellow-100 border-2 border-yellow-400 rounded-[20px] p-5 text-center'>
-              <p className='font-black'>📝 Daily Articles - SEO Ranking ke liye</p>
-              <button onClick={function(){ setTab('blog'); }} className='mt-3 bg-black text-white px-6 py-3 rounded-full text-[12px] font-bold'>Go to Blog →</button>
-            </div>
           </>
         )}
 
@@ -175,9 +178,34 @@ export default function Page(){
                 <p className='text-[12px] font-bold'>🔐 Admin Login</p>
                 <div className='flex gap-2 mt-2'>
                   <input type='password' value={passInput} onChange={function(e){ setPassInput(e.target.value); }} placeholder='Password dalo' className='flex-1 border rounded-full px-4 py-2.5 text-[13px]' />
-                  <button onClick={function(){ if(passInput===getAdminPass()){ setIsAdmin(true); localStorage.setItem('admin','yes'); setPassInput(''); } else alert('Wrong password'); }} className='bg-black text-white px-5 rounded-full text-[12px] font-bold'>Login</button>
+                  <button onClick={function(){
+                    if(passInput===getAdminPass()){ setIsAdmin(true); localStorage.setItem('admin','yes'); setPassInput(''); setLoginFail(0); }
+                    else {
+                      setLoginFail(loginFail+1);
+                      var btn=document.getElementById('login-btn');
+                      if(btn){ btn.innerText='❌ Wrong!'; btn.className='bg-red-500 text-white px-5 rounded-full text-[12px] font-bold'; setTimeout(function(){ btn.innerText='Login'; btn.className='bg-black text-white px-5 rounded-full text-[12px] font-bold'; },1500); }
+                    }
+                  }} id='login-btn' className='bg-black text-white px-5 rounded-full text-[12px] font-bold'>Login</button>
                 </div>
-                <p className='text-[10px] text-zinc-400 mt-2'>Default: admin123 | Baad me aap change kar sakte ho</p>
+                {loginFail>=3 && (
+                  <div className='mt-4 bg-zinc-900 text-white rounded-xl p-4'>
+                    <p className='text-[11px] font-bold'>🔒 Forgot Password? (Only Owner)</p>
+                    <p className='text-[10px] text-zinc-400 mt-1'>Master Recovery Key dalo:</p>
+                    <div className='flex gap-2 mt-2'>
+                      <input type='password' value={recoveryInput} onChange={function(e){ setRecoveryInput(e.target.value); }} placeholder='Master Key' className='flex-1 border rounded-full px-4 py-2.5 text-[12px] text-black' />
+                    </div>
+                    <button onClick={function(){
+                      if(recoveryInput===MASTER_RECOVERY_KEY){
+                        localStorage.removeItem('my-admin-pass'); setRecoveryInput(''); setLoginFail(0);
+                        var b=document.getElementById('recovery-btn');
+                        if(b){ b.innerText='✓ Reset Done! Login with admin123'; b.className='w-full mt-2 h-10 bg-green-500 text-white rounded-full text-[11px] font-bold'; setTimeout(function(){ b.innerText='Reset with Master Key'; b.className='w-full mt-2 h-10 bg-yellow-400 text-black rounded-full text-[11px] font-bold'; },3000); }
+                      } else {
+                        var b=document.getElementById('recovery-btn');
+                        if(b){ b.innerText='❌ Wrong Master Key'; b.className='w-full mt-2 h-10 bg-red-500 text-white rounded-full text-[11px] font-bold'; setTimeout(function(){ b.innerText='Reset with Master Key'; b.className='w-full mt-2 h-10 bg-yellow-400 text-black rounded-full text-[11px] font-bold'; },2000); }
+                      }
+                    }} id='recovery-btn' className='w-full mt-2 h-10 bg-yellow-400 text-black rounded-full text-[11px] font-bold'>Reset with Master Key</button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className='mt-4 bg-yellow-50 border-2 border-yellow-400 rounded-[16px] p-4'>
@@ -185,38 +213,44 @@ export default function Page(){
                   <p className='font-black text-[13px]'>📱 Mobile Admin Panel</p>
                   <button onClick={function(){ setIsAdmin(false); localStorage.removeItem('admin'); }} className='text-[11px] bg-red-100 text-red-600 px-3 py-1 rounded-full font-bold'>Logout</button>
                 </div>
-
                 <input value={newTitle} onChange={function(e){ setNewTitle(e.target.value); }} placeholder='Article Title' className='w-full mt-3 border rounded-xl px-4 py-3 text-[13px]' />
                 <input value={newMeta} onChange={function(e){ setNewMeta(e.target.value); }} placeholder='Meta Description for Google (150 chars)' className='w-full mt-2 border rounded-xl px-4 py-3 text-[12px]' />
                 <textarea value={newContent} onChange={function(e){ setNewContent(e.target.value); }} placeholder='Full Article Content 5-6 lines...' className='w-full mt-2 border rounded-xl px-4 py-3 text-[13px] h-[120px]'></textarea>
                 <button onClick={function(){
-                  if(!newTitle||!newContent){ alert('Title + Content bharo'); return; }
+                  if(!newTitle||!newContent){
+                    setPublishText('❌ Title + Content bharo');
+                    setTimeout(function(){ setPublishText('Publish Blog Post'); },2000);
+                    return;
+                  }
                   var slug = newTitle.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') + '-' + Date.now();
                   var newPost = { id: Date.now(), slug: slug, date: new Date().toISOString().slice(0,10), title: newTitle, meta: newMeta||newTitle, content: newContent, tags: 'daily' };
                   saveBlogs([newPost].concat(blogs));
                   setNewTitle(''); setNewMeta(''); setNewContent('');
-                }} className='mt-3 w-full h-12 bg-black text-white rounded-full font-black'>Publish Blog Post</button>
+                  setPublishText('✓ Published!');
+                  setTimeout(function(){ setPublishText('Publish Blog Post'); },2000);
+                }} className={'mt-3 w-full h-12 rounded-full font-black transition-all ' + (publishText.includes('Published')?'bg-green-500 text-white':publishText.includes('❌')?'bg-red-500 text-white':'bg-black text-white')}>{publishText}</button>
 
                 <div className='mt-4 border-t pt-4'>
                   <button onClick={function(){ setShowPassChange(!showPassChange); }} className='text-[12px] font-bold bg-zinc-900 text-white px-4 py-2 rounded-full'>🔑 Password Change Karo</button>
                   {showPassChange && (
                     <div className='mt-3 bg-white border rounded-xl p-3'>
-                      <p className='text-[11px] font-bold'>Khud ka naya password set karo:</p>
                       <input type='password' value={oldPass} onChange={function(e){ setOldPass(e.target.value); }} placeholder='Old password' className='w-full mt-2 border rounded-full px-4 py-2 text-[12px]' />
                       <input type='password' value={newPass} onChange={function(e){ setNewPass(e.target.value); }} placeholder='New password' className='w-full mt-2 border rounded-full px-4 py-2 text-[12px]' />
                       <button onClick={function(){
-                        if(oldPass!==getAdminPass()){ alert('Old password galat hai'); return; }
-                        if(newPass.length<4){ alert('Password kam se kam 4 char ka rakho'); return; }
+                        if(oldPass!==getAdminPass()){ setPassChangeText('❌ Old Password Galat'); setTimeout(function(){ setPassChangeText('Update Password'); },2000); return; }
+                        if(newPass.length<4){ setPassChangeText('❌ Min 4 chars'); setTimeout(function(){ setPassChangeText('Update Password'); },2000); return; }
                         localStorage.setItem('my-admin-pass', newPass);
-                        setOldPass(''); setNewPass(''); setShowPassChange(false);
-                        // no alert, show green
-                        var btn = document.getElementById('pass-changed-btn');
-                        if(btn){ btn.innerText='✓ Changed!'; btn.className='mt-2 w-full h-10 bg-green-500 text-white rounded-full text-[12px] font-bold'; setTimeout(function(){ btn.innerText='Password Change Karo'; btn.className='mt-2 w-full h-10 bg-black text-white rounded-full text-[12px] font-bold'; },2000); }
-                      }} id='pass-changed-btn' className='mt-2 w-full h-10 bg-black text-white rounded-full text-[12px] font-bold'>Update Password</button>
-                      <p className='text-[10px] text-zinc-400 mt-2'>Aap jab chahe yahan se password change kar sakte ho. Naya password isi phone me save hoga.</p>
+                        setOldPass(''); setNewPass(''); setPassChangeText('✓ Changed!');
+                        setTimeout(function(){ setPassChangeText('Update Password'); setShowPassChange(false); },2000);
+                      }} className={'mt-2 w-full h-10 rounded-full text-[12px] font-bold transition-all ' + (passChangeText.includes('Changed')?'bg-green-500 text-white':passChangeText.includes('❌')?'bg-red-500 text-white':'bg-black text-white')}>{passChangeText}</button>
                     </div>
                   )}
                 </div>
+                <button onClick={function(){
+                  navigator.clipboard.writeText(JSON.stringify(blogs, null, 2));
+                  setJsonCopyText('✓ Copied! Paste in GitHub');
+                  setTimeout(function(){ setJsonCopyText('📋 Copy All Blogs JSON for Permanent SEO'); },2000);
+                }} className={'mt-3 w-full h-10 rounded-full text-[11px] font-bold transition-all ' + (jsonCopyText.includes('Copied')?'bg-green-500 text-white':'bg-zinc-900 text-white')}>{jsonCopyText}</button>
               </div>
             )}
 
