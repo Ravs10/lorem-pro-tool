@@ -7,8 +7,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const MASTER_KEY = "LoremMaster@123";
-
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [pass, setPass] = useState("");
@@ -23,9 +21,13 @@ export default function AdminPage() {
     if (localStorage.getItem("lorem_admin") === "true") setIsLoggedIn(true);
   }, []);
 
-  const handleLogin = () => {
-    const savedPass = localStorage.getItem("lorem_pass") || "admin123";
-    if (pass === savedPass || pass === MASTER_KEY) {
+  const handleLogin = async () => {
+    const res = await fetch("/api/admin-login", {
+      method: "POST",
+      body: JSON.stringify({ password: pass }),
+    });
+    const data = await res.json();
+    if (data.success) {
       localStorage.setItem("lorem_admin", "true");
       setIsLoggedIn(true);
     } else {
@@ -58,9 +60,7 @@ export default function AdminPage() {
       <input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} style={{width:'100%', padding:'10px', marginTop:'15px'}}/>
       <textarea placeholder="Content" value={content} onChange={e=>setContent(e.target.value)} style={{width:'100%', padding:'10px', height:'200px', marginTop:'10px'}}/>
       <button onClick={handlePublish} style={{padding:'12px', background:'black', color:'white', width:'100%', marginTop:'10px'}}>Publish Blog Post</button>
-      <hr style={{margin:'20px 0'}}/>
-      <button onClick={()=>{ const n=prompt("Naya password daalo"); if(n){localStorage.setItem("lorem_pass", n); alert("Password change ho gaya!");}}} style={{padding:'8px'}}>Password Change</button>
-      <button onClick={()=>{localStorage.removeItem("lorem_admin"); location.reload();}} style={{padding:'8px', marginLeft:'10px'}}>Logout</button>
+      <button onClick={()=>{localStorage.removeItem("lorem_admin"); location.reload();}} style={{padding:'8px', marginTop:'20px'}}>Logout</button>
     </div>
   );
 }
