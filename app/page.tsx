@@ -184,7 +184,7 @@ const doDownload=(type:string)=>{
 const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,padding:20,color:"#000",lineHeight:1.8}}><button onClick={()=>setPage("menu")} style={{padding:"8px 16px",borderRadius:999,border:"2px solid #000",background:"#fff",fontWeight:800}}>← Back to Menu</button><h1 style={{fontSize:22,margin:"10px 0"}}>{t}</h1><div style={{fontSize:14}}>{children}</div></div>
 
 return(
-<div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
+<div style={glassBg} className="min-h-screen">
 <Header />
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
