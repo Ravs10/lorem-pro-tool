@@ -1,15 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 
-export default async function BlogDetail({ params }: any) {
+export const dynamic = 'force-dynamic'
+
+export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-
-  // Next 14 aur 15 dono ke liye fix
-  const resolvedParams = await Promise.resolve(params)
-  const slug = resolvedParams.slug
 
   const { data: blog } = await supabase.from('blogs').select('*').eq('slug', slug).single()
 
