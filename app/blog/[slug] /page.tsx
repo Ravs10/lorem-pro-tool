@@ -1,9 +1,24 @@
 import { createClient } from '@supabase/supabase-js'
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
-export default async function BlogDetail({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+
+export default async function BlogDetail({ params }: { params: { slug: string } }) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+  
+  const slug = params.slug
+  
   const { data: blog } = await supabase.from('blogs').select('*').eq('slug', slug).single()
-  if (!blog) return <div className="p-10 text-center"><h1>Blog not found: {slug}</h1><a href="/blog" className="text-blue-600">Back</a></div>
+
+  if (!blog) {
+    return (
+      <div className="p-10 text-center">
+        <h1 className="text-xl">Blog not found: {slug}</h1>
+        <a href="/blog" className="text-blue-600">← Back to Blog</a>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <a href="/blog" className="text-sm text-gray-500 mb-4 block">← Back</a>
