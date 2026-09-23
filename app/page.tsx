@@ -1,6 +1,8 @@
 "use client"
 import {useState,useEffect} from "react"
 import Header from "./components/Header";
+import GlassCard from "./components/ui/GlassCard";
+const glassBg = { background: "radial-gradient(at 20% 30%, rgba(124,58,237,0.6) 0%, transparent 50%), radial-gradient(at 80% 20%, rgba(236,72,153,0.5) 0%, transparent 50%), #050507" };
 const LANGS=[
 ["EN","English - USA UK"],["HI","हिन्दी - India"],["ZH","中文 - China"],
 ["ES","Español - Spain Mexico"],["FR","Français - France"],["DE","Deutsch - Germany"],
@@ -179,15 +181,15 @@ const doDownload=(type:string)=>{
  setShowDL(false)
 }
 
-const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,padding:20,color:"#000",lineHeight:1.8}}><button onClick={()=>setPage("menu")} style={{padding:"8px 16px",borderRadius:999,border:"2px solid #000",background:"#fff",fontWeight:800}}>← Back to Menu</button><h1 style={{fontSize:22,margin:"10px 0"}}>{t}</h1><div style={{fontSize:14}}>{children}</div></div>
+const Wrap=({t,children}:any)=><GlassCard className="mb-6"><h3 style={{color:"#fff",marginBottom:12,fontSize:18}}>{t}</h3>{children}</GlassCard>
 
 return(
-<div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
+<div style={glassBg} className="min-h-screen">
 <Header />
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
-{page==="menu"&&<div style={{background:"#fff",borderRadius:20,padding:16}}>
-<h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
+{page==="menu"&&<GlassCard>
+<h2 style={{color:"#fff",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
 {[
 ["home","🏠 Generator"],["how","📖 How to Use"],["about","ℹ️ About Us"],
@@ -198,7 +200,7 @@ return(
 <div style={{marginTop:12,border:"2px solid #000",borderRadius:12,padding:8,maxHeight:350,overflowY:"auto",display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}}>
 {LANGS.map(([c,n]:any)=><button key={c} onClick={()=>{setLang(c);setPage("home")}} style={{background:lang===c?"#000":"#f3f4f6",color:lang===c?"#fff":"#000",padding:8,borderRadius:8,fontSize:11,fontWeight:700,border:"none",textAlign:"left"}}>{n}</button>)}
 </div>
-</div>}
+</GlassCard>}
 
 {page==="about"&&<Wrap t="About Us">
 <p><b>LoremPro</b> is the world's most advanced Lorem Ipsum Generator, built for developers, designers, and content creators worldwide.</p>
