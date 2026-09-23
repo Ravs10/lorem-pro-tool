@@ -18,7 +18,7 @@ export default async function BlogPage() {
         {blogs?.map((blog: any) => (
           <a key={blog.id} href={`/blog/${blog.slug}`} className="border p-4 rounded-lg hover:shadow-lg">
             <h2 className="text-xl font-semibold">{blog.title}</h2>
-            <p className="text-gray-600 mt-2 line-clamp-2">{blog.excerpt || blog.content?.slice(0,150)}</p>
+            <p className="text-gray-600 mt-2 line-clamp-2">{blog.excerpt || blog.content?.replace(/<[^>]*>/g, '').slice(0,150)}</p>
           </a>
         ))}
       </div>
