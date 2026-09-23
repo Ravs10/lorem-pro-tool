@@ -1,6 +1,8 @@
 "use client"
 import {useState,useEffect} from "react"
 import Header from "./components/Header";
+import GlassCard from "./components/ui/GlassCard";
+const glassBg = { background: "radial-gradient(at 20% 30%, rgba(124,58,237,0.6) 0%, transparent 50%), radial-gradient(at 80% 20%, rgba(236,72,153,0.5) 0%, transparent 50%), #050507" };
 const LANGS=[
 ["EN","English - USA UK"],["HI","हिन्दी - India"],["ZH","中文 - China"],
 ["ES","Español - Spain Mexico"],["FR","Français - France"],["DE","Deutsch - Germany"],
