@@ -181,7 +181,7 @@ const doDownload=(type:string)=>{
  setShowDL(false)
 }
 
-const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,padding:20,color:"#000",lineHeight:1.8}}><button onClick={()=>setPage("menu")} style={{padding:"8px 16px",borderRadius:999,border:"2px solid #000",background:"#fff",fontWeight:800}}>← Back to Menu</button><h1 style={{fontSize:22,margin:"10px 0"}}>{t}</h1><div style={{fontSize:14}}>{children}</div></div>
+const Wrap=({t,children}:any)=><GlassCard className="mb-6"><h3 style={{color:"#fff",marginBottom:12,fontSize:18}}>{t}</h3>{children}</GlassCard>
 
 return(
 <div style={glassBg} className="min-h-screen">
