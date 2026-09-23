@@ -189,7 +189,7 @@ return(
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
 {page==="menu"&&<GlassCard>
-<h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
+<h2 style={{color:"#fff",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
 {[
 ["home","🏠 Generator"],["how","📖 How to Use"],["about","ℹ️ About Us"],
