@@ -26,7 +26,7 @@ export default function AllTools(){
       
       <div style={{marginTop:20, display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))", gap:16}}>
         {tools.map(t=>(
-          <Link key={t.id} href={t.slug.startsWith('/')?t.slug:`/tools/${t.slug}`} style={{textDecoration:"none"}}>
+          <Link key={t.id} href={t.slug==='lorem-ipsum-generator' ? '/' : `/${t.slug}`} style={{textDecoration:"none"}}>
             <div style={{border:"1px solid #ddd", borderRadius:12, padding:16, background:"#fff", boxShadow:"0 2px 8px rgba(0,0,0,0.05)"}}>
               <h3 style={{margin:0, color:"#000"}}>{t.name}</h3>
               <p style={{fontSize:13, color:"#666", marginTop:6}}>{t.slug}</p>
