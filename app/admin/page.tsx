@@ -12,7 +12,6 @@ export default function AdminPage() {
   const [content, setContent] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showMasterInfo, setShowMasterInfo] = useState(false);
   const [activeTab, setActiveTab] = useState("blog");
   const [tools, setTools] = useState<any[]>([]);
 
@@ -29,122 +28,73 @@ export default function AdminPage() {
   };
 
   const handleLogin = async () => {
-    if (!pass) return alert("Please enter password");
+    if (!pass) return alert("Password dalo");
     setLoading(true);
     try {
-      const res = await fetch("/api/admin-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: pass }),
-      });
+      const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pass }) });
       const data = await res.json();
       if (data.success) {
         localStorage.setItem("lorem_admin", "true");
         setIsLoggedIn(true);
         fetchTools();
-      } else {
-        alert("Wrong password");
-      }
-    } catch (e) {
-      alert("Login failed");
-    }
+      } else alert("Wrong password");
+    } catch { alert("Login failed"); }
     setLoading(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("lorem_admin");
-    setIsLoggedIn(false);
-    router.push("/admin/login");
-  };
-
   const handleBlogSubmit = async () => {
-    if (!title || !content) return alert("Fill all fields");
+    if (!title ||!content) return alert("Fill all fields");
     setLoading(true);
     const { error } = await supabase.from("blogs").insert([{ title, content }]);
     setLoading(false);
     if (error) alert(error.message);
-    else {
-      alert("Blog posted!");
-      setTitle("");
-      setContent("");
-    }
+    else { alert("Blog posted!"); setTitle(""); setContent(""); }
   };
 
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-        <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-sm">
-          <h1 className="text-2xl font-bold mb-4">Admin Login</h1>
-          <input
-            type={showPass ? "text" : "password"}
-            value={pass}
-            onChange={(e) => setPass(e.target.value)}
-            placeholder="Password"
-            className="w-full p-3 border rounded-xl mb-4"
-          />
-          <button
-            onClick={handleLogin}
-            className="w-full bg-black text-white p-3 rounded-xl"
-          >
-            {loading ? "Loading..." : "Login"}
-          </button>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+        <div className="backdrop-blur-xl bg-white/80 p-8 rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 w-full max-w-sm">
+          <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
+          <div className="relative mb-4">
+            <input type={showPass? "text" : "password"} value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Password" className="w-full p-4 border border-gray-200 rounded-2xl bg-white/50 backdrop-blur focus:outline-none focus:ring-2 focus:ring-black" />
+          </div>
+          <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-semibold">{loading? "Loading..." : "Login"}</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8f9fa] to-[#e9ecef] p-4">
       <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Admin Panel</h1>
-          <button onClick={handleLogout} className="text-red-500">Logout</button>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold">⚡ Lorem Pro Tool</h1>
+          <button onClick={() => { localStorage.removeItem("lorem_admin"); setIsLoggedIn(false); }} className="px-4 py-2 bg-white rounded-full shadow text-sm">Logout</button>
         </div>
 
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab("blog")}
-            className={`px-4 py-2 rounded-xl ${activeTab === "blog" ? "bg-black text-white" : "bg-white"}`}
-          >
-            Blog
-          </button>
-          <button
-            onClick={() => setActiveTab("tools")}
-            className={`px-4 py-2 rounded-xl ${activeTab === "tools" ? "bg-black text-white" : "bg-white"}`}
-          >
-            Tools
-          </button>
+        <div className="flex gap-3 mb-6">
+          <button onClick={() => setActiveTab("blog")} className={`px-6 py-3 rounded-full font-medium transition-all ${activeTab === "blog"? "bg-black text-white shadow-lg" : "bg-white/70 backdrop-blur border border-white/20"}`}>Blog</button>
+          <button onClick={() => setActiveTab("tools")} className={`px-6 py-3 rounded-full font-medium transition-all ${activeTab === "tools"? "bg-black text-white shadow-lg" : "bg-white/70 backdrop-blur border border-white/20"}`}>Tools</button>
         </div>
 
-        {activeTab === "blog" ? (
-          <div className="bg-white rounded-2xl p-6 shadow">
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Blog Title"
-              className="w-full p-3 border rounded-xl mb-3"
-            />
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Blog Content"
-              className="w-full p-3 border rounded-xl h-40 mb-3"
-            />
-            <button
-              onClick={handleBlogSubmit}
-              className="w-full bg-black text-white p-3 rounded-xl"
-            >
-              Post Blog
-            </button>
+        {activeTab === "blog"? (
+          <div className="backdrop-blur-xl bg-white/80 rounded-[24px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-white/20">
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 border border-gray-200 rounded-2xl mb-4 bg-white/60 focus:outline-none" />
+            <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Blog Content" className="w-full p-4 border border-gray-200 rounded-2xl h-56 mb-4 bg-white/60 focus:outline-none" />
+            <button onClick={handleBlogSubmit} className="w-full bg-black text-white p-4 rounded-2xl font-semibold">Post Blog</button>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl p-6 shadow">
-            <h2 className="font-bold mb-4">Tools ({tools.length})</h2>
-            {tools.map((tool: any) => (
-              <div key={tool.id} className="border p-3 rounded-xl mb-2">
-                {tool.name}
-              </div>
-            ))}
+          <div className="backdrop-blur-xl bg-white/80 rounded-[24px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-white/20">
+            <h2 className="font-bold mb-4 text-lg">Tools ({tools.length})</h2>
+            <div className="grid gap-3">
+              {tools.map((tool: any) => (
+                <div key={tool.id} onClick={() => router.push(`/tools/${tool.slug || tool.id}`)} className="group p-4 rounded-2xl bg-white/60 hover:bg-white border border-gray-200/50 hover:border-black/10 cursor-pointer flex justify-between items-center transition-all hover:shadow-md">
+                  <span className="font-medium">{tool.name}</span>
+                  <span className="text-gray-400 group-hover:text-black text-sm">Open →</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
