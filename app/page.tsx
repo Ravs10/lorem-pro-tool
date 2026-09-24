@@ -1,6 +1,8 @@
 "use client"
 import {useState,useEffect} from "react"
 import Header from "./components/Header";
+import { createClient } from '@supabase/supabase-js'
+const supabase = createClient('https://YOUR_PROJECT.supabase.co', 'YOUR_ANON_KEY')
 const LANGS=[
 ["EN","English - USA UK"],["HI","हिन्दी - India"],["ZH","中文 - China"],
 ["ES","Español - Spain Mexico"],["FR","Français - France"],["DE","Deutsch - Germany"],
