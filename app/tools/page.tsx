@@ -13,7 +13,7 @@ export default function AllTools(){
   
   useEffect(()=>{
     const fetch=async()=>{
-    const {data}=await supabase.from("tools").select("*").eq("is_active",true)
+        const {data}=await supabase.from("tools").select("*").eq("is_active",true)
       setTools(data||[])
     }
     fetch()
