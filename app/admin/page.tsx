@@ -88,6 +88,15 @@ const fetchTools = async () => {
           <h1 className="text-2xl font-bold">Publish Blog Post</h1>
           <button onClick={handleLogout} className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm hover:bg-red-600 transition">Logout</button>
         </div>
+              {/* TABS START */}
+      <div className="flex gap-2 my-4">
+        <button onClick={()=>setActiveTab("blog")} className={`px-5 py-2 rounded-full font-bold ${activeTab==="blog" ? "bg-black text-white" : "bg-white border"}`}>📝 Blog</button>
+        <button onClick={()=>setActiveTab("tools")} className={`px-5 py-2 rounded-full font-bold ${activeTab==="tools" ? "bg-black text-white" : "bg-white border"}`}>🛠️ Tools</button>
+      </div>
+
+      {activeTab === "blog" ? (
+      <div>
+      {/* TABS END - Blog start */}
         <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title" className="w-full border rounded-xl px-4 py-3 mb-4" />
         <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder="Content" className="w-full border rounded-xl px-4 py-3 h-40 mb-4"></textarea>
         <button onClick={async()=>{
