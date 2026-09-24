@@ -15,15 +15,17 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("blog");
 const [tools, setTools] = useState<any[]>([]);
 
-  useEffect(() => {
-  if (localStorage.getItem("lorem_admin") === "true") setIsLoggedIn(true)
-  fetchTools()
-}, []);
+    useEffect(() => {
+    if (localStorage.getItem("lorem_admin") === "true") {
+      setIsLoggedIn(true);
+      fetchTools();
+    }
+  }, []);
 
-const fetchTools = async () => {
-  const { data } = await supabase.from("tools").select("*").order("name");
-  if (data) setTools(data);
-}
+  const fetchTools = async () => {
+    const { data } = await supabase.from("tools").select("*").order("name");
+    if (data) setTools(data);
+  };
 
   const handleLogin = async () => {
     if(!pass) return alert("Please enter password");
@@ -104,7 +106,7 @@ const fetchTools = async () => {
           if(!error){ alert("Published!"); setTitle(""); setContent(""); } else alert(error.message);
         }} className="bg-black text-white px-6 py-3 rounded-xl w-full">Publish</button>
       </div>
-          </div>
+          
       ) : (
       <div className="bg-white rounded-2xl p-4 shadow mt-2">
         <h2 className="font-bold mb-3">Tools ON/OFF - Bina Deploy ke</h2>
