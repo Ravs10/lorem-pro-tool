@@ -16,8 +16,14 @@ export default function AdminPage() {
 const [tools, setTools] = useState<any[]>([]);
 
   useEffect(() => {
-    if (localStorage.getItem("lorem_admin") === "true") setIsLoggedIn(true);
-  }, []);
+  if (localStorage.getItem("lorem_admin") === "true") setIsLoggedIn(true)
+  fetchTools()
+}, []);
+
+const fetchTools = async () => {
+  const { data } = await supabase.from("tools").select("*").order("name");
+  if (data) setTools(data);
+}
 
   const handleLogin = async () => {
     if(!pass) return alert("Please enter password");
