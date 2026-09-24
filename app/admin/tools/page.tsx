@@ -12,7 +12,7 @@ export default function ToolsControl(){
   const [loading,setLoading]=useState(true)
 
   const fetchTools=async()=>{
-    const {data} = await supabase.from("tools_control").select("*").order("id")
+    const {data} = await supabase.from("tools").select("*").order("id")
     setTools(data||[])
     setLoading(false)
   }
@@ -20,7 +20,7 @@ export default function ToolsControl(){
   useEffect(()=>{fetchTools()},[])
 
   const toggle=async(id:string, status:boolean)=>{
-    await supabase.from("tools_control").update({is_active:!status}).eq("id",id)
+    await supabase.from("tools").update({is_active:!status}).eq("id",id)
     fetchTools()
   }
 
