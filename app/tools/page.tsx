@@ -1,40 +1,45 @@
-import Link from "next/link";
-import Header from "../components/Header";
+"use client"
+import { useEffect, useState } from "react"
+import { createClient } from "@supabase/supabase-js"
+import Link from "next/link"
 
-const tools = [
-  { name: "Lorem Generator", desc: "77 languages, 20 styles", icon: "📝", link: "/", color: "#6366f1" },
-  { name: "Fake Data Generator", desc: "Name, email, address", icon: "👤", link: "/fake-data-generator", color: "#10b981" },
-];
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-export default function ToolsPage(){
+export default function AllTools(){
+  const [tools,setTools]=useState<any[]>([])
+  
+  useEffect(()=>{
+    const fetch=async()=>{
+      const {data}=await supabase.from("tools_control").select("*").eq("is_active",true).order("id")
+      setTools(data||[])
+    }
+    fetch()
+  },[])
+
   return(
-    <div style={{background:"#6366f1", minHeight:"100vh", padding:"16px"}}>
-      <div style={{maxWidth:720, margin:"0 auto"}}>
-        <Header />
-        <div style={{background:"#fff", borderRadius:"24px", padding:"20px", marginTop:"16px"}}>
-          <div style={{textAlign:"center", marginBottom:"20px"}}>
-            <div style={{fontSize:"50px"}}>🚀</div>
-            <h1 style={{margin:"10px 0 6px", fontSize:"28px"}}>All Tools</h1>
-            <p style={{color:"#666", margin:0}}>2 Powerful tools for developers</p>
-          </div>
+    <div style={{padding:20, maxWidth:900, margin:"auto"}}>
+      <h1 style={{fontSize:28, fontWeight:"bold"}}>🛠️ All Tools</h1>
+      <p>Admin Panel se ON/OFF hota hai - bina deploy ke!</p>
+      
+      <div style={{marginTop:20, display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))", gap:16}}>
+        {tools.map(t=>(
+          <Link key={t.id} href={t.slug.startsWith('/')?t.slug:`/tools/${t.slug}`} style={{textDecoration:"none"}}>
+            <div style={{border:"1px solid #ddd", borderRadius:12, padding:16, background:"#fff", boxShadow:"0 2px 8px rgba(0,0,0,0.05)"}}>
+              <h3 style={{margin:0, color:"#000"}}>{t.name}</h3>
+              <p style={{fontSize:13, color:"#666", marginTop:6}}>{t.slug}</p>
+              <span style={{display:"inline-block", marginTop:10, padding:"4px 10px", background:"#16a34a", color:"#fff", borderRadius:20, fontSize:12}}>LIVE ✓</span>
+            </div>
+          </Link>
+        ))}
+      </div>
 
-          <div style={{display:"grid", gap:"14px"}}>
-            {tools.map(t=>(
-              <Link key={t.link} href={t.link} style={{textDecoration:"none"}}>
-                <div style={{border:"2px solid #f0f0f0", borderRadius:"16px", padding:"16px", display:"flex", gap:"14px", alignItems:"center", background:"#fff"}}>
-                  <div style={{width:"56px", height:"56px", borderRadius:"14px", background:t.color+"20", display:"flex", alignItems:"center", justifyContent:"center", fontSize:"28px"}}>{t.icon}</div>
-                  <div style={{flex:1}}>
-                    <div style={{fontWeight:"800", color:"#000", fontSize:"16px"}}>{t.name}</div>
-                    <div style={{color:"#666", fontSize:"13px", marginTop:"2px"}}>{t.desc}</div>
-                  </div>
-                  <div style={{color:"#000", fontWeight:"bold"}}>→</div>
-                </div>
-              </Link>
-            ))}
-          </div>
+      {tools.length===0 && <p style={{marginTop:20, color:"red"}}>Koi tool ON nahi hai! Admin me jaake ON karo.</p>}
 
-          <Link href="/" style={{display:"block", marginTop:"20px", textAlign:"center", background:"#000", color:"#fff", padding:"14px", borderRadius:"12px", textDecoration:"none", fontWeight:"700"}}>← Back to Home</Link>
-        </div>
+      <div style={{marginTop:30}}>
+        <Link href="/" style={{color:"blue"}}>← Back to Home</Link> | <Link href="/admin/tools" style={{color:"blue"}}> Go to Admin Panel</Link>
       </div>
     </div>
   )
