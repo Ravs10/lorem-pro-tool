@@ -10,7 +10,6 @@ export default function AdminPage() {
   const [pass, setPass] = useState("");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("blog");
   const [tools, setTools] = useState<any[]>([]);
@@ -56,9 +55,7 @@ export default function AdminPage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
         <div className="backdrop-blur-xl bg-white/80 p-8 rounded-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/20 w-full max-w-sm">
           <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
-          <div className="relative mb-4">
-            <input type={showPass? "text" : "password"} value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Password" className="w-full p-4 border border-gray-200 rounded-2xl bg-white/50 backdrop-blur focus:outline-none focus:ring-2 focus:ring-black" />
-          </div>
+          <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Password" className="w-full p-4 border border-gray-200 rounded-2xl bg-white/50 mb-4 focus:outline-none" />
           <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-semibold">{loading? "Loading..." : "Login"}</button>
         </div>
       </div>
@@ -74,14 +71,14 @@ export default function AdminPage() {
         </div>
 
         <div className="flex gap-3 mb-6">
-          <button onClick={() => setActiveTab("blog")} className={`px-6 py-3 rounded-full font-medium transition-all ${activeTab === "blog"? "bg-black text-white shadow-lg" : "bg-white/70 backdrop-blur border border-white/20"}`}>Blog</button>
-          <button onClick={() => setActiveTab("tools")} className={`px-6 py-3 rounded-full font-medium transition-all ${activeTab === "tools"? "bg-black text-white shadow-lg" : "bg-white/70 backdrop-blur border border-white/20"}`}>Tools</button>
+          <button onClick={() => setActiveTab("blog")} className={`px-6 py-3 rounded-full font-medium ${activeTab === "blog"? "bg-black text-white shadow-lg" : "bg-white/70 backdrop-blur border"}`}>Blog</button>
+          <button onClick={() => setActiveTab("tools")} className={`px-6 py-3 rounded-full font-medium ${activeTab === "tools"? "bg-black text-white shadow-lg" : "bg-white/70 backdrop-blur border"}`}>Tools</button>
         </div>
 
         {activeTab === "blog"? (
           <div className="backdrop-blur-xl bg-white/80 rounded-[24px] p-6 shadow-[0_8px_32px_rgba(0,0,0,0.08)] border border-white/20">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 border border-gray-200 rounded-2xl mb-4 bg-white/60 focus:outline-none" />
-            <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Blog Content" className="w-full p-4 border border-gray-200 rounded-2xl h-56 mb-4 bg-white/60 focus:outline-none" />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 border border-gray-200 rounded-2xl mb-4 bg-white/60" />
+            <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Blog Content" className="w-full p-4 border border-gray-200 rounded-2xl h-56 mb-4 bg-white/60" />
             <button onClick={handleBlogSubmit} className="w-full bg-black text-white p-4 rounded-2xl font-semibold">Post Blog</button>
           </div>
         ) : (
@@ -89,9 +86,12 @@ export default function AdminPage() {
             <h2 className="font-bold mb-4 text-lg">Tools ({tools.length})</h2>
             <div className="grid gap-3">
               {tools.map((tool: any) => (
-                <div key={tool.id} onClick={() => router.push(`/tools/${tool.slug || tool.id}`)} className="group p-4 rounded-2xl bg-white/60 hover:bg-white border border-gray-200/50 hover:border-black/10 cursor-pointer flex justify-between items-center transition-all hover:shadow-md">
+                <div key={tool.id} className="group p-4 rounded-2xl bg-white/60 border border-gray-200/50 flex justify-between items-center">
                   <span className="font-medium">{tool.name}</span>
-                  <span className="text-gray-400 group-hover:text-black text-sm">Open →</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => window.open(`/${tool.slug}`, '_blank')} className="text-xs px-3 py-1.5 bg-black text-white rounded-full">View</button>
+                    <button onClick={() => alert(tool.slug)} className="text-xs px-3 py-1.5 bg-white border rounded-full">Edit</button>
+                  </div>
                 </div>
               ))}
             </div>
