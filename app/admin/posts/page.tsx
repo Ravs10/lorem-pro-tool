@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase.js'
+import { supabase } from '../../../lib/supabase.js'
 
 export default function PostsControl(){
  const [posts, setPosts] = useState<any[]>([])
