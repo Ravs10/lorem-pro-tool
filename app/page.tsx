@@ -151,7 +151,8 @@ const [page,setPage]=useState("home")
 const [mode,setMode]=useState("SENTENCE")
 const [copied,setCopied]=useState(false)
 const [showDL,setShowDL]=useState(false)
-
+const [isDisabled,setIsDisabled]=useState(false)
+useEffect(()=>{supabase.from("tools").select("is_enabled").eq("slug","lorem-ipsum-generator").single().then(({data})=>{if(data && data.is_enabled===false) setIsDisabled(true)})},[])
 const gen=()=>{
  if(cnt===0){setOut("");return}
  const base=DB[lang]
@@ -182,7 +183,7 @@ const doDownload=(type:string)=>{
 }
 
 const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,padding:20,color:"#000",lineHeight:1.8}}><button onClick={()=>setPage("menu")} style={{padding:"8px 16px",borderRadius:999,border:"2px solid #000",background:"#fff",fontWeight:800}}>← Back to Menu</button><h1 style={{fontSize:22,margin:"10px 0"}}>{t}</h1><div style={{fontSize:14}}>{children}</div></div>
-
+if(isDisabled){return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#f3f4f6"}}><div style={{background:"white",padding:40,borderRadius:24,textAlign:"center"}}><h1>🔴 Tool Disabled</h1><p>Admin ne isko OFF kiya hai</p></div></div>}
 return(
 <div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
 <Header />
