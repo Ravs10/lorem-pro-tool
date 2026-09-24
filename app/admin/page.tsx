@@ -12,6 +12,8 @@ export default function AdminPage() {
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showMasterInfo, setShowMasterInfo] = useState(false);
+  const [activeTab, setActiveTab] = useState("blog");
+const [tools, setTools] = useState<any[]>([]);
 
   useEffect(() => {
     if (localStorage.getItem("lorem_admin") === "true") setIsLoggedIn(true);
