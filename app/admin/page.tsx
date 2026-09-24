@@ -104,6 +104,26 @@ const fetchTools = async () => {
           if(!error){ alert("Published!"); setTitle(""); setContent(""); } else alert(error.message);
         }} className="bg-black text-white px-6 py-3 rounded-xl w-full">Publish</button>
       </div>
-    </div>
+          </div>
+      ) : (
+      <div className="bg-white rounded-2xl p-4 shadow mt-2">
+        <h2 className="font-bold mb-3">Tools ON/OFF - Bina Deploy ke</h2>
+        {tools.length === 0 && <p className="text-sm">Loading...</p>}
+        {tools.map(t=>(
+          <div key={t.id} className="flex justify-between items-center p-3 border-b">
+            <div>
+              <p className="font-bold">{t.name}</p>
+              <p className="text-xs text-gray-500">{t.slug}</p>
+            </div>
+            <button onClick={async()=>{ 
+              await supabase.from("tools").update({is_active:!t.is_active}).eq("id",t.id); 
+              fetchTools(); 
+            }} className={`px-4 py-1 rounded-full text-white font-bold ${t.is_active ? "bg-green-600" : "bg-red-600"}`}>
+              {t.is_active ? "ON" : "OFF"}
+            </button>
+          </div>
+        ))}
+      </div>
+      )}
   );
 }
