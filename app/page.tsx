@@ -1,4 +1,5 @@
 "use client"
+import Footer from "./components/Footer";
 import {useState,useEffect} from "react"
 import Header from "./components/Header";
 import { createClient } from '@supabase/supabase-js'
@@ -446,7 +447,8 @@ return(
 </a>
 <a href="/age-calculator" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
 <div style={{fontSize:20}}>🎂</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Age Calculator</div>
+             {/*
+  <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Age Calculator</div>
 <div style={{fontSize:9,color:"#555"}}>Find your age</div>
 </a>
 </div>
@@ -464,4 +466,6 @@ return(
 </div>
 <div style={{marginTop:12,fontSize:10,opacity:0.7}}>Made with ❤️ in Raebareli, UP, India | All Native Languages | No English Fallback | Words:{words} Chars:{chars} Tested ✅</div>
 </footer>
+*/} 
+  <Footer />
 </div>)}
