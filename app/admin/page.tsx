@@ -28,9 +28,10 @@ const [showPreview, setShowPreview] = useState(false)
     setLoading(false);
   };
   const toggleTool = async (tool:any) => {
-    const { error } = await supabase.from("tools").update({ is_enabled:!tool.is_enabled }).eq("id", tool.id);
-    if (!error) fetchTools(); else alert(error.message);
-  };
+  const { error } = await supabase.from("tools").update({ is_active: !tool.is_active }).eq("id", tool.id);
+  if (!error) fetchTools(); else alert(error.message)
+};
+
   const handleToolUpdate = async () => {
     const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id);
     if (error) alert(error.message); else { setEditTool(null); fetchTools(); }
