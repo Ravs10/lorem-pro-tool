@@ -109,11 +109,11 @@ const insertFormat = (b, a="") => {
   <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 rounded-xl border mb-2" />
 
   <div className="flex flex-wrap gap-2 bg-gray-100 p-2 rounded-xl mb-2 items-center">
-    <button type="button" onClick={()=>insertFormat('**','**')} className="px-3 py-1 bg-white rounded-lg font-bold">B</button>
-    <button type="button" onClick={()=>insertFormat('## ','')} className="px-3 py-1 bg-white rounded-lg">H2</button>
-    <button type="button" onClick={()=>insertFormat('### ','')} className="px-3 py-1 bg-white rounded-lg">H3</button>
-    <button type="button" onClick={()=>insertFormat('- ','')} className="px-3 py-1 bg-white rounded-lg">List</button>
-    <button type="button" onClick={()=>insertFormat('[','](https://)')} className="px-3 py-1 bg-white rounded-lg">Link</button>
+  <button type="button" onClick={()=>insertFormat("**","**")}>B</button>
+<button type="button" onClick={()=>insertFormat("\n## ","")}>H2</button>
+<button type="button" onClick={()=>insertFormat("\n### ","")}>H3</button>
+<button type="button" onClick={()=>insertFormat("\n- ","")}>List</button>
+<button type="button" onClick={()=>insertFormat("[", "](https://)")} >Link</button>
 
     <button type="button" onClick={()=>setShowPreview(!showPreview)} className="ml-auto px-3 py-1 bg-purple-600 text-white rounded-lg">
       {showPreview? "Edit" : "Preview"}
