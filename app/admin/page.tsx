@@ -27,7 +27,7 @@ const [showPreview, setShowPreview] = useState(false)
     if (d.success) { localStorage.setItem("lorem_admin", "true"); setIsLoggedIn(true); fetchTools(); } else alert("Wrong password");
     setLoading(false);
   };
-  const toggleTool = async (tool: any) => { const n = !tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id ? { ...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id ? { ...t, is_active: tool.is_active } : t)); } };
+  const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
   const handleToolUpdate = async () => {
     const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id);
     if (error) alert(error.message); else { setEditTool(null); fetchTools(); }
@@ -86,12 +86,12 @@ const insertFormat = (b, a="") => {
               <h2 className="font-bold mb-4 text-white text-lg">Tools Control ({tools.length})</h2>
               <div className="grid gap-3">
                 {tools.map((tool:any)=>(
-                  <div key={tool.id} className={`p-4 rounded-2xl backdrop-blur border shadow-sm flex justify-between items-center transition-all ${tool.is_enabled? "bg-white/90 border-white/50" : "bg-red-50/80 border-red-200 opacity-70"}`}>
+                  <div key={tool.id} className={`p-4 rounded-2xl backdrop-blur border shadow-sm flex justify-between items-center transition-all ${tool.is_active? "bg-white/90 border-white/50" : "bg-red-50/80 border-red-200 opacity-70"}`}>
                     <div className="flex items-center gap-3">
-                      <button onClick={()=>toggleTool(tool)} className={`w-12 h-7 rounded-full p-1 transition-all ${tool.is_enabled? "bg-green-500" : "bg-gray-300"}`}>
-                        <div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${tool.is_enabled? "translate-x-5" : "translate-x-0"}`}></div>
+                      <button onClick={()=>toggleTool(tool)} className={`w-12 h-7 rounded-full p-1 transition-all ${tool.is_active? "bg-green-500" : "bg-gray-300"}`}>
+                        <div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${tool.is_active? "translate-x-5" : "translate-x-0"}`}></div>
                       </button>
-                      <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_enabled? "🟢 Live" : "🔴 Disabled"} - {tool.slug}</p></div>
+                      <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug}</p></div>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={()=>window.open(`/${tool.slug}`, '_blank')} className="text-xs px-3 py-2 bg-black text-white rounded-full">View</button>
