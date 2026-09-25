@@ -27,15 +27,7 @@ const [showPreview, setShowPreview] = useState(false)
     if (d.success) { localStorage.setItem("lorem_admin", "true"); setIsLoggedIn(true); fetchTools(); } else alert("Wrong password");
     setLoading(false);
   };
-  const toggleTool = async (tool: any) => {
-  const newStatus = !tool.is_active;
-  setTools((prev: any) => prev.map((t: any) => t.id === tool.id ? {...t, is_active: newStatus} : t));
-  const { error } = await supabase.from('tools').update({ is_active: newStatus }).eq('id', tool.id);
-  if (error) {
-    alert(error.message);
-    setTools((prev: any) => prev.map((t: any) => t.id === tool.id ? {...t, is_active: tool.is_active} : t));
-  }
-};
+  const toggleTool = async (tool: any) => { const n = !tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id ? { ...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id ? { ...t, is_active: tool.is_active } : t)); } };
 
   const handleToolUpdate = async () => {
     const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id);
