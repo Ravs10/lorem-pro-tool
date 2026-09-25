@@ -28,8 +28,13 @@ const [showPreview, setShowPreview] = useState(false)
     setLoading(false);
   };
   const toggleTool = async (tool:any) => {
-  const { error } = await supabase.from("tools").update({ is_active: !tool.is_active }).eq("id", tool.id);
-  if (!error) fetchTools(); else alert(error.message)
+  const newStatus = !tool.is_active;
+  setTools(tools.map((t:any) => t.id === tool.id ? {...t, is_active: newStatus} : t));
+  const { error } = await supabase.from("tools").update({ is_active: newStatus }).eq("id", tool.id);
+  if (error) {
+    alert(error.message);
+    fetchTools();
+  }
 };
 
   const handleToolUpdate = async () => {
