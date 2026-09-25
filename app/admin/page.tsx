@@ -36,11 +36,27 @@ const [showPreview, setShowPreview] = useState(false)
     if (error) alert(error.message); else { setEditTool(null); fetchTools(); }
   };
 const contentRef = useRef(null)
+
+const renderPreview = (text) => {
+  return text.split('\n').map((line, i) => {
+    if(line.startsWith('### ')) return <h3 key={i} className="font-bold text-xl mt-2">{line.replace('### ','')}</h3>
+    if(line.startsWith('## ')) return <h2 key={i} className="font-bold text-2xl mt-3">{line.replace('## ','')}</h2>
+    if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>
+    let parts = line.split(/(\*\*.*?\*\*)/g);
+    return <p key={i} className="my-1">{parts.map((p, j) => {
+      if(p.startsWith('**') && p.endsWith('**')) return <b key={j}>{p.slice(2,-2)}</b>
+      let linkMatch = p.match(/\[(.*)\]\((.*)\)/);
+      if(linkMatch) return <a key={j} href={linkMatch[2]} target="_blank" className="text-blue-600 underline">{linkMatch[1]}</a>
+      return p
+    })}</p>
+  })
+}
+
 const insertFormat = (b, a="") => {
   const el = contentRef.current; if(!el) return;
   const s = el.selectionStart, e = el.selectionEnd;
   const sel = content.substring(s,e);
-  const newText = content.substring(0,s) + b + sel + a + content.substring(e);
+  const newText = content.substring(0,s) + b + (sel||"text") + a + content.substring(e);
   setContent(newText);
 }
   if (!isLoggedIn) {
@@ -109,7 +125,7 @@ const insertFormat = (b, a="") => {
   ) : (
     <div className="w-full h-[300px] p-4 rounded-xl border bg-white overflow-y-auto whitespace-pre-wrap">
       <h2 className="font-bold text-lg mb-2">{title}</h2>
-      <div>{content}</div>
+      <div>{renderPreview(content)}</div>
     </div>
   )}
 
