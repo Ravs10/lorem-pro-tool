@@ -90,10 +90,25 @@ const insertFormat = (b, a="") => {
             </>
           ):(
             <>
-              <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 rounded-2xl bg-white/90 mb-4 outline-none"/>
-              <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder="Blog Content" className="w-full p-4 rounded-2xl bg-white/90 h-56 mb-4 outline-none"/>
-              <button onClick={async()=>{ if(!title||!content) return alert("Fill all"); setLoading(true); const {error}=await supabase.from("blogs").insert([{title,content}]); setLoading(false); if(error) alert(error.message); else {alert("Posted!"); setTitle(""); setContent("");}}} className="w-full bg-black text-white p-4 rounded-2xl font-bold">Post Blog</button>
-            </>
+    <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 rounded-xl border mb-2" />
+
+    <div className="flex flex-wrap gap-2 bg-gray-100 p-2 rounded-xl mb-2">
+      <button type="button" onClick={()=>insertFormat('**','**')} className="px-3 py-1 bg-white rounded-lg font-bold">B</button>
+      <button type="button" onClick={()=>insertFormat('## ','')} className="px-3 py-1 bg-white rounded-lg">H2</button>
+      <button type="button" onClick={()=>insertFormat('### ','')} className="px-3 py-1 bg-white rounded-lg">H3</button>
+      <button type="button" onClick={()=>insertFormat('- ','')} className="px-3 py-1 bg-white rounded-lg">List</button>
+      <button type="button" onClick={()=>insertFormat('[','](https://lorem-pro-tool.vercel.app)')} className="px-3 py-1 bg-white rounded-lg">Link</button>
+    </div>
+
+    <textarea ref={contentRef} value={content} onChange={e=>setContent(e.target.value)} placeholder="Blog Content..." className="w-full h-[300px] p-4 rounded-xl border" />
+
+    <button onClick={async()=>{
+      if(!title ||!content) return alert("Fill all");
+      setLoading(true);
+      await supabase.from("blogs").insert([{title, content}]);
+      setLoading(false); setTitle(""); setContent(""); alert("Posted!");
+    }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">Post Blog</button>
+  </>
           )}
         </div>
 
