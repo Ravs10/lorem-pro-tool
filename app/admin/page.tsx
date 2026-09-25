@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef} from "react";
 import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
@@ -35,7 +35,14 @@ export default function AdminPage() {
     const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id);
     if (error) alert(error.message); else { setEditTool(null); fetchTools(); }
   };
-
+const contentRef = useRef(null)
+const insertFormat = (b, a="") => {
+  const el = contentRef.current; if(!el) return;
+  const s = el.selectionStart, e = el.selectionEnd;
+  const sel = content.substring(s,e);
+  const newText = content.substring(0,s) + b + sel + a + content.substring(e);
+  setContent(newText);
+}
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
