@@ -39,8 +39,8 @@ const contentRef = useRef(null)
 
 const renderPreview = (text) => {
   return text.split('\n').map((line, i) => {
-    if(line.startsWith('### ')) return <h3 key={i} className="font-bold text-xl mt-2">{line.replace('### ','')}</h3>
-    if(line.startsWith('## ')) return <h2 key={i} className="font-bold text-2xl mt-3">{line.replace('## ','')}</h2>
+  if(line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold my-2">{line.slice(4)}</h3>
+if(line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold my-3">{line.slice(3)}</h2>
     if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>
     let parts = line.split(/(\*\*.*?\*\*)/g);
     return <p key={i} className="my-1">{parts.map((p, j) => {
