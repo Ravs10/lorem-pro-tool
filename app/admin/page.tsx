@@ -12,7 +12,7 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState("tools");
   const [tools, setTools] = useState<any[]>([]);
   const [editTool, setEditTool] = useState<any>(null);
-
+const [showPreview, setShowPreview] = useState(false)
   useEffect(() => {
     if (localStorage.getItem("lorem_admin") === "true") { setIsLoggedIn(true); fetchTools(); }
   }, []);
@@ -90,25 +90,36 @@ const insertFormat = (b, a="") => {
             </>
           ):(
             <>
-    <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 rounded-xl border mb-2" />
+  <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 rounded-xl border mb-2" />
 
-    <div className="flex flex-wrap gap-2 bg-gray-100 p-2 rounded-xl mb-2">
-      <button type="button" onClick={()=>insertFormat('**','**')} className="px-3 py-1 bg-white rounded-lg font-bold">B</button>
-      <button type="button" onClick={()=>insertFormat('## ','')} className="px-3 py-1 bg-white rounded-lg">H2</button>
-      <button type="button" onClick={()=>insertFormat('### ','')} className="px-3 py-1 bg-white rounded-lg">H3</button>
-      <button type="button" onClick={()=>insertFormat('- ','')} className="px-3 py-1 bg-white rounded-lg">List</button>
-      <button type="button" onClick={()=>insertFormat('[','](https://lorem-pro-tool.vercel.app)')} className="px-3 py-1 bg-white rounded-lg">Link</button>
-    </div>
+  <div className="flex flex-wrap gap-2 bg-gray-100 p-2 rounded-xl mb-2 items-center">
+    <button type="button" onClick={()=>insertFormat('**','**')} className="px-3 py-1 bg-white rounded-lg font-bold">B</button>
+    <button type="button" onClick={()=>insertFormat('## ','')} className="px-3 py-1 bg-white rounded-lg">H2</button>
+    <button type="button" onClick={()=>insertFormat('### ','')} className="px-3 py-1 bg-white rounded-lg">H3</button>
+    <button type="button" onClick={()=>insertFormat('- ','')} className="px-3 py-1 bg-white rounded-lg">List</button>
+    <button type="button" onClick={()=>insertFormat('[','](https://)')} className="px-3 py-1 bg-white rounded-lg">Link</button>
 
+    <button type="button" onClick={()=>setShowPreview(!showPreview)} className="ml-auto px-3 py-1 bg-purple-600 text-white rounded-lg">
+      {showPreview? "Edit" : "Preview"}
+    </button>
+  </div>
+
+  {!showPreview? (
     <textarea ref={contentRef} value={content} onChange={e=>setContent(e.target.value)} placeholder="Blog Content..." className="w-full h-[300px] p-4 rounded-xl border" />
+  ) : (
+    <div className="w-full h-[300px] p-4 rounded-xl border bg-white overflow-y-auto whitespace-pre-wrap">
+      <h2 className="font-bold text-lg mb-2">{title}</h2>
+      <div>{content}</div>
+    </div>
+  )}
 
-    <button onClick={async()=>{
-      if(!title ||!content) return alert("Fill all");
-      setLoading(true);
-      await supabase.from("blogs").insert([{title, content}]);
-      setLoading(false); setTitle(""); setContent(""); alert("Posted!");
-    }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">Post Blog</button>
-  </>
+  <button onClick={async()=>{
+    if(!title ||!content) return alert("Fill all");
+    setLoading(true);
+    await supabase.from("blogs").insert([{title, content}]);
+    setLoading(false); setTitle(""); setContent(""); alert("Posted!");
+  }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">Post Blog</button>
+</>
           )}
         </div>
 
