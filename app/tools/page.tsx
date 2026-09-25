@@ -39,7 +39,7 @@ export default function AllTools(){
       {tools.length===0 && <p style={{marginTop:20, color:"red"}}>Koi tool ON nahi hai! Admin me jaake ON karo.</p>}
 
       <div style={{marginTop:30}}>
-        <Link href="/" style={{color:"blue"}}>← Back to Home</Link> | <Link href="/admin/tools" style={{color:"blue"}}> Go to Admin Panel</Link>
+        <Link href="/" style={{color:"blue"}}>← Back to Home</Link>
       </div>
     </div>
   )
