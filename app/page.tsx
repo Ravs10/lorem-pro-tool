@@ -1,7 +1,5 @@
 "use client"
-import Footer from "./components/Footer";
 import {useState,useEffect} from "react"
-import Header from "./components/Header";
 import { createClient } from '@supabase/supabase-js'
 const supabase = createClient('https://YOUR_PROJECT.supabase.co', 'YOUR_ANON_KEY')
 const LANGS=[
@@ -467,5 +465,5 @@ return(
 <div style={{marginTop:12,fontSize:10,opacity:0.7}}>Made with ❤️ in Raebareli, UP, India | All Native Languages | No English Fallback | Words:{words} Chars:{chars} Tested ✅</div>
 </footer>
 */} 
-  <Footer />
+  
 </div>)}
