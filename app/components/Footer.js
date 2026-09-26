@@ -9,8 +9,9 @@ export default function Footer(){
         <Link href="/contact" style={{color:"white",textDecoration:"none"}}>Contact</Link>
         <Link href="/privacy" style={{color:"white",textDecoration:"none"}}>Privacy Policy</Link>
         <Link href="/disclaimer" style={{color:"white",textDecoration:"none"}}>Disclaimer</Link>
-        <Link href="/blog" style={{color:"white",textDecoration:"none"}}>Blog</Link>
-      </div>
+        //<Link href="/blog" style={{color:"white",textDecoration:"none"}}>Blog</Link>
+     <Link href="/blog" style={{color:"#ff9900", fontWeight:"800", background:"rgba(255,153,0,0.15)", padding:"5px 14px", borderRadius:"20px", textDecoration:"none"}}>Blog 🔥</Link>
+  </div>
       <p style={{fontSize:"14px"}}>© {new Date().getFullYear()} Lorem Pro Tool - All Rights Reserved</p>
     </footer>
   );
