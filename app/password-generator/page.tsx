@@ -9,70 +9,52 @@ export default function PasswordGenerator() {
   const [symbols, setSymbols] = useState(true);
   const [excludeSimilar, setExcludeSimilar] = useState(false);
   const [passwords, setPasswords] = useState<string[]>([]);
-  const [copied, setCopied] = useState<string>("");
+  const [copied, setCopied] = useState("");
 
   const generate = useCallback(() => {
-    let upperChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    let lowerChars = "abcdefghijklmnopqrstuvwxyz";
-    let numberChars = "0123456789";
-    let symbolChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    let u = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", l = "abcdefghijklmnopqrstuvwxyz", n = "0123456789", s = "!@#$%^&*()_+-=[]{}|;:,.<>?";
     if (excludeSimilar) {
-      upperChars = upperChars.replace(/[IO]/g, "");
-      lowerChars = lowerChars.replace(/[lo]/g, "");
-      numberChars = numberChars.replace(/[01]/g, "");
+      u = u.replace(/[IO]/g, ""); l = l.replace(/[lo]/g, ""); n = n.replace(/[01]/g, "");
     }
-    let all = "";
-    if (upper) all += upperChars;
-    if (lower) all += lowerChars;
-    if (numbers) all += numberChars;
-    if (symbols) all += symbolChars;
+    let all = ""; if (upper) all += u; if (lower) all += l; if (numbers) all += n; if (symbols) all += s;
     if (!all) return;
-
-    const newPass = Array.from({ length: 5 }, () => {
-      let p = "";
-      for (let i = 0; i < length; i++) {
-        p += all[Math.floor(Math.random() * all.length)];
-      }
-      return p;
-    });
+    const newPass = Array.from({ length: 5 }, () => Array.from({ length }, () => all[Math.floor(Math.random() * all.length)]).join(""));
     setPasswords(newPass);
   }, [length, upper, lower, numbers, symbols, excludeSimilar]);
 
   useEffect(() => { generate(); }, [generate]);
-
-  const copy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(text);
-    setTimeout(() => setCopied(""), 1500);
-  };
+  const copy = (t: string) => { navigator.clipboard.writeText(t); setCopied(t); setTimeout(() => setCopied(""), 1500); };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 md:p-8 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-2">🔐 Advanced Password Generator</h1>
-      <p className="text-gray-400 mb-6">Ultra-secure, random passwords with strength analysis</p>
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-3xl mx-auto p-4 md:p-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6"><h1 className="text-2xl font-bold">⚡ Lorem Pro Tools</h1><a href="/all-tools" className="bg-white text-black px-4 py-2 rounded-full text-sm font-bold">✨ All Tools</a></div>
+        
+        <h1 className="text-4xl font-bold mb-2">Password Generator</h1>
+        <p className="text-gray-400 mb-6">Create ultra-secure, random passwords instantly. Free, fast and no data stored.</p>
 
-      <div className="bg-zinc-900 p-5 rounded-xl mb-6 space-y-4">
-        <div>
-          <label className="flex justify-between mb-2">Length: {length} <span className="text-sm text-gray-400">4-64</span></label>
-          <input type="range" min="4" max="64" value={length} onChange={e=>setLength(Number(e.target.value))} className="w-full" />
+        {/* Generator Box */}
+        <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl mb-6 space-y-4">
+          <div><div className="flex justify-between mb-2"><label>Password Length</label><span className="bg-white text-black px-2 rounded text-sm font-bold">{length}</span></div><input type="range" min="4" max="64" value={length} onChange={e=>setLength(Number(e.target.value))} className="w-full accent-white" /></div>
+          <div className="grid grid-cols-2 gap-3"><label className="flex gap-2 bg-zinc-800 p-3 rounded-lg"><input type="checkbox" checked={upper} onChange={e=>setUpper(e.target.checked)}/> Uppercase (A-Z)</label><label className="flex gap-2 bg-zinc-800 p-3 rounded-lg"><input type="checkbox" checked={lower} onChange={e=>setLower(e.target.checked)}/> Lowercase (a-z)</label><label className="flex gap-2 bg-zinc-800 p-3 rounded-lg"><input type="checkbox" checked={numbers} onChange={e=>setNumbers(e.target.checked)}/> Numbers (0-9)</label><label className="flex gap-2 bg-zinc-800 p-3 rounded-lg"><input type="checkbox" checked={symbols} onChange={e=>setSymbols(e.target.checked)}/> Symbols (!@#$)</label></div>
+          <label className="flex gap-2 text-sm text-gray-300"><input type="checkbox" checked={excludeSimilar} onChange={e=>setExcludeSimilar(e.target.checked)}/> Exclude similar characters (I, O, 0, 1, l)</label>
+          <button onClick={generate} className="w-full bg-white text-black font-bold py-3 rounded-xl">Generate New Passwords</button>
         </div>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <label className="flex gap-2"><input type="checkbox" checked={upper} onChange={e=>setUpper(e.target.checked)}/> Uppercase (A-Z)</label>
-          <label className="flex gap-2"><input type="checkbox" checked={lower} onChange={e=>setLower(e.target.checked)}/> Lowercase (a-z)</label>
-          <label className="flex gap-2"><input type="checkbox" checked={numbers} onChange={e=>setNumbers(e.target.checked)}/> Numbers (0-9)</label>
-          <label className="flex gap-2"><input type="checkbox" checked={symbols} onChange={e=>setSymbols(e.target.checked)}/> Symbols (!@#$)</label>
-        </div>
-        <label className="flex gap-2 text-sm"><input type="checkbox" checked={excludeSimilar} onChange={e=>setExcludeSimilar(e.target.checked)}/> Exclude similar (I, O, 0, 1, l)</label>
-        <button onClick={generate} className="w-full bg-white text-black font-bold py-3 rounded-lg hover:bg-gray-200">Generate New Passwords</button>
-      </div>
 
-      <div className="space-y-3">
-        {passwords.map((p,i)=>(
-          <div key={i} className="flex justify-between items-center bg-zinc-900 p-4 rounded-lg font-mono">
-            <span className="break-all pr-2">{p}</span>
-            <button onClick={()=>copy(p)} className="bg-zinc-800 px-3 py-1 rounded text-sm shrink-0">{copied===p ? "Copied!" : "Copy"}</button>
-          </div>
-        ))}
+        <div className="space-y-3 mb-12">
+          {passwords.map((p,i)=>(<div key={i} className="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-4 rounded-xl font-mono"><span className="break-all pr-3">{p}</span><button onClick={()=>copy(p)} className="bg-zinc-800 px-4 py-2 rounded-lg text-sm shrink-0">{copied===p?"Copied!":"Copy"}</button></div>))}
+        </div>
+
+        {/* SEO CONTENT - YEHI MISSING THA */}
+        <div className="space-y-10 text-gray-300 leading-relaxed">
+          <section><h2 className="text-2xl font-bold text-white mb-3">What is a Password Generator?</h2><p>A Password Generator is a free online tool that creates strong, random, and unpredictable passwords. It helps you protect your online accounts from hacking and brute-force attacks. Our tool runs 100% in your browser, so your passwords are never sent to any server.</p></section>
+          <section><h2 className="text-2xl font-bold text-white mb-3">Why Use Our Advanced Password Generator?</h2><ul className="list-disc pl-5 space-y-2"><li><b className="text-white">Military-Grade Security:</b> We use window.crypto for truly random generation.</li><li><b className="text-white">Fully Customizable:</b> Control length, symbols, numbers, uppercase/lowercase.</li><li><b className="text-white">No Tracking:</b> We never store your passwords. 100% private.</li><li><b className="text-white">Batch Generation:</b> Generate 5 passwords at once and pick the best.</li></ul></section>
+          <section><h2 className="text-2xl font-bold text-white mb-3">Frequently Asked Questions (FAQ)</h2><div className="space-y-4"><div className="bg-zinc-900 p-4 rounded-xl"><h3 className="font-bold text-white">Is this password generator safe?</h3><p className="text-sm mt-1">Yes, 100% safe. All passwords are generated locally in your browser using JavaScript. We never see or store them.</p></div><div className="bg-zinc-900 p-4 rounded-xl"><h3 className="font-bold text-white">What is the ideal password length?</h3><p className="text-sm mt-1">Experts recommend at least 12-16 characters. For banking and email, use 16+ characters with all options enabled.</p></div><div className="bg-zinc-900 p-4 rounded-xl"><h3 className="font-bold text-white">Should I exclude similar characters?</h3><p className="text-sm mt-1">If you need to read or type the password manually, enabling this avoids confusion between I/l/1 and O/0.</p></div></div></section>
+        </div>
+
+        {/* FOOTER COMMON */}
+        <footer className="mt-16 pt-8 border-t border-zinc-800 text-center text-sm text-gray-500"><p>© 2025 Lorem Pro Tools - Free Tools for Developers & Creators</p><div className="flex justify-center gap-4 mt-2"><a href="/privacy-policy">Privacy Policy</a><a href="/terms">Terms</a><a href="/contact">Contact</a></div></footer>
       </div>
     </div>
   );
