@@ -1,9 +1,15 @@
+{/*"use client";
+import Link from "next/link";
+import { useState } from "react";*/} 
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+    const pathname = usePathname();
+  if (pathname === "/") return null;
   return (
     <header className="sticky top-0 z-50 bg-black/80 backdrop-blur border-b border-zinc-800">
       <div className="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
