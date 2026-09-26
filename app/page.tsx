@@ -447,14 +447,14 @@ return(
 </a>
 <a href="/age-calculator" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
 <div style={{fontSize:20}}>🎂</div>
-             {/*
+          
   <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Age Calculator</div>
 <div style={{fontSize:9,color:"#555"}}>Find your age</div>
 </a>
 </div>
 <p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>More tools coming soon - Stay tuned!</p>
 </div>
-<footer style={{background:"#000",color:"#fff",padding:20,marginTop:24,textAlign:"center"}}>
+  {/*<footer style={{background:"#000",color:"#fff",padding:20,marginTop:24,textAlign:"center"}}>
 <div style={{fontWeight:900,fontSize:14}}>© 2026 LoremPro - {LANGS.length} Languages</div>
 <div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:12,justifyContent:"center",fontSize:12}}>
 <button onClick={()=>setPage("about")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>About</button>
