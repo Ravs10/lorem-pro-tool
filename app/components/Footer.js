@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 export default function Footer(){
@@ -8,7 +9,7 @@ export default function Footer(){
         <Link href="/contact" style={{color:"white",textDecoration:"none"}}>Contact</Link>
         <Link href="/privacy" style={{color:"white",textDecoration:"none"}}>Privacy Policy</Link>
         <Link href="/disclaimer" style={{color:"white",textDecoration:"none"}}>Disclaimer</Link>
-        <Link href="/tools" style={{color:"white",textDecoration:"none"}}>All Tools</Link>
+        <Link href="/blog" style={{color:"white",textDecoration:"none"}}>Blog</Link>
       </div>
       <p style={{fontSize:"14px"}}>© {new Date().getFullYear()} Lorem Pro Tool - All Rights Reserved</p>
     </footer>
