@@ -10,36 +10,43 @@ const supabase = createClient(
 
 export default function AllTools(){
   const [tools,setTools]=useState<any[]>([])
-  
+
   useEffect(()=>{
-    const fetch=async()=>{
-        const {data}=await supabase.from("tools").select("*").eq("is_active",true)
-      setTools(data||[])
+    const fetchTools=async()=>{
+      // sirf active = true wale tools dikhenge, admin OFF karega to hide
+      const {data} = await supabase.from("tools").select("*").eq("is_active", true).order("id", {ascending: true})
+      setTools(data || [])
     }
-    fetch()
+    fetchTools()
   },[])
 
   return(
-    <div style={{padding:20, maxWidth:900, margin:"auto"}}>
-      <h1 style={{fontSize:28, fontWeight:"bold"}}>🛠️ All Tools</h1>
-      <p>Admin Panel se ON/OFF hota hai - bina deploy ke!</p>
-      
-      <div style={{marginTop:20, display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(250px,1fr))", gap:16}}>
-        {tools.map(t=>(
-          <Link key={t.id} href={t.slug==='lorem-ipsum-generator' ? '/' : `/${t.slug}`} style={{textDecoration:"none"}}>
-            <div style={{border:"1px solid #ddd", borderRadius:12, padding:16, background:"#fff", boxShadow:"0 2px 8px rgba(0,0,0,0.05)"}}>
-              <h3 style={{margin:0, color:"#000"}}>{t.name}</h3>
-              <p style={{fontSize:13, color:"#666", marginTop:6}}>{t.slug}</p>
-              <span style={{display:"inline-block", marginTop:10, padding:"4px 10px", background:"#16a34a", color:"#fff", borderRadius:20, fontSize:12}}>LIVE ✓</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+    <div className="min-h-screen bg-black text-white px-6 py-10">
+      <div className="max-w-6xl mx-auto">
+        <div className="rounded-[20px] p-[1.5px] bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 shadow-[0_0_30px_rgba(249,115,22,0.3)] mb-8">
+          <div className="rounded-[18px] bg-zinc-950 p-6">
+            <h1 className="text-3xl font-extrabold flex items-center gap-3">🔥 All Tools <span className="w-2 h-2 bg-green-400 rounded-full animate-ping"></span></h1>
+            <p className="text-zinc-400 text-sm mt-2">Admin Panel se ON/OFF hota hai — jo ON hoga wahi yaha dikhega</p>
+          </div>
+        </div>
 
-      {tools.length===0 && <p style={{marginTop:20, color:"red"}}>Koi tool ON nahi hai! Admin me jaake ON karo.</p>}
+        <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-4">
+          {tools.map(t=>(
+            <Link key={t.id} href={t.slug || "/"}>
+              <div className="group h-full p-5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-orange-500 hover:bg-zinc-900/80 transition-all hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+                <h3 className="font-bold text-white group-hover:text-orange-400 transition-colors">{t.name}</h3>
+                <p className="text-zinc-500 text-[13px] mt-1 line-clamp-2">{t.description || t.desc || "Use this tool for free"}</p>
+                <span className="inline-block mt-3 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[11px] font-bold">OPEN →</span>
+              </div>
+            </Link>
+          ))}
+        </div>
 
-      <div style={{marginTop:30}}>
-        <Link href="/" style={{color:"blue"}}>← Back to Home</Link>
+        {tools.length===0 && <p className="text-center text-zinc-500 mt-20">No tools enabled from Admin Panel</p>}
+
+        <div className="mt-10 text-center">
+          <Link href="/" className="text-orange-400 text-sm hover:text-white">← Back to Home</Link>
+        </div>
       </div>
     </div>
   )
