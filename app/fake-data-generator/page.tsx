@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 import { useState, useEffect } from 'react';
-import Footer from "../components/Footer";
+
 // 🔐 MASTER RECOVERY KEY - SIRF AAPKO PATA HONI CHAHIYE
 // Isko apne hisab se change kar do, ye kisi ko mat batao
 const MASTER_RECOVERY_KEY = 'LOREM2025@SIDHAULI';
@@ -278,7 +278,7 @@ return (
           </div>
         )}
       </main>
-      <Footer />
+    
     </div>
   )
 }
