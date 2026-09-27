@@ -1,80 +1,84 @@
-import Link from 'next/link';
-import { createClient } from '@supabase/supabase-js';
+import Link from 'next/link'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
-
-export default async function Footer() {
-  const { data: latestBlogs } = await supabase
-  .from('blogs')
-  .select('title, slug')
-  .order('created_at', { ascending: false })
-  .limit(3);
-
+export default function Footer() {
   return (
-    <footer className="relative mt-20 bg-black overflow-hidden">
-      {/* Orange Glow Background */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-r from-orange-500/30 via-red-500/20 to-orange-500/30 blur-[120px] rounded-full -translate-y-1/2"></div>
+    <footer className="bg-[#0a0a0a] text-white mt-16">
 
-      <div className="relative max-w-7xl mx-auto px-4 pb-10 pt-8">
+      {/* ===== HIRE ME PROMO SECTION ===== */}
+      <div className="bg-gradient-to-br from-orange-500 via-[#ff6b00] to-[#ff3c00] relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute -top-10 -left-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-10 -right-10 w-60 h-60 bg-black rounded-full blur-3xl"></div>
+        </div>
 
-        {/* Top Animated Border */}
-        <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-500 to-transparent animate-pulse mb-8"></div>
+        <div className="relative max-w-6xl mx-auto px-6 py-14">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Card 1 - Tools */}
-          <div className="group relative rounded-[24px] p-[1.5px] bg-gradient-to-br from-orange-400 via-zinc-800 to-zinc-800 hover:from-orange-500 hover:to-orange-300 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(249,115,22,0.3)]">
-            <div className="rounded-[22px] bg-gradient-to-br from-zinc-900 to-black p-7 h-full">
-              <h4 className="text-white font-black text-xl mb-5 flex items-center gap-2">
-                <span className="w-2 h-6 bg-orange-500 rounded-full animate-pulse"></span>
-                All Tools
-              </h4>
-              <div className="flex flex-col gap-3">
-                <Link href="/fake-data-generator" className="group/link flex justify-between items-center text-zinc-400 hover:text-orange-400 transition-all duration-300 hover:pl-2">
-                  <span>Fake Data Generator</span><span className="opacity-0 group-hover/link:opacity-100 transition">→</span>
-                </Link>
-                <Link href="/password-generator" className="group/link flex justify-between items-center text-zinc-400 hover:text-orange-400 transition-all duration-300 hover:pl-2">
-                  <span>Password Generator</span><span className="opacity-0 group-hover/link:opacity-100 transition">→</span>
-                </Link>
-                <Link href="/tools" className="mt-4 inline-flex items-center gap-2 bg-orange-500 text-black font-bold px-5 py-2.5 rounded-full hover:bg-white hover:scale-105 transition-all duration-300 w-fit">
-                  All Tools <span className="group-hover:translate-x-1 transition">→</span>
-                </Link>
+            {/* LEFT - Pitch */}
+            <div>
+              <div className="inline-flex items-center gap-2 bg-black text-white px-4 py-1.5 rounded-full text-xs font-black tracking-widest mb-4">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                AVAILABLE FOR NEW PROJECTS
               </div>
-            </div>
-          </div>
 
-          {/* Card 2 - Blog AUTOMATIC */}
-          <div className="group relative rounded-[24px] p-[1.5px] bg-gradient-to-br from-orange-400 via-zinc-800 to-zinc-800 hover:from-orange-500 hover:to-orange-300 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(249,115,22,0.3)]">
-            <div className="rounded-[22px] bg-gradient-to-br from-zinc-900 to-black p-7 h-full">
-              <h4 className="text-white font-black text-xl mb-5 flex items-center gap-2">
-                <span className="text-xl">📝</span> Blog
-                <span className="ml-auto text-[10px] bg-orange-500/20 text-orange-400 px-2 py-1 rounded-full animate-pulse">LIVE</span>
-              </h4>
-              <div className="flex flex-col gap-3">
-                <Link href="/blog" className="text-zinc-400 hover:text-orange-400 transition">📝 Blog →</Link>
-                {latestBlogs?.map((b, i) => (
-                  <Link key={b.slug} href={`/blog/${b.slug}`} className="group/link flex gap-2 text-zinc-300 hover:text-white transition-all duration-300 hover:pl-1" style={{animationDelay: `${i*100}ms`}}>
-                    <span className="text-orange-500 group-hover/link:translate-x-1 transition">→</span>
-                    <span className="truncate">{b.title}</span>
-                  </Link>
+              <h2 className="text-4xl md:text-5xl font-black leading-[0.9] text-black">
+                Got an Idea? <br />
+                <span className="text-white">Let's Build It.</span>
+              </h2>
+
+              <p className="text-black/80 font-medium mt-4 text-[15px] leading-relaxed">
+                I don't just build apps. I build <b>money-making tools, high-converting websites, SaaS products & automation systems</b> that save time & make you money.
+              </p>
+
+              <div className="flex flex-wrap gap-2 mt-5">
+                {['Custom Tools', 'Websites', 'Web Apps', 'Mobile Apps', 'SaaS', 'AI Tools', 'Automation', 'E-commerce'].map((t) => (
+                  <span key={t} className="bg-black text-white px-3 py-1 rounded-full text-xs font-bold border border-white/10">
+                    {t}
+                  </span>
                 ))}
               </div>
             </div>
-          </div>
 
-        </div>
+            {/* RIGHT - Offer Box */}
+            <div className="bg-black rounded-[24px] p-7 border border-white/10 shadow-2xl">
+              <h3 className="text-xl font-black text-white">What I Can Do For You 👇</h3>
+              <ul className="mt-4 space-y-3 text-sm text-zinc-300">
+                <li className="flex gap-3"><span className="text-orange-500">✓</span> <span><b className="text-white">Custom Business Tools</b> — Lorem Tool jaisa apna tool</span></li>
+                <li className="flex gap-3"><span className="text-orange-500">✓</span> <span><b className="text-white">Lightning Fast Websites</b> — Next.js, SEO ready</span></li>
+                <li className="flex gap-3"><span className="text-orange-500">✓</span> <span><b className="text-white">Web & Mobile Apps</b> — Idea to Play Store</span></li>
+                <li className="flex gap-3"><span className="text-orange-500">✓</span> <span><b className="text-white">Automation & AI</b> — Kaam 10x fast</span></li>
+              </ul>
 
-        <div className="mt-10 flex flex-col md:flex-row justify-between items-center gap-3 border-t border-zinc-800 pt-6">
-          <p className="text-zinc-500 text-sm">© {new Date().getFullYear()} <span className="text-white font-bold">Lorem Pro Tool</span> — Built with <span className="text-orange-500 animate-pulse">⚡</span></p>
-          <div className="flex gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
-            <span className="text-xs text-zinc-500">All systems operational</span>
+              <div className="grid grid-cols-2 gap-3 mt-6">
+                <a href="https://wa.me/919999999999" target="_blank" className="bg-[#25D366] text-black text-center py-3 rounded-full font-black text-sm hover:scale-105 transition">
+                  WhatsApp Me
+                </a>
+                <a href="mailto:ravish@example.com" className="bg-white text-black text-center py-3 rounded-full font-black text-sm hover:bg-zinc-200 transition">
+                  Email Me
+                </a>
+              </div>
+              <p className="text-center text-[11px] text-zinc-500 mt-3 tracking-wide">⚡ REPLY IN 2 HOURS • 100% CONFIDENTIAL IDEA</p>
+            </div>
+
           </div>
         </div>
       </div>
+
+      {/* ===== NORMAL FOOTER LINKS ===== */}
+      <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between gap-6 text-sm text-zinc-400">
+        <div>
+          <p className="text-white font-black text-lg">Ravish • Lorem Pro Tool</p>
+          <p className="mt-2 max-w-sm">Building tools that people actually use. Let's turn your idea into a profitable product.</p>
+        </div>
+        <div className="flex gap-6 font-bold">
+          <Link href="/" className="hover:text-orange-500">Home</Link>
+          <Link href="/blog" className="hover:text-orange-500">Blog</Link>
+          <Link href="/privacy" className="hover:text-orange-500">Privacy</Link>
+        </div>
+      </div>
+
+      <div className="text-center text-[12px] text-zinc-600 pb-6">© {new Date().getFullYear()} Ravish. All rights reserved.</div>
     </footer>
-  );
+  )
 }
