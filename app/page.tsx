@@ -185,7 +185,7 @@ const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,pa
 if(isDisabled){return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#f3f4f6"}}><div style={{background:"white",padding:40,borderRadius:24,textAlign:"center"}}><h1>🔴 Tool Disabled</h1><p>Admin ne isko OFF kiya hai</p></div></div>}
 return(
 <div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
-<Header />
+
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
 {page==="menu"&&<div style={{background:"#fff",borderRadius:20,padding:16}}>
