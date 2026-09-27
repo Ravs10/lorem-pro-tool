@@ -20,13 +20,13 @@ export default function Footer() {
           <div className="rounded-2xl bg-zinc-900/60 border border-zinc-800 p-4">
             <h4 className="text-white font-bold mb-3">📝 Blog</h4>
             <div className="space-y-2 text-sm text-zinc-400">
-             // <Link href="/#blog" className="block hover:text-orange-400">→ Password Tips</Link>
+            
     <Link href="/blog">📝 Blog</Link>
 
 <Link href="/blog/password-tips">→ Password Tips</Link>
 
 <Link href="/blog/fake-data-uses">→ Fake Data Uses</Link>
-            //  <Link href="/#blog" className="block hover:text-orange-400">→ Fake Data Uses</Link>
+            
             </div>
           </div>
           <div className="rounded-2xl bg-zinc-900/60 border border-zinc-800 p-4">
