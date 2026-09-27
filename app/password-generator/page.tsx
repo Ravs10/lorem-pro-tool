@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import Footer from "../components/Footer";
+
 
 export default function PasswordGenerator() {
   const [length, setLength] = useState(16);
@@ -48,7 +48,7 @@ export default function PasswordGenerator() {
           <section><h2 className="text-2xl font-bold text-white mb-3">Frequently Asked Questions</h2><div className="space-y-4"><div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl"><h3 className="font-bold text-white">Is this password generator safe?</h3><p className="text-sm mt-1">Yes, 100% safe. All passwords are generated locally in your browser.</p></div><div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl"><h3 className="font-bold text-white">What is the ideal password length?</h3><p className="text-sm mt-1">Experts recommend at least 12-16 characters. For banking and email, use 16+ characters.</p></div><div className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl"><h3 className="font-bold text-white">Should I exclude similar characters?</h3><p className="text-sm mt-1">If you need to read or type the password manually, enabling this avoids confusion between I/l/1 and O/0.</p></div></div></section>
         </div>
       </div>
-      <Footer />
+      
     </div>
   );
 }
