@@ -2,13 +2,15 @@ import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 import BackButton from '@/app/components/BackButton'
 
-export default async function Page({ params }) {
-  const { slug } = await params
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+)
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  )
+export default async function Page({ params }) {
+  // Next 14 aur 15 dono ke liye safe
+  const resolvedParams = params && typeof params.then === 'function' ? await params : params
+  const slug = resolvedParams.slug
 
   const { data: blog } = await supabase.from('blogs').select('*').eq('slug', slug).single()
 
@@ -24,8 +26,6 @@ export default async function Page({ params }) {
 
   return (
     <div className="max-w-3xl mx-auto p-6 bg-[#fffaf0] min-h-screen">
-      
-      {/* TOP BACK BUTTON - Yaha lagao Line 28 ke baad */}
       <div className="mb-6">
         <BackButton variant="top" />
       </div>
@@ -36,9 +36,7 @@ export default async function Page({ params }) {
         {blog.content}
       </div>
 
-      {/* BOTTOM BACK BUTTONS - Yaha neeche lagao */}
       <BackButton variant="bottom" />
-
     </div>
   )
 }
