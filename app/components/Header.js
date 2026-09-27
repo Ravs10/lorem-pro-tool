@@ -18,7 +18,7 @@ export default function Header() {
             <span>🔥 All Tools</span>
             <span className="text-[10px] bg-white text-orange-600 px-2.5 py-1 rounded-full font-extrabold animate-bounce">HOT</span>
           </Link>
-          <Link href="/#blog" onClick={()=>setOpen(false)} className="block px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300">📝 Blog</Link>
+          <Link href="/blog" onClick={()=>setOpen(false)} className="block px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300">📝 Blog</Link>
           <Link href="/about" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">About</Link>
           <Link href="/contact" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Contact</Link>
           <Link href="/privacy" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Privacy Policy</Link>
