@@ -117,17 +117,8 @@ export default function Page(){
   };
   var saveBlogs = function(b:any[]){ setBlogs(b); localStorage.setItem('seo-blogs', JSON.stringify(b)); };
   var selectedBlog = blogs.find(function(b:any){ return b.slug===selectedSlug; });
-
-  return (
+return (
     <div className='min-h-screen bg-[#f8f8f7] text-zinc-900'>
-      {/*  <header className='sticky top-0 z-50 bg-black text-white px-4 py-3 flex justify-between items-center'>
-        <b className='text-[15px]'>⚡ Lorem Pro Tool</b>
-        <div className='flex gap-1.5'>
-          <button onClick={function(){ setTab('tool'); setSelectedSlug(null); }} className={'px-3.5 py-2 rounded-full text-[11px] font-bold ' + (tab==='tool'&&!selectedSlug?'bg-white text-black':'bg-zinc-800')}>Tool</button>
-          <button onClick={function(){ setTab('blog'); setSelectedSlug(null); }} className={'px-3.5 py-2 rounded-full text-[11px] font-bold ' + (tab==='blog'?'bg-yellow-400 text-black':'bg-zinc-800')}>Blog ({blogs.length})</button>
-        </div>
-      </header>
-*/} 
       <main className='max-w-[1100px] mx-auto px-3 py-4 pb-24'>
         {tab==='tool' &&!selectedSlug && (
           <>
