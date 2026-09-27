@@ -12,7 +12,7 @@ export default function Footer() {
             <div className="flex flex-wrap gap-2.5">
               <Link href="/fake-data-generator" className="px-4 py-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-sm">Fake Data Generator</Link>
               <Link href="/password-generator" className="px-4 py-2 rounded-full bg-zinc-900 border border-zinc-700 text-white text-sm">Password Generator</Link>
-              <Link href="/" className="px-4 py-2 rounded-full bg-white text-black font-bold text-sm">View All →</Link>
+              <Link href="/tools" className="px-4 py-2 rounded-full bg-white text-black font-bold text-sm">View All →</Link>
             </div>
           </div>
         </div>
