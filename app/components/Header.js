@@ -1,29 +1,50 @@
-'use client';
-import { useState } from 'react';
-import Link from 'next/link';
+"use client"
+import Link from 'next/link'
+import { useState } from 'react'
+import { allTools } from '../data/tools'
 
 export default function Header() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
+
   return (
-    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2 text-white font-bold text-[22px]">
-          <span className="animate-pulse">⚡</span> Lorem Pro Tool
+    <header className="bg-[#1a0f0a] text-white sticky top-0 z-50">
+      <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2 text-2xl font-black">
+          <span>⚡</span> Lorem Pro Tool
         </Link>
-        <button onClick={() => setOpen(!open)} className="text-white text-3xl">☰</button>
-      </div>
-      {open && (
-        <nav className="bg-[#111] border-t border-zinc-800 px-4 py-4 space-y-2">
-          <Link href="/tools" onClick={()=>setOpen(false)} className="flex items-center justify-between px-4 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white font-bold shadow-[0_0_25px_rgba(249,115,22,0.6)] animate-pulse">
-            <span>🔥 All Tools</span>
-            <span className="text-[10px] bg-white text-orange-600 px-2.5 py-1 rounded-full font-extrabold animate-bounce">HOT</span>
-          </Link>
-          <Link href="/blog" onClick={()=>setOpen(false)} className="block px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300">📝 Blog</Link>
-          <Link href="/about" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">About</Link>
-          <Link href="/contact" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Contact</Link>
-          <Link href="/privacy" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Privacy Policy</Link>
-          <Link href="/disclaimer" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Disclaimer</Link>
+
+        <nav className="hidden md:flex gap-6 text-sm font-bold items-center">
+          {allTools.slice(0, 3).map(t => (
+            <Link key={t.href} href={t.href} className="hover:text-orange-400">{t.name}</Link>
+          ))}
+          <Link href="/blog" className="hover:text-orange-400">Blog</Link>
+          <button onClick={() => setOpen(!open)} className="bg-orange-500 text-black px-4 py-1.5 rounded-full">
+            All Tools ▼
+          </button>
         </nav>
+
+        <button onClick={() => setOpen(!open)} className="md:hidden text-3xl">☰</button>
+      </div>
+
+      {open && (
+        <div className="bg-[#fffaf0] text-black border-t max-h-[70vh] overflow-y-auto">
+          <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {allTools.map((tool) => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                onClick={() => setOpen(false)}
+                className="bg-white border border-orange-200 px-5 py-3 rounded-full font-bold hover:bg-black hover:text-white transition flex justify-between items-center"
+              >
+                {tool.name}
+                {tool.hot && <span className="bg-orange-500 text-[10px] px-2 py-0.5 rounded-full text-black font-black">HOT</span>}
+              </Link>
+            ))}
+            <Link href="/blog" onClick={() => setOpen(false)} className="bg-black text-white px-5 py-3 rounded-full font-black text-center sm:col-span-2">
+              📝 Go to Blog →
+            </Link>
+          </div>
+        </div>
       )}
     </header>
   )
