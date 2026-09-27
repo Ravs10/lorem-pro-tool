@@ -14,7 +14,7 @@ export default function Header() {
       </div>
       {open && (
         <nav className="bg-[#111] border-t border-zinc-800 px-4 py-4 space-y-2">
-          <Link href="/" onClick={()=>setOpen(false)} className="flex items-center justify-between px-4 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white font-bold shadow-[0_0_25px_rgba(249,115,22,0.6)] animate-pulse">
+          <Link href="/tools" onClick={()=>setOpen(false)} className="flex items-center justify-between px-4 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white font-bold shadow-[0_0_25px_rgba(249,115,22,0.6)] animate-pulse">
             <span>🔥 All Tools</span>
             <span className="text-[10px] bg-white text-orange-600 px-2.5 py-1 rounded-full font-extrabold animate-bounce">HOT</span>
           </Link>
