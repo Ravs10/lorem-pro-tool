@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link'
 import { useState, useEffect, useRef} from "react";
 import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -78,6 +79,7 @@ const insertFormat = (b, a="") => {
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30">
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools ON/OFF</button>
           <button onClick={()=>setActiveTab("blog")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="blog"?"bg-white text-black shadow":"text-white/80"}`}>Blog</button>
+       <Link href="/admin/posts" className="px-6 py-2 rounded-full bg-black text-white font-bold text-center">📝 Posts & Comments</Link>
         </div>
 
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-[24px] p-6 shadow-xl">
