@@ -31,7 +31,7 @@ export default function Footer() {
     fetchTools()
   }, [])
 
-  const visibleTools = showAll? allTools : allTools.slice(0,8)
+  const visibleTools = showAll ? allTools : allTools.slice(0,3)
 
   return (
     <footer className="mt-16">
