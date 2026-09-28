@@ -31,7 +31,10 @@ export default function Footer() {
     fetchTools()
   }, [])
 
-  const visibleTools = showAll ? allTools : allTools.slice(0,3)
+  const INITIAL_COUNT = 3
+const visibleTools = showAll ? allTools : allTools.slice(0, INITIAL_COUNT)
+const remainingCount = allTools.length - INITIAL_COUNT
+const showToggle = allTools.length > INITIAL_COUNT
 
   return (
     <footer className="mt-16">
