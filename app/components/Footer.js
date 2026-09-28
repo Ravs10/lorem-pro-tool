@@ -135,12 +135,12 @@ const showToggle = allTools.length > INITIAL_COUNT
             <div className="bg-zinc-900 text-zinc-400 rounded-[24px] p-7">
               <p className="text-white font-black text-lg">Lorem Pro Tool</p>
               <p className="text-sm mt-3 leading-relaxed">Free, fast & private tools for writers, developers & creators. No login, no tracking. Built with ❤️ by Ravish.</p>
-              <div className="flex gap-4 mt-6 text-xs font-bold">
+                                                         {/* <div className="flex gap-4 mt-6 text-xs font-bold">
                 <Link href="/" className="hover:text-orange-500">Home</Link>
                 <Link href="/blog" className="hover:text-orange-500">Blog</Link>
                 <Link href="/privacy" className="hover:text-orange-500">Privacy</Link>
                 <Link href="/contact" className="hover:text-orange-500">Contact</Link>
-              </div>
+              </div>*/} 
             </div>
           </div>
 
