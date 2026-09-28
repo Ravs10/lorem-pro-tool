@@ -88,12 +88,14 @@ const showToggle = allTools.length > INITIAL_COUNT
                 <h4 className="text-xl font-black tracking-widest">ALL TOOLS</h4>
                 <span className="bg-orange-500 text-black text-[11px] font-black px-3 py-1 rounded-full animate-pulse">OPEN • LIVE</span>
               </div>
+        {showToggle && (
               <button
                 onClick={() => setShowAll(!showAll)}
                 className="bg-black text-white px-5 py-2 rounded-full text-xs font-black hover:bg-orange-500 hover:text-black transition-all"
               >
                 {showAll? 'Show Less ▲' : `More (${remainingCount}) ▼`}
               </button>
+}} 
             </div>
 
             <div className="flex flex-wrap gap-3">
