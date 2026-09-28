@@ -141,6 +141,14 @@ const showToggle = allTools.length > INITIAL_COUNT
                 <Link href="/privacy" className="hover:text-orange-500">Privacy</Link>
                 <Link href="/contact" className="hover:text-orange-500">Contact</Link>
               </div>*/} 
+<div className="flex gap-4 mt-6 text-xs font-bold items-center flex-wrap">
+  <Link href="/" className="bg-orange-500 text-black px-5 py-2 rounded-full text-sm font-black animate-pulse hover:bg-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,165,0,0.5)]">
+    ⚡ Home
+  </Link>
+  <Link href="/blog" className="hover:text-orange-500">Blog</Link>
+  <Link href="/privacy" className="hover:text-orange-500">Privacy Policy</Link>
+  <Link href="/contact" className="hover:text-orange-500">Contact</Link>
+</div>
             </div>
           </div>
 
