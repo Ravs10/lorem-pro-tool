@@ -95,7 +95,7 @@ const showToggle = allTools.length > INITIAL_COUNT
               >
                 {showAll? 'Show Less ▲' : `More (${remainingCount}) ▼`}
               </button>
-}} 
+) } 
             </div>
 
             <div className="flex flex-wrap gap-3">
