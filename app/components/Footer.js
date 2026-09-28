@@ -98,7 +98,7 @@ const showToggle = allTools.length > INITIAL_COUNT
 ) } 
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {visibleTools.map((tool) => (
                 <Link
                   key={tool.href}
