@@ -2,7 +2,6 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { allTools } from '../data/tools'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -12,20 +11,27 @@ const supabase = createClient(
 export default function Footer() {
   const [showAll, setShowAll] = useState(false)
   const [latestBlogs, setLatestBlogs] = useState([])
+  const [allTools, setAllTools] = useState([])
 
-  useEffect(() => {
-    async function fetchBlogs() {
+  useEffect(()=>{
+    async function fetchBlogs(){
       const { data } = await supabase
-       .from('blogs')
-       .select('title, slug')
-       .order('created_at', { ascending: false })
-       .limit(4)
+      .from('blogs')
+      .select('title, slug')
+      .order('created_at', { ascending: false })
+      .limit(4)
       if (data) setLatestBlogs(data)
     }
     fetchBlogs()
+
+    async function fetchTools(){
+      const { data } = await supabase.from('tools').select('*').eq('is_active', true).order('name')
+      if (data) setAllTools(data)
+    }
+    fetchTools()
   }, [])
 
-  const visibleTools = showAll? allTools : allTools.slice(0, 3)
+  const visibleTools = showAll? allTools : allTools.slice(0,8)
 
   return (
     <footer className="mt-16">
