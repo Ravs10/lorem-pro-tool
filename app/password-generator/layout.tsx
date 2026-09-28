@@ -1,12 +1,25 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Password Generator - Free Secure & Strong Password Maker | Lorem Pro Tools",
-  description: "Generate ultra-secure, random passwords instantly with our free Advanced Password Generator. Custom length, symbols, numbers. 100% private, no data stored.",
-  keywords: ["password generator", "strong password generator", "secure password maker", "random password generator", "free password tool", "online password generator"],
+  title: "Free Password Generator (2026) - Strong, Random & 100% Secure | Lorem Pro Tool",
+  description: "Generate ultra-strong, hack-proof passwords instantly. Customize length (8-64), symbols, numbers, uppercase. No logs, no tracking. Free & secure.",
+  keywords: ["password generator", "strong password generator", "secure password generator", "random password generator", "free password generator", "best password generator 2026", "online password generator"],
+  authors: [{ name: "Lorem Pro Tool" }],
+  robots: { index: true, follow: true },
+  alternates: {
+    canonical: "https://loremprotool.com/password-generator",
+  },
   openGraph: {
-    title: "Free Password Generator - Create Strong & Secure Passwords",
-    description: "Create unhackable passwords in one click. Free, fast and private.",
+    title: "Free Strong Password Generator - 100% Secure & No Tracking",
+    description: "Create unhackable passwords in 1 click. Custom length, symbols, numbers. Instant copy.",
+    url: "https://loremprotool.com/password-generator",
+    siteName: "Lorem Pro Tool",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Free Password Generator - Strong & Secure",
+    description: "Generate secure random passwords instantly - 100% free, no tracking.",
   }
 };
 
