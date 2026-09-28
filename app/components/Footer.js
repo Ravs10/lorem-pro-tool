@@ -109,11 +109,11 @@ const showToggle = allTools.length > INITIAL_COUNT
               ))}
             </div>
 
-            {!showAll && (
-              <button onClick={() => setShowAll(true)} className="mt-6 w-full bg-white border-2 border-dashed border-orange-300 py-3 rounded-full font-black text-sm hover:bg-orange-500 hover:text-black hover:border-orange-500 transition">
-                + View All {allTools.length} Tools
-              </button>
-            )}
+            {showToggle && (
+  <button onClick={() => setShowAll(!showAll)} className="mt-6 w-full bg-white border-2 border-dashed border-orange-300 py-3 rounded-full font-black text-sm hover:bg-orange-500 hover:text-black transition-all">
+    {showAll? '- Show Less' : `+ View All ${allTools.length} Tools`}
+  </button>
+)}
           </div>
 
           {/* Latest Blogs Auto + Brand */}
