@@ -40,7 +40,10 @@ export default async function Page({ params }: { params: { slug: string } }) {
         dangerouslySetInnerHTML={{ __html: blog.content }}
       />
 
+           <Comments slug={slug} />
+
       {/* BOTTOM BUTTONS */}
+    
       <div className="flex flex-wrap gap-3 mt-10 border-t pt-6">
         <Link href="/blog" className="px-6 py-3 rounded-full bg-zinc-900 text-white font-bold">← Go Back</Link>
         <Link href="/" className="px-6 py-3 rounded-full bg-orange-500 text-black font-black">🏠 Home</Link>
