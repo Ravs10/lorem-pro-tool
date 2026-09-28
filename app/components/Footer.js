@@ -147,6 +147,7 @@ const showToggle = allTools.length > INITIAL_COUNT
   </Link>
   <Link href="/blog" className="hover:text-orange-500">Blog</Link>
   <Link href="/privacy" className="hover:text-orange-500">Privacy Policy</Link>
+  <Link href="/disclaimer" className="hover:text-orange-500">Disclaimer</Link>
   <Link href="/contact" className="hover:text-orange-500">Contact</Link>
 </div>
             </div>
