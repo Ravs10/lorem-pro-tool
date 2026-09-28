@@ -92,7 +92,7 @@ const showToggle = allTools.length > INITIAL_COUNT
                 onClick={() => setShowAll(!showAll)}
                 className="bg-black text-white px-5 py-2 rounded-full text-xs font-black hover:bg-orange-500 hover:text-black transition-all"
               >
-                {showAll? 'Show Less ▲' : `More (${allTools.length - 3}) ▼`}
+                {showAll? 'Show Less ▲' : `More (${remainingCount}) ▼`}
               </button>
             </div>
 
