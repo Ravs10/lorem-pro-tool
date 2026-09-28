@@ -1,59 +1,87 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { supabase } from '../../../lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-export default function PostsControl(){
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+
+export default function AdminPostsPage() {
   const [posts, setPosts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  
-  useEffect(()=>{ load() },[])
-  
-  async function load(){
-    setLoading(true)
-    const { data } = await supabase.from('blogs').select('*').order('created_at', {ascending: false})
-    // agar 'blogs' se data nahi aaye to 'blog_posts' try karo
-    if(data && data.length > 0) setPosts(data)
-    else {
-      const { data: data2 } = await supabase.from('blog_posts').select('*').order('created_at', {ascending: false})
-      if(data2) setPosts(data2)
+  const [comments, setComments] = useState<any[]>([])
+  const [tab, setTab] = useState<'posts'|'comments'>('posts')
+  const router = useRouter()
+
+  useEffect(() => {
+    const admin = localStorage.getItem("lorem_admin") || localStorage.getItem("admin") || localStorage.getItem("isAdmin")
+    if (admin!== "true" && admin!== "1") {
+      router.push('/admin')
+      return
     }
-    setLoading(false)
+    fetchPosts()
+    fetchComments()
+  }, [])
+
+  async function fetchPosts() {
+    const { data } = await supabase.from('blogs').select('*').order('created_at', { ascending: false })
+    if (data) setPosts(data)
+  }
+  async function fetchComments() {
+    const { data } = await supabase.from('comments').select('*').order('created_at', { ascending: false })
+    if (data) setComments(data)
+  }
+  async function deletePost(id: string) {
+    if (!confirm("Post delete karna hai?")) return
+    await supabase.from('blogs').delete().eq('id', id)
+    setPosts(posts.filter(p => p.id!== id))
+  }
+  async function deleteComment(id: string) {
+    if (!confirm("Comment delete karna hai?")) return
+    await supabase.from('comments').delete().eq('id', id)
+    setComments(comments.filter(c => c.id!== id))
+  }
+  async function toggleApprove(c: any) {
+    await supabase.from('comments').update({ is_approved:!c.is_approved }).eq('id', c.id)
+    fetchComments()
   }
 
-  async function approve(id:any){
-    await supabase.from('blogs').update({ status: 'approved' }).eq('id', id)
-    await supabase.from('blog_posts').update({ status: 'approved' }).eq('id', id)
-    alert('Approved!');
-    load()
-  }
-
-  async function del(id:any){
-    if(!confirm('Pakka delete karna hai?')) return;
-    let { error } = await supabase.from('blogs').delete().eq('id', id)
-    if(error){
-      await supabase.from('blog_posts').delete().eq('id', id)
-    }
-    setPosts(posts.filter(p => p.id !== id))
-  }
-
-  if(loading) return <div className="p-10 text-white bg-black min-h-screen">Loading...</div>
-
-  return(
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4">
-      <h1 className="text-2xl font-bold mb-4">📝 Posts Control - {posts.length} Posts</h1>
-      <div className="space-y-3">
-        {posts.map(p=>(
-          <div key={p.id} className="bg-white/10 backdrop-blur p-3 rounded-lg border border-white/20">
-            <p className="font-bold">{p.title} - <span className={p.status==='approved'?'text-green-400':'text-yellow-400'}>{p.status}</span></p>
-            <p className="text-xs opacity-50">{p.slug}</p>
-            <div className="flex gap-2 mt-2">
-              <button onClick={()=>approve(p.id)} className="bg-green-600 px-4 py-2 rounded text-sm">Approve</button>
-              <button onClick={()=>del(p.id)} className="bg-red-600 px-4 py-2 rounded text-sm">Delete</button>
-            </div>
-          </div>
-        ))}
-        {posts.length===0 && <p>No posts found. Check table name blogs / blog_posts</p>}
+  return (
+    <div className="max-w-4xl mx-auto p-6 min-h-screen bg-[#fffaf0]">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-black">Admin Panel</h1>
+        <Link href="/" className="bg-black text-white px-4 py-2 rounded-full">Home</Link>
       </div>
+
+      <div className="flex gap-2 mb-6">
+        <button onClick={() => setTab('posts')} className={`px-6 py-2 rounded-full font-bold ${tab === 'posts'? 'bg-black text-white' : 'bg-white border'}`}>Posts ({posts.length})</button>
+        <button onClick={() => setTab('comments')} className={`px-6 py-2 rounded-full font-bold ${tab === 'comments'? 'bg-black text-white' : 'bg-white border'}`}>Comments ({comments.length})</button>
+      </div>
+
+      {tab === 'posts'? (
+        <div className="space-y-3">
+          {posts.map(p => (
+            <div key={p.id} className="bg-white p-4 rounded-xl border flex justify-between items-center">
+              <div><p className="font-bold">{p.title}</p><p className="text-xs text-gray-400">{p.slug}</p></div>
+              <button onClick={() => deletePost(p.id)} className="bg-red-600 text-white px-4 py-1 rounded-full text-sm">Delete</button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {comments.map(c => (
+            <div key={c.id} className="bg-white p-4 rounded-xl border">
+              <p className="font-bold text-sm">{c.name} <span className="text-xs text-gray-400">on {c.blog_slug} - {new Date(c.created_at).toLocaleString()}</span></p>
+              <p className="mt-1">{c.comment}</p>
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => toggleApprove(c)} className={`px-3 py-1 rounded-full text-xs font-bold ${c.is_approved? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{c.is_approved? 'Approved ✓' : 'Approve karo'}</button>
+                <button onClick={() => deleteComment(c.id)} className="bg-red-600 text-white px-3 py-1 rounded-full text-xs">Delete</button>
+                <Link href={`/blog/${c.blog_slug}`} className="bg-gray-100 px-3 py-1 rounded-full text-xs">View Post</Link>
+              </div>
+            </div>
+          ))}
+          {comments.length === 0 && <p className="text-center text-gray-500 mt-10">Koi comment nahi hai</p>}
+        </div>
+      )}
     </div>
   )
 }
