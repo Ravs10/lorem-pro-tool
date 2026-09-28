@@ -1,3 +1,4 @@
+import Comments from "./Comments"
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
 
