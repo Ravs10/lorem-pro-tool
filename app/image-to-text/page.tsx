@@ -34,6 +34,28 @@ export default function ImageQRGenerator() {
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(qrText)}&bgcolor=${bg.replace('#','')}&color=${color.replace('#','')}`;
 
+  // NEW: Download QR with Text
+  const downloadQRWithText = () => {
+    const qrImg = new Image();
+    qrImg.crossOrigin = "anonymous";
+    qrImg.src = qrUrl;
+    qrImg.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = 500; c.height = 550;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(qrImg, 50, 20, 400, 400);
+      ctx.fillStyle = "#000000"; ctx.font = "bold 18px sans-serif";
+      ctx.textAlign = "center";
+      // Text ko wrap karna
+      const words = qrText.length > 30? qrText.substring(0,35) + "..." : qrText;
+      ctx.fillText(words, c.width/2, 470);
+      const link = document.createElement('a');
+      link.download = `qr-with-text.png`;
+      link.href = c.toDataURL(); link.click();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-5xl mx-auto p-6">
@@ -63,61 +85,12 @@ export default function ImageQRGenerator() {
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center">
               <img src={qrUrl} alt="QR Code" className="w-[200px] h-[200px] mx-auto rounded-xl bg-white p-2"/>
               <p className="text-xs text-gray-400 mt-3 break-all">{qrText}</p>
-              <a href={qrUrl} download target="_blank" className="block w-full mt-3 py-2.5 bg-white text-black rounded-full font-bold text-sm text-center">Download QR Code</a>
-            </div>
-          </div>
-        </div>
 
-        {/* SEO ARTICLE 1200 WORDS START */}
-        <div className="mt-16 border-t border-zinc-800 pt-10 text-gray-300">
-          <h2 className="text-white text-3xl font-black">What is Placeholder Image + QR Generator?</h2>
-          <p className="mt-4 leading-7">This is a <strong>2-in-1 free online tool</strong> for designers, developers and marketers. You can create custom <strong>placeholder images with text</strong> for Figma, website mockups and also generate <strong>QR code from text or URL</strong> instantly. Keywords like <em>placeholder image generator, dummy image generator, custom placeholder, qr code generator, image with text generator, url to qr code</em> ke liye ye tool #1 hai. No Photoshop needed, no login needed. Just set width, height, background color, text color and get instant preview. This <strong>image placeholder generator</strong> saves hours of designers who need dummy images for client presentation.</p>
-
-          <h3 className="text-white text-xl font-bold mt-8">How to Use This Tool?</h3>
-          <ul className="list-disc ml-6 mt-3 space-y-2">
-            <li><strong>Set Size:</strong> Enter custom width and height like 800x600, 1920x1080 for your placeholder image.</li>
-            <li><strong>Choose Colors:</strong> Select background and text color for perfect contrast.</li>
-            <li><strong>Add Text:</strong> Write any text inside image, supports multi-line.</li>
-            <li><strong>Generate QR:</strong> Enter any URL or text in QR field and get instant QR code with same colors.</li>
-          </ul>
-
-          <div className={`grid transition-all duration-700 overflow-hidden ${showMore? 'max-h-[800px] opacity-100 mt-6' : 'max-h-0 opacity-0'}`}>
-            <div className="bg-zinc-900 rounded-2xl p-6">
-              <h3 className="text-white font-bold">Why This Tool is Best for SEO and Ranking?</h3>
-              <p className="mt-2 leading-7">If you search for <em>free placeholder image generator, qr code generator with color, dummy image with custom text, figma placeholder generator, website mockup image tool, text to qr code converter</em> - our tool is the fastest. It uses HTML5 Canvas for instant image generation, no server processing, 100% private. Developers use it to test responsive images, bloggers use it for featured images, marketers use it to create QR for campaigns. This combination of <strong>placeholder generator + QR generator</strong> is unique and helps you rank for both types of keywords. We have optimized for long-tail keywords like <em>800x600 placeholder, 1920x1080 dummy image, custom size placeholder, qr code with custom color, transparent background qr generator</em>. This content of 1200+ words helps Google understand the tool is genuine and useful, boosting ranking.</p>
-            </div>
-          </div>
-          <button onClick={()=>setShowMore(!showMore)} className="mt-4 px-5 py-2 rounded-full border border-zinc-700 text-sm font-bold hover:bg-white hover:text-black transition">{showMore? 'Show Less ▲' : 'Show More Features ▼'}</button>
-
-          <div className="mt-12">
-            <h2 className="text-white text-2xl font-black">FAQ - Placeholder & QR Generator</h2>
-            {[
-              {q: "Is this placeholder image generator free?", a: "Yes 100% free, unlimited generation, no watermark. Best dummy image generator for developers."},
-              {q: "Can I download QR code with custom color?", a: "Yes, QR color automatically matches your selected text color and background color. You can create branded QR codes."},
-              {q: "What is use of placeholder images?", a: "For web design mockups, Figma prototypes, testing image sizes before final design."},
-            ].map((f,i)=>(
-              <div key={i} className="mt-3 border border-zinc-800 rounded-xl overflow-hidden">
-                <button onClick={()=>setOpenFaq(openFaq===i? null : i)} className="w-full text-left p-4 font-bold flex justify-between">{f.q}<span className={`${openFaq===i? 'rotate-180' : ''} transition`}>▼</span></button>
-                <div className={`grid transition-all ${openFaq===i? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}><div className="overflow-hidden"><p className="px-4 pb-4 text-sm text-gray-400">{f.a}</p></div></div>
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <a href={qrUrl} download target="_blank" className="py-2.5 bg-zinc-800 text-white rounded-full font-bold text-sm text-center border border-zinc-700">QR Only</a>
+                <button onClick={downloadQRWithText} className="py-2.5 bg-orange-500 text-black rounded-full font-bold text-sm">QR + Text ▼</button>
               </div>
-            ))}
-          </div>
 
-          <div className="mt-16">
-            <h2 className="text-white text-2xl font-black mb-4">Other Useful Tools</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {[
-                {n: "Image to Text", l: "/image-to-text"},
-                {n: "Case Converter", l: "/case-converter"},
-                {n: "Fancy Text", l: "/fancy-text"},
-                {n: "Lorem Generator", l: "/lorem-ipsum"},
-                {n: "Color Picker", l: "/color-picker"},
-                {n: "Word Counter", l: "/word-counter"},
-              ].map((t,i)=>(
-                <Link key={i} href={t.l} className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl hover:border-orange-400 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group">
-                  <p className="font-bold group-hover:text-orange-400">{t.n}</p><p className="text-xs text-gray-500 mt-1">Use Now →</p>
-                </Link>
-              ))}
             </div>
           </div>
         </div>
