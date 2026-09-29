@@ -9,7 +9,7 @@ export default function AvatarTool() {
   const [size, setSize] = useState(200);
   const [shadow, setShadow] = useState(true);
 
-  const avatarUrl = `/api/avatar/${size}x${size}?text=${encodeURIComponent(name)}&bg1=${bg1}&bg2=${bg2}&shadow=${shadow}`;
+  const avatarUrl = `/api/avatar?size=${size}&text=${encodeURIComponent(name)}&bg1=${bg1.replace('#','')}&bg2=${bg2.replace('#','')}`;
 
   return (
     <div className="min-h-screen bg-black text-white p-4">
