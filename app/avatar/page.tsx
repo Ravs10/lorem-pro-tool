@@ -18,7 +18,7 @@ export default function AvatarPage(){
   const displayName = useEmoji && emoji? emoji : name
   const avatarUrl=useMemo(()=>`/api/avatar?name=${encodeURIComponent(displayName)}&size=${size}&bg=${bgHex}&color=${txtHex}&shape=${shape}&pattern=${pattern}&shadow=${shadow?1:0}&glass=${glass?1:0}`,[displayName,bgHex,txtHex,size,shape,pattern,shadow,glass])
 
-  const download = async (format:'png'|'svg'|'webp'|'jpeg')=>{
+    const download = async (format:'png'|'svg'|'webp'|'jpeg')=>{
     const r=await fetch(avatarUrl);
     const svgText=await r.text()
     if(format==='svg'){
@@ -29,15 +29,36 @@ export default function AvatarPage(){
     const blob=new Blob([svgText],{type:'image/svg+xml'});
     const url=URL.createObjectURL(blob)
     const img=new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin="anonymous";
     img.onload=()=>{
       const c=canvasRef.current!;
-      const pad = shadow? 60 : 0; // Shadow ke liye extra space
+      const pad = shadow? 60 : 0;
       c.width=size+pad*2;
       c.height=size+pad*2
       const ctx=c.getContext('2d')!;
-      ctx.clearRect(0,0,c.width,c.height)
+
+      // White bg fix for JPEG, transparent for PNG/WEBP
+      if(format==='jpeg'){
+        ctx.fillStyle='#ffffff';
+        ctx.fillRect(0,0,c.width,c.height);
+      } else {
+        ctx.clearRect(0,0,c.width,c.height)
+      }
+
+      // REAL SHADOW FIX - canvas shadow
+      if(shadow){
+        ctx.shadowColor='rgba(0,0,0,0.50)';
+        ctx.shadowBlur=28;
+        ctx.shadowOffsetY=16;
+      }
+
       ctx.drawImage(img,pad,pad,size,size)
+
+      // reset shadow
+      ctx.shadowColor='transparent';
+      ctx.shadowBlur=0;
+      ctx.shadowOffsetY=0;
+
       const a=document.createElement('a');
       a.download=`avatar-${Date.now()}.${format}`
       a.href=c.toDataURL(format==='jpeg'?'image/jpeg': format==='webp'?'image/webp':'image/png', 0.92);
