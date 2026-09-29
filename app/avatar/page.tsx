@@ -19,18 +19,34 @@ export default function AvatarPage(){
   const avatarUrl=useMemo(()=>`/api/avatar?name=${encodeURIComponent(displayName)}&size=${size}&bg=${bgHex}&color=${txtHex}&shape=${shape}&pattern=${pattern}&shadow=${shadow?1:0}&glass=${glass?1:0}`,[displayName,bgHex,txtHex,size,shape,pattern,shadow,glass])
 
   const download = async (format:'png'|'svg'|'webp'|'jpeg')=>{
-    const r=await fetch(avatarUrl); const svgText=await r.text()
+    const r=await fetch(avatarUrl);
+    const svgText=await r.text()
     if(format==='svg'){
-      const blob=new Blob([svgText],{type:'image/svg+xml'}); const url=URL.createObjectURL(blob)
+      const blob=new Blob([svgText],{type:'image/svg+xml'});
+      const url=URL.createObjectURL(blob)
       const a=document.createElement('a'); a.href=url; a.download=`avatar-${Date.now()}.svg`; a.click(); URL.revokeObjectURL(url); return
     }
-    const blob=new Blob([svgText],{type:'image/svg+xml'}); const url=URL.createObjectURL(blob)
-    const img=new Image(); img.onload=()=>{
-      const c=canvasRef.current!; c.width=size; c.height=size
-      const ctx=c.getContext('2d')!; ctx.clearRect(0,0,size,size); ctx.drawImage(img,0,0,size,size)
-      const a=document.createElement('a'); a.download=`avatar-${Date.now()}.${format}`
-      a.href=c.toDataURL(format==='jpeg'?'image/jpeg': format==='webp'?'image/webp':'image/png', 0.92); a.click(); URL.revokeObjectURL(url)
-    }; img.src=url
+    const blob=new Blob([svgText],{type:'image/svg+xml'});
+    const url=URL.createObjectURL(blob)
+    const img=new Image();
+    // Important for no white border
+    img.crossOrigin = "anonymous";
+    img.onload=()=>{
+      const c=canvasRef.current!;
+      c.width=size;
+      c.height=size
+      const ctx=c.getContext('2d')!;
+      ctx.clearRect(0,0,size,size)
+      // draw without any padding/border
+      ctx.drawImage(img,0,0,size,size)
+      const a=document.createElement('a');
+      a.download=`avatar-${Date.now()}.${format}`
+      a.href=c.toDataURL(format==='jpeg'?'image/jpeg': format==='webp'?'image/webp':'image/png', 0.92);
+      a.click();
+      URL.revokeObjectURL(url)
+    };
+    img.onerror=()=>URL.revokeObjectURL(url)
+    img.src=url
   }
 
   return(
@@ -91,7 +107,6 @@ export default function AvatarPage(){
           </div>
         </div>
 
-        {/* ====== 1200 WORDS SEO ARTICLE STARTS HERE - THIS IS THE PART YOU ARE MISSING ====== */}
         <article className="mt-16 max-w-4xl mx-auto">
   <h2 className="text-3xl font-bold">Avatar Generator Guide</h2>
 
