@@ -1,8 +1,10 @@
 import { NextRequest } from 'next/server'
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: NextRequest){
   const { searchParams } = new URL(req.url)
   const raw = searchParams.get('name') || 'Ravi Patel'
-  const size = parseInt(searchParams.get('size') || '320')
+  const size = Math.min(800, Math.max(32, parseInt(searchParams.get('size') || '320')))
   const bg = (searchParams.get('bg') || '6d28d9').replace('#','')
   const color = (searchParams.get('color') || 'ffffff').replace('#','')
   const shape = searchParams.get('shape') || 'squircle'
@@ -11,10 +13,12 @@ export async function GET(req: NextRequest){
   const glass = searchParams.get('glass') === '1'
 
   const chars = Array.from(raw.trim())
-  const emojiRegex = /\p{Emoji}/u
-  const firstEmoji = chars.find(c=>emojiRegex.test(c))
-  const text = firstEmoji? firstEmoji : (chars.filter(c=>!emojiRegex.test(c)).join('').trim().slice(0,2).toUpperCase() || 'R')
-  const rx = shape==='circle'? size/2 : shape==='squircle'? size*0.26 : shape==='rounded'? 28 : 0
+  const firstChar = chars[0] || 'R'
+  // Simple emoji check - build error fix
+  const isEmoji = (firstChar.codePointAt(0) || 0) > 1000 && chars.length < 5
+  const text = isEmoji? firstChar : raw.trim().slice(0,2).toUpperCase() || 'R'
+
+  const rx = shape==='circle'? size/2 : shape==='squircle'? Math.round(size*0.26) : shape==='rounded'? 28 : 0
 
   let defs = `<clipPath id="c"><rect width="${size}" height="${size}" rx="${rx}"/></clipPath>`
   let extra = ''
@@ -34,7 +38,6 @@ export async function GET(req: NextRequest){
   }
 
   if(hasShadow){ defs+=`<filter id="sh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-opacity="0.45"/></filter>` }
-
   const glassPart = glass? `<ellipse cx="${size/2}" cy="${size*0.22}" rx="${size*0.48}" ry="${size*0.28}" fill="white" opacity="0.22"/>` : ''
 
   const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${hasShadow?`<rect width="${size}" height="${size}" rx="${rx}" fill="#000" opacity="0.01" filter="url(#sh)"/>`:''}<g clip-path="url(#c)"><rect width="${size}" height="${size}" fill="#${bg}"/>${extra}${glassPart}<text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="${size*0.38}" fill="#${color}">${text}</text></g></svg>`
