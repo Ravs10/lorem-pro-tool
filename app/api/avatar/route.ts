@@ -12,21 +12,15 @@ export async function GET(req: Request) {
   const glass = searchParams.get('glass') === '1'
   const pattern = searchParams.get('pattern') || 'none'
   const fw = searchParams.get('fw') || '900'
-  const emojiMode = searchParams.get('emoji') === '1'
   const shape = searchParams.get('shape') || 'circle'
   const angle = searchParams.get('angle') || '135'
 
-  let cleanedText = text.trim()
-  if (!emojiMode) {
-    cleanedText = cleanedText.replace(/[^a-zA-Z0-9 ]/g, '').trim()
+  // --- FINAL EMOJI FIX (ON/OFF dono me same result) ---
+  let initials = 'LP'
+  const cleaned = text.replace(/[^a-zA-Z0-9 ]/g, '').trim()
+  if (cleaned) {
+    initials = cleaned.split(' ').filter(Boolean).map((w: any) => w[0]).join('').toUpperCase().slice(0,2)
   }
-  if (!cleanedText) {
-    cleanedText = 'LP'
-  }
-  let initials = cleanedText.split(' ').filter(Boolean).map((w: any) => w[0]).join('').toUpperCase().slice(0,2)
-  if (!initials) initials = 'LP'
-  //? ko bhi LP banao
-  initials = initials.replace(/\?/g, 'LP').slice(0,2)
   if (!initials) initials = 'LP'
 
   const pad = shadow? 40 : border + 6
