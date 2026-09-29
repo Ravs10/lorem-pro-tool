@@ -88,15 +88,15 @@ export default function AvatarTool() {
 
         {/* ALL SECTIONS SHOW/HIDE */}
         <div className="mt-8 space-y-3">
-          <Section id="what" title="What is Avatar Generator? (Click to expand)">
-            Free online avatar generator, letter avatar maker, gradient avatar creator for Discord, GitHub, profile picture. Creates initial avatar like RY from Ravi Yadav, supports gradient colors, border, shadow, glass morphism, dots pattern, emoji mode. Best ui-avatars alternative with PNG & SVG API.
-          </Section>
-          <Section id="how" title="How to Use Avatar Generator?">
-            1. Enter name → 2. Pick Color 1 & Color 2 for gradient → 3. Select shape circle or rounded square → 4. Set size & border → 5. Choose pattern dots/grid for texture → 6. Toggle glass & shadow → 7. Download PNG/SVG or copy API URL. Use as discord avatar, whatsapp dp, website placeholder.
-          </Section>
-          <Section id="features" title="Ultra Pro Features">
-            Gradient creator, border ring, shadow, glass effect, dots & grid pattern (ab clear visible), font weight, emoji avatar, random gradient, shape selector, gradient angle, PNG converter, API URL for developers, lightweight SVG avatar generator.
-          </Section>
+              <Section id="what" title="What is Letter Avatar Generator?">
+      Free online avatar generator, letter avatar generator, gradient avatar maker, profile picture maker and discord avatar generator. Create initial avatar with custom gradients, grid pattern, dots, rings, sunset effects. Best alternative to UI Avatars for developers.
+    </Section>
+    <Section id="how" title="How to Use Avatar Generator?">
+        1. Enter name → 2. Pick Color 1 & 2 → 3. Select Shape (circle, square, rounded) → 4. Choose Pattern (dots, grid, rings) → 5. Download as PNG/SVG for Discord, GitHub, social media.
+    </Section>
+    <Section id="features" title="Why Our Avatar Generator is Best UI Avatars Alternative?">
+      Gradient creator, border ring, shadow, glass effect, emoji mode, font weight control, 4K download, PNG vs SVG, free API, randomize colors, perfect for discord avatar maker, profile picture generator, initial avatar.
+    </Section>
           <div className="border border-zinc-800 rounded-xl overflow-hidden">
             <button onClick={()=>setOpenSection(openSection==='faq'?'': 'faq')} className="w-full flex justify-between p-4 font-bold bg-zinc-900">FAQ - 5 Questions (Show/Hide)</button>
             {openSection==='faq' && <div className="p-2 space-y-2">
