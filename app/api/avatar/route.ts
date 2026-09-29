@@ -15,10 +15,8 @@ export async function GET(req: Request) {
   const shape = searchParams.get('shape') || 'circle';
   const angle = searchParams.get('angle') || '135';
 
-  let initials = text;
-  if(!emojiMode){
-    initials = text.split(' ').map((w:any)=>w[0]).join('').toUpperCase().slice(0,2);
-  }
+  let initials = text.trim().split(' ').map((w:any)=>w[0]).join('').substring(0,2).toUpperCase();
+if(!initials) initials = 'LP';
 
   const pad = shadow? 40 : border + 6;
   const total = size + pad*2;
