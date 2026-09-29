@@ -40,7 +40,7 @@ export default function AvatarPage(){
         <p className="text-center text-zinc-400 mt-3 max-w-2xl mx-auto">Create ultra pro mesh gradient letter avatars for Discord, GitHub, Gmail. No signup, HD download.</p>
 
         <div className="grid lg:grid-cols-2 gap-6 mt-8 items-start">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-[32px] p-4 sticky top-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-[32px] p-4">
             <div className={`bg-black rounded-[28px] flex flex-col items-center justify-center p-8 min-h-[420px] relative overflow-hidden ${shadow?'shadow-[0_25px_80px_rgba(109,40,217,0.4)]':''}`}>
               {glass && <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-white/20 to-transparent rounded-t-[28px] pointer-events-none z-10"/>}
               <img src={avatarUrl} alt="avatar" className="relative z-0" style={{width:Math.min(size,320), height:Math.min(size,320), borderRadius: shape==='circle'?'50%': shape==='squircle'?'26%': shape==='rounded'?'28px':'0', filter: shadow?'drop-shadow(0 20px 30px rgba(0,0,0,0.6))':'none'}}/>
