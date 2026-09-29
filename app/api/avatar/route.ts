@@ -14,7 +14,6 @@ export async function GET(req: NextRequest){
 
   const chars = Array.from(raw.trim())
   const firstChar = chars[0] || 'R'
-  // Simple emoji check - build error fix
   const isEmoji = (firstChar.codePointAt(0) || 0) > 1000 && chars.length < 5
   const text = isEmoji? firstChar : raw.trim().slice(0,2).toUpperCase() || 'R'
 
@@ -42,5 +41,10 @@ export async function GET(req: NextRequest){
 
   const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${hasShadow?`<rect width="${size}" height="${size}" rx="${rx}" fill="#000" opacity="0.01" filter="url(#sh)"/>`:''}<g clip-path="url(#c)"><rect width="${size}" height="${size}" fill="#${bg}"/>${extra}${glassPart}<text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="${size*0.38}" fill="#${color}">${text}</text></g></svg>`
 
-  'Cache-Control':'public, max-age=31536000, immutable'}}) 
+  return new Response(svg, {
+    headers: {
+      'Content-Type': 'image/svg+xml',
+      'Cache-Control': 'public, max-age=31536000, immutable'
+    }
+  })
 }
