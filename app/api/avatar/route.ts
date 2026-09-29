@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const name = (searchParams.get('name') || 'RP').trim()
+  const rawName = (searchParams.get('name') || 'RP').trim()
   const size = parseInt(searchParams.get('size') || '320')
   const bg = (searchParams.get('bg') || '6d28d9').replace('#','')
   const color = (searchParams.get('color') || 'ffffff').replace('#','')
@@ -11,21 +11,21 @@ export async function GET(req: NextRequest) {
   const shadow = searchParams.get('shadow') || '0'
   const glass = searchParams.get('glass') || '0'
 
-  // FINAL EMOJI FIX - Agar single emoji hai to T nahi, emoji hi dikhao
-  const emojiRegex = /\p{Emoji}/u
-  const isOnlyEmoji = emojiRegex.test(name) && name.length <= 4
+  // FIXED EMOJI DETECTION - No \p{Emoji} regex, so no TS error
+  // Agar name me sirf emoji ya non-english chars hai aur length choti hai to emoji samjho
+  const isOnlyEmoji = rawName.length <= 4 && /[^a-zA-Z0-9\s]/.test(rawName)
   let initials = ''
   if (isOnlyEmoji) {
-    initials = name // 🔥 directly
+    initials = rawName
   } else {
-    const words = name.split(/\s+/).filter(Boolean)
+    const words = rawName.split(/\s+/).filter(Boolean)
     initials = words.map(w=>w[0]).join('').slice(0,2).toUpperCase() || 'RP'
   }
 
   const clip = shape === 'circle'
-  ? `<circle cx="${size/2}" cy="${size/2}" r="${size/2}"/>`
+ ? `<circle cx="${size/2}" cy="${size/2}" r="${size/2}"/>`
    : shape === 'squircle'
-  ? `<path d="M ${size*0.12} 0 C 0 0 0 0 0 ${size*0.12} L 0 ${size*0.88} C 0 ${size} 0 ${size} ${size*0.12} ${size} L ${size*0.88} ${size} C ${size} ${size} ${size} ${size} ${size} ${size*0.88} L ${size} ${size*0.12} C ${size} 0 ${size} 0 ${size*0.88} 0 Z"/>`
+ ? `<path d="M ${size*0.12} 0 C 0 0 0 0 0 ${size*0.12} L 0 ${size*0.88} C 0 ${size} 0 ${size} ${size*0.12} ${size} L ${size*0.88} ${size} C ${size} ${size} ${size} ${size} ${size} ${size*0.88} L ${size} ${size*0.12} C ${size} 0 ${size} 0 ${size*0.88} 0 Z"/>`
     : `<rect width="${size}" height="${size}" rx="${shape==='rounded'?size*0.24:0}"/>`
 
   const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
