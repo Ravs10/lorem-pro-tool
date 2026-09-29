@@ -29,16 +29,15 @@ export default function AvatarPage(){
     const blob=new Blob([svgText],{type:'image/svg+xml'});
     const url=URL.createObjectURL(blob)
     const img=new Image();
-    // Important for no white border
     img.crossOrigin = "anonymous";
     img.onload=()=>{
       const c=canvasRef.current!;
-      c.width=size;
-      c.height=size
+      const pad = shadow? 60 : 0; // Shadow ke liye extra space
+      c.width=size+pad*2;
+      c.height=size+pad*2
       const ctx=c.getContext('2d')!;
-      ctx.clearRect(0,0,size,size)
-      // draw without any padding/border
-      ctx.drawImage(img,0,0,size,size)
+      ctx.clearRect(0,0,c.width,c.height)
+      ctx.drawImage(img,pad,pad,size,size)
       const a=document.createElement('a');
       a.download=`avatar-${Date.now()}.${format}`
       a.href=c.toDataURL(format==='jpeg'?'image/jpeg': format==='webp'?'image/webp':'image/png', 0.92);
