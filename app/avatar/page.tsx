@@ -48,8 +48,8 @@ export default function AvatarTool() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto p-3 md:p-4">
-        <h1 className="text-3xl font-black mt-4">Avatar Generator Ultra</h1>
-        <p className="text-zinc-500 text-sm mb-4">Letter Avatar • Gradient Avatar • Discord Avatar • Profile Picture Maker</p>
+        <h1 className="text-3xl font-black mb-2">Free Avatar Generator - Letter & Gradient Avatar Maker</h1>
+<p className="text-zinc-500 text-sm mb-6">Best free UI Avatars alternative. Create letter avatar, gradient avatar, discord avatar, github avatar, profile picture, initial avatar in PNG, SVG, 4K. No signup.</p>
 
         <div className="grid lg:grid-cols-2 gap-4">
           <div className="bg-zinc-900 border border-zinc-800 p-4 rounded-2xl space-y-3">
