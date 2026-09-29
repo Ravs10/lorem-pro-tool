@@ -37,6 +37,19 @@ export default function AvatarTool() {
       const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = `avatar-${name}.png`; a.click();
     }; img.src = url;
   }
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'My Avatar - LoremProTool', text: 'Check my avatar', url: avatarUrl })
+      } else {
+        await navigator.clipboard.writeText(avatarUrl)
+        alert('Link Copied! 🔗')
+      }
+    } catch(e) {
+      await navigator.clipboard.writeText(avatarUrl)
+      alert('Link Copied! 🔗')
+    }
+  }
 
   const Section = ({id,title,children}:{id:string,title:string,children:any}) => (
     <div className="border border-zinc-800 rounded-xl overflow-hidden">
@@ -75,6 +88,7 @@ export default function AvatarTool() {
             <div className="flex gap-2">
               <button onClick={randomize} className="flex-1 bg-zinc-800 py-3 rounded-xl text-sm">🎲 Random</button>
               <button onClick={downloadPNG} className="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm">Download PNG</button>
+               <button onClick={handleShare} className="bg-white text-black px-4 py-2 rounded-full font-bold">🔗 Share</button>
             </div>
             <div className="bg-black p-2.5 rounded text-[10px] break-all text-zinc-500">{fullUrl}</div>
           </div>
