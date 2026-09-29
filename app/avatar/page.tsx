@@ -8,8 +8,8 @@ export default function AvatarTool() {
   const [size, setSize] = useState(200);
   const [shadow, setShadow] = useState(false);
 
-  const c1 = bg1.replace('#','');
-  const c2 = bg2.replace('#','');
+  const [bg1, setBg1] = useState("6366f1");
+const [bg2, setBg2] = useState("a855f7");
   const avatarUrl = `/api/avatar?size=${size}&text=${encodeURIComponent(name)}&bg1=${c1}&bg2=${c2}${shadow? '&shadow=1' : ''}`;
   const fullUrl = typeof window !== 'undefined' ? window.location.origin + avatarUrl : avatarUrl;
 
