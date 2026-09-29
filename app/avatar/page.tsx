@@ -12,11 +12,14 @@ export default function AvatarPage(){
   const [glass,setGlass]=useState(false)
   const [emoji,setEmoji]=useState('🔥')
   const [useEmoji,setUseEmoji]=useState(false)
+  const [font,setFont]=useState('Inter')
   const canvasRef=useRef<HTMLCanvasElement>(null)
 
-  const bgHex=bg.replace('#',''); const txtHex=txt.replace('#','')
+    const bgHex=bg.replace('#',''); const txtHex=txt.replace('#','')
+  const proColors=['6d28d9','0ea5e9','10b981','f59e0b','ef4444','ec4899','8b5cf6','06b6d4']
+  const randomBg=()=> setBg(proColors[Math.floor(Math.random()*proColors.length)])
   const displayName = useEmoji && emoji? emoji : name
-  const avatarUrl=useMemo(()=>`/api/avatar?name=${encodeURIComponent(displayName)}&size=${size}&bg=${bgHex}&color=${txtHex}&shape=${shape}&pattern=${pattern}&shadow=${shadow?1:0}&glass=${glass?1:0}`,[displayName,bgHex,txtHex,size,shape,pattern,shadow,glass])
+  const avatarUrl = `/api/avatar?name=${encodeURIComponent(displayName)}&size=${size}&bg=${bgHex}&color=${txtHex}&shape=${shape}&pattern=${pattern}&shadow=${shadow?1:0}&glass=${glass?1:0}&font=${font}`
 
     const download = async (format:'png'|'svg'|'webp'|'jpeg')=>{
     const r=await fetch(avatarUrl);
