@@ -42,5 +42,5 @@ export async function GET(req: NextRequest){
 
   const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><defs>${defs}</defs>${hasShadow?`<rect width="${size}" height="${size}" rx="${rx}" fill="#000" opacity="0.01" filter="url(#sh)"/>`:''}<g clip-path="url(#c)"><rect width="${size}" height="${size}" fill="#${bg}"/>${extra}${glassPart}<text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800" font-size="${size*0.38}" fill="#${color}">${text}</text></g></svg>`
 
-  return new Response(svg,{headers:{'Content-Type':'image/svg+xml','Cache-Control':'no-store'}})
+  'Cache-Control':'public, max-age=31536000, immutable'}}) 
 }
