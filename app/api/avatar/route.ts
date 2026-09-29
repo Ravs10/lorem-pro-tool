@@ -37,7 +37,7 @@ export async function GET(req: NextRequest){
   }
 
   if(hasShadow){
-    defs+=`<filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.55"/></filter>`
+    defs+=`<filter id="sh" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.55"/></filter>`
   }
 
   // Glass - wo white design top pe - ye sahi design hai
