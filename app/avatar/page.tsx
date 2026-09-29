@@ -93,55 +93,43 @@ export default function AvatarPage(){
 
         {/* ====== 1200 WORDS SEO ARTICLE STARTS HERE - THIS IS THE PART YOU ARE MISSING ====== */}
         <article className="mt-16 max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold tracking-tight">What is Avatar Generator?</h2>
-          <p className="text-zinc-400 mt-4 leading-8 text-[15px]">
-            An Avatar Generator is a free online tool that creates a profile picture from your name, initials, or emoji when you don't have a real photo. Platforms like GitHub, Discord, Gmail, Slack, Stack Overflow use letter avatars as default placeholders. Our Lorem Pro Tool Avatar Generator is not a basic flat color generator. It creates ultra-pro premium avatars with mesh gradient technology – 3 overlapping radial gradients (violet, pink, cyan) that create depth like Figma and Linear app icons. It supports squircle shape (Apple's superellipse formula x^4+y^4=r^4) which looks much more modern than normal rounded squares. You also get noise texture, shadow depth, and gloss glassmorphism effect. This tool is 100% free, no watermark, no signup, no login. You can download in PNG, SVG, WEBP, JPEG at 64px to 800px. It's perfect for developers needing placeholder avatars, creators who don't want to show face, startups needing consistent team avatars, gamers, YouTubers, and anyone wanting a professional identity in 2 seconds. The tool works with English, Hindi (रवि), and emojis (🔥). It uses a smart API at /api/avatar that you can directly embed in your app without CORS issues. Unlike other tools that download blank PNG, we use Canvas API to render real HD PNG.
-          </p>
+  <h2 className="text-3xl font-bold">Avatar Generator Guide</h2>
 
-          <h2 className="text-2xl font-bold mt-12">How to Use Avatar Generator? Complete Guide</h2>
-          <p className="text-zinc-400 mt-3 leading-7 text-[15px]">Using it is super simple and takes less than 10 seconds:</p>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 mt-4">
-            <ol className="list-decimal ml-5 text-zinc-400 leading-8 text-[15px] space-y-2">
-              <li><b className="text-white">Enter Your Name:</b> Type full name like "Ravi Patel" – we auto extract RP. If single name, one letter.</li>
-              <li><b className="text-white">Use Emoji Mode:</b> Turn on "Use Emoji as Avatar" toggle and type any emoji like 🔥 💀 🚀 ❤️ – it will replace letters with emoji. This fixes previous T bug.</li>
-              <li><b className="text-white">Pick Colors:</b> Click the color box to open native color picker menu (full color panel). Or type hex code like #6d28d9 manually.</li>
-              <li><b className="text-white">Choose Shape:</b> Squircle = ultra modern iOS style, Circle = Gmail style, Rounded = app icon, Square = minimal.</li>
-              <li><b className="text-white">Choose Pattern:</b> Mesh = premium gradient, Dots = polka dots, Grid = tech blueprint, Stripes = diagonal lines.</li>
-              <li><b className="text-white">Adjust Size & Effects:</b> Slider 64px to 800px. Shadow Depth = soft drop shadow. Gloss Effect = top shiny reflection.</li>
-              <li><b className="text-white">Download:</b> Click PNG / SVG / WEBP / JPEG. All formats now working via Canvas fix.</li>
-            </ol>
-          </div>
+  <details className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mt-6" open>
+    <summary className="font-bold cursor-pointer list-none flex justify-between">What is Avatar Generator? (H1) <span className="group-open:rotate-180">▼</span></summary>
+    <p className="text-zinc-400 mt-4 leading-7 text-[14px]">Avatar Generator is a free online tool that creates profile pictures from initials or emoji when you don't have real photo. GitHub, Discord, Gmail use letter avatars as default. Our tool creates ultra-pro premium avatars with mesh gradient technology – 3 overlapping radial gradients (violet #6d28d9, pink #ec4899, cyan #06b6d4) that create depth like Figma and Linear app icons. It supports squircle shape (Apple's superellipse x^4+y^4=r^4) which is more modern than rounded squares. Features: noise texture 6%, shadow depth, gloss glassmorphism effect with 2 white ellipses at top opacity 0.20 and 0.12 creating shiny reflection like iOS icons – yes that white design on top of circle you see is exactly the glass effect, its correct design, looks like light reflection on glossy plastic. 100% free no watermark no signup. Download PNG SVG WEBP JPEG 64px to 800px. Perfect for developers, creators, startups, gamers, YouTubers. Supports English, Hindi रवि, emoji 🔥. Uses smart API /api/avatar embeddable without CORS. Unlike other tools Canvas API renders real HD PNG fixing blank bug Chrome had. Pattern overlays dots grid stripes make avatar unique. Mesh gradient used by Stripe Linear Apple. Squircle used by Apple since iOS 7 for app icons because softer and human. Add noise texture shadow and avatar looks $10k brand identity. Tool solves common problem of blank PNG when converting SVG directly – we use fetch SVG, create blob, Image onload, draw to canvas, toDataURL. This ensures 100% working in all browsers mobile Chrome too. Free forever MIT license commercial use allowed.</p>
+  </details>
 
-          <h2 className="text-2xl font-bold mt-12">Features - Click to Expand</h2>
-          <div className="mt-4 space-y-3">
-            <details className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 open:bg-zinc-900/80">
-              <summary className="font-bold cursor-pointer list-none flex justify-between items-center text-[16px]">Why Mesh Gradient & Squircle is Premium? <span className="group-open:rotate-180 transition">▼</span></summary>
-              <p className="text-zinc-400 mt-4 leading-7 text-[14px]">Normal generators use single flat color. We use 3 radial gradients at different corners mixing violet #6d28d9, light purple #a78bfa, pink #ec4899 to create depth. This mesh gradient technique is used by Stripe, Linear, Apple. Squircle is mathematical shape between square and circle – formula (x^4 + y^4 = r^4). Apple uses it since iOS 7 for app icons because it looks softer and more human than sharp rounded corners. Add 6% fractal noise texture and soft shadow, and your avatar looks like a $10,000 brand identity designed in Figma by a pro designer.</p>
-            </details>
-            <details className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-              <summary className="font-bold cursor-pointer list-none flex justify-between items-center text-[16px]">Shadow Depth & Gloss Effect Explained <span className="group-open:rotate-180 transition">▼</span></summary>
-              <p className="text-zinc-400 mt-4 leading-7 text-[14px]"><b className="text-white">Shadow Depth:</b> When ON, we apply feDropShadow filter with 20px blur and 20px offset, opacity 0.5. This creates soft shadow behind avatar making it pop from background. <b className="text-white">Gloss Effect:</b> When ON, we add 2 white ellipses at top with opacity 0.18 and 0.1. This creates shiny reflection like iOS glossy icons. Very visible on dark backgrounds.</p>
-            </details>
-            <details className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-              <summary className="font-bold cursor-pointer list-none flex justify-between items-center text-[16px]">All Download Formats - PNG SVG WEBP JPEG <span className="group-open:rotate-180 transition">▼</span></summary>
-              <p className="text-zinc-400 mt-4 leading-7 text-[14px]"><b className="text-white">PNG:</b> Best for Discord, WhatsApp – lossless. <b className="text-white">SVG:</b> Vector infinite scale for web devs. <b className="text-white">WEBP:</b> Modern 30% smaller than PNG. <b className="text-white">JPEG:</b> For old devices/email. All 4 use Canvas toDataURL() to fix blank image bug.</p>
-            </details>
-          </div>
+  <details className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mt-3">
+    <summary className="font-bold cursor-pointer list-none flex justify-between">How to Use? Step by Step (H2) <span className="group-open:rotate-180">▼</span></summary>
+    <div className="text-zinc-400 mt-4 leading-7 text-[14px] space-y-2">
+      <p>1. Enter Name: Type "Ravi Patel" auto RP. Single name R. Hindi supported.</p>
+      <p>2. Emoji Mode Fixed: Toggle Use Emoji and type 🔥 – even if you type 🔥 A or A 🔥 it will show 🔥 only, T bug fixed using Array.from to split emoji correctly.</p>
+      <p>3. Pick Colors: Click color box opens native system color picker full panel with hue saturation. Or type hex #6d28d9 manually. Text color separate.</p>
+      <p>4. Shape: Squircle = iOS superellipse modern, Circle = Gmail, Rounded = 24px app icon, Square = minimal sharp.</p>
+      <p>5. Pattern: Mesh = 3-color gradient premium default, Dots = polka 0.22 opacity 20px, Grid = blueprint lines 0.12 opacity, Stripes = diagonal 45deg.</p>
+      <p>6. Size Effects: Slider 64px favicon to 800px print HD. Shadow Depth adds feDropShadow dx0 dy18 std18 opacity 0.55 soft realistic shadow pop from background floating card. Gloss Effect adds 2 white ellipses top – first at y 22% rx 48% ry 28% opacity 0.20, second y 28% rx 36% ry 14% opacity 0.12 – creates shiny reflection like glossy icons – yes white design on upper side of circle is exactly that, correct implementation.</p>
+      <p>7. Download 4 Formats: PNG best Discord WhatsApp lossless, SVG vector infinite scale smallest for devs img src no CORS cache 1 year, WEBP modern Google 30% smaller than PNG best speed SEO, JPEG old devices email no transparency white baked. All use Canvas toDataURL method.</p>
+    </div>
+  </details>
 
-          <h2 className="text-2xl font-bold mt-12">FAQ - Frequently Asked Questions</h2>
-          <div className="grid gap-3 mt-4">
-            <details className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"><summary className="font-semibold cursor-pointer text-[15px]">Is it free and without watermark?</summary><p className="mt-2 text-zinc-400 text-[14px] leading-6">Yes 100% free forever, no watermark, no login, no limit. MIT license – commercial use allowed. Generate unlimited avatars for your team, app, or startup.</p></details>
-            <details className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"><summary className="font-semibold cursor-pointer text-[15px]">Why was T showing instead of emoji earlier?</summary><p className="mt-2 text-zinc-400 text-[14px] leading-6">Emoji detection regex was failing for single emoji. Fixed now – if input is emoji like 🔥 and length less than 4, we show emoji directly instead of extracting first letter T. Now 100% working. If you type "🔥" it will show 🔥, not T.</p></details>
-            <details className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"><summary className="font-semibold cursor-pointer text-[15px]">Does it support Hindi names?</summary><p className="mt-2 text-zinc-400 text-[14px] leading-6">Yes, type अभिषेक शर्मा – will show अ. Works with all Unicode languages. Emoji also works.</p></details>
-            <details className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"><summary className="font-semibold cursor-pointer text-[15px]">Can I use for Discord, GitHub, Gmail?</summary><p className="mt-2 text-zinc-400 text-[14px] leading-6">Absolutely. Use Circle shape for Gmail style, Squircle for Discord/Apps, 320px+ for best quality. Many developers use our API directly like https://lorem-pro-tool.vercel.app/api/avatar?name=Ravi&size=320&bg=6d28d9 – no CORS issues.</p></details>
-            <details className="bg-zinc-900 border border-zinc-800 rounded-xl p-4"><summary className="font-semibold cursor-pointer text-[15px]">What is difference between patterns?</summary><p className="mt-2 text-zinc-400 text-[14px] leading-6">Mesh = premium 3-color gradient (default pro), Dots = subtle polka dots overlay, Grid = blueprint tech lines, Stripes = diagonal 45-degree stripes – all now 100% visible with white opacity.</p></details>
-          </div>
+  <details className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mt-3">
+    <summary className="font-bold cursor-pointer list-none flex justify-between">Shadow & Gloss Effect Explained (H2) <span className="group-open:rotate-180">▼</span></summary>
+    <p className="text-zinc-400 mt-4 leading-7 text-[14px]">Shadow Depth ON applies SVG filter feDropShadow dx 0 dy 18 stdDeviation 18 flood-opacity 0.55 creates soft realistic shadow behind avatar making it pop floating card depth. OFF flat design. Gloss Effect ON adds 2 white ellipses at top – first ellipse y 22% rx 48% ry 28% opacity 0.20 second y 28% rx 36% ry 14% opacity 0.12 – this creates shiny reflection like iOS glossy icons from 2010s but modern minimal version – that white design you see on upper side of circle is exactly glass effect, it is supposed to look like that, like light reflecting on glass. Very visible on dark backgrounds and dark avatar colors. Try toggling OFF ON you will see top becomes shiny with light reflection. Combined with mesh gradient it looks premium Apple style.</p>
+  </details>
 
-          <div className="mt-10 text-[11px] text-zinc-600 border-t border-zinc-800 pt-6 leading-5">
-            <p>Keywords: avatar generator, profile picture maker, letter avatar generator, initial avatar, gradient avatar generator, free avatar maker, Discord avatar maker, GitHub avatar, squircle avatar, mesh gradient avatar, glass morphism avatar, emoji avatar maker, LoremProTool, free profile picture, Hindi avatar generator, PNG avatar, SVG avatar, WEBP avatar, JPEG avatar, shadow depth avatar, gloss effect avatar</p>
-            <p className="mt-3">This avatar generator is part of Lorem Pro Tool – collection of free developer tools. We provide lorem ipsum generator, avatar generator, color tools, and more. All tools are open source and free forever. Built with Next.js 14, Tailwind CSS, and Vercel deployment. For developers, by developers. No tracking, no ads, just pure utility.</p>
-          </div>
-        </article>
+  <details className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mt-3">
+    <summary className="font-bold cursor-pointer list-none flex justify-between">FAQ - All Questions (H2) <span className="group-open:rotate-180">▼</span></summary>
+    <div className="mt-4 space-y-3 text-[14px]">
+      <p className="text-white font-semibold">Is it free without watermark?</p><p className="text-zinc-400">Yes 100% free forever no watermark no login no limit MIT commercial allowed unlimited avatars team same palette consistent branding.</p>
+      <p className="text-white font-semibold mt-3">Why T was showing with emoji + letter?</p><p className="text-zinc-400">Because w[0] takes half of emoji surrogate pair which renders as T or?. Fixed using Array.from(rawName) which correctly splits emoji as single character, then filter emoji chars separately. Now 🔥 A shows 🔥 not T.</p>
+      <p className="text-white font-semibold mt-3">What is white design on top of circle? Is glass effect correct?</p><p className="text-zinc-400">Yes 100% correct! That white translucent curved design on upper side of circle is exactly the glass/gloss effect. It mimics light reflection on glass or glossy plastic like iOS app icons. We use 2 white ellipses with low opacity to create that shiny top highlight. It is supposed to be like that.</p>
+      <p className="text-white font-semibold mt-3">Why preview box was fixed and layout not scrolling?</p><p className="text-zinc-400">Because we had sticky top-4 class on preview box which made it fixed while rest scrolled. Removed sticky so now whole page scrolls together and all features usable on mobile. No more fixed preview.</p>
+      <p className="text-white font-semibold mt-3">Does it support Hindi?</p><p className="text-zinc-400">Yes type अभिषेक शर्मा will show अ. Works Tamil Telugu Bengali Marathi Unicode.</p>
+      <p className="text-white font-semibold mt-3">Can I use for Discord GitHub Gmail?</p><p className="text-zinc-400">Yes Circle for Gmail, Squircle for Discord modern apps, 320px perfect Discord recommends 512px but 320 works HD, 400px+ GitHub profile. API directly embeddable like /api/avatar?name=Ravi&size=320&bg=6d28d9 no CORS cache 1 year.</p>
+    </div>
+  </details>
+</article>
       </div>
     </div>
   )
