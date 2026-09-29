@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, { params }: { params: { size: string
     const buffer = await sharp(Buffer.from(svg)).toFormat(format as any).toBuffer();
     const contentType = format === 'jpg'? 'image/jpeg' : format === 'webp'? 'image/webp' : 'image/png';
 
-    return new Response(buffer, { headers: { 'Content-Type': contentType, 'Cache-Control': 'public, max-age=31536000' } });
+    return new Response(new Uint8Array(buffer), { headers: { "Content-Type": contentType } });
 
   } catch (e) {
     return new Response('Error generating image', { status: 500 });
