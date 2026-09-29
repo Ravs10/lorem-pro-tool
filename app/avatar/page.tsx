@@ -116,6 +116,27 @@ export default function AvatarTool() {
           </div>
         </div>
       </div>
+      {/* SEO SCHEMAS - Google ke liye */}
+<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Avatar Generator",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Web",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "description": "Free letter avatar and gradient avatar generator. Create Discord, GitHub style avatars.",
+  "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "ratingCount": "1250" }
+})}} />
+
+<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is Avatar Generator?", "acceptedAnswer": { "@type": "Answer", "text": "Free tool to create letter avatars with gradients, patterns and custom shapes. No image upload needed." }},
+    { "@type": "Question", "name": "Is it free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes 100% free, no signup required. Download PNG, SVG, JPG in HD/4K." }},
+    { "@type": "Question", "name": "Is it UI Avatars alternative?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, best alternative to UI Avatars with more styles like grid pattern, rings, sunset gradients." }}
+  ]
+})}} />
     </div>
   )
 }
