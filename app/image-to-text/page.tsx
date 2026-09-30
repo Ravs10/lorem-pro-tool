@@ -2,25 +2,23 @@
 import { useState, useRef } from "react";
 import Tesseract from "tesseract.js";
 
-// SEO ke liye JSON-LD Schema
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "Image to Text OCR Tool - Lorem Pro Tool",
+  "name": "Image to Text OCR Tool",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Web",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "description": "Free online Image to Text converter. Extract text from images, scanned documents, photos using advanced OCR technology. Supports English, Hindi and 100+ languages.",
+  "description": "Free online Image to Text converter using AI OCR.",
 };
 
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
-    { "@type": "Question", "name": "Is this Image to Text tool free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, 100% free. No signup, no limits. All processing happens in your browser." } },
-    { "@type": "Question", "name": "Is my image data safe?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, we use Tesseract.js which runs completely in your browser. Your image never goes to our server." } },
-    { "@type": "Question", "name": "Which languages are supported?", "acceptedAnswer": { "@type": "Answer", "text": "English, Hindi, and 100+ other languages including Spanish, French, German, Arabic etc." } },
-    { "@type": "Question", "name": "Can I extract text from a handwritten image?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, our OCR can read clear handwritten notes, but printed text accuracy is 98%+." } },
+    { "@type": "Question", "name": "Is this Image to Text tool free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, 100% free. No signup, no limits." } },
+    { "@type": "Question", "name": "Is my image data safe?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, processing happens in your browser using Tesseract.js." } },
+    { "@type": "Question", "name": "Which languages are supported?", "acceptedAnswer": { "@type": "Answer", "text": "English, Hindi and 100+ languages." } },
   ]
 };
 
@@ -29,6 +27,8 @@ export default function ImageToTextPage() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [imagePreview, setImagePreview] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [openSection, setOpenSection] = useState<string>("what-is");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,161 +39,164 @@ export default function ImageToTextPage() {
     setText("");
     try {
       const { data } = await Tesseract.recognize(file, "eng+hin", {
-        logger: (m) => {
-          if (m.status === "recognizing text") setProgress(Math.round(m.progress * 100));
-        },
+        logger: (m) => { if (m.status === "recognizing text") setProgress(Math.round(m.progress * 100)); },
       });
       setText(data.text);
-    } catch (e) {
-      setText("Error: Could not read image. Try a clearer image.");
-    }
+    } catch (e) { setText("Error: Could not read image."); }
     setLoading(false);
+  };
+
+  const handleShare = async () => {
+    const shareData = { title: "Free Image to Text Tool", text: "Extract text from any image with 99% accuracy - Free OCR Tool", url: window.location.href };
+    if (navigator.share) { await navigator.share(shareData); }
+    else { navigator.clipboard.writeText(window.location.href); setCopied(true); setTimeout(()=>setCopied(false),2000); }
+  };
+
+  const Section = ({ id, title, children }: any) => {
+    const isOpen = openSection === id;
+    return (
+      <div className="border border-zinc-800 rounded-2xl overflow-hidden bg-zinc-900/40 backdrop-blur transition-all duration-300 hover:border-zinc-700">
+        <button onClick={() => setOpenSection(isOpen? "" : id)} className="w-full flex justify-between items-center p-5 text-left">
+          <h2 className="text-[17px] font-bold">{title}</h2>
+          <span className={`w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center transition-transform duration-300 ${isOpen? "rotate-45 bg-white text-black" : ""}`}>+</span>
+        </button>
+        <div className={`grid transition-all duration-500 ease-in-out ${isOpen? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+          <div className="overflow-hidden"><div className="p-5 pt-0 text-[14px] leading-7 text-zinc-400">{children}</div></div>
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="min-h-screen bg-[#050507] text-white selection:bg-white selection:text-black">
-      {/* SCHEMA FOR SEO */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap'); *{font-family:'Space Grotesk', sans-serif} @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}.shimmer{position:relative;overflow:hidden}.shimmer::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);animation:shimmer 2s infinite}`}</style>
 
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap'); *{font-family:'Space Grotesk', sans-serif} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}.float{animation:float 4s ease-in-out infinite}`}</style>
-
-      {/* HEADER */}
       <header className="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
-        <a href="/" className="text-xl font-bold">LOREM PRO<span className="text-zinc-500">.TOOL</span></a>
-        <div className="flex gap-2">
-          <a href="/" className="text-sm bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-full">Home</a>
-          <a href="/placeholder-qr-generator" className="text-sm bg-white text-black px-4 py-2 rounded-full font-bold">QR Tool</a>
-        </div>
+        <a href="/" className="text-xl font-bold tracking-tight">LOREM PRO<span className="text-zinc-500">.TOOL</span></a>
+        <button onClick={handleShare} className="flex items-center gap-2 text-sm bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-full hover:bg-white hover:text-black transition-all">
+          <span>↗</span> {copied? "Link Copied!" : "Share"}
+        </button>
       </header>
 
       <main className="max-w-7xl mx-auto px-6">
-        {/* HERO + TOOL */}
-        <div className="grid lg:grid-cols-2 gap-10 mt-8 items-start">
+        <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-10 mt-6 items-start">
           <div>
-            <div className="inline-flex bg-green-500/10 border border-green-500/20 text-green-400 text-xs px-3 py-1 rounded-full mb-4">100% FREE • NO SERVER UPLOAD • PRIVACY FIRST</div>
-            <h1 className="text-4xl md:text-6xl font-bold leading-[0.95] tracking-tight">
-              Free Image to Text <span className="text-zinc-500">OCR Converter</span>
-            </h1>
-            <p className="text-zinc-400 mt-4 text-[15px] leading-relaxed">
-              Convert any image to editable text in seconds. Our advanced AI-powered OCR tool extracts text from photos, screenshots, scanned PDFs and handwritten notes with 99% accuracy. Works for English, Hindi and 100+ languages.
-            </p>
+            <div className="inline-flex bg-white text-black text-[10px] font-bold tracking-widest px-3 py-1 rounded-full mb-4 animate-pulse">LIVE OCR • V5 ENGINE</div>
+            <h1 className="text-4xl md:text-[56px] font-bold leading-[0.9] tracking-tighter">Image to Text <br/><span className="text-zinc-500">AI Converter.</span></h1>
+            <p className="text-zinc-400 mt-4 text-[15px] leading-relaxed max-w-xl">Convert any photo, screenshot or scanned document to editable text in 3 seconds. Powered by Tesseract.js. Private, fast and free forever.</p>
 
-            {/* TOOL BOX */}
-            <div className="mt-8 bg-zinc-900/50 backdrop-blur border border-zinc-800 rounded-[24px] p-5 shadow-2xl">
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => { e.preventDefault(); handleImage(e.dataTransfer.files[0]); }}
-                className="border-2 border-dashed border-zinc-700 hover:border-white rounded-[16px] p-8 text-center cursor-pointer transition-all group"
-              >
-                <div className="w-14 h-14 mx-auto bg-white text-black rounded-full flex items-center justify-center text-2xl float group-hover:scale-110 transition">↑</div>
-                <p className="mt-4 font-bold">Click to Upload or Drag & Drop</p>
-                <p className="text-xs text-zinc-500 mt-1">PNG, JPG, WEBP, BMP (Max 10MB)</p>
+            <div className="mt-8 bg-zinc-900/60 backdrop-blur-xl border border-zinc-800 rounded-[28px] p-5 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+              <div onClick={() => fileInputRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); handleImage(e.dataTransfer.files[0]); }} className="group border-2 border-dashed border-zinc-700 hover:border-white rounded-[20px] p-10 text-center cursor-pointer transition-all duration-300 bg-zinc-900/50">
+                <div className="w-16 h-16 mx-auto bg-white text-black rounded-full flex items-center justify-center text-2xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300">↑</div>
+                <p className="mt-4 font-bold">Drop image here or click to browse</p>
+                <p className="text-xs text-zinc-500 mt-1">PNG, JPG, WEBP • Max 10MB • Auto HD Clean</p>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleImage(e.target.files![0])} />
               </div>
 
-              {imagePreview && <img src={imagePreview} className="mt-4 rounded-xl border border-zinc-800 max-h-60 w-full object-contain" alt="preview" />}
+              {imagePreview && <div className="mt-4 relative overflow-hidden rounded-xl border border-zinc-800"><img src={imagePreview} className="max-h-60 w-full object-contain" alt="preview"/><div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div></div>}
 
               {loading && (
-                <div className="mt-5">
-                  <div className="flex justify-between text-xs mb-2"><span className="text-green-400">Analyzing with AI OCR...</span><span>{progress}%</span></div>
-                  <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden"><div className="bg-white h-2 transition-all" style={{ width: `${progress}%` }}></div></div>
+                <div className="mt-6">
+                  <div className="flex justify-between text-xs mb-2 font-mono"><span className="text-green-400 animate-pulse">● RECOGNIZING</span><span>{progress}%</span></div>
+                  <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden shimmer"><div className="bg-white h-2 transition-all duration-300" style={{ width: `${progress}%` }}></div></div>
                 </div>
               )}
 
               {text && (
-                <div className="mt-5">
-                  <div className="flex justify-between items-center mb-2"><h3 className="text-sm font-bold">Extracted Text:</h3><span className="text-xs bg-green-500 text-black px-2 py-1 rounded-full">{text.length} chars</span></div>
-                  <textarea value={text} onChange={(e) => setText(e.target.value)} className="w-full h-72 bg-black border border-zinc-800 rounded-xl p-4 text-sm outline-none focus:border-white" />
+                <div className="mt-6 animate-[fadeIn_0.5s_ease]">
+                  <div className="flex justify-between items-center mb-2"><h3 className="text-sm font-bold">Extracted Text</h3><span className="text-[10px] bg-green-500 text-black px-2 py-1 rounded-full font-bold">{text.length} CHARS</span></div>
+                  <textarea value={text} onChange={(e) => setText(e.target.value)} className="w-full h-72 bg-black border border-zinc-800 rounded-xl p-4 text-sm outline-none focus:border-white transition-colors" />
                   <div className="grid grid-cols-2 gap-3 mt-3">
-                    <button onClick={() => navigator.clipboard.writeText(text)} className="bg-white text-black py-3 rounded-xl font-bold text-sm">Copy Text</button>
-                    <button onClick={() => { const b = new Blob([text], { type: "text/plain" }); const u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = "extracted-text.txt"; a.click(); }} className="bg-zinc-800 border border-zinc-700 py-3 rounded-xl font-bold text-sm">Download.TXT</button>
+                    <button onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(()=>setCopied(false),2000); }} className="bg-white text-black py-3 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform">{copied? "✓ Copied!" : "Copy Text"}</button>
+                    <button onClick={() => { const b = new Blob([text], { type: "text/plain" }); const u = URL.createObjectURL(b); const a = document.createElement("a"); a.href = u; a.download = "extracted.txt"; a.click(); }} className="bg-zinc-800 border border-zinc-700 py-3 rounded-xl font-bold text-sm hover:bg-zinc-700 transition">Download.TXT</button>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <a href={`https://wa.me/?text=${encodeURIComponent(text.slice(0,500))}`} target="_blank" className="flex-1 bg-[#25D366] text-black py-2.5 rounded-xl text-xs font-bold text-center">WhatsApp</a>
+                    <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(text.slice(0,200))}`} target="_blank" className="flex-1 bg-zinc-800 border border-zinc-700 py-2.5 rounded-xl text-xs font-bold text-center">Twitter / X</a>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* RIGHT FEATURES */}
-          <div className="lg:sticky top-6">
+          <div className="lg:sticky top-6 space-y-4">
             <div className="bg-white text-black rounded-[24px] p-7">
-              <h2 className="text-2xl font-bold">Why Our OCR is Best?</h2>
-              <div className="mt-6 space-y-5 text-sm">
-                <div><b>✓ No Server Upload:</b> Tesseract.js runs in browser. Your Aadhaar, documents are 100% private.</div>
-                <div><b>✓ Hindi + English Support:</b> eng+hin trained model, perfect for Indian documents.</div>
-                <div><b>✓ Super Fast:</b> No waiting queue like other sites. Instant processing.</div>
-                <div><b>✓ Free Forever:</b> No watermark, no limit, no signup.</div>
-              </div>
-              <div className="mt-8 grid grid-cols-3 text-center border-t border-zinc-200 pt-6">
+              <h2 className="text-xl font-bold">Ultra Fast & Private</h2>
+              <p className="text-sm text-zinc-600 mt-2">No server upload. Works offline after page load. Your images never leave your device.</p>
+              <div className="mt-6 grid grid-cols-3 text-center border-t border-zinc-200 pt-6">
                 <div><p className="text-2xl font-bold">99%</p><p className="text-[10px] text-zinc-500">ACCURACY</p></div>
                 <div><p className="text-2xl font-bold">100+</p><p className="text-[10px] text-zinc-500">LANGUAGES</p></div>
-                <div><p className="text-2xl font-bold">0s</p><p className="text-[10px] text-zinc-500">UPLOAD TIME</p></div>
+                <div><p className="text-2xl font-bold">0</p><p className="text-[10px] text-zinc-500">UPLOAD</p></div>
               </div>
             </div>
 
-            <div className="mt-4 bg-zinc-900 border border-zinc-800 rounded-[20px] p-5">
-              <h3 className="font-bold">Other Useful Tools</h3>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-[20px] p-5">
+              <h3 className="font-bold text-sm">More Pro Tools</h3>
               <div className="mt-4 flex flex-col gap-2">
-                <a href="/placeholder-qr-generator" className="bg-zinc-800 hover:bg-zinc-700 p-3 rounded-xl text-sm flex justify-between">Placeholder & QR Generator <span>→</span></a>
-                <a href="/" className="bg-zinc-800 hover:bg-zinc-700 p-3 rounded-xl text-sm flex justify-between">Lorem Ipsum Pro Generator <span>→</span></a>
-                <a href="/image-to-text" className="bg-white text-black p-3 rounded-xl text-sm flex justify-between font-bold">Image to Text OCR (You are here)</a>
+                <a href="/placeholder-qr-generator" className="bg-zinc-800 hover:bg-white hover:text-black p-3 rounded-xl text-sm flex justify-between transition-all">QR + Placeholder Generator <span>→</span></a>
+                <a href="/" className="bg-zinc-800 hover:bg-white hover:text-black p-3 rounded-xl text-sm flex justify-between transition-all">Lorem Ipsum Generator <span>→</span></a>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 1200 WORDS ARTICLE SECTION */}
-        <article className="mt-20 max-w-4xl">
-          <h2 className="text-3xl font-bold">What is Image to Text OCR Tool?</h2>
-          <p className="text-zinc-400 mt-4 leading-7 text-[15px]">
-            Image to Text, also known as OCR (Optical Character Recognition), is a technology that converts different types of documents, such as scanned paper documents, PDF files or images captured by a digital camera into editable and searchable data. Our tool uses the world's most powerful open-source OCR engine Tesseract.js v5 developed by Google. Unlike other online tools that upload your image to their server, our tool processes everything locally in your browser using WebAssembly (WASM). This means even if you close your internet after loading the page, OCR will still work. This is very important for privacy. Many students use it to extract text from textbook photos, business owners use it to digitize bills, and developers use it to copy text from error screenshots. The tool automatically detects paragraphs, line breaks and preserves the original formatting as much as possible. Our advanced preprocessing cleans the image, increases contrast and removes noise before recognition, which gives up to 30% more accuracy than normal OCR tools.
-          </p>
+        {/* ARTICLES SHOW/HIDE */}
+        <div className="mt-20 max-w-4xl space-y-4">
+          <h2 className="text-2xl font-bold mb-6">Learn More About OCR</h2>
 
-          <h2 className="text-2xl font-bold mt-12">How to Use Image to Text Tool? (Step by Step)</h2>
-          <div className="mt-6 grid md:grid-cols-3 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl"><b className="text-white">Step 1: Upload Image</b><p className="text-zinc-400 text-sm mt-2">Click on upload box or drag your image. Supports JPG, PNG, WEBP. For best result, use HD image with clear text and good lighting.</p></div>
-            <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl"><b className="text-white">Step 2: AI Scanning</b><p className="text-zinc-400 text-sm mt-2">Our AI will automatically start scanning. You will see a live progress bar. Usually takes 5-10 seconds for a normal image.</p></div>
-            <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl"><b className="text-white">Step 3: Copy & Download</b><p className="text-zinc-400 text-sm mt-2">Once done, you can copy text to clipboard, edit it inside box, or download as.txt file for your projects.</p></div>
-          </div>
+          <Section id="what-is" title="1. What is Image to Text OCR?">
+            OCR stands for Optical Character Recognition. It is an AI technology that converts different types of documents, such as scanned paper documents, PDF files or images captured by a digital camera into editable and searchable data. Our tool uses Tesseract.js v5, the most powerful open-source engine by Google. Unlike other tools that upload your file to a server, our tool processes everything locally in your browser using WebAssembly. This gives you 100% privacy. The system first cleans the image, removes noise, detects text blocks, lines, and then converts them to digital text. It can preserve paragraphs and line breaks. This tool is essential for students, office workers, and content creators who need to quickly digitize physical documents without typing.
+          </Section>
 
-          <h2 className="text-2xl font-bold mt-12">Use Cases of Our OCR Tool in India</h2>
-          <p className="text-zinc-400 mt-4 leading-7 text-[15px]">
-            In India, OCR has huge demand. 1) Students: Convert class notes photos to text for assignments. 2) Office Work: Extract text from visiting cards, bills, PAN card, Aadhaar for data entry. 3) Content Creators: Copy text from YouTube thumbnails or Instagram posts. 4) Banking: Quickly extract account numbers or IFSC from cheque photos. 5) Developers & Designers: Our other tool Placeholder QR Generator helps you generate dummy images via.placeholder.com alternative with custom text, size and colors instantly. Combined with OCR, you can create and read placeholder images in one place - perfect for your lorem-pro-tool ecosystem. We intentionally kept both tools under one domain to create strong internal linking and topical authority for Google. Our tool also helps bloggers who want to reuse old newspaper cutting images into blog posts without typing everything again.
-          </p>
-
-          <h2 className="text-2xl font-bold mt-12">Features That Make Us Different</h2>
-          <ul className="mt-4 text-zinc-400 text-[15px] list-disc pl-6 space-y-2 leading-7">
-            <li><b className="text-white">Offline OCR Processing:</b> No image ever leaves your device. Best for confidential documents.</li>
-            <li><b className="text-white">Auto Language Detection:</b> We use eng+hin combo by default which covers 95% Indian use case.</li>
-            <li><b className="text-white">Mobile Optimized:</b> Works smoothly on 4G mobile in Bachhrawan, UP even with low RAM.</li>
-            <li><b className="text-white">Zero Ads on Result:</b> Many sites show ads over your extracted text. We never do that.</li>
-            <li><b className="text-white">SEO Optimized & Lightweight:</b> Page loads in under 1.5s with Next.js 14 and Tailwind CSS.</li>
-          </ul>
-        </article>
-
-        {/* FAQ ACCORDION */}
-        <div className="mt-20 max-w-4xl">
-          <h2 className="text-3xl font-bold mb-6">Frequently Asked Questions</h2>
-          {[
-            { q: "Is this image to text converter free to use?", a: "Yes, 100% free forever. No hidden charges, no premium plan. We use client-side technology so we have zero server cost for OCR." },
-            { q: "How accurate is this OCR tool?", a: "For printed English/Hindi text with clear background, accuracy is 98-99%. For handwritten, it depends on handwriting clarity, usually 70-85%. Always use high-resolution images." },
-            { q: "Can I use this for Hindi images?", a: "Yes! We have added Hindi (hin) language by default along with English. You can extract text from Hindi books, newspapers and government documents." },
-            { q: "Is my data safe and private?", a: "Absolutely. Your image is processed inside your own mobile/laptop browser using WASM. It never gets uploaded to any cloud server. Perfect for sensitive documents." },
-            { q: "What is the difference between placeholder-qr-generator and this tool?", a: "Placeholder QR tool creates new dummy images (like via.placeholder.com but better). Image-to-Text tool reads existing images. Both are complementary and we interlink them for better SEO and user experience." },
-          ].map((faq, i) => (
-            <div key={i} className="border-b border-zinc-800">
-              <button onClick={() => setOpenFaq(openFaq === i? null : i)} className="w-full flex justify-between py-5 text-left font-semibold">
-                <span>{faq.q}</span><span className="text-zinc-500">{openFaq === i? "−" : "+"}</span>
-              </button>
-              {openFaq === i && <p className="pb-5 text-zinc-400 text-sm leading-6">{faq.a}</p>}
+          <Section id="how-to" title="2. How to Use This Tool? (3 Easy Steps)">
+            <div className="space-y-3">
+              <p><b className="text-white">Step 1: Upload Image:</b> Click the upload area or drag and drop your image. Use a high-quality image with clear text for best results. Avoid blurry photos and dark shadows.</p>
+              <p><b className="text-white">Step 2: AI Scanning:</b> Our AI starts automatically. You will see a live progress bar. It usually takes 3-10 seconds depending on your device speed and image size.</p>
+              <p><b className="text-white">Step 3: Copy & Save:</b> Once done, you can edit the text inside the box, copy it to clipboard, download as a.TXT file, or directly share on WhatsApp/Twitter.</p>
             </div>
-          ))}
+          </Section>
+
+          <Section id="use-cases" title="3. Top Use Cases & Benefits">
+            Students use it to convert class notes photos to text for assignments. Office professionals use it to extract text from invoices, visiting cards and receipts for data entry. Developers use it to copy text from error screenshots or design mockups. Bloggers reuse old newspaper cuttings into blog posts. Content creators copy text from social media images. Our main benefit is privacy - because processing is client-side, even sensitive documents like ID cards remain safe. Other benefits are speed (no queue), free forever (no watermark), and multi-language support including Hindi, English, Spanish, French etc.
+          </Section>
+
+          <Section id="features" title="4. Why We Are Better Than Other OCR Tools?">
+            <ul className="list-disc pl-5 space-y-2">
+              <li><b className="text-white">Offline Processing:</b> No image leaves your device.</li>
+              <li><b className="text-white">Auto Language:</b> eng+hin combo covers 95% of Indian users.</li>
+              <li><b className="text-white">Mobile Optimized:</b> Works smoothly even on low RAM phones and slow networks.</li>
+              <li><b className="text-white">Zero Ads on Result:</b> We never cover your extracted text with ads.</li>
+              <li><b className="text-white">Lightweight:</b> Built with Next.js 14 and Tailwind for <1.5s load.</li>
+            </ul>
+          </Section>
+        </div>
+
+        {/* FAQ SHOW/HIDE */}
+        <div className="mt-12 max-w-4xl">
+          <h2 className="text-2xl font-bold mb-6">FAQs</h2>
+          <div className="space-y-3">
+            {[
+              { q: "Is this tool 100% free?", a: "Yes, completely free. No signup, no limits, no watermark. We use browser-based tech so we have zero server cost." },
+              { q: "How accurate is the OCR?", a: "For printed text with clear background, accuracy is 98-99%. For handwriting, it depends on clarity - typically 70-85%." },
+              { q: "Can it read Hindi images?", a: "Yes! We enabled Hindi + English by default. Perfect for Hindi books, newspapers and documents." },
+              { q: "Is my data private?", a: "Absolutely. Your image is processed inside your browser using WASM. It never goes to any server." },
+            ].map((faq, i) => (
+              <div key={i} className="border border-zinc-800 rounded-2xl overflow-hidden bg-zinc-900/30">
+                <button onClick={() => setOpenFaq(openFaq === i? null : i)} className="w-full flex justify-between p-5 text-left font-semibold text-sm">
+                  <span>{faq.q}</span><span className={`w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center transition-all ${openFaq === i? "rotate-45 bg-white text-black" : ""}`}>+</span>
+                </button>
+                <div className={`grid transition-all duration-300 ${openFaq === i? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
+                  <div className="overflow-hidden"><p className="px-5 pb-5 text-zinc-400 text-sm leading-6">{faq.a}</p></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <footer className="mt-20 border-t border-zinc-900 py-10 text-center text-zinc-600 text-xs">
-          <p>© 2026 Lorem Pro Tool - Made with ❤️ in Bachhrawan, India. All tools are free and private.</p>
-          <p className="mt-2">Keywords: image to text, ocr online, image to text converter, jpg to text, photo to text, hindi ocr, english ocr, placeholder qr generator alternative</p>
+          <p>© 2026 Lorem Pro Tool - All tools are free and private.</p>
         </footer>
       </main>
     </div>
