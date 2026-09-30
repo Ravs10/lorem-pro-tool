@@ -1,34 +1,24 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Image Placeholder + QR Code Generator (2026) | UPI, WiFi, WhatsApp | Lorem Pro Tool",
-  description: "Free 2-in-1 tool: Create custom placeholder images with text, size, colors & generate instant QR codes for URL, UPI Payment, WiFi, WhatsApp, Email, Phone. Download PNG + QR in 1 click. Free, no watermark.",
-  keywords: [
-    "placeholder image generator",
-    "custom placeholder generator", 
-    "image placeholder with text",
-    "dummy image generator",
-    "800x600 placeholder",
-    "qr code generator",
-    "qr generator with text",
-    "free placeholder generator",
-    "upi qr code generator",
-    "wifi qr code generator",
-    "whatsapp qr code generator",
-    "url qr code generator",
-    "upi payment qr code",
-    "qr code maker",
-    "lorem pro tool"
-  ],
+  title: "Free Image to Text OCR Tool - 99% Accurate | Hindi + English",
+  description: "Free online Image to Text converter. Extract text from images, photos, scanned documents with 99% accuracy. Supports Hindi, English & 100+ languages. 100% private, no upload to server.",
+  keywords: ["image to text", "ocr online", "image to text converter", "jpg to text", "png to text", "photo to text", "hindi ocr", "free ocr tool", "placeholder qr generator"],
+  authors: [{ name: "Lorem Pro Tool" }],
   openGraph: {
-    title: "Image Placeholder + QR Generator - Free",
-    description: "Generate custom placeholder images with custom text and QR codes instantly. UPI, WiFi, WhatsApp support.",
-    url: "https://lorem-pro-tool.vercel.app/image-to-text",
+    title: "Free Image to Text OCR Tool - Hindi + English Support",
+    description: "Convert any image to editable text in seconds. 100% free, private and super fast OCR.",
     type: "website",
+    url: "https://lorem-pro-tool.vercel.app/image-to-text",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Free Image to Text OCR Tool",
+    description: "Extract text from any image with AI OCR",
   },
   alternates: {
-    canonical: "https://lorem-pro-tool.vercel.app/image-to-text"
-  }
+    canonical: "https://lorem-pro-tool.vercel.app/image-to-text",
+  },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
