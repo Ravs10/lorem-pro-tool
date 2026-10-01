@@ -28,6 +28,22 @@ const LANGUAGES = [
   { code: "eng+kor", label: "Korean" },
 ];
 
+// 🔗 Change these to your own tool pages
+const OTHER_TOOLS = [
+  { icon: "📝", title: "Lorem Ipsum Generator", desc: "77 languages · paragraphs, words, sentences", href: "/" },
+  { icon: "🖼️", title: "Image Compressor", desc: "Shrink JPG/PNG/WEBP without quality loss", href: "/tools/image-compressor" },
+  { icon: "📄", title: "PDF Merge & Split", desc: "Combine, split, rotate pages instantly", href: "/tools/pdf-tools" },
+  { icon: "🔤", title: "Case Converter", desc: "UPPER, lower, Title, Sentence case", href: "/tools/case-converter" },
+  { icon: "🔐", title: "Password Generator", desc: "Strong, custom, offline passwords", href: "/tools/password-generator" },
+  { icon: "🎨", title: "Color Picker", desc: "HEX · RGB · HSL · gradient maker", href: "/tools/color-picker" },
+  { icon: "🧮", title: "Unit Converter", desc: "Length, weight, temp, currency", href: "/tools/unit-converter" },
+  { icon: "🔗", title: "URL Shortener", desc: "Clean, trackable, private links", href: "/tools/url-shortener" },
+  { icon: "📊", title: "JSON Formatter", desc: "Beautify, minify, validate JSON", href: "/tools/json-formatter" },
+  { icon: "🎯", title: "QR Code Generator", desc: "URL, text, WiFi, vCard QR codes", href: "/tools/qr-generator" },
+  { icon: "🔡", title: "Word Counter", desc: "Words, chars, reading time, keywords", href: "/tools/word-counter" },
+  { icon: "🕐", title: "Timestamp Converter", desc: "Unix ↔ human date, timezones", href: "/tools/timestamp" },
+];
+
 const MAX_FILES = 10;
 const MAX_SIZE = 25 * 1024 * 1024;
 const MAX_PDF_PAGES = 25;
@@ -52,9 +68,7 @@ interface OcrResult {
   status: Status;
   message: string;
   words?: number;
-  /** line-by-line confidence: array of {text, confidence, line} */
   lines?: { text: string; confidence: number }[];
-  /** rotated version of thumbnail (crop tool) */
   cropBox?: { x: number; y: number; w: number; h: number } | null;
 }
 
@@ -140,7 +154,6 @@ const relativeDay = (ts: number) => {
   });
 };
 
-/** Very lightweight script detection from raw image pixels. */
 const detectScript = (src: string): Promise<"latin" | "devanagari" | "arabic" | "unknown"> =>
   new Promise((resolve) => {
     const img = new Image();
@@ -155,16 +168,12 @@ const detectScript = (src: string): Promise<"latin" | "devanagari" | "arabic" | 
         if (!ctx) return resolve("unknown");
         ctx.drawImage(img, 0, 0, W, H);
         const data = ctx.getImageData(0, 0, W, H).data;
-        // crude: check for sharp vertical strokes (Devanagari shirorekha) vs. diagonal (Latin)
-        // We simply default to latin if we can't decide.
         let dark = 0;
         for (let i = 0; i < data.length; i += 4) {
           const g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
           if (g < 100) dark++;
         }
         const ratio = dark / (W * H);
-        // No reliable script detection without OCR — return latin as safe default
-        // (this gives the user an automatic "eng" pre-selection only)
         resolve(ratio > 0.005 ? "latin" : "unknown");
       } catch {
         resolve("unknown");
@@ -196,7 +205,6 @@ const preprocess = (src: string, o: PreOpts): Promise<string> =>
 
     img.onload = () => {
       try {
-        // apply crop first (fractions 0..1)
         let sx = 0, sy = 0, sw = img.width, sh = img.height;
         if (o.crop) {
           sx = Math.max(0, o.crop.x * img.width);
@@ -348,11 +356,12 @@ async function buildPdfFromText(text: string, filename: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  MULTI-PAGE TIFF READER (utif.js loaded on demand)                  */
+/*  MULTI-PAGE TIFF READER                                             */
 /* ------------------------------------------------------------------ */
 
 async function readTiffPages(file: File): Promise<string[]> {
   const buf = await file.arrayBuffer();
+  // @ts-ignore
   const UTIF: any = await import("utif");
 
   const ifds = UTIF.decode(buf);
@@ -532,7 +541,7 @@ function Toggle({
 }
 
 /* ------------------------------------------------------------------ */
-/*  CROP TOOL (manual 4-corner drag, no OpenCV)                        */
+/*  CROP TOOL                                                          */
 /* ------------------------------------------------------------------ */
 
 function CropModal({
@@ -692,7 +701,6 @@ export default function Page() {
   const [toast, setToast] = useState<{ msg: string; kind: "ok" | "err" } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // preprocessing
   const [brightness, setBrightness] = useState(110);
   const [contrast, setContrast] = useState(115);
   const [rotate, setRotate] = useState(0);
@@ -703,31 +711,25 @@ export default function Page() {
   const [autoTidy, setAutoTidy] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
 
-  // advanced
+  // Advanced OCR — now has its own top-level visibility
   const [psm, setPsm] = useState<string>("6");
   const [whitelist, setWhitelist] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(true);
+  const [showAdvancedTop, setShowAdvancedTop] = useState(false);
 
-  // font size
   const [fontSize, setFontSize] = useState(12);
-
-  // line confidence display
   const [showConfidence, setShowConfidence] = useState(false);
 
-  // camera
   const [showCamera, setShowCamera] = useState(false);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [cameraReady, setCameraReady] = useState(false);
 
-  // crop
   const [cropFor, setCropFor] = useState<OcrResult | null>(null);
 
-  // history
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyQuery, setHistoryQuery] = useState("");
 
-  // UI state
   const [openSec, setOpenSec] = useState("what");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -755,7 +757,6 @@ export default function Page() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
-  /* -------- persistence: results + history -------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -801,7 +802,6 @@ export default function Page() {
     } catch {}
   }, [history]);
 
-  /* -------- keyboard shortcuts -------- */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -820,7 +820,6 @@ export default function Page() {
         return;
       }
 
-      // Ctrl + Shift + ... for most; avoid clobbering copy/paste
       if (e.key.toLowerCase() === "o" && e.shiftKey) {
         e.preventDefault();
         imageInputRef.current?.click();
@@ -837,7 +836,6 @@ export default function Page() {
         e.preventDefault();
         if (resultsRef.current.length) clearAllRef.current?.();
       } else if (e.key === "ArrowUp" && !typing) {
-        // increase font
         e.preventDefault();
         setFontSize((s) => Math.min(22, s + 1));
       } else if (e.key === "ArrowDown" && !typing) {
@@ -849,7 +847,6 @@ export default function Page() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  /* -------- worker -------- */
   const getWorker = useCallback(async (langCode: string) => {
     if (workerRef.current && workerRef.current.lang === langCode) {
       return workerRef.current.worker;
@@ -908,13 +905,11 @@ export default function Page() {
     };
   }, []);
 
-  /* -------- refs for shortcuts -------- */
   const allTextRef = useRef("");
   const resultsRef = useRef<OcrResult[]>([]);
   const copyAllRef = useRef<(() => void) | null>(null);
   const clearAllRef = useRef<(() => void) | null>(null);
 
-  /* -------- OCR job -------- */
   const runOCR = useCallback(
     async (
       src: string,
@@ -989,7 +984,6 @@ export default function Page() {
         const text = autoTidy ? tidyText(data.text || "") : data.text || "";
         const confidence = Math.round(data.confidence ?? 0);
 
-        // line-by-line confidence
         const lines: { text: string; confidence: number }[] = [];
         try {
           const rawLines: any[] = (data as any).lines || [];
@@ -1009,7 +1003,6 @@ export default function Page() {
           lines,
         });
 
-        // push to history
         if (text.trim()) {
           setHistory((h) =>
             [
@@ -1058,7 +1051,6 @@ export default function Page() {
     ]
   );
 
-  /* -------- PDF -------- */
   const handlePdf = useCallback(
     async (file: File) => {
       try {
@@ -1103,7 +1095,6 @@ export default function Page() {
     [runOCR, showToast]
   );
 
-  /* -------- batch -------- */
   const processFiles = useCallback(
     async (input: FileList | File[]) => {
       const files = Array.from(input as any) as File[];
@@ -1156,7 +1147,6 @@ export default function Page() {
           const url = URL.createObjectURL(file);
           urlsRef.current.push(url);
 
-          // auto script detect → auto lang
           let useLang = lang;
           if (autoLang && !/\+/.test(lang)) {
             const script = await detectScript(url);
@@ -1310,7 +1300,6 @@ export default function Page() {
     ? Math.round((finishedCount / results.length) * 100)
     : 0;
 
-  /* -------- actions -------- */
   const copyAll = async () => {
     if (!allText) return showToast("Nothing to copy", "err");
     try {
@@ -1543,13 +1532,11 @@ export default function Page() {
     showToast(count ? `Replaced in ${count} file(s)` : "No matches found");
   };
 
-  /* -------- crop -------- */
   const openCrop = (r: OcrResult) => setCropFor(r);
   const applyCrop = async (box: { x: number; y: number; w: number; h: number }) => {
     const r = cropFor;
     setCropFor(null);
     if (!r) return;
-    // store crop on result and re-run OCR from original
     setResults((prev) =>
       prev.map((x) => (x.id === r.id ? { ...x, cropBox: box } : x))
     );
@@ -1559,9 +1546,7 @@ export default function Page() {
     setBusy(false);
   };
 
-  /* -------- history -------- */
   const historyToResults = (h: HistoryEntry) => {
-    // load history entry as a result so user can re-use tools
     const r: OcrResult = {
       id: uid(),
       name: h.name,
@@ -1596,7 +1581,6 @@ export default function Page() {
       prev.map((h) => (h.id === id ? { ...h, starred: !h.starred } : h))
     );
 
-  /* -------- lightbox esc -------- */
   useEffect(() => {
     if (!lightbox) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setLightbox(null);
@@ -1629,6 +1613,10 @@ export default function Page() {
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
+        @keyframes floatCard {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
         .attention-box {
           position: relative;
           background: linear-gradient(90deg, #a855f7, #ec4899, #f59e0b, #a855f7);
@@ -1657,10 +1645,60 @@ export default function Page() {
         }
         .conf-low { background: rgba(239,68,68,0.18); border-radius: 4px; padding: 0 2px; }
         .conf-mid { background: rgba(245,158,11,0.16); border-radius: 4px; padding: 0 2px; }
+
+        /* Tools card animations */
+        .tool-card {
+          position: relative;
+          overflow: hidden;
+          transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tool-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          padding: 1px;
+          background: linear-gradient(135deg, transparent, transparent);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+          pointer-events: none;
+        }
+        .tool-card:hover::before {
+          background: linear-gradient(135deg, #a855f7, #ec4899, #f59e0b);
+          opacity: 1;
+        }
+        .tool-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 40px -12px rgba(168,85,247,0.4);
+        }
+        .tool-card:hover .tool-icon {
+          transform: scale(1.15) rotate(-6deg);
+        }
+        .tool-icon {
+          transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+          display: inline-block;
+        }
+        .tool-card::after {
+          content: '';
+          position: absolute;
+          top: -50%;
+          left: -60%;
+          width: 40%;
+          height: 200%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+          transform: rotate(25deg);
+          transition: left 0.7s ease;
+          pointer-events: none;
+        }
+        .tool-card:hover::after {
+          left: 120%;
+        }
         @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important } }
       `}</style>
 
-      {/* HEADER */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#070709]/85 border-b border-zinc-900">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <a href="/" className="font-bold text-sm sm:text-base whitespace-nowrap">
@@ -1759,7 +1797,71 @@ export default function Page() {
             }}
           />
 
-          {/* ⚙️ SETTINGS TOGGLE — HIGHLIGHTED */}
+          {/* 🔬 ADVANCED OCR — TOP LEVEL (visible immediately) */}
+          <div className="mt-3 attention-box">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedTop((s) => !s)}
+              aria-expanded={showAdvancedTop}
+              className="attention-inner w-full flex items-center justify-between px-4 py-3 text-[12px] sm:text-[13px] font-bold text-white"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-base">🔬</span>
+                <span>Advanced OCR — Accuracy Boost</span>
+                <span className="text-[10px] font-normal text-amber-300 hidden sm:inline">
+                  PSM · Whitelist · tap to open
+                </span>
+              </span>
+              <span className={`transition-transform duration-300 ${showAdvancedTop ? "rotate-180" : ""}`}>
+                ▾
+              </span>
+            </button>
+          </div>
+
+          {showAdvancedTop && (
+            <div className="mt-3 space-y-3">
+              <label className="block rounded-xl border border-zinc-800 bg-black/40 px-3 py-2.5">
+                <span className="block text-[11px] font-bold text-zinc-400 mb-2">
+                  Page segmentation mode (PSM)
+                </span>
+                <select
+                  value={psm}
+                  onChange={(e) => setPsm(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-zinc-500"
+                >
+                  <option value="3">3 — Fully automatic (default)</option>
+                  <option value="6">6 — Single uniform block (best for most)</option>
+                  <option value="4">4 — Single column of text</option>
+                  <option value="11">11 — Sparse text (receipts)</option>
+                  <option value="7">7 — Single text line</option>
+                  <option value="8">8 — Single word</option>
+                  <option value="13">13 — Raw line (no post-proc)</option>
+                </select>
+                <p className="mt-2 text-[10px] text-zinc-500 leading-5">
+                  Tells Tesseract how the text is laid out on the page. Choose
+                  the mode matching your image for best accuracy.
+                </p>
+              </label>
+
+              <label className="block rounded-xl border border-zinc-800 bg-black/40 px-3 py-2.5">
+                <span className="block text-[11px] font-bold text-zinc-400 mb-2">
+                  Character whitelist (optional — leave empty for all)
+                </span>
+                <input
+                  value={whitelist}
+                  onChange={(e) => setWhitelist(e.target.value)}
+                  placeholder="e.g. 0123456789  (numbers only)"
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-zinc-500"
+                />
+                <p className="mt-2 text-[10px] text-zinc-500 leading-5">
+                  Restrict recognition to specific characters. Great for
+                  invoices, phone numbers or ID cards.
+                </p>
+              </label>
+            </div>
+          )}
+
+          {/* ⚙️ SETTINGS TOGGLE */}
           <div className="mt-3 attention-box">
             <button
               type="button"
@@ -1869,7 +1971,7 @@ export default function Page() {
                 />
               )}
 
-              {/* 🔬 ADVANCED OCR — HIGHLIGHTED */}
+              {/* Advanced also visible inside settings */}
               <div className="attention-box">
                 <button
                   type="button"
@@ -1878,7 +1980,7 @@ export default function Page() {
                 >
                   <span className="flex items-center gap-2">
                     <span className="text-base">🔬</span>
-                    <span>Advanced OCR — Accuracy Boost</span>
+                    <span>Advanced OCR (duplicate access)</span>
                     <span className="text-[10px] font-normal text-amber-300 hidden sm:inline">
                       PSM · Whitelist
                     </span>
@@ -1908,26 +2010,18 @@ export default function Page() {
                       <option value="8">8 — Single word</option>
                       <option value="13">13 — Raw line (no post-proc)</option>
                     </select>
-                    <p className="mt-2 text-[10px] text-zinc-500 leading-5">
-                      Tells Tesseract how the text is laid out on the page. Choose
-                      the mode matching your image for best accuracy.
-                    </p>
                   </label>
 
                   <label className="block rounded-xl border border-zinc-800 bg-black/40 px-3 py-2.5">
                     <span className="block text-[11px] font-bold text-zinc-400 mb-2">
-                      Character whitelist (optional — leave empty for all)
+                      Character whitelist (optional)
                     </span>
                     <input
                       value={whitelist}
                       onChange={(e) => setWhitelist(e.target.value)}
-                      placeholder="e.g. 0123456789  (numbers only)"
+                      placeholder="e.g. 0123456789"
                       className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-zinc-500"
                     />
-                    <p className="mt-2 text-[10px] text-zinc-500 leading-5">
-                      Restrict recognition to specific characters. Great for
-                      invoices, phone numbers or ID cards.
-                    </p>
                   </label>
                 </div>
               )}
@@ -2326,7 +2420,6 @@ export default function Page() {
                       </p>
                     )}
 
-                    {/* Line-by-line confidence view */}
                     {showConfidence && r.lines && r.lines.length > 0 ? (
                       <div
                         className="w-full mt-2.5 bg-zinc-900/80 border border-zinc-800 rounded-xl p-3 leading-6 h-32 sm:h-28 overflow-auto"
@@ -2443,7 +2536,7 @@ export default function Page() {
           </div>
         </section>
 
-        {/* COMPLETE GUIDE */}
+        {/* ---------------- COMPLETE GUIDE ---------------- */}
         <div className="mt-12 max-w-4xl mx-auto">
           <h2 className="text-lg sm:text-xl font-bold mb-4">
             Complete Guide — Learn OCR in Detail
@@ -2525,8 +2618,7 @@ export default function Page() {
                 <p className="mt-2">
                   <b className="text-white">Auto language detect</b> — when
                   enabled, if you leave language on "Hindi" but the image looks
-                  like Latin script, the tool auto-switches to English. Useful
-                  when you don't know what you'll be scanning next.
+                  like Latin script, the tool auto-switches to English.
                 </p>
                 <p className="mt-2 text-zinc-500 text-xs">
                   ⚠️ Wrong language = garbage output. For mixed content use a
@@ -2536,147 +2628,16 @@ export default function Page() {
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  ⚙️ Step 3 — Image Enhancement
+                  🔬 Step 3 — Advanced OCR (Now Visible at Top!)
                 </h3>
                 <p>
-                  Tap <b>"Image Enhancement &amp; OCR Settings"</b> at the top
-                  (highlighted with an animated border). These controls apply to
-                  the <b>next OCR run</b>.
+                  <b className="text-emerald-300">
+                    New in this version:
+                  </b>{" "}
+                  The Advanced OCR panel now sits <b>directly below the upload
+                  buttons</b>, highlighted with an animated border. You don't
+                  need to open the settings first anymore.
                 </p>
-
-                <div className="mt-3 space-y-3">
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      ☀️ Brightness (50% – 150%)
-                    </p>
-                    <p className="text-xs">
-                      Makes the image lighter or darker. Faded scans try{" "}
-                      <b>120–130%</b>. Overexposed photos try <b>80–90%</b>.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      🌗 Contrast (50% – 200%)
-                    </p>
-                    <p className="text-xs">
-                      Increases the difference between text and background.
-                      Blurry documents — <b>130–150%</b>.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      🔄 Rotate (0° – 359°)
-                    </p>
-                    <p className="text-xs">
-                      Rotates the image. The canvas expands automatically, so
-                      corners are never cropped.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      ⚫ Grayscale toggle
-                    </p>
-                    <p className="text-xs">
-                      Converts colour images to black &amp; white. Useful for
-                      coloured backgrounds or highlighted documents.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      ⚪ Black &amp; White (Binarisation)
-                    </p>
-                    <p className="text-xs">
-                      Forces every pixel to be either pure black or pure white.
-                      Best for old/faded documents, receipts, forms. A{" "}
-                      <b>threshold slider</b> appears when ON.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      🎚️ Binarisation threshold (60 – 220)
-                    </p>
-                    <p className="text-xs">
-                      Only visible with B&amp;W ON. Lower value = darker
-                      threshold (only very dark text becomes black). Default{" "}
-                      <b>160</b> works for most documents.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      🔍 Auto upscale toggle
-                    </p>
-                    <p className="text-xs">
-                      Enlarges small images automatically (2× or 1.5×).
-                      Tesseract reads larger glyphs much more reliably.{" "}
-                      <b>Recommended ON.</b>
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
-                    <p className="text-white text-xs font-bold mb-1">
-                      ✨ Auto clean text toggle
-                    </p>
-                    <p className="text-xs">
-                      Fixes extra spaces, blank lines, and trailing whitespace.
-                      Leave ON for clean output.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
-                    <p className="text-violet-200 text-xs font-bold mb-1">
-                      🔤 Font Size (10px – 22px)
-                    </p>
-                    <p className="text-xs text-zinc-300">
-                      Changes the text size in every result text area. Great
-                      for accessibility or for reading long documents on small
-                      screens. Use <b>Ctrl + ↑ / ↓</b> for quick changes.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3">
-                    <p className="text-sky-200 text-xs font-bold mb-1">
-                      🌐 Auto language detect toggle
-                    </p>
-                    <p className="text-xs text-zinc-300">
-                      When ON, the tool inspects each image and, if it looks
-                      like Latin script while you're on Hindi, auto-switches to
-                      English. Prevents the most common "wrong language"
-                      mistake. This uses a lightweight pixel analysis — not full
-                      OCR — so it's fast.
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
-                    <p className="text-amber-200 text-xs font-bold mb-1">
-                      📊 Show line confidence toggle
-                    </p>
-                    <p className="text-xs text-zinc-300">
-                      When ON, the result text becomes a read-only view where
-                      each line is <b>colour coded</b> by Tesseract's confidence:
-                      <br />• <span className="conf-low px-1">Red</span> — below 60% (likely wrong, re-scan)
-                      <br />• <span className="conf-mid px-1">Amber</span> — 60–80% (check manually)
-                      <br />• No highlight — 80%+ (reliable)
-                      <br />
-                      Hover any line to see its exact confidence score.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-white font-bold text-sm mb-2">
-                  🔬 Step 4 — Advanced OCR (Accuracy Boost)
-                </h3>
-                <p>
-                  This section is <b>open by default</b>. Two powerful settings:
-                </p>
-
                 <div className="mt-3 rounded-xl border border-zinc-800 bg-black/30 p-3">
                   <p className="text-white text-xs font-bold mb-2">
                     📄 Page Segmentation Mode (PSM)
@@ -2695,7 +2656,6 @@ export default function Page() {
                     <li><b>PSM 13</b> — Raw line (no post-processing)</li>
                   </ul>
                 </div>
-
                 <div className="mt-3 rounded-xl border border-zinc-800 bg-black/30 p-3">
                   <p className="text-white text-xs font-bold mb-2">
                     ✅ Character whitelist
@@ -2716,23 +2676,116 @@ export default function Page() {
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
+                  ⚙️ Step 4 — Image Enhancement
+                </h3>
+                <p>
+                  Tap <b>"Image Enhancement &amp; OCR Settings"</b> below the
+                  Advanced panel (also animated). These controls apply to the
+                  <b> next OCR run</b>.
+                </p>
+
+                <div className="mt-3 space-y-3">
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ☀️ Brightness (50% – 150%)
+                    </p>
+                    <p className="text-xs">
+                      Faded scans try <b>120–130%</b>. Overexposed photos try{" "}
+                      <b>80–90%</b>.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🌗 Contrast (50% – 200%)
+                    </p>
+                    <p className="text-xs">
+                      Blurry documents — <b>130–150%</b>.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🔄 Rotate (0° – 359°)
+                    </p>
+                    <p className="text-xs">
+                      Rotates the image. The canvas expands automatically, so
+                      corners are never cropped.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ⚫ Grayscale toggle
+                    </p>
+                    <p className="text-xs">
+                      Converts colour images to black &amp; white. Useful for
+                      coloured backgrounds.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ⚪ Black &amp; White (Binarisation)
+                    </p>
+                    <p className="text-xs">
+                      Best for old/faded documents, receipts, forms.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🎚️ Binarisation threshold (60 – 220)
+                    </p>
+                    <p className="text-xs">Default <b>160</b> works for most.</p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🔍 Auto upscale toggle
+                    </p>
+                    <p className="text-xs">Recommended <b>ON.</b></p>
+                  </div>
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ✨ Auto clean text toggle
+                    </p>
+                    <p className="text-xs">Fixes extra spaces and blank lines.</p>
+                  </div>
+                  <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
+                    <p className="text-violet-200 text-xs font-bold mb-1">
+                      🔤 Font Size (10px – 22px)
+                    </p>
+                    <p className="text-xs text-zinc-300">
+                      Changes the text size in every result text area. Use{" "}
+                      <b>Ctrl + ↑ / ↓</b> for quick changes.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3">
+                    <p className="text-sky-200 text-xs font-bold mb-1">
+                      🌐 Auto language detect toggle
+                    </p>
+                    <p className="text-xs text-zinc-300">
+                      Prevents the most common "wrong language" mistake.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+                    <p className="text-amber-200 text-xs font-bold mb-1">
+                      📊 Show line confidence toggle
+                    </p>
+                    <p className="text-xs text-zinc-300">
+                      Result text becomes a read-only view where each line is
+                      colour coded: <span className="conf-low px-1">Red</span>{" "}
+                      (&lt;60%), <span className="conf-mid px-1">Amber</span>{" "}
+                      (60–80%), no colour (80%+).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
                   ✂️ Step 5 — Crop Tool (Manual 4-Corner Drag)
                 </h3>
                 <p>
                   After OCR completes, each result has a{" "}
-                  <b className="text-white">✂️ Crop</b> button. Tap it to open
-                  the crop dialog:
-                </p>
-                <ul className="mt-2 space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Drag any of the <b>4 white corner handles</b> to trim the image</li>
-                  <li>The surrounding area darkens so you see exactly what will be kept</li>
-                  <li>Tap <b>Reset</b> to restore the full image</li>
-                  <li>Tap <b>Apply Crop</b> to re-run OCR on just that region</li>
-                </ul>
-                <p className="mt-2 text-zinc-500 text-xs">
-                  💡 Crop is perfect when a photo has a distracting header,
-                  footer or side column. This is the "manual auto-crop" — more
-                  reliable than automatic edge detection, and no heavy libraries.
+                  <b className="text-white">✂️ Crop</b> button. Drag any of
+                  the 4 white corner handles to trim. Tap <b>Apply Crop</b> to
+                  re-run OCR on just that region.
                 </p>
               </div>
 
@@ -2741,19 +2794,10 @@ export default function Page() {
                   📜 Step 6 — OCR History (Date-wise)
                 </h3>
                 <p>
-                  Every successful OCR is <b>saved automatically</b> with
-                  date, confidence, word count and language. Open it with the{" "}
-                  <b>📜 History</b> button in the header, or press{" "}
+                  Every successful OCR is saved automatically. Open with{" "}
+                  <b>📜 History</b> in the header or{" "}
                   <kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+H</kbd>.
                 </p>
-                <ul className="mt-2 space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Grouped by <b>Today / Yesterday / specific dates</b></li>
-                  <li>Search across all history entries</li>
-                  <li>⭐ Star important entries to keep them at the top</li>
-                  <li>Click <b>Load</b> to bring any entry back to the results panel</li>
-                  <li>Individual delete or <b>Clear all</b></li>
-                  <li>Up to 200 entries stored locally on your device</li>
-                </ul>
               </div>
 
               <div>
@@ -2761,13 +2805,13 @@ export default function Page() {
                   ⌨️ Step 7 — Keyboard Shortcuts
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+O</kbd> — Open file picker</li>
-                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+K</kbd> — Open camera</li>
-                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+H</kbd> — Toggle history</li>
-                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+S</kbd> — Copy all text</li>
-                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+/</kbd> — Clear all results</li>
-                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+↑ / ↓</kbd> — Increase / decrease font size</li>
-                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Esc</kbd> — Close any modal</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+O</kbd> — Upload</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+K</kbd> — Camera</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+H</kbd> — History</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+S</kbd> — Copy all</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+/</kbd> — Clear</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+↑ / ↓</kbd> — Font size</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Esc</kbd> — Close modals</li>
                 </ul>
               </div>
 
@@ -2776,25 +2820,21 @@ export default function Page() {
                   📄 Step 8 — Multi-page TIFF Support
                 </h3>
                 <p>
-                  Upload a <b>multi-page TIFF</b> (common output from scanners
-                  and fax software) and every page is extracted and OCR'd
-                  separately. Each page becomes its own result card, just like
-                  PDF pages. No configuration needed.
+                  Upload a multi-page TIFF and every page is extracted and OCR'd
+                  separately. Each page becomes its own result card.
                 </p>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  📊 Step 9 — Review Results &amp; Use Tools
+                  🔗 Step 9 — Explore Other Tools
                 </h3>
-                <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
-                  <li><b className="text-white">Confidence score</b> per file (0–100%)</li>
-                  <li><b className="text-white">Weak line count</b> shown if any line is below 75%</li>
-                  <li><b className="text-white">Editable text</b> — corrections auto-save</li>
-                  <li><b className="text-white">Filter box</b> — search by name or content</li>
-                  <li><b className="text-white">Text tools</b> — UPPER, lower, Title case, Find &amp; Replace</li>
-                  <li><b className="text-white">Retry button</b> for failed/cancelled files</li>
-                </ul>
+                <p>
+                  Scroll to the bottom of this page to find the{" "}
+                  <b className="text-white">"Other Useful Tools"</b> grid —
+                  animated cards linking to Lorem Ipsum Generator, Image
+                  Compressor, PDF Tools, and more.
+                </p>
               </div>
 
               <div>
@@ -2823,15 +2863,15 @@ export default function Page() {
               <li>100% private — processing happens on-device, no uploads.</li>
               <li>Batch OCR with a shared Tesseract worker (much faster).</li>
               <li>Non-destructive rotation that never crops your image.</li>
-              <li>Manual crop tool with 4-corner drag — re-run OCR on just the region you need.</li>
-              <li>Line-by-line confidence colour coding — see exactly where OCR struggled.</li>
-              <li>Auto language detect — prevents the #1 mistake (wrong language).</li>
+              <li>Advanced OCR panel always visible at the top.</li>
+              <li>Manual crop tool with 4-corner drag.</li>
+              <li>Line-by-line confidence colour coding.</li>
+              <li>Auto language detect — prevents the #1 mistake.</li>
               <li>Keyboard shortcuts — power users fly through batches.</li>
-              <li>Font size control — accessible for every screen and eyesight.</li>
+              <li>Font size control — accessible for every screen.</li>
               <li>Multi-page TIFF support — scanners and faxes just work.</li>
               <li>Date-wise OCR history — 200 entries with search, star, and load-back.</li>
-              <li>Advanced OCR controls — PSM mode + character whitelist.</li>
-              <li>Unicode-safe PDF/DOC export — Hindi, Arabic and CJK render correctly.</li>
+              <li>Unicode-safe PDF/DOC export — Hindi, Arabic and CJK.</li>
               <li>Live camera capture, clipboard paste, drag &amp; drop.</li>
               <li>Export to TXT, DOC, per-file PDF, combined PDF, CSV or ZIP.</li>
               <li>Auto-save — your last 20 results survive a page refresh.</li>
@@ -2846,8 +2886,7 @@ export default function Page() {
           >
             <div className="space-y-4">
               <p className="text-zinc-200">
-                <b className="text-white">Complete feature breakdown</b> —
-                every capability built into this tool.
+                <b className="text-white">Complete feature breakdown</b>.
               </p>
 
               <div>
@@ -2855,31 +2894,41 @@ export default function Page() {
                   📥 Input Methods (5 Ways)
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Upload button — images, PDFs and TIFFs in one click</li>
+                  <li>Upload button — images, PDFs and TIFFs</li>
                   <li>Dedicated PDF-only button</li>
-                  <li>Live camera capture with flip (front/rear)</li>
+                  <li>Live camera capture with flip</li>
                   <li>Drag &amp; drop zone</li>
                   <li>Clipboard paste (Ctrl+V)</li>
-                  <li>Multi-page TIFF (each page = one result)</li>
+                  <li>Multi-page TIFF</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  ✂️ NEW — Manual Crop Tool
+                  🔬 Advanced OCR (Now Visible at Top)
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Advanced OCR panel below upload buttons</li>
+                  <li>Also accessible inside settings (double access)</li>
+                  <li>7 Page Segmentation Modes</li>
+                  <li>Character whitelist</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  ✂️ Manual Crop Tool
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
                   <li>Per-result ✂️ Crop button</li>
                   <li>4-corner drag handles with dark overlay</li>
-                  <li>Reset to full image</li>
-                  <li>Apply → re-runs OCR on the cropped region</li>
-                  <li>"✂️ cropped" badge on the result card</li>
+                  <li>Reset · Apply → re-runs OCR on cropped region</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  ⌨️ NEW — Keyboard Shortcuts
+                  ⌨️ Keyboard Shortcuts
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
                   <li>Ctrl+Shift+O — upload</li>
@@ -2894,61 +2943,53 @@ export default function Page() {
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  📊 NEW — Line-by-Line Confidence
+                  📊 Line-by-Line Confidence
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Toggle in settings</li>
                   <li>Red (&lt;60%), Amber (60–80%), no highlight (80%+)</li>
                   <li>Hover for exact percentage</li>
-                  <li>Weak line count on the result card</li>
+                  <li>Weak line count on result card</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  🔤 NEW — Font Size Control
+                  🔤 Font Size Control
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
                   <li>10px to 22px</li>
-                  <li>Applies to all result text areas</li>
                   <li>Ctrl+↑ / ↓ shortcut</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  📜 NEW — OCR History (Date-wise)
+                  📜 OCR History (Date-wise)
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Up to 200 entries, stored locally</li>
+                  <li>Up to 200 entries, local only</li>
                   <li>Grouped by Today / Yesterday / date</li>
-                  <li>Search across all history</li>
-                  <li>⭐ Star entries</li>
-                  <li>Load back into results panel</li>
-                  <li>Delete individual or clear all</li>
+                  <li>Search · ⭐ Star · Load · Delete</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  🌐 NEW — Auto Language Detect
+                  🌐 Auto Language Detect
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Toggle in settings</li>
                   <li>Lightweight pixel analysis</li>
                   <li>Defaults Latin-script images to English</li>
-                  <li>Prevents the most common wrong-language mistake</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  📄 NEW — Multi-page TIFF
+                  📄 Multi-page TIFF
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Every page in a TIFF becomes its own result</li>
-                  <li>Handled by UTIF.js (loaded on demand)</li>
-                  <li>Works with scanner and fax output</li>
+                  <li>Every page = its own result card</li>
+                  <li>Handled by UTIF.js (on-demand)</li>
                 </ul>
               </div>
 
@@ -2960,23 +3001,8 @@ export default function Page() {
                   <li>Brightness (50–150%)</li>
                   <li>Contrast (50–200%)</li>
                   <li>Rotation (0–359°) with canvas expansion</li>
-                  <li>Grayscale conversion</li>
-                  <li>Black &amp; White binarisation</li>
-                  <li>Binarisation threshold (60–220)</li>
-                  <li>Auto-upscale (2× / 1.5×)</li>
-                  <li>Auto text cleanup</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-white font-bold text-sm mb-2">
-                  🔬 Advanced OCR Engine
-                </h3>
-                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>7 Page Segmentation Modes</li>
-                  <li>Custom character whitelist</li>
-                  <li>Preserve interword spacing</li>
-                  <li>Per-file confidence score</li>
+                  <li>Grayscale · B&amp;W · Threshold (60–220)</li>
+                  <li>Auto-upscale · Auto text cleanup</li>
                 </ul>
               </div>
 
@@ -2988,7 +3014,7 @@ export default function Page() {
                   <li>English, Hindi, Hindi+English</li>
                   <li>Spanish, French, German, Portuguese, Russian</li>
                   <li>Arabic (RTL support)</li>
-                  <li>Chinese (Simplified), Japanese, Korean</li>
+                  <li>Chinese, Japanese, Korean</li>
                 </ul>
               </div>
 
@@ -2997,13 +3023,11 @@ export default function Page() {
                   📊 Result Management
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Editable text area (font size control)</li>
+                  <li>Editable text (font size control)</li>
                   <li>Word count + reading time</li>
-                  <li>Status badge + live progress bar</li>
-                  <li>Filter box</li>
-                  <li>Retry failed/cancelled files</li>
-                  <li>Remove individual results</li>
-                  <li>Overall statistics dashboard</li>
+                  <li>Status badge + progress bar</li>
+                  <li>Filter · Retry · Remove</li>
+                  <li>Statistics dashboard</li>
                 </ul>
               </div>
 
@@ -3012,9 +3036,7 @@ export default function Page() {
                   🔤 Text Transformation
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>UPPERCASE all</li>
-                  <li>lowercase all</li>
-                  <li>Title Case all</li>
+                  <li>UPPERCASE · lowercase · Title Case</li>
                   <li>Find &amp; Replace across all files</li>
                 </ul>
               </div>
@@ -3024,13 +3046,7 @@ export default function Page() {
                   💾 Export Formats (7 Options)
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Copy All — clipboard</li>
-                  <li>TXT — plain text</li>
-                  <li>ZIP — separate .txt per file</li>
-                  <li>PDF — Unicode-safe combined</li>
-                  <li>CSV — Excel-friendly metadata</li>
-                  <li>DOC — Word format per file</li>
-                  <li>Per-file PDF export</li>
+                  <li>Copy · TXT · ZIP · PDF · CSV · DOC · per-file PDF</li>
                 </ul>
               </div>
 
@@ -3039,11 +3055,20 @@ export default function Page() {
                   📤 Sharing
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Native share sheet (mobile)</li>
-                  <li>Share as .txt file</li>
-                  <li>Share as plain text</li>
+                  <li>Native share sheet · .txt · plain text</li>
                   <li>WhatsApp direct share</li>
                   <li>Clipboard fallback</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  🔗 Tools Hub Integration
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Animated "Other Useful Tools" grid</li>
+                  <li>Click any card → navigate to sibling tool</li>
+                  <li>Hover: gradient glow + shimmer + lift</li>
                 </ul>
               </div>
 
@@ -3055,21 +3080,16 @@ export default function Page() {
                   <li>100% on-device processing (WebAssembly)</li>
                   <li>No uploads to any server</li>
                   <li>Shared Tesseract worker</li>
-                  <li>Auto-save results (last 20)</li>
-                  <li>Auto-save history (last 200)</li>
-                  <li>PDF multi-page (up to 25 pages)</li>
-                  <li>Multi-page TIFF (unlimited pages)</li>
-                  <li>Batch up to 10 files at once</li>
-                  <li>Cancel-all button</li>
-                  <li>Lightbox image preview</li>
+                  <li>Auto-save results (last 20) + history (last 200)</li>
+                  <li>PDF multi-page (25 pages) · TIFF unlimited</li>
+                  <li>Batch up to 10 files · Cancel-all button</li>
                 </ul>
               </div>
 
               <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
                 <p className="text-violet-200 text-xs">
-                  <b>Total: 70+ features</b> — the most complete browser-based
-                  OCR tool available, completely free, with zero uploads and no
-                  account required.
+                  <b>Total: 75+ features</b> — the most complete browser-based
+                  OCR tool available, free, private, no account required.
                 </p>
               </div>
             </div>
@@ -3092,11 +3112,9 @@ export default function Page() {
                   🔒 1. Your Files Never Leave Your Device
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Most "free OCR" websites upload your documents to their
-                  servers. This tool runs Tesseract.js entirely in your
-                  browser. <b>Zero uploads. Zero tracking. Zero risk.</b>{" "}
-                  Perfect for confidential documents, IDs, contracts, medical
-                  records.
+                  Most "free OCR" websites upload your documents. This tool
+                  runs Tesseract.js entirely in your browser. <b>Zero uploads.
+                  Zero tracking. Zero risk.</b>
                 </p>
               </div>
 
@@ -3105,9 +3123,8 @@ export default function Page() {
                   ⚡ 2. Batch Processing With a Shared Worker
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Other tools reload the OCR engine for every file. This tool
-                  keeps a <b>single Tesseract worker in memory</b> and reuses
-                  it — processing 10 files is nearly as fast as processing 1.
+                  Keeps a <b>single Tesseract worker in memory</b> — processing
+                  10 files is nearly as fast as processing 1.
                 </p>
               </div>
 
@@ -3116,23 +3133,18 @@ export default function Page() {
                   🎯 3. Professional-Grade Accuracy Controls
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Advanced OCR tools charge hundreds of dollars for these
-                  controls. Here you get them <b>free</b>: 7 page segmentation
-                  modes, character whitelist, binarisation, brightness/contrast,
-                  grayscale, auto-upscale, auto-clean, <b>manual crop tool</b>,
-                  and <b>line-by-line confidence viewing</b>.
+                  Advanced OCR tools charge hundreds for these. Here you get
+                  them <b>free</b> — and now <b>always visible at the top</b>.
                 </p>
               </div>
 
               <div className="rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/5 p-3">
                 <p className="text-fuchsia-200 text-xs font-bold mb-1">
-                  🌏 4. True Unicode Support (Hindi, Arabic, CJK)
+                  🌏 4. True Unicode Support
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Most OCR tools read Hindi but <b>cannot export</b> it
-                  correctly — their PDFs show boxes. This tool{" "}
-                  <b>rasterises text through your browser's font engine</b>,
-                  so Devanagari, Arabic, and CJK export perfectly.
+                  Rasterises text through your browser's own font engine —
+                  Devanagari, Arabic, CJK all export perfectly.
                 </p>
               </div>
 
@@ -3141,10 +3153,8 @@ export default function Page() {
                   📜 5. Date-wise OCR History
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Nothing online does this. Every successful OCR is stored
-                  locally with a <b>timestamp</b>, grouped by day, searchable,
-                  and starrable. Load any past entry back into the workspace
-                  with one click.
+                  Every successful OCR is stored with a timestamp, grouped by
+                  day, searchable, starrable.
                 </p>
               </div>
 
@@ -3153,8 +3163,7 @@ export default function Page() {
                   💸 6. Genuinely Free — No Hidden Limits
                 </p>
                 <p className="text-xs text-zinc-300">
-                  No accounts, no ads, no daily limits, no watermarks. Process
-                  100 pages today and 100 more tomorrow.
+                  No accounts, no ads, no daily limits, no watermarks.
                 </p>
               </div>
 
@@ -3163,9 +3172,7 @@ export default function Page() {
                   ⌨️ 7. Power-User Shortcuts
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Keyboard shortcuts for every major action, plus font-size
-                  control for accessibility. Most OCR tools are desktop-only
-                  and don't even have keyboard shortcuts.
+                  Keyboard shortcuts for every action, plus font-size control.
                 </p>
               </div>
 
@@ -3174,9 +3181,8 @@ export default function Page() {
                   📄 8. Scanners &amp; Faxes Just Work
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Multi-page TIFF support means whatever your scanner outputs,
-                  this tool reads it. No conversion to PDF first. Each page
-                  becomes its own result card.
+                  Multi-page TIFF support — whatever your scanner outputs,
+                  this tool reads it.
                 </p>
               </div>
 
@@ -3185,11 +3191,9 @@ export default function Page() {
                   🏅 Bottom Line
                 </p>
                 <p className="text-xs text-zinc-300">
-                  If you want a tool that treats your privacy seriously, gives
-                  you professional-grade accuracy controls, exports in every
-                  format, works on any device, and never charges you — this is
-                  it. Nothing else online combines all of this in one free,
-                  privacy-first package.
+                  If you want a tool that respects privacy, gives you
+                  professional controls, exports in every format, works on any
+                  device, and never charges you — this is it.
                 </p>
               </div>
             </div>
@@ -3216,40 +3220,36 @@ export default function Page() {
           </h2>
           {[
             {
-              q: "Why couldn't I upload a PDF before?",
-              a: "Fixed. The main Upload button now accepts images, PDFs AND TIFFs, and there is a dedicated PDF-only button. Each PDF page is rendered at 3× scale.",
+              q: "Where is the Advanced OCR panel now?",
+              a: "It's now visible directly at the top, just below the upload buttons, highlighted with an animated gradient border. You can also find it inside Settings for convenience.",
             },
             {
-              q: "Drag &amp; drop did nothing?",
-              a: "Fixed. The drop zone highlights while you drag over it. You can also click it to open the file picker, or press Ctrl+V to paste an image.",
+              q: "Why couldn't I upload a PDF before?",
+              a: "Fixed. The main Upload button now accepts images, PDFs AND TIFFs, and there is a dedicated PDF-only button.",
             },
             {
               q: "What does the Share button share?",
-              a: "It shares the extracted TEXT, not the URL. First it tries the native share sheet, then plain text, then a clipboard + WhatsApp fallback.",
-            },
-            {
-              q: "Do Brightness / Contrast / Rotate actually work?",
-              a: "Yes. They are baked into the image before OCR runs. Rotation expands the canvas so nothing gets cropped.",
+              a: "It shares the extracted TEXT, not the URL. Native share sheet first, then plain text, then clipboard + WhatsApp fallback.",
             },
             {
               q: "How does the manual Crop tool work?",
-              a: "Open any result and tap ✂️ Crop. Drag the 4 white corner handles to select just the region you want, then tap Apply Crop. The tool re-runs OCR on only that cropped region — ideal for removing headers, footers or side columns.",
+              a: "Open any result and tap ✂️ Crop. Drag the 4 corner handles to select just the region you want, then tap Apply Crop. The tool re-runs OCR on only that cropped region.",
             },
             {
               q: "What is line-by-line confidence?",
-              a: "Turn on 'Show line confidence' in Settings. The result text becomes a colour-coded read-only view: red lines are below 60% (likely wrong), amber lines are 60–80% (check manually), and uncoloured lines are above 80% (reliable).",
+              a: "Turn on 'Show line confidence' in Settings. Result text becomes a colour-coded read-only view: red (<60%), amber (60–80%), no colour (80%+).",
             },
             {
               q: "How does Auto language detect work?",
-              a: "When enabled, if you have 'Hindi' selected but the image looks like Latin script, the tool auto-switches to English for that file only. It's a lightweight pixel analysis — not full OCR — so it's fast and free.",
+              a: "When enabled, if you have 'Hindi' selected but the image looks like Latin script, the tool auto-switches to English for that file.",
             },
             {
               q: "Where is my history stored?",
-              a: "Entirely in your browser's localStorage on this device. Up to 200 entries are kept. Nothing is synced to any server. Clearing your browser data will clear history.",
+              a: "Entirely in your browser's localStorage on this device. Up to 200 entries. Nothing is synced.",
             },
             {
               q: "Does multi-page TIFF work?",
-              a: "Yes. Upload a multi-page TIFF and every page is extracted and OCR'd separately using UTIF.js (loaded on demand only when you upload a TIFF).",
+              a: "Yes. Every page is extracted and OCR'd separately using UTIF.js (loaded on demand).",
             },
             {
               q: "Which keyboard shortcuts are supported?",
@@ -3257,19 +3257,19 @@ export default function Page() {
             },
             {
               q: "Is my data uploaded anywhere?",
-              a: "No. Tesseract runs via WebAssembly in your browser. The only network requests are the one-time download of the OCR engine, the language model, the PDF.js worker, and UTIF.js if you upload a TIFF.",
-            },
-            {
-              q: "PDF export shows boxes/garbage for Hindi or Arabic?",
-              a: "jsPDF's built-in fonts are Latin-only. This tool rasterises the text through your browser's own font engine, so Devanagari, Arabic and CJK export perfectly.",
+              a: "No. Tesseract runs via WebAssembly in your browser. Only network requests: Tesseract engine, language models, PDF.js worker, UTIF.js (only if you upload TIFF).",
             },
             {
               q: "How do I get 100% accuracy?",
-              a: "No OCR is 100% on every image, but you can get very close: sharp photo, PSM 6 (or 7 for single lines), Auto upscale ON, B&W binarisation ON, correct language, and use the Crop tool to remove distracting regions. On clean printed scans this reaches 99%+ confidence.",
+              a: "Sharp photo, PSM 6 (or 7 for single lines), Auto upscale ON, B&W binarisation ON, correct language, use Crop tool. Reaches 99%+ confidence on clean scans.",
             },
             {
               q: "How large can my files be?",
               a: `Up to ${MAX_FILES} files per batch, 25 MB each, first ${MAX_PDF_PAGES} pages of any PDF, unlimited pages in a TIFF.`,
+            },
+            {
+              q: "Where are the other tools?",
+              a: "Scroll to the bottom of this page — you'll find the animated 'Other Useful Tools' grid with links to Lorem Ipsum Generator, Image Compressor, PDF Tools and more.",
             },
           ].map((f, i) => (
             <div
@@ -3310,6 +3310,64 @@ export default function Page() {
             </div>
           ))}
         </div>
+
+        {/* ---------------- OTHER USEFUL TOOLS ---------------- */}
+        <section className="mt-16 max-w-6xl mx-auto">
+          <div className="relative rounded-3xl border border-transparent bg-gradient-to-br from-violet-500/20 via-fuchsia-500/15 to-amber-500/20 p-[1.5px] shadow-[0_0_50px_-20px_rgba(168,85,247,0.6)]">
+            <div className="rounded-3xl bg-[#0a0a0b] p-5 sm:p-8">
+              <div className="text-center mb-6">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-violet-300 font-bold mb-2">
+                  More from Lorem Pro Tool
+                </p>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-violet-200 via-fuchsia-200 to-amber-200 bg-clip-text text-transparent">
+                  Other Useful Tools
+                </h2>
+                <p className="text-xs sm:text-sm text-zinc-500 mt-2 max-w-xl mx-auto">
+                  One hub, many tools. All free, all private, all in your
+                  browser.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {OTHER_TOOLS.map((t) => (
+                  <a
+                    key={t.title}
+                    href={t.href}
+                    className="tool-card group rounded-2xl border border-zinc-800 bg-black/40 p-4 hover:border-transparent"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="tool-icon text-2xl shrink-0">{t.icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-sm text-white truncate">
+                          {t.title}
+                        </p>
+                        <p className="text-[11px] text-zinc-500 mt-1 leading-5">
+                          {t.desc}
+                        </p>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-violet-300 mt-2 group-hover:text-fuchsia-300 transition-colors">
+                          Open tool
+                          <span className="transition-transform duration-300 group-hover:translate-x-1">
+                            →
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+
+              <div className="mt-6 text-center">
+                <a
+                  href="/"
+                  className="inline-flex items-center gap-2 rounded-full bg-white text-black px-5 py-2.5 text-xs font-bold hover:bg-zinc-200 active:scale-95 transition"
+                >
+                  Explore all tools
+                  <span>↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <footer className="mt-14 text-center text-[11px] text-zinc-600">
           Built with Tesseract.js · PDF.js · jsPDF · JSZip · UTIF.js —
