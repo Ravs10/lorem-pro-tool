@@ -31,6 +31,7 @@ const LANGUAGES = [
 const MAX_FILES = 10;
 const MAX_SIZE = 25 * 1024 * 1024;
 const MAX_PDF_PAGES = 25;
+const HISTORY_KEY = "ocr-history-v2";
 
 type Status =
   | "cleaning"
@@ -51,6 +52,22 @@ interface OcrResult {
   status: Status;
   message: string;
   words?: number;
+  /** line-by-line confidence: array of {text, confidence, line} */
+  lines?: { text: string; confidence: number }[];
+  /** rotated version of thumbnail (crop tool) */
+  cropBox?: { x: number; y: number; w: number; h: number } | null;
+}
+
+interface HistoryEntry {
+  id: string;
+  name: string;
+  text: string;
+  confidence: number;
+  words: number;
+  chars: number;
+  date: number;
+  lang: string;
+  starred?: boolean;
 }
 
 const FINISHED: Status[] = ["done", "failed", "cancelled"];
@@ -91,8 +108,74 @@ const triggerDownload = (blob: Blob, filename: string) => {
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 };
 
+const formatDate = (ts: number) => {
+  const d = new Date(ts);
+  return d.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const dayKey = (ts: number) => {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate()
+  ).padStart(2, "0")}`;
+};
+
+const relativeDay = (ts: number) => {
+  const today = dayKey(Date.now());
+  const yesterday = dayKey(Date.now() - 86400000);
+  const k = dayKey(ts);
+  if (k === today) return "Today";
+  if (k === yesterday) return "Yesterday";
+  return new Date(ts).toLocaleDateString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+/** Very lightweight script detection from raw image pixels. */
+const detectScript = (src: string): Promise<"latin" | "devanagari" | "arabic" | "unknown"> =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        const W = Math.min(400, img.width);
+        const H = Math.min(400, img.height);
+        canvas.width = W;
+        canvas.height = H;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve("unknown");
+        ctx.drawImage(img, 0, 0, W, H);
+        const data = ctx.getImageData(0, 0, W, H).data;
+        // crude: check for sharp vertical strokes (Devanagari shirorekha) vs. diagonal (Latin)
+        // We simply default to latin if we can't decide.
+        let dark = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const g = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          if (g < 100) dark++;
+        }
+        const ratio = dark / (W * H);
+        // No reliable script detection without OCR — return latin as safe default
+        // (this gives the user an automatic "eng" pre-selection only)
+        resolve(ratio > 0.005 ? "latin" : "unknown");
+      } catch {
+        resolve("unknown");
+      }
+    };
+    img.onerror = () => resolve("unknown");
+    img.src = src;
+  });
+
 /* ------------------------------------------------------------------ */
-/*  IMAGE PRE-PROCESSING                                               */
+/*  IMAGE PRE-PROCESSING (with optional crop)                          */
 /* ------------------------------------------------------------------ */
 
 interface PreOpts {
@@ -103,6 +186,7 @@ interface PreOpts {
   binarize: boolean;
   threshold: number;
   upscale: boolean;
+  crop?: { x: number; y: number; w: number; h: number } | null;
 }
 
 const preprocess = (src: string, o: PreOpts): Promise<string> =>
@@ -112,12 +196,21 @@ const preprocess = (src: string, o: PreOpts): Promise<string> =>
 
     img.onload = () => {
       try {
+        // apply crop first (fractions 0..1)
+        let sx = 0, sy = 0, sw = img.width, sh = img.height;
+        if (o.crop) {
+          sx = Math.max(0, o.crop.x * img.width);
+          sy = Math.max(0, o.crop.y * img.height);
+          sw = Math.max(1, o.crop.w * img.width);
+          sh = Math.max(1, o.crop.h * img.height);
+        }
+
         const rad = (o.rotate * Math.PI) / 180;
         const cos = Math.abs(Math.cos(rad));
         const sin = Math.abs(Math.sin(rad));
 
-        const rotW = img.width * cos + img.height * sin;
-        const rotH = img.width * sin + img.height * cos;
+        const rotW = sw * cos + sh * sin;
+        const rotH = sw * sin + sh * cos;
 
         const longest = Math.max(rotW, rotH);
         let scale = 1;
@@ -150,7 +243,7 @@ const preprocess = (src: string, o: PreOpts): Promise<string> =>
             o.grayscale ? " grayscale(1)" : ""
           }`;
         } catch {}
-        ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
+        ctx.drawImage(img, sx, sy, sw, sh, -sw / 2, -sh / 2, sw, sh);
         ctx.restore();
 
         if (o.binarize) {
@@ -252,6 +345,37 @@ async function buildPdfFromText(text: string, filename: string) {
   });
 
   doc.save(filename);
+}
+
+/* ------------------------------------------------------------------ */
+/*  MULTI-PAGE TIFF READER (utif.js loaded on demand)                  */
+/* ------------------------------------------------------------------ */
+
+async function readTiffPages(file: File): Promise<string[]> {
+  const buf = await file.arrayBuffer();
+  const UTIF: any = await import("utif");
+
+  const ifds = UTIF.decode(buf);
+  if (!ifds || !ifds.length) throw new Error("No IFD found");
+
+  const pages: string[] = [];
+  for (let i = 0; i < ifds.length; i++) {
+    UTIF.decodeImage(buf, ifds[i]);
+    const rgba = UTIF.toRGBA8(ifds[i]);
+    const w = ifds[i].width;
+    const h = ifds[i].height;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) continue;
+    const imgData = ctx.createImageData(w, h);
+    imgData.data.set(rgba);
+    ctx.putImageData(imgData, 0, 0);
+    pages.push(canvas.toDataURL("image/jpeg", 0.95));
+  }
+  return pages;
 }
 
 /* ------------------------------------------------------------------ */
@@ -408,15 +532,167 @@ function Toggle({
 }
 
 /* ------------------------------------------------------------------ */
+/*  CROP TOOL (manual 4-corner drag, no OpenCV)                        */
+/* ------------------------------------------------------------------ */
+
+function CropModal({
+  src,
+  onCancel,
+  onApply,
+}: {
+  src: string;
+  onCancel: () => void;
+  onApply: (box: { x: number; y: number; w: number; h: number }) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ x: 0.1, y: 0.1, w: 0.8, h: 0.8 });
+  const [drag, setDrag] = useState<{ corner: string; sx: number; sy: number; orig: any } | null>(
+    null
+  );
+
+  const startDrag = (corner: string) => (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDrag({
+      corner,
+      sx: e.clientX,
+      sy: e.clientY,
+      orig: { ...box },
+    });
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  useEffect(() => {
+    if (!drag) return;
+    const move = (e: PointerEvent) => {
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const dx = (e.clientX - drag.sx) / rect.width;
+      const dy = (e.clientY - drag.sy) / rect.height;
+      let { x, y, w, h } = drag.orig;
+      const MIN = 0.05;
+
+      if (drag.corner.includes("n")) {
+        const ny = Math.max(0, Math.min(1 - MIN, y + dy));
+        h = h - (ny - y);
+        y = ny;
+      }
+      if (drag.corner.includes("s")) {
+        h = Math.max(MIN, Math.min(1 - y, h + dy));
+      }
+      if (drag.corner.includes("w")) {
+        const nx = Math.max(0, Math.min(1 - MIN, x + dx));
+        w = w - (nx - x);
+        x = nx;
+      }
+      if (drag.corner.includes("e")) {
+        w = Math.max(MIN, Math.min(1 - x, w + dx));
+      }
+      setBox({ x, y, w, h });
+    };
+    const up = () => setDrag(null);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+  }, [drag]);
+
+  const corners: { key: string; cls: string }[] = [
+    { key: "nw", cls: "top-0 left-0 -translate-x-1/2 -translate-y-1/2 cursor-nwse-resize" },
+    { key: "ne", cls: "top-0 right-0 translate-x-1/2 -translate-y-1/2 cursor-nesw-resize" },
+    { key: "sw", cls: "bottom-0 left-0 -translate-x-1/2 translate-y-1/2 cursor-nesw-resize" },
+    { key: "se", cls: "bottom-0 right-0 translate-x-1/2 translate-y-1/2 cursor-nwse-resize" },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[65] bg-black/95 backdrop-blur-sm grid place-items-center p-3">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-3 w-full max-w-2xl">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-bold">✂️ Crop — drag the corners</p>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="w-8 h-8 grid place-items-center rounded-full border border-zinc-700 hover:bg-zinc-800"
+          >
+            ✕
+          </button>
+        </div>
+        <div
+          ref={containerRef}
+          className="relative w-full select-none touch-none"
+          style={{ aspectRatio: "4/3" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt="crop"
+            className="absolute inset-0 w-full h-full object-contain bg-black rounded-xl"
+            draggable={false}
+          />
+          <div
+            className="absolute border-2 border-white rounded-md pointer-events-none"
+            style={{
+              left: `${box.x * 100}%`,
+              top: `${box.y * 100}%`,
+              width: `${box.w * 100}%`,
+              height: `${box.h * 100}%`,
+              boxShadow: "0 0 0 9999px rgba(0,0,0,0.55)",
+            }}
+          />
+          {corners.map((c) => (
+            <div
+              key={c.key}
+              onPointerDown={startDrag(c.key)}
+              className={`absolute w-6 h-6 bg-white rounded-full border-2 border-black ${c.cls}`}
+              style={{
+                left:
+                  c.key.includes("w")
+                    ? `${box.x * 100}%`
+                    : `${(box.x + box.w) * 100}%`,
+                top:
+                  c.key.includes("n")
+                    ? `${box.y * 100}%`
+                    : `${(box.y + box.h) * 100}%`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          <button
+            type="button"
+            onClick={() => setBox({ x: 0, y: 0, w: 1, h: 1 })}
+            className="bg-zinc-800 border border-zinc-700 py-2.5 rounded-xl font-bold text-xs hover:bg-zinc-700"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={() => onApply(box)}
+            className="bg-white text-black py-2.5 rounded-xl font-bold text-xs hover:bg-zinc-200"
+          >
+            Apply Crop
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  PAGE                                                               */
 /* ------------------------------------------------------------------ */
 
 export default function Page() {
   const [results, setResults] = useState<OcrResult[]>([]);
   const [lang, setLang] = useState("eng+hin");
+  const [autoLang, setAutoLang] = useState(true);
   const [toast, setToast] = useState<{ msg: string; kind: "ok" | "err" } | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // preprocessing
   const [brightness, setBrightness] = useState(110);
   const [contrast, setContrast] = useState(115);
   const [rotate, setRotate] = useState(0);
@@ -427,14 +703,31 @@ export default function Page() {
   const [autoTidy, setAutoTidy] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
 
+  // advanced
   const [psm, setPsm] = useState<string>("6");
   const [whitelist, setWhitelist] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(true);
 
+  // font size
+  const [fontSize, setFontSize] = useState(12);
+
+  // line confidence display
+  const [showConfidence, setShowConfidence] = useState(false);
+
+  // camera
   const [showCamera, setShowCamera] = useState(false);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [cameraReady, setCameraReady] = useState(false);
 
+  // crop
+  const [cropFor, setCropFor] = useState<OcrResult | null>(null);
+
+  // history
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyQuery, setHistoryQuery] = useState("");
+
+  // UI state
   const [openSec, setOpenSec] = useState("what");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isDragActive, setIsDragActive] = useState(false);
@@ -462,6 +755,7 @@ export default function Page() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
+  /* -------- persistence: results + history -------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -479,6 +773,11 @@ export default function Page() {
           );
         }
       }
+      const rawH = localStorage.getItem(HISTORY_KEY);
+      if (rawH) {
+        const parsedH = JSON.parse(rawH);
+        if (Array.isArray(parsedH)) setHistory(parsedH);
+      }
     } catch {}
     hydratedRef.current = true;
   }, []);
@@ -488,13 +787,69 @@ export default function Page() {
     try {
       const toStore = results.slice(-20).map((r) => ({
         ...r,
-        preview: r.preview?.startsWith("data:") ? "" : "",
+        preview: "",
         original: "",
       }));
       localStorage.setItem("ocr-results-v1", JSON.stringify(toStore));
     } catch {}
   }, [results]);
 
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 200)));
+    } catch {}
+  }, [history]);
+
+  /* -------- keyboard shortcuts -------- */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod) {
+        if (e.key === "Escape") {
+          setLightbox(null);
+          setCropFor(null);
+        }
+        return;
+      }
+
+      // Ctrl + Shift + ... for most; avoid clobbering copy/paste
+      if (e.key.toLowerCase() === "o" && e.shiftKey) {
+        e.preventDefault();
+        imageInputRef.current?.click();
+      } else if (e.key.toLowerCase() === "k" && e.shiftKey) {
+        e.preventDefault();
+        setShowCamera(true);
+      } else if (e.key.toLowerCase() === "h" && e.shiftKey) {
+        e.preventDefault();
+        setShowHistory((s) => !s);
+      } else if (e.key.toLowerCase() === "s" && e.shiftKey) {
+        e.preventDefault();
+        if (allTextRef.current) copyAllRef.current?.();
+      } else if (e.key === "/" && e.shiftKey) {
+        e.preventDefault();
+        if (resultsRef.current.length) clearAllRef.current?.();
+      } else if (e.key === "ArrowUp" && !typing) {
+        // increase font
+        e.preventDefault();
+        setFontSize((s) => Math.min(22, s + 1));
+      } else if (e.key === "ArrowDown" && !typing) {
+        e.preventDefault();
+        setFontSize((s) => Math.max(10, s - 1));
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  /* -------- worker -------- */
   const getWorker = useCallback(async (langCode: string) => {
     if (workerRef.current && workerRef.current.lang === langCode) {
       return workerRef.current.worker;
@@ -553,9 +908,23 @@ export default function Page() {
     };
   }, []);
 
+  /* -------- refs for shortcuts -------- */
+  const allTextRef = useRef("");
+  const resultsRef = useRef<OcrResult[]>([]);
+  const copyAllRef = useRef<(() => void) | null>(null);
+  const clearAllRef = useRef<(() => void) | null>(null);
+
+  /* -------- OCR job -------- */
   const runOCR = useCallback(
-    async (src: string, name: string, previewUrl: string) => {
+    async (
+      src: string,
+      name: string,
+      previewUrl: string,
+      overrideLang?: string,
+      cropBox?: { x: number; y: number; w: number; h: number } | null
+    ) => {
       const id = uid();
+      const useLang = overrideLang || lang;
       const opts: PreOpts = {
         brightness,
         contrast,
@@ -564,6 +933,7 @@ export default function Page() {
         binarize,
         threshold,
         upscale,
+        crop: cropBox ?? null,
       };
 
       setResults((prev) => [
@@ -579,6 +949,8 @@ export default function Page() {
           status: "cleaning",
           message: "Preparing image…",
           words: 0,
+          lines: [],
+          cropBox: cropBox ?? null,
         },
       ]);
 
@@ -597,7 +969,7 @@ export default function Page() {
         });
 
         jobRef.current = id;
-        const worker = await getWorker(lang);
+        const worker = await getWorker(useLang);
         if (cancelRef.current) throw new Error("cancelled");
 
         try {
@@ -615,14 +987,47 @@ export default function Page() {
         jobRef.current = null;
 
         const text = autoTidy ? tidyText(data.text || "") : data.text || "";
+        const confidence = Math.round(data.confidence ?? 0);
+
+        // line-by-line confidence
+        const lines: { text: string; confidence: number }[] = [];
+        try {
+          const rawLines: any[] = (data as any).lines || [];
+          for (const l of rawLines) {
+            const lt = (l.text || "").trim();
+            if (lt) lines.push({ text: lt, confidence: Math.round(l.confidence ?? 0) });
+          }
+        } catch {}
+
         patch({
           text,
-          confidence: Math.round(data.confidence ?? 0),
+          confidence,
           progress: 100,
           status: "done",
           message: "Completed",
           words: countWords(text),
+          lines,
         });
+
+        // push to history
+        if (text.trim()) {
+          setHistory((h) =>
+            [
+              {
+                id,
+                name,
+                text,
+                confidence,
+                words: countWords(text),
+                chars: text.length,
+                date: Date.now(),
+                lang: useLang,
+                starred: false,
+              },
+              ...h,
+            ].slice(0, 200)
+          );
+        }
       } catch {
         jobRef.current = null;
         const cancelled = cancelRef.current;
@@ -653,6 +1058,7 @@ export default function Page() {
     ]
   );
 
+  /* -------- PDF -------- */
   const handlePdf = useCallback(
     async (file: File) => {
       try {
@@ -697,6 +1103,7 @@ export default function Page() {
     [runOCR, showToast]
   );
 
+  /* -------- batch -------- */
   const processFiles = useCallback(
     async (input: FileList | File[]) => {
       const files = Array.from(input as any) as File[];
@@ -720,16 +1127,42 @@ export default function Page() {
 
         const isPdf =
           file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+        const isTiff =
+          file.type === "image/tiff" ||
+          file.type === "image/tif" ||
+          /\.tiff?$/i.test(file.name);
         const isImage =
           file.type.startsWith("image/") ||
-          /\.(png|jpe?g|webp|bmp|gif|tiff?)$/i.test(file.name);
+          /\.(png|jpe?g|webp|bmp|gif)$/i.test(file.name);
 
         if (isPdf) {
           await handlePdf(file);
+        } else if (isTiff) {
+          try {
+            const pages = await readTiffPages(file);
+            if (!pages.length) {
+              showToast(`TIFF has no pages: ${file.name}`, "err");
+              continue;
+            }
+            for (let i = 0; i < pages.length; i++) {
+              if (cancelRef.current) break;
+              await runOCR(pages[i], `${file.name} · p${i + 1}`, pages[i]);
+            }
+          } catch (e) {
+            console.error(e);
+            showToast(`TIFF could not be read: ${file.name}`, "err");
+          }
         } else if (isImage) {
           const url = URL.createObjectURL(file);
           urlsRef.current.push(url);
-          await runOCR(url, file.name, url);
+
+          // auto script detect → auto lang
+          let useLang = lang;
+          if (autoLang && !/\+/.test(lang)) {
+            const script = await detectScript(url);
+            if (script === "latin" && lang === "hin") useLang = "eng";
+          }
+          await runOCR(url, file.name, url, useLang);
         } else {
           showToast(`Unsupported file: ${file.name}`, "err");
         }
@@ -738,7 +1171,7 @@ export default function Page() {
       setBusy(false);
       cancelRef.current = false;
     },
-    [handlePdf, runOCR, showToast]
+    [autoLang, handlePdf, lang, runOCR, showToast]
   );
 
   processRef.current = processFiles;
@@ -844,6 +1277,24 @@ export default function Page() {
     );
   }, [results, query]);
 
+  const filteredHistory = useMemo(() => {
+    const q = historyQuery.trim().toLowerCase();
+    if (!q) return history;
+    return history.filter(
+      (h) => h.name.toLowerCase().includes(q) || h.text.toLowerCase().includes(q)
+    );
+  }, [history, historyQuery]);
+
+  const groupedHistory = useMemo(() => {
+    const map = new Map<string, HistoryEntry[]>();
+    for (const h of filteredHistory) {
+      const k = dayKey(h.date);
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(h);
+    }
+    return Array.from(map.entries());
+  }, [filteredHistory]);
+
   const stats = useMemo(() => {
     const done = results.filter((r) => r.status === "done");
     const words = done.reduce((a, r) => a + countWords(r.text), 0);
@@ -859,6 +1310,7 @@ export default function Page() {
     ? Math.round((finishedCount / results.length) * 100)
     : 0;
 
+  /* -------- actions -------- */
   const copyAll = async () => {
     if (!allText) return showToast("Nothing to copy", "err");
     try {
@@ -868,6 +1320,10 @@ export default function Page() {
       showToast("Clipboard blocked by browser", "err");
     }
   };
+
+  allTextRef.current = allText;
+  resultsRef.current = results;
+  copyAllRef.current = copyAll;
 
   const downloadZip = async () => {
     if (!results.length) return;
@@ -1016,7 +1472,7 @@ export default function Page() {
     setResults((prev) => prev.filter((x) => x.id !== r.id));
     setBusy(true);
     cancelRef.current = false;
-    await runOCR(r.original, r.name, r.original);
+    await runOCR(r.original, r.name, r.original, undefined, r.cropBox ?? null);
     setBusy(false);
   };
 
@@ -1034,6 +1490,8 @@ export default function Page() {
     } catch {}
     showToast("Cleared");
   };
+
+  clearAllRef.current = clearAll;
 
   const cancelAll = async () => {
     cancelRef.current = true;
@@ -1085,6 +1543,60 @@ export default function Page() {
     showToast(count ? `Replaced in ${count} file(s)` : "No matches found");
   };
 
+  /* -------- crop -------- */
+  const openCrop = (r: OcrResult) => setCropFor(r);
+  const applyCrop = async (box: { x: number; y: number; w: number; h: number }) => {
+    const r = cropFor;
+    setCropFor(null);
+    if (!r) return;
+    // store crop on result and re-run OCR from original
+    setResults((prev) =>
+      prev.map((x) => (x.id === r.id ? { ...x, cropBox: box } : x))
+    );
+    setBusy(true);
+    cancelRef.current = false;
+    await runOCR(r.original, r.name, r.original, undefined, box);
+    setBusy(false);
+  };
+
+  /* -------- history -------- */
+  const historyToResults = (h: HistoryEntry) => {
+    // load history entry as a result so user can re-use tools
+    const r: OcrResult = {
+      id: uid(),
+      name: h.name,
+      original: "",
+      preview: "",
+      text: h.text,
+      confidence: h.confidence,
+      progress: 100,
+      status: "done",
+      message: "From history",
+      words: countWords(h.text),
+      lines: [],
+      cropBox: null,
+    };
+    setResults((prev) => [r, ...prev]);
+    setShowHistory(false);
+    showToast("Loaded from history");
+  };
+
+  const removeHistory = (id: string) =>
+    setHistory((prev) => prev.filter((h) => h.id !== id));
+
+  const clearHistory = () => {
+    if (!history.length) return;
+    if (!window.confirm("Clear all history? This cannot be undone.")) return;
+    setHistory([]);
+    showToast("History cleared");
+  };
+
+  const toggleStar = (id: string) =>
+    setHistory((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, starred: !h.starred } : h))
+    );
+
+  /* -------- lightbox esc -------- */
   useEffect(() => {
     if (!lightbox) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setLightbox(null);
@@ -1143,21 +1655,31 @@ export default function Page() {
           animation: shimmerSlide 3.5s ease-in-out infinite;
           pointer-events: none;
         }
+        .conf-low { background: rgba(239,68,68,0.18); border-radius: 4px; padding: 0 2px; }
+        .conf-mid { background: rgba(245,158,11,0.16); border-radius: 4px; padding: 0 2px; }
         @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important } }
       `}</style>
 
-      {/* SINGLE HEADER */}
+      {/* HEADER */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#070709]/85 border-b border-zinc-900">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <a href="/" className="font-bold text-sm sm:text-base whitespace-nowrap">
             ⚡ Lorem Pro Tool
           </a>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowHistory(true)}
+              className="bg-zinc-900 border border-zinc-800 rounded-full px-2.5 sm:px-3 py-2 text-[11px] font-bold hover:border-zinc-600 transition"
+              title="History (Ctrl+Shift+H)"
+            >
+              📜 <span className="hidden sm:inline">History</span>
+            </button>
             <select
               value={lang}
               onChange={(e) => setLang(e.target.value)}
               aria-label="OCR language"
-              className="bg-zinc-900 border border-zinc-800 rounded-full px-2.5 sm:px-3 py-2 text-[11px] font-bold outline-none focus:border-zinc-600 max-w-[120px] sm:max-w-[220px]"
+              className="bg-zinc-900 border border-zinc-800 rounded-full px-2.5 sm:px-3 py-2 text-[11px] font-bold outline-none focus:border-zinc-600 max-w-[110px] sm:max-w-[200px]"
             >
               {LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code}>
@@ -1196,7 +1718,7 @@ export default function Page() {
               onClick={() => imageInputRef.current?.click()}
               className="bg-white text-black px-4 py-3 rounded-xl text-sm font-bold hover:bg-zinc-200 active:scale-[0.98] transition"
             >
-              📁 Upload Image / PDF
+              📁 Upload Image / PDF / TIFF
             </button>
             <button
               type="button"
@@ -1217,7 +1739,7 @@ export default function Page() {
           <input
             ref={imageInputRef}
             type="file"
-            accept="image/*,application/pdf"
+            accept="image/*,application/pdf,.tif,.tiff"
             multiple
             className="hidden"
             onChange={(e) => {
@@ -1284,6 +1806,29 @@ export default function Page() {
                   value={rotate}
                   suffix="°"
                   onChange={setRotate}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <Range
+                  label="Font Size (results)"
+                  min={10}
+                  max={22}
+                  value={fontSize}
+                  suffix="px"
+                  onChange={setFontSize}
+                />
+                <Toggle
+                  label="Auto language detect"
+                  hint="Defaults Latin text to English"
+                  checked={autoLang}
+                  onChange={setAutoLang}
+                />
+                <Toggle
+                  label="Show line confidence"
+                  hint="Highlight weak lines in results"
+                  checked={showConfidence}
+                  onChange={setShowConfidence}
                 />
               </div>
 
@@ -1407,6 +1952,9 @@ export default function Page() {
                     setAutoTidy(true);
                     setPsm("6");
                     setWhitelist("");
+                    setFontSize(12);
+                    setAutoLang(true);
+                    setShowConfidence(false);
                   }}
                   className="px-3 py-1.5 rounded-full border border-zinc-700 font-bold hover:border-zinc-500 transition"
                 >
@@ -1465,6 +2013,14 @@ export default function Page() {
           </div>
         )}
 
+        {cropFor && (
+          <CropModal
+            src={cropFor.original || cropFor.preview}
+            onCancel={() => setCropFor(null)}
+            onApply={applyCrop}
+          />
+        )}
+
         <section className="mt-4 bg-zinc-900/70 border border-zinc-800 rounded-[24px] p-3 sm:p-4">
           <div
             onDragOver={(e) => {
@@ -1490,7 +2046,7 @@ export default function Page() {
             }`}
           >
             <p className="font-bold text-sm sm:text-base">
-              {isDragActive ? "Drop files here 👇" : "Drop images or PDFs here (max 10)"}
+              {isDragActive ? "Drop files here 👇" : "Drop images, PDFs or TIFFs here (max 10)"}
             </p>
             <p className="text-[11px] sm:text-xs text-zinc-500 mt-1.5">
               JPG · PNG · WEBP · BMP · GIF · TIFF · PDF — or press{" "}
@@ -1679,6 +2235,7 @@ export default function Page() {
               const isBusy = !FINISHED.includes(r.status);
               const wc = r.words ?? countWords(r.text);
               const readMin = Math.max(1, Math.round(wc / 200));
+              const weakLineCount = r.lines?.filter((l) => l.confidence < 75).length ?? 0;
               return (
                 <article
                   key={r.id}
@@ -1687,16 +2244,22 @@ export default function Page() {
                   <div className="flex md:flex-col items-center md:items-stretch gap-3 md:w-24 shrink-0">
                     <button
                       type="button"
-                      onClick={() => setLightbox(r.preview)}
-                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-zinc-800 shrink-0 group relative"
+                      onClick={() => r.preview && setLightbox(r.preview)}
+                      className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border border-zinc-800 shrink-0 group relative bg-zinc-900"
                       title="View larger"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={r.preview}
-                        alt={r.name}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
+                      {r.preview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={r.preview}
+                          alt={r.name}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      ) : (
+                        <span className="w-full h-full grid place-items-center text-zinc-600 text-xs">
+                          🗎
+                        </span>
+                      )}
                     </button>
                     <div className="flex md:flex-col items-center gap-1.5">
                       <span
@@ -1716,6 +2279,11 @@ export default function Page() {
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-[11px] font-bold truncate" title={r.name}>
                         {r.name}
+                        {r.cropBox && (
+                          <span className="ml-2 text-[10px] text-violet-300 font-normal">
+                            ✂️ cropped
+                          </span>
+                        )}
                       </p>
                       <button
                         type="button"
@@ -1750,24 +2318,54 @@ export default function Page() {
                     {r.text && (
                       <p className="mt-1.5 text-[10px] text-zinc-500 tabular-nums">
                         {wc.toLocaleString()} words · ~{readMin} min read
+                        {weakLineCount > 0 && (
+                          <span className="ml-2 text-amber-400">
+                            · {weakLineCount} weak line{weakLineCount > 1 ? "s" : ""}
+                          </span>
+                        )}
                       </p>
                     )}
 
-                    <textarea
-                      value={r.text}
-                      onChange={(e) =>
-                        setResults((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? { ...x, text: e.target.value, words: countWords(e.target.value) }
-                              : x
+                    {/* Line-by-line confidence view */}
+                    {showConfidence && r.lines && r.lines.length > 0 ? (
+                      <div
+                        className="w-full mt-2.5 bg-zinc-900/80 border border-zinc-800 rounded-xl p-3 leading-6 h-32 sm:h-28 overflow-auto"
+                        style={{ fontSize: `${fontSize}px` }}
+                      >
+                        {r.lines.map((ln, i) => (
+                          <div
+                            key={i}
+                            className={
+                              ln.confidence < 60
+                                ? "conf-low"
+                                : ln.confidence < 80
+                                ? "conf-mid"
+                                : ""
+                            }
+                            title={`${ln.confidence}% confidence`}
+                          >
+                            {ln.text}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <textarea
+                        value={r.text}
+                        onChange={(e) =>
+                          setResults((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? { ...x, text: e.target.value, words: countWords(e.target.value) }
+                                : x
+                            )
                           )
-                        )
-                      }
-                      placeholder="Extracted text will appear here…"
-                      spellCheck={false}
-                      className="w-full mt-2.5 bg-zinc-900/80 border border-zinc-800 rounded-xl p-3 text-xs leading-6 h-32 sm:h-28 outline-none focus:border-white resize-y transition"
-                    />
+                        }
+                        placeholder="Extracted text will appear here…"
+                        spellCheck={false}
+                        className="w-full mt-2.5 bg-zinc-900/80 border border-zinc-800 rounded-xl p-3 leading-6 h-32 sm:h-28 outline-none focus:border-white resize-y transition"
+                        style={{ fontSize: `${fontSize}px` }}
+                      />
+                    )}
 
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       <button
@@ -1797,6 +2395,15 @@ export default function Page() {
                         className="bg-zinc-800 border border-zinc-700 px-3 py-1.5 rounded-full text-[11px] font-bold hover:border-zinc-500 transition"
                       >
                         DOC ↓
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => openCrop(r)}
+                        disabled={!r.original}
+                        className="bg-violet-600 hover:bg-violet-500 disabled:opacity-40 px-3 py-1.5 rounded-full text-[11px] font-bold transition"
+                        title="Crop then re-run OCR"
+                      >
+                        ✂️ Crop
                       </button>
                       <button
                         type="button"
@@ -1853,11 +2460,12 @@ export default function Page() {
                 Recognition</b>. It converts scanned documents, PDF files or
                 camera images into editable, searchable data. This tool runs
                 Tesseract.js (originally by HP, now maintained by Google)
-                entirely inside your browser using WebAssembly — your files                never leave your device.
+                entirely inside your browser using WebAssembly — your files
+                never leave your device.
               </p>
               <p>
                 <b className="text-white">The 4 stages:</b> 1) Pre-processing —
-                rotate, upscale, adjust brightness/contrast, optionally
+                rotate, crop, upscale, adjust brightness/contrast, optionally
                 binarise to pure black &amp; white. 2) Layout analysis — detect
                 blocks and text lines. 3) Character recognition — match glyphs
                 against the trained model for the language you selected. 4)
@@ -1867,7 +2475,6 @@ export default function Page() {
             </div>
           </Accordion>
 
-          {/* DETAILED HOW TO USE GUIDE — FULL ENGLISH */}
           <Accordion
             open={openSec === "how"}
             onToggle={() => setOpenSec(openSec === "how" ? "" : "how")}
@@ -1880,33 +2487,28 @@ export default function Page() {
                 </h3>
                 <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
                   <li>
-                    <b className="text-white">📁 Upload Image / PDF</b> — Best
-                    for images already saved on your device. Accepts JPG, PNG,
-                    WEBP, BMP, GIF, TIFF, and PDF. You can select up to{" "}
-                    <b>10 files at once</b> for batch OCR.
+                    <b className="text-white">📁 Upload Image / PDF / TIFF</b> —
+                    Best for files already on your device. Accepts JPG, PNG,
+                    WEBP, BMP, GIF, TIFF (including multi-page), and PDF. Up to{" "}
+                    <b>10 files at once</b>.
                   </li>
                   <li>
                     <b className="text-white">📷 Live Camera</b> — Opens your
-                    phone's camera directly. Best for scanning physical
-                    documents or books on the spot. Tap <b>Flip</b> to switch
-                    between the rear and selfie cameras. Tap <b>Capture</b> to
-                    take the shot and instantly run OCR.
+                    phone's camera. Tap <b>Flip</b> to switch cameras, then{" "}
+                    <b>Capture</b> to instantly run OCR.
                   </li>
                   <li>
                     <b className="text-white">📄 PDF Only</b> — Strictly for
                     PDF files. Each page is rendered at 3× resolution for
-                    maximum accuracy and OCR'd individually.
+                    maximum accuracy.
                   </li>
                   <li>
                     <b className="text-white">Drag &amp; Drop Box</b> — On
-                    desktop, drag files from your file manager directly onto
-                    the dashed area. It highlights when files are hovering over it.
+                    desktop, drag files directly onto the dashed area.
                   </li>
                   <li>
                     <b className="text-white">Ctrl + V (Paste)</b> — Copy any
-                    image from anywhere (WhatsApp, browser, screenshot) and
-                    press Ctrl+V on this page. It auto-detects and OCRs the
-                    pasted image.
+                    image and press Ctrl+V to auto-OCR it.
                   </li>
                 </ul>
               </div>
@@ -1917,37 +2519,29 @@ export default function Page() {
                 </h3>
                 <p>
                   Choose your language from the top-right dropdown.{" "}
-                  <b>Tesseract uses a different trained model for each
-                  language</b>, so correct selection is critical:
+                  <b>Tesseract uses a different trained model per language</b>,
+                  so correct selection is critical.
                 </p>
-                <ul className="mt-2 space-y-1 pl-4 list-disc marker:text-zinc-600">
-                  <li>
-                    <b>English</b> → pure English documents
-                  </li>
-                  <li>
-                    <b>Hindi</b> → Devanagari script only
-                  </li>
-                  <li>
-                    <b>Hindi + English</b> → mixed content (most common in India)
-                  </li>
-                  <li>
-                    <b>Arabic</b>, <b>Chinese</b>, <b>Japanese</b>, <b>Korean</b> — RTL and CJK scripts
-                  </li>
-                </ul>
+                <p className="mt-2">
+                  <b className="text-white">Auto language detect</b> — when
+                  enabled, if you leave language on "Hindi" but the image looks
+                  like Latin script, the tool auto-switches to English. Useful
+                  when you don't know what you'll be scanning next.
+                </p>
                 <p className="mt-2 text-zinc-500 text-xs">
-                  ⚠️ Wrong language = garbage output. For mixed content always
-                  use a combined option like "Hindi + English".
+                  ⚠️ Wrong language = garbage output. For mixed content use a
+                  combined option like "Hindi + English".
                 </p>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  ⚙️ Step 3 — Image Enhancement (Settings Panel)
+                  ⚙️ Step 3 — Image Enhancement
                 </h3>
                 <p>
                   Tap <b>"Image Enhancement &amp; OCR Settings"</b> at the top
                   (highlighted with an animated border). These controls apply to
-                  the <b>next OCR run</b> — not to already-processed files.
+                  the <b>next OCR run</b>.
                 </p>
 
                 <div className="mt-3 space-y-3">
@@ -1956,9 +2550,8 @@ export default function Page() {
                       ☀️ Brightness (50% – 150%)
                     </p>
                     <p className="text-xs">
-                      Makes the image lighter or darker. For faded or
-                      underexposed scans try <b>120–130%</b>. For overexposed
-                      photos try <b>80–90%</b>.
+                      Makes the image lighter or darker. Faded scans try{" "}
+                      <b>120–130%</b>. Overexposed photos try <b>80–90%</b>.
                     </p>
                   </div>
 
@@ -1967,9 +2560,8 @@ export default function Page() {
                       🌗 Contrast (50% – 200%)
                     </p>
                     <p className="text-xs">
-                      Increases the difference between text and background. For
-                      blurry or low-contrast documents, <b>130–150%</b> works
-                      best. Setting it too high may break character strokes.
+                      Increases the difference between text and background.
+                      Blurry documents — <b>130–150%</b>.
                     </p>
                   </div>
 
@@ -1978,20 +2570,18 @@ export default function Page() {
                       🔄 Rotate (0° – 359°)
                     </p>
                     <p className="text-xs">
-                      Rotates the image. Use it for sideways photos or tilted
-                      scans. The <b>canvas expands automatically</b> — corners
-                      are never cropped.
+                      Rotates the image. The canvas expands automatically, so
+                      corners are never cropped.
                     </p>
                   </div>
 
                   <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
                     <p className="text-white text-xs font-bold mb-1">
-                      ⚫ Grayscale Toggle
+                      ⚫ Grayscale toggle
                     </p>
                     <p className="text-xs">
-                      Converts a colour image to black &amp; white. Useful for
-                      coloured backgrounds or highlighted documents — removing
-                      colour leaves only the text.
+                      Converts colour images to black &amp; white. Useful for
+                      coloured backgrounds or highlighted documents.
                     </p>
                   </div>
 
@@ -2000,44 +2590,80 @@ export default function Page() {
                       ⚪ Black &amp; White (Binarisation)
                     </p>
                     <p className="text-xs">
-                      Forces every pixel to be either pure black or pure white
-                      — no middle grey. Best for old or faded documents,
-                      receipts, and forms. When turned ON, a{" "}
-                      <b>threshold slider</b> appears too.
+                      Forces every pixel to be either pure black or pure white.
+                      Best for old/faded documents, receipts, forms. A{" "}
+                      <b>threshold slider</b> appears when ON.
                     </p>
                   </div>
 
                   <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
                     <p className="text-white text-xs font-bold mb-1">
-                      🎚️ Binarisation Threshold (60 – 220)
+                      🎚️ Binarisation threshold (60 – 220)
                     </p>
                     <p className="text-xs">
-                      Only visible when B&amp;W is ON. Decides which pixels
-                      become black. <b>Lower value</b> = darker threshold (only
-                      very dark text becomes black). <b>Higher value</b> = more
-                      pixels become black. Default <b>160</b> works for most
-                      documents.
+                      Only visible with B&amp;W ON. Lower value = darker
+                      threshold (only very dark text becomes black). Default{" "}
+                      <b>160</b> works for most documents.
                     </p>
                   </div>
 
                   <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
                     <p className="text-white text-xs font-bold mb-1">
-                      🔍 Auto Upscale Toggle
+                      🔍 Auto upscale toggle
                     </p>
                     <p className="text-xs">
-                      Automatically enlarges small images (2× or 1.5×).
-                      Tesseract reads larger glyphs much more reliably — small
-                      text accuracy improves dramatically. <b>Recommended ON.</b>
+                      Enlarges small images automatically (2× or 1.5×).
+                      Tesseract reads larger glyphs much more reliably.{" "}
+                      <b>Recommended ON.</b>
                     </p>
                   </div>
 
                   <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
                     <p className="text-white text-xs font-bold mb-1">
-                      ✨ Auto Clean Text Toggle
+                      ✨ Auto clean text toggle
                     </p>
                     <p className="text-xs">
-                      Fixes extra spaces, multiple blank lines, and trailing
-                      whitespace in the OCR output. Leave ON for clean output.
+                      Fixes extra spaces, blank lines, and trailing whitespace.
+                      Leave ON for clean output.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
+                    <p className="text-violet-200 text-xs font-bold mb-1">
+                      🔤 Font Size (10px – 22px)
+                    </p>
+                    <p className="text-xs text-zinc-300">
+                      Changes the text size in every result text area. Great
+                      for accessibility or for reading long documents on small
+                      screens. Use <b>Ctrl + ↑ / ↓</b> for quick changes.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-sky-500/30 bg-sky-500/5 p-3">
+                    <p className="text-sky-200 text-xs font-bold mb-1">
+                      🌐 Auto language detect toggle
+                    </p>
+                    <p className="text-xs text-zinc-300">
+                      When ON, the tool inspects each image and, if it looks
+                      like Latin script while you're on Hindi, auto-switches to
+                      English. Prevents the most common "wrong language"
+                      mistake. This uses a lightweight pixel analysis — not full
+                      OCR — so it's fast.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3">
+                    <p className="text-amber-200 text-xs font-bold mb-1">
+                      📊 Show line confidence toggle
+                    </p>
+                    <p className="text-xs text-zinc-300">
+                      When ON, the result text becomes a read-only view where
+                      each line is <b>colour coded</b> by Tesseract's confidence:
+                      <br />• <span className="conf-low px-1">Red</span> — below 60% (likely wrong, re-scan)
+                      <br />• <span className="conf-mid px-1">Amber</span> — 60–80% (check manually)
+                      <br />• No highlight — 80%+ (reliable)
+                      <br />
+                      Hover any line to see its exact confidence score.
                     </p>
                   </div>
                 </div>
@@ -2048,8 +2674,7 @@ export default function Page() {
                   🔬 Step 4 — Advanced OCR (Accuracy Boost)
                 </h3>
                 <p>
-                  This section is <b>open by default</b> — just scroll down to
-                  find it. It contains two powerful settings:
+                  This section is <b>open by default</b>. Two powerful settings:
                 </p>
 
                 <div className="mt-3 rounded-xl border border-zinc-800 bg-black/30 p-3">
@@ -2057,137 +2682,133 @@ export default function Page() {
                     📄 Page Segmentation Mode (PSM)
                   </p>
                   <p className="text-xs mb-2">
-                    Tells Tesseract <b>how the text is arranged</b> on the
-                    page. This can dramatically improve accuracy because the
-                    engine won't make wrong assumptions.
+                    Tells Tesseract <b>how the text is arranged</b>. Choosing
+                    the right mode dramatically improves accuracy.
                   </p>
                   <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600 text-xs">
-                    <li>
-                      <b>PSM 3 — Fully automatic</b>: for mixed layouts. This is
-                      the default; use it when you are unsure.
-                    </li>
-                    <li>
-                      <b>PSM 6 ⭐ — Single uniform block</b>: best for most
-                      documents — book pages, letters, articles. One continuous
-                      block of text.
-                    </li>
-                    <li>
-                      <b>PSM 4 — Single column</b>: newspaper column,
-                      single-column documents.
-                    </li>
-                    <li>
-                      <b>PSM 11 — Sparse text</b>: receipts, business cards,
-                      invoices — where text is scattered.
-                    </li>
-                    <li>
-                      <b>PSM 7 — Single text line</b>: form fields, address
-                      lines, single rows.
-                    </li>
-                    <li>
-                      <b>PSM 8 — Single word</b>: just one word. Number plates,
-                      single-word images.
-                    </li>
-                    <li>
-                      <b>PSM 13 — Raw line</b>: no post-processing. For
-                      advanced users.
-                    </li>
+                    <li><b>PSM 3</b> — Fully automatic (default)</li>
+                    <li><b>PSM 6 ⭐</b> — Single uniform block (best for most documents)</li>
+                    <li><b>PSM 4</b> — Single column of text</li>
+                    <li><b>PSM 11</b> — Sparse text (receipts, business cards)</li>
+                    <li><b>PSM 7</b> — Single text line</li>
+                    <li><b>PSM 8</b> — Single word</li>
+                    <li><b>PSM 13</b> — Raw line (no post-processing)</li>
                   </ul>
                 </div>
 
                 <div className="mt-3 rounded-xl border border-zinc-800 bg-black/30 p-3">
                   <p className="text-white text-xs font-bold mb-2">
-                    ✅ Character Whitelist
+                    ✅ Character whitelist
                   </p>
                   <p className="text-xs mb-2">
-                    Restrict recognition to specific characters only. Very
-                    powerful — wrong characters are eliminated, boosting
-                    accuracy.
+                    Restrict recognition to specific characters only. Wrong
+                    characters are eliminated, boosting accuracy.
                   </p>
                   <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600 text-xs">
-                    <li>
-                      <b>Numbers only</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789</code> — invoices, phone numbers, ID cards
-                    </li>
-                    <li>
-                      <b>Numbers + decimals</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789.,</code> — amounts, prices
-                    </li>
-                    <li>
-                      <b>Uppercase only</b> → <code className="bg-black px-1 rounded text-[10px]">ABCDEFGHIJKLMNOPQRSTUVWXYZ</code>
-                    </li>
-                    <li>
-                      <b>Alphanumeric</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ</code> — vehicle plates
-                    </li>
-                    <li>
-                      <b>Blank</b> — allows all characters (normal use)
-                    </li>
+                    <li><b>Numbers only</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789</code></li>
+                    <li><b>Numbers + decimals</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789.,</code></li>
+                    <li><b>Uppercase only</b> → <code className="bg-black px-1 rounded text-[10px]">ABCDEFGHIJKLMNOPQRSTUVWXYZ</code></li>
+                    <li><b>Alphanumeric</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ</code></li>
+                    <li><b>Blank</b> — allows all characters</li>
                   </ul>
-                  <p className="mt-2 text-zinc-500 text-xs">
-                    ⚠️ This setting also applies only to the next OCR run.
-                    Retry an already-processed file to apply it.
-                  </p>
                 </div>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  📊 Step 5 — Review Results &amp; Use Tools
+                  ✂️ Step 5 — Crop Tool (Manual 4-Corner Drag)
                 </h3>
-                <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
-                  <li>
-                    <b className="text-white">Confidence Score</b> — shown at
-                    the top of every file (0–100%). 95%+ = excellent, 80%+ =
-                    good, below 70% = retry with better settings.
-                  </li>
-                  <li>
-                    <b className="text-white">Editable Text</b> — edit directly
-                    in the text area. Corrections are saved automatically.
-                  </li>
-                  <li>
-                    <b className="text-white">Filter Box</b> — use the search
-                    bar at the top to find by file name or content.
-                  </li>
-                  <li>
-                    <b className="text-white">Text Tools</b> — UPPER, lower,
-                    Title case (bulk apply). Also Find &amp; Replace.
-                  </li>
-                  <li>
-                    <b className="text-white">Retry Button</b> — re-process
-                    failed or cancelled files with new settings.
-                  </li>
+                <p>
+                  After OCR completes, each result has a{" "}
+                  <b className="text-white">✂️ Crop</b> button. Tap it to open
+                  the crop dialog:
+                </p>
+                <ul className="mt-2 space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Drag any of the <b>4 white corner handles</b> to trim the image</li>
+                  <li>The surrounding area darkens so you see exactly what will be kept</li>
+                  <li>Tap <b>Reset</b> to restore the full image</li>
+                  <li>Tap <b>Apply Crop</b> to re-run OCR on just that region</li>
+                </ul>
+                <p className="mt-2 text-zinc-500 text-xs">
+                  💡 Crop is perfect when a photo has a distracting header,
+                  footer or side column. This is the "manual auto-crop" — more
+                  reliable than automatic edge detection, and no heavy libraries.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  📜 Step 6 — OCR History (Date-wise)
+                </h3>
+                <p>
+                  Every successful OCR is <b>saved automatically</b> with
+                  date, confidence, word count and language. Open it with the{" "}
+                  <b>📜 History</b> button in the header, or press{" "}
+                  <kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+H</kbd>.
+                </p>
+                <ul className="mt-2 space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Grouped by <b>Today / Yesterday / specific dates</b></li>
+                  <li>Search across all history entries</li>
+                  <li>⭐ Star important entries to keep them at the top</li>
+                  <li>Click <b>Load</b> to bring any entry back to the results panel</li>
+                  <li>Individual delete or <b>Clear all</b></li>
+                  <li>Up to 200 entries stored locally on your device</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  💾 Step 6 — Export &amp; Share
+                  ⌨️ Step 7 — Keyboard Shortcuts
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+O</kbd> — Open file picker</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+K</kbd> — Open camera</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+H</kbd> — Toggle history</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+S</kbd> — Copy all text</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+Shift+/</kbd> — Clear all results</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Ctrl+↑ / ↓</kbd> — Increase / decrease font size</li>
+                  <li><kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">Esc</kbd> — Close any modal</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  📄 Step 8 — Multi-page TIFF Support
+                </h3>
+                <p>
+                  Upload a <b>multi-page TIFF</b> (common output from scanners
+                  and fax software) and every page is extracted and OCR'd
+                  separately. Each page becomes its own result card, just like
+                  PDF pages. No configuration needed.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  📊 Step 9 — Review Results &amp; Use Tools
                 </h3>
                 <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
-                  <li>
-                    <b className="text-white">Copy All</b> — copies all results
-                    to your clipboard.
-                  </li>
-                  <li>
-                    <b className="text-white">TXT</b> — plain text file.
-                  </li>
-                  <li>
-                    <b className="text-white">ZIP</b> — each file as a separate
-                    .txt inside a zip.
-                  </li>
-                  <li>
-                    <b className="text-white">PDF</b> — combined PDF
-                    (Unicode-safe, so Hindi/Arabic render correctly).
-                  </li>
-                  <li>
-                    <b className="text-white">CSV</b> — for Excel/Sheets
-                    (File, Confidence, Words, Text).
-                  </li>
-                  <li>
-                    <b className="text-white">Share</b> — native share sheet,
-                    with clipboard + WhatsApp fallback.
-                  </li>
-                  <li>
-                    <b className="text-white">Per-file</b>: Copy · TXT · PDF ·
-                    DOC · WhatsApp — on every result card.
-                  </li>
+                  <li><b className="text-white">Confidence score</b> per file (0–100%)</li>
+                  <li><b className="text-white">Weak line count</b> shown if any line is below 75%</li>
+                  <li><b className="text-white">Editable text</b> — corrections auto-save</li>
+                  <li><b className="text-white">Filter box</b> — search by name or content</li>
+                  <li><b className="text-white">Text tools</b> — UPPER, lower, Title case, Find &amp; Replace</li>
+                  <li><b className="text-white">Retry button</b> for failed/cancelled files</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  💾 Step 10 — Export &amp; Share
+                </h3>
+                <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
+                  <li><b>Copy All</b> — clipboard</li>
+                  <li><b>TXT</b> — plain text (combined)</li>
+                  <li><b>ZIP</b> — separate .txt per file</li>
+                  <li><b>PDF</b> — Unicode-safe combined PDF</li>
+                  <li><b>CSV</b> — Excel-friendly metadata</li>
+                  <li><b>Share</b> — native share sheet or WhatsApp fallback</li>
+                  <li><b>Per-file</b>: Copy · TXT · PDF · DOC · ✂️ Crop · WhatsApp</li>
                 </ul>
               </div>
             </div>
@@ -2202,30 +2823,21 @@ export default function Page() {
               <li>100% private — processing happens on-device, no uploads.</li>
               <li>Batch OCR with a shared Tesseract worker (much faster).</li>
               <li>Non-destructive rotation that never crops your image.</li>
-              <li>Brightness, contrast, grayscale and B&amp;W binarisation.</li>
-              <li>
-                Advanced OCR controls — PSM mode + character whitelist for
-                receipts, numbers and single lines.
-              </li>
-              <li>
-                Unicode-safe PDF/DOC export — Hindi, Arabic and CJK render
-                correctly (jsPDF's built-in fonts cannot do this).
-              </li>
+              <li>Manual crop tool with 4-corner drag — re-run OCR on just the region you need.</li>
+              <li>Line-by-line confidence colour coding — see exactly where OCR struggled.</li>
+              <li>Auto language detect — prevents the #1 mistake (wrong language).</li>
+              <li>Keyboard shortcuts — power users fly through batches.</li>
+              <li>Font size control — accessible for every screen and eyesight.</li>
+              <li>Multi-page TIFF support — scanners and faxes just work.</li>
+              <li>Date-wise OCR history — 200 entries with search, star, and load-back.</li>
+              <li>Advanced OCR controls — PSM mode + character whitelist.</li>
+              <li>Unicode-safe PDF/DOC export — Hindi, Arabic and CJK render correctly.</li>
               <li>Live camera capture, clipboard paste, drag &amp; drop.</li>
-              <li>
-                Per-file confidence score, word count, reading time and result
-                filtering.
-              </li>
-              <li>
-                Text tools: UPPER/lower/Title case and Find &amp; Replace across
-                all results.
-              </li>
               <li>Export to TXT, DOC, per-file PDF, combined PDF, CSV or ZIP.</li>
               <li>Auto-save — your last 20 results survive a page refresh.</li>
             </ul>
           </Accordion>
 
-          {/* ⭐ NEW HIGHLIGHTED ARTICLE — ALL FEATURES */}
           <Accordion
             open={openSec === "features"}
             onToggle={() => setOpenSec(openSec === "features" ? "" : "features")}
@@ -2234,21 +2846,109 @@ export default function Page() {
           >
             <div className="space-y-4">
               <p className="text-zinc-200">
-                <b className="text-white">This is a complete feature breakdown</b> —
-                every capability built into this tool, so you know exactly what
-                it can do before you use it.
+                <b className="text-white">Complete feature breakdown</b> —
+                every capability built into this tool.
               </p>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  📥 Input Methods (5 Ways to Feed Files)
+                  📥 Input Methods (5 Ways)
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Upload button — images AND PDFs in one click</li>
+                  <li>Upload button — images, PDFs and TIFFs in one click</li>
                   <li>Dedicated PDF-only button</li>
                   <li>Live camera capture with flip (front/rear)</li>
-                  <li>Drag &amp; drop zone (desktop)</li>
-                  <li>Clipboard paste (Ctrl+V) for screenshots</li>
+                  <li>Drag &amp; drop zone</li>
+                  <li>Clipboard paste (Ctrl+V)</li>
+                  <li>Multi-page TIFF (each page = one result)</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  ✂️ NEW — Manual Crop Tool
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Per-result ✂️ Crop button</li>
+                  <li>4-corner drag handles with dark overlay</li>
+                  <li>Reset to full image</li>
+                  <li>Apply → re-runs OCR on the cropped region</li>
+                  <li>"✂️ cropped" badge on the result card</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  ⌨️ NEW — Keyboard Shortcuts
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Ctrl+Shift+O — upload</li>
+                  <li>Ctrl+Shift+K — camera</li>
+                  <li>Ctrl+Shift+H — history</li>
+                  <li>Ctrl+Shift+S — copy all</li>
+                  <li>Ctrl+Shift+/ — clear all</li>
+                  <li>Ctrl+↑ / ↓ — font size</li>
+                  <li>Esc — close modals</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  📊 NEW — Line-by-Line Confidence
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Toggle in settings</li>
+                  <li>Red (&lt;60%), Amber (60–80%), no highlight (80%+)</li>
+                  <li>Hover for exact percentage</li>
+                  <li>Weak line count on the result card</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  🔤 NEW — Font Size Control
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>10px to 22px</li>
+                  <li>Applies to all result text areas</li>
+                  <li>Ctrl+↑ / ↓ shortcut</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  📜 NEW — OCR History (Date-wise)
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Up to 200 entries, stored locally</li>
+                  <li>Grouped by Today / Yesterday / date</li>
+                  <li>Search across all history</li>
+                  <li>⭐ Star entries</li>
+                  <li>Load back into results panel</li>
+                  <li>Delete individual or clear all</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  🌐 NEW — Auto Language Detect
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Toggle in settings</li>
+                  <li>Lightweight pixel analysis</li>
+                  <li>Defaults Latin-script images to English</li>
+                  <li>Prevents the most common wrong-language mistake</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  📄 NEW — Multi-page TIFF
+                </h3>
+                <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
+                  <li>Every page in a TIFF becomes its own result</li>
+                  <li>Handled by UTIF.js (loaded on demand)</li>
+                  <li>Works with scanner and fax output</li>
                 </ul>
               </div>
 
@@ -2257,24 +2957,24 @@ export default function Page() {
                   🖼️ Image Enhancement (8 Controls)
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Brightness slider (50–150%)</li>
-                  <li>Contrast slider (50–200%)</li>
-                  <li>Rotation (0–359°) with auto canvas expansion</li>
-                  <li>Grayscale conversion toggle</li>
-                  <li>Black &amp; White binarisation toggle</li>
-                  <li>Binarisation threshold slider (60–220)</li>
-                  <li>Auto-upscale for small images (2× / 1.5×)</li>
-                  <li>Auto text cleanup (whitespace &amp; blank lines)</li>
+                  <li>Brightness (50–150%)</li>
+                  <li>Contrast (50–200%)</li>
+                  <li>Rotation (0–359°) with canvas expansion</li>
+                  <li>Grayscale conversion</li>
+                  <li>Black &amp; White binarisation</li>
+                  <li>Binarisation threshold (60–220)</li>
+                  <li>Auto-upscale (2× / 1.5×)</li>
+                  <li>Auto text cleanup</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  🔬 Advanced OCR Engine Controls
+                  🔬 Advanced OCR Engine
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>7 Page Segmentation Modes (PSM 3, 4, 6, 7, 8, 11, 13)</li>
-                  <li>Custom character whitelist (numbers-only, alphanumeric, etc.)</li>
+                  <li>7 Page Segmentation Modes</li>
+                  <li>Custom character whitelist</li>
                   <li>Preserve interword spacing</li>
                   <li>Per-file confidence score</li>
                 </ul>
@@ -2297,25 +2997,24 @@ export default function Page() {
                   📊 Result Management
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>Per-file editable text area</li>
-                  <li>Per-file word count + reading time estimate</li>
-                  <li>Per-file status badge (preparing/loading/reading/done/failed)</li>
-                  <li>Live progress bar per file</li>
-                  <li>Filter box (search by name or content)</li>
-                  <li>Retry button for failed/cancelled files</li>
+                  <li>Editable text area (font size control)</li>
+                  <li>Word count + reading time</li>
+                  <li>Status badge + live progress bar</li>
+                  <li>Filter box</li>
+                  <li>Retry failed/cancelled files</li>
                   <li>Remove individual results</li>
-                  <li>Overall statistics dashboard (files, words, chars, avg confidence)</li>
+                  <li>Overall statistics dashboard</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  🔤 Text Transformation Tools
+                  🔤 Text Transformation
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
-                  <li>UPPERCASE all results</li>
-                  <li>lowercase all results</li>
-                  <li>Title Case all results</li>
+                  <li>UPPERCASE all</li>
+                  <li>lowercase all</li>
+                  <li>Title Case all</li>
                   <li>Find &amp; Replace across all files</li>
                 </ul>
               </div>
@@ -2326,24 +3025,24 @@ export default function Page() {
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
                   <li>Copy All — clipboard</li>
-                  <li>TXT — plain text (combined)</li>
+                  <li>TXT — plain text</li>
                   <li>ZIP — separate .txt per file</li>
-                  <li>PDF — Unicode-safe combined PDF</li>
-                  <li>CSV — Excel-friendly with metadata</li>
-                  <li>DOC — Microsoft Word format per file</li>
+                  <li>PDF — Unicode-safe combined</li>
+                  <li>CSV — Excel-friendly metadata</li>
+                  <li>DOC — Word format per file</li>
                   <li>Per-file PDF export</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="text-white font-bold text-sm mb-2">
-                  📤 Sharing Options
+                  📤 Sharing
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
                   <li>Native share sheet (mobile)</li>
                   <li>Share as .txt file</li>
                   <li>Share as plain text</li>
-                  <li>WhatsApp direct share (per file + bulk)</li>
+                  <li>WhatsApp direct share</li>
                   <li>Clipboard fallback</li>
                 </ul>
               </div>
@@ -2354,27 +3053,28 @@ export default function Page() {
                 </h3>
                 <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600">
                   <li>100% on-device processing (WebAssembly)</li>
-                  <li>No file uploads to any server</li>
-                  <li>Shared Tesseract worker (fast batch processing)</li>
-                  <li>Auto-save to localStorage (last 20 results)</li>
-                  <li>PDF multi-page support (up to 25 pages)</li>
+                  <li>No uploads to any server</li>
+                  <li>Shared Tesseract worker</li>
+                  <li>Auto-save results (last 20)</li>
+                  <li>Auto-save history (last 200)</li>
+                  <li>PDF multi-page (up to 25 pages)</li>
+                  <li>Multi-page TIFF (unlimited pages)</li>
                   <li>Batch up to 10 files at once</li>
-                  <li>Cancel-all button for long batches</li>
-                  <li>Lightbox image preview (click thumbnail)</li>
+                  <li>Cancel-all button</li>
+                  <li>Lightbox image preview</li>
                 </ul>
               </div>
 
               <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
                 <p className="text-violet-200 text-xs">
-                  <b>Total: 60+ features</b> — this is the most complete
-                  browser-based OCR tool available anywhere, completely free,
-                  with zero uploads and no account required.
+                  <b>Total: 70+ features</b> — the most complete browser-based
+                  OCR tool available, completely free, with zero uploads and no
+                  account required.
                 </p>
               </div>
             </div>
           </Accordion>
 
-          {/* ⭐ NEW HIGHLIGHTED ARTICLE — WHY IT'S THE BEST */}
           <Accordion
             open={openSec === "best"}
             onToggle={() => setOpenSec(openSec === "best" ? "" : "best")}
@@ -2383,9 +3083,8 @@ export default function Page() {
           >
             <div className="space-y-4">
               <p className="text-zinc-200">
-                Most online OCR tools look similar. But there is a massive
-                difference in <b className="text-white">how</b> they work. Here
-                is exactly why this tool outperforms the alternatives.
+                Most online OCR tools look similar. There is a massive
+                difference in <b className="text-white">how</b> they work.
               </p>
 
               <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3">
@@ -2394,11 +3093,10 @@ export default function Page() {
                 </p>
                 <p className="text-xs text-zinc-300">
                   Most "free OCR" websites upload your documents to their
-                  servers — where they may be stored, analysed, or worse. This
-                  tool runs Tesseract.js entirely in your browser using
-                  WebAssembly. <b>Zero uploads. Zero tracking. Zero risk.</b>{" "}
+                  servers. This tool runs Tesseract.js entirely in your
+                  browser. <b>Zero uploads. Zero tracking. Zero risk.</b>{" "}
                   Perfect for confidential documents, IDs, contracts, medical
-                  records, and anything sensitive.
+                  records.
                 </p>
               </div>
 
@@ -2407,11 +3105,9 @@ export default function Page() {
                   ⚡ 2. Batch Processing With a Shared Worker
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Other tools force you to process one file at a time and reload
-                  the OCR engine every time. This tool keeps a{" "}
-                  <b>single Tesseract worker in memory</b> and reuses it across
-                  every file in a batch — processing 10 files is nearly as fast
-                  as processing 1.
+                  Other tools reload the OCR engine for every file. This tool
+                  keeps a <b>single Tesseract worker in memory</b> and reuses
+                  it — processing 10 files is nearly as fast as processing 1.
                 </p>
               </div>
 
@@ -2420,12 +3116,11 @@ export default function Page() {
                   🎯 3. Professional-Grade Accuracy Controls
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Advanced OCR tools like ABBYY cost hundreds of dollars for
-                  these controls. Here you get them <b>free</b>: 7 page
-                  segmentation modes, character whitelist, binarisation
-                  threshold, brightness/contrast, grayscale, auto-upscale, and
-                  auto-clean. Tuning these can push accuracy from 85% to 99%+
-                  on tricky images.
+                  Advanced OCR tools charge hundreds of dollars for these
+                  controls. Here you get them <b>free</b>: 7 page segmentation
+                  modes, character whitelist, binarisation, brightness/contrast,
+                  grayscale, auto-upscale, auto-clean, <b>manual crop tool</b>,
+                  and <b>line-by-line confidence viewing</b>.
                 </p>
               </div>
 
@@ -2434,23 +3129,22 @@ export default function Page() {
                   🌏 4. True Unicode Support (Hindi, Arabic, CJK)
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Most OCR tools can read Hindi or Arabic but{" "}
-                  <b>cannot export</b> the result correctly — their PDFs show
-                  boxes or gibberish. This tool <b>rasterises text through
-                  your browser's own font engine</b>, so Devanagari, Arabic,
-                  and CJK scripts export perfectly to PDF and DOC.
+                  Most OCR tools read Hindi but <b>cannot export</b> it
+                  correctly — their PDFs show boxes. This tool{" "}
+                  <b>rasterises text through your browser's font engine</b>,
+                  so Devanagari, Arabic, and CJK export perfectly.
                 </p>
               </div>
 
               <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
                 <p className="text-violet-200 text-xs font-bold mb-1">
-                  🎨 5. Complete Workflow in One Page
+                  📜 5. Date-wise OCR History
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Most tools do one thing. This tool does everything:{" "}
-                  <b>capture → enhance → OCR → edit → transform → export →
-                  share</b>. No switching apps. No uploading to a second
-                  service. Everything happens on this single page.
+                  Nothing online does this. Every successful OCR is stored
+                  locally with a <b>timestamp</b>, grouped by day, searchable,
+                  and starrable. Load any past entry back into the workspace
+                  with one click.
                 </p>
               </div>
 
@@ -2459,35 +3153,30 @@ export default function Page() {
                   💸 6. Genuinely Free — No Hidden Limits
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Most "free" OCR sites limit you to 5 pages per day, require
-                  signup, inject ads, or blur the result behind a paywall. This
-                  tool has <b>no accounts, no ads, no daily limits, no
-                  watermarks</b>. Process 100 pages today and 100 more
-                  tomorrow — completely free.
+                  No accounts, no ads, no daily limits, no watermarks. Process
+                  100 pages today and 100 more tomorrow.
                 </p>
               </div>
 
               <div className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-3">
                 <p className="text-cyan-200 text-xs font-bold mb-1">
-                  📱 7. Works Perfectly on Mobile
+                  ⌨️ 7. Power-User Shortcuts
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Everything is responsive — buttons, sliders, results cards.
-                  Live camera capture works natively on phones. Batch uploads
-                  from your photo gallery. Share directly to WhatsApp. Most
-                  OCR tools are desktop-only.
+                  Keyboard shortcuts for every major action, plus font-size
+                  control for accessibility. Most OCR tools are desktop-only
+                  and don't even have keyboard shortcuts.
                 </p>
               </div>
 
               <div className="rounded-xl border border-teal-500/30 bg-teal-500/5 p-3">
                 <p className="text-teal-200 text-xs font-bold mb-1">
-                  🔁 8. Persistence &amp; Recovery
+                  📄 8. Scanners &amp; Faxes Just Work
                 </p>
                 <p className="text-xs text-zinc-300">
-                  Accidentally closed the tab? Your last 20 results are{" "}
-                  <b>auto-saved to localStorage</b> and restored automatically.
-                  Cancel processing midway and keep what was already done.
-                  Retry individual failed files without losing the rest.
+                  Multi-page TIFF support means whatever your scanner outputs,
+                  this tool reads it. No conversion to PDF first. Each page
+                  becomes its own result card.
                 </p>
               </div>
 
@@ -2498,9 +3187,9 @@ export default function Page() {
                 <p className="text-xs text-zinc-300">
                   If you want a tool that treats your privacy seriously, gives
                   you professional-grade accuracy controls, exports in every
-                  format, works on any device, and never charges you a rupee —
-                  this is it. Nothing else online combines all of this in a
-                  single, free, privacy-first package.
+                  format, works on any device, and never charges you — this is
+                  it. Nothing else online combines all of this in one free,
+                  privacy-first package.
                 </p>
               </div>
             </div>
@@ -2515,7 +3204,8 @@ export default function Page() {
               image to text, batch OCR, JPG to text, PNG to text, photo to text
               converter, free OCR online, Hindi OCR, Tamil OCR, PDF to text,
               camera OCR, handwritten text recognition, receipt scanner,
-              screenshot to text, OCR without uploading, offline OCR.
+              screenshot to text, OCR without uploading, offline OCR,
+              multi-page TIFF OCR, line confidence OCR, crop OCR.
             </p>
           </Accordion>
         </div>
@@ -2527,39 +3217,59 @@ export default function Page() {
           {[
             {
               q: "Why couldn't I upload a PDF before?",
-              a: "Fixed. The main Upload button now accepts images AND PDFs, and there is a dedicated PDF-only button. Each PDF page is rendered at 3× scale before OCR.",
+              a: "Fixed. The main Upload button now accepts images, PDFs AND TIFFs, and there is a dedicated PDF-only button. Each PDF page is rendered at 3× scale.",
             },
             {
               q: "Drag &amp; drop did nothing?",
-              a: "Fixed. The drop zone now highlights while you drag over it and handles the drop correctly — plus you can click it to open the file picker, or press Ctrl+V to paste an image.",
+              a: "Fixed. The drop zone highlights while you drag over it. You can also click it to open the file picker, or press Ctrl+V to paste an image.",
             },
             {
               q: "What does the Share button share?",
-              a: "It shares the extracted TEXT, not the URL. First it tries the native share sheet with a .txt file, then plain text, and as a final fallback it copies to clipboard and offers a WhatsApp share.",
+              a: "It shares the extracted TEXT, not the URL. First it tries the native share sheet, then plain text, then a clipboard + WhatsApp fallback.",
             },
             {
               q: "Do Brightness / Contrast / Rotate actually work?",
-              a: "Yes. They are baked into the image before OCR runs, and rotation now expands the canvas so nothing gets cropped. The thumbnail shows the processed result.",
+              a: "Yes. They are baked into the image before OCR runs. Rotation expands the canvas so nothing gets cropped.",
             },
             {
-              q: "Why does a rotated photo come out cut off?",
-              a: "That was a bug in the old code — the canvas kept its original size. The new pre-processor calculates the rotated bounding box, so all four corners are preserved.",
+              q: "How does the manual Crop tool work?",
+              a: "Open any result and tap ✂️ Crop. Drag the 4 white corner handles to select just the region you want, then tap Apply Crop. The tool re-runs OCR on only that cropped region — ideal for removing headers, footers or side columns.",
+            },
+            {
+              q: "What is line-by-line confidence?",
+              a: "Turn on 'Show line confidence' in Settings. The result text becomes a colour-coded read-only view: red lines are below 60% (likely wrong), amber lines are 60–80% (check manually), and uncoloured lines are above 80% (reliable).",
+            },
+            {
+              q: "How does Auto language detect work?",
+              a: "When enabled, if you have 'Hindi' selected but the image looks like Latin script, the tool auto-switches to English for that file only. It's a lightweight pixel analysis — not full OCR — so it's fast and free.",
+            },
+            {
+              q: "Where is my history stored?",
+              a: "Entirely in your browser's localStorage on this device. Up to 200 entries are kept. Nothing is synced to any server. Clearing your browser data will clear history.",
+            },
+            {
+              q: "Does multi-page TIFF work?",
+              a: "Yes. Upload a multi-page TIFF and every page is extracted and OCR'd separately using UTIF.js (loaded on demand only when you upload a TIFF).",
+            },
+            {
+              q: "Which keyboard shortcuts are supported?",
+              a: "Ctrl+Shift+O (upload), Ctrl+Shift+K (camera), Ctrl+Shift+H (history), Ctrl+Shift+S (copy all), Ctrl+Shift+/ (clear), Ctrl+↑/↓ (font size), Esc (close modals).",
             },
             {
               q: "Is my data uploaded anywhere?",
-              a: "No. Tesseract runs via WebAssembly in your browser. The only network requests are the one-time download of the OCR engine, the language model, and the PDF.js worker from a CDN.",
+              a: "No. Tesseract runs via WebAssembly in your browser. The only network requests are the one-time download of the OCR engine, the language model, the PDF.js worker, and UTIF.js if you upload a TIFF.",
             },
             {
               q: "PDF export shows boxes/garbage for Hindi or Arabic?",
-              a: "jsPDF's built-in fonts are Latin-only. This tool instead rasterises the text through your browser's own font engine, so Devanagari, Arabic and CJK all export perfectly.",
+              a: "jsPDF's built-in fonts are Latin-only. This tool rasterises the text through your browser's own font engine, so Devanagari, Arabic and CJK export perfectly.",
             },
             {
               q: "How do I get 100% accuracy?",
-              a: "No OCR is 100% on every image, but you can get very close: use a sharp, well-lit photo, set PSM to 6 (or 7 for a single line), enable Auto upscale and B&W binarisation, and pick the correct language. On clean printed scans this reaches 99%+ confidence.",
+              a: "No OCR is 100% on every image, but you can get very close: sharp photo, PSM 6 (or 7 for single lines), Auto upscale ON, B&W binarisation ON, correct language, and use the Crop tool to remove distracting regions. On clean printed scans this reaches 99%+ confidence.",
             },
             {
               q: "How large can my files be?",
-              a: `Up to ${MAX_FILES} files per batch, 25 MB each, and the first ${MAX_PDF_PAGES} pages of any PDF.`,
+              a: `Up to ${MAX_FILES} files per batch, 25 MB each, first ${MAX_PDF_PAGES} pages of any PDF, unlimited pages in a TIFF.`,
             },
           ].map((f, i) => (
             <div
@@ -2602,10 +3312,154 @@ export default function Page() {
         </div>
 
         <footer className="mt-14 text-center text-[11px] text-zinc-600">
-          Built with Tesseract.js · PDF.js · jsPDF · JSZip — everything runs in
-          your browser.
+          Built with Tesseract.js · PDF.js · jsPDF · JSZip · UTIF.js —
+          everything runs in your browser.
         </footer>
       </main>
+
+      {/* HISTORY DRAWER */}
+      {showHistory && (
+        <div
+          className="fixed inset-0 z-[62] bg-black/80 backdrop-blur-sm"
+          onClick={() => setShowHistory(false)}
+        >
+          <aside
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-0 top-0 h-full w-full sm:w-[480px] bg-[#0a0a0b] border-l border-zinc-800 flex flex-col"
+          >
+            <div className="p-4 border-b border-zinc-800 flex items-center justify-between gap-2">
+              <div>
+                <p className="font-bold text-sm">📜 OCR History</p>
+                <p className="text-[10px] text-zinc-500">
+                  {history.length} entries · stored on this device only
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowHistory(false)}
+                aria-label="Close history"
+                className="w-8 h-8 grid place-items-center rounded-full border border-zinc-700 hover:bg-zinc-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 border-b border-zinc-800 space-y-2">
+              <input
+                value={historyQuery}
+                onChange={(e) => setHistoryQuery(e.target.value)}
+                placeholder="🔎 Search history…"
+                className="w-full bg-black/50 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-zinc-600"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={clearHistory}
+                  disabled={!history.length}
+                  className="flex-1 py-2 rounded-xl text-[11px] font-bold border border-red-500/30 text-red-400 disabled:opacity-40 hover:bg-red-500/10 transition"
+                >
+                  Clear history
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto p-3 space-y-4">
+              {groupedHistory.length === 0 && (
+                <p className="text-center text-xs text-zinc-500 py-10">
+                  {history.length === 0
+                    ? "No history yet. Complete an OCR to start building your log."
+                    : `No entries match "${historyQuery}".`}
+                </p>
+              )}
+              {groupedHistory.map(([k, entries]) => (
+                <div key={k}>
+                  <p className="text-[10px] uppercase tracking-wide text-zinc-500 font-bold mb-2">
+                    {relativeDay(entries[0].date)}
+                  </p>
+                  <div className="space-y-2">
+                    {entries.map((h) => (
+                      <div
+                        key={h.id}
+                        className="rounded-xl border border-zinc-800 bg-black/40 p-3"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-bold truncate" title={h.name}>
+                              {h.starred && <span className="text-amber-400 mr-1">⭐</span>}
+                              {h.name}
+                            </p>
+                            <p className="text-[10px] text-zinc-500 mt-0.5">
+                              {formatDate(h.date)} · {h.confidence}% conf. ·{" "}
+                              {h.words} words · {h.lang}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => toggleStar(h.id)}
+                              title="Star"
+                              className="w-6 h-6 grid place-items-center rounded-full border border-zinc-800 text-zinc-500 hover:text-amber-400 hover:border-amber-500/40 text-xs"
+                            >
+                              {h.starred ? "★" : "☆"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeHistory(h.id)}
+                              title="Delete"
+                              className="w-6 h-6 grid place-items-center rounded-full border border-zinc-800 text-zinc-500 hover:text-red-400 hover:border-red-500/40 text-xs"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-zinc-400 mt-2 line-clamp-3">
+                          {h.text.slice(0, 240)}
+                          {h.text.length > 240 ? "…" : ""}
+                        </p>
+                        <div className="flex gap-1.5 mt-2">
+                          <button
+                            type="button"
+                            onClick={() => historyToResults(h)}
+                            className="bg-white text-black px-3 py-1 rounded-full text-[10px] font-bold hover:bg-zinc-200"
+                          >
+                            Load
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await navigator.clipboard.writeText(h.text);
+                                showToast("Copied from history");
+                              } catch {
+                                showToast("Clipboard blocked", "err");
+                              }
+                            }}
+                            className="bg-zinc-800 border border-zinc-700 px-3 py-1 rounded-full text-[10px] font-bold hover:border-zinc-500"
+                          >
+                            Copy
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              triggerDownload(
+                                new Blob([h.text], { type: "text/plain;charset=utf-8" }),
+                                `${safeName(h.name)}.txt`
+                              )
+                            }
+                            className="bg-zinc-800 border border-zinc-700 px-3 py-1 rounded-full text-[10px] font-bold hover:border-zinc-500"
+                          >
+                            TXT ↓
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      )}
 
       {lightbox && (
         <div
