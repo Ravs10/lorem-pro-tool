@@ -402,10 +402,10 @@ export default function Page() {
   const [autoTidy, setAutoTidy] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
 
-  // advanced
+  // advanced OCR
   const [psm, setPsm] = useState<string>("6");
   const [whitelist, setWhitelist] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true); // ✅ default open
 
   // camera
   const [showCamera, setShowCamera] = useState(false);
@@ -440,7 +440,7 @@ export default function Page() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
-  /* -------- localStorage persistence -------- */
+  /* -------- localStorage -------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -581,7 +581,6 @@ export default function Page() {
         const worker = await getWorker(lang);
         if (cancelRef.current) throw new Error("cancelled");
 
-        // Apply PSM & whitelist if available
         try {
           const setParams: any = (worker as any).setParameters;
           if (typeof setParams === "function") {
@@ -727,7 +726,6 @@ export default function Page() {
 
   processRef.current = processFiles;
 
-  /* -------- paste -------- */
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -749,7 +747,6 @@ export default function Page() {
     return () => window.removeEventListener("paste", onPaste);
   }, [showToast]);
 
-  /* -------- camera -------- */
   useEffect(() => {
     if (!showCamera) return;
     let cancelled = false;
@@ -812,7 +809,6 @@ export default function Page() {
     setBusy(false);
   }, [runOCR, showToast]);
 
-  /* -------- derived -------- */
   const allText = useMemo(
     () =>
       results
@@ -846,7 +842,6 @@ export default function Page() {
     ? Math.round((finishedCount / results.length) * 100)
     : 0;
 
-  /* -------- actions -------- */
   const copyAll = async () => {
     if (!allText) return showToast("Nothing to copy", "err");
     try {
@@ -891,21 +886,29 @@ export default function Page() {
   const downloadCsv = () => {
     const rows = [["File", "Confidence", "Words", "Text"]];
     results.forEach((r) => {
-      if (r.text) rows.push([r.name, String(r.confidence), String(countWords(r.text)), r.text.replace(/"/g, '""')]);
+      if (r.text)
+        rows.push([
+          r.name,
+          String(r.confidence),
+          String(countWords(r.text)),
+          r.text.replace(/"/g, '""'),
+        ]);
     });
     if (rows.length < 2) return showToast("Nothing to export", "err");
     const csv = rows
       .map((row) => row.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))
       .join("\n");
-    triggerDownload(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }), "ocr-results.csv");
+    triggerDownload(
+      new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }),
+      "ocr-results.csv"
+    );
   };
 
-  /* -------- SHARE (FIXED) -------- */
+  /* -------- SHARE (fixed with better fallback) -------- */
   const handleShare = async () => {
     const text = allText;
     if (!text) return showToast("Nothing to share yet", "err");
 
-    // 1) Try native file share
     const file = new File([text], "ocr-result.txt", { type: "text/plain" });
     const nav: any = navigator;
     try {
@@ -917,7 +920,6 @@ export default function Page() {
         });
         return;
       }
-      // 2) Try native text share
       if (nav.share) {
         await nav.share({
           title: "OCR Result",
@@ -926,19 +928,19 @@ export default function Page() {
         return;
       }
     } catch (e: any) {
-      if (e?.name === "AbortError") return; // user cancelled
+      if (e?.name === "AbortError") return;
     }
 
-    // 3) Fallback: copy + offer platform links
     try {
       await navigator.clipboard.writeText(text);
     } catch {}
 
-    const encoded = encodeURIComponent(text.length > 1800 ? text.slice(0, 1800) + "…" : text);
+    const encoded = encodeURIComponent(
+      text.length > 1800 ? text.slice(0, 1800) + "…" : text
+    );
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     if (isMobile) {
-      // On mobile open a chooser via WhatsApp; user can switch app
       const choice = window.confirm(
         "Native share not available.\n\nOK = Open WhatsApp share\nCancel = Copy text only (already copied)"
       );
@@ -1036,7 +1038,6 @@ export default function Page() {
     showToast("Processing cancelled", "err");
   };
 
-  /* -------- text tools -------- */
   const transformAll = (mode: "upper" | "lower" | "title") => {
     if (!results.length) return;
     setResults((prev) =>
@@ -1068,7 +1069,6 @@ export default function Page() {
     showToast(count ? `Replaced in ${count} file(s)` : "No matches found");
   };
 
-  /* -------- esc for lightbox -------- */
   useEffect(() => {
     if (!lightbox) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setLightbox(null);
@@ -1091,7 +1091,7 @@ export default function Page() {
         @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important } }
       `}</style>
 
-      {/* SINGLE HEADER (FIXED - duplicate removed) */}
+      {/* SINGLE HEADER */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#070709]/85 border-b border-zinc-900">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <a href="/" className="font-bold text-sm sm:text-base whitespace-nowrap">
@@ -1170,7 +1170,6 @@ export default function Page() {
               e.target.value = "";
             }}
           />
-          {/* PDF-only now truly PDF-only (FIXED) */}
           <input
             ref={pdfInputRef}
             type="file"
@@ -1261,6 +1260,7 @@ export default function Page() {
                 />
               )}
 
+              {/* ADVANCED OCR — now default open */}
               <button
                 type="button"
                 onClick={() => setShowAdvanced((s) => !s)}
@@ -1291,6 +1291,10 @@ export default function Page() {
                       <option value="8">8 — Single word</option>
                       <option value="13">13 — Raw line (no post-proc)</option>
                     </select>
+                    <p className="mt-2 text-[10px] text-zinc-500 leading-5">
+                      Tells Tesseract how the text is laid out on the page. Choose
+                      the mode matching your image for best accuracy.
+                    </p>
                   </label>
 
                   <label className="block rounded-xl border border-zinc-800 bg-black/40 px-3 py-2.5">
@@ -1303,6 +1307,10 @@ export default function Page() {
                       placeholder="e.g. 0123456789  (numbers only)"
                       className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-zinc-500"
                     />
+                    <p className="mt-2 text-[10px] text-zinc-500 leading-5">
+                      Restrict recognition to specific characters. Great for
+                      invoices, phone numbers or ID cards.
+                    </p>
                   </label>
                 </div>
               )}
@@ -1756,6 +1764,7 @@ export default function Page() {
           </div>
         </section>
 
+        {/* COMPLETE GUIDE */}
         <div className="mt-12 max-w-4xl mx-auto">
           <h2 className="text-lg sm:text-xl font-bold mb-4">
             Complete Guide — Learn OCR in Detail
@@ -1787,34 +1796,335 @@ export default function Page() {
             </div>
           </Accordion>
 
+          {/* DETAILED HOW TO USE GUIDE */}
           <Accordion
             open={openSec === "how"}
             onToggle={() => setOpenSec(openSec === "how" ? "" : "how")}
-            title="2. How to use batch OCR, PDF &amp; camera capture"
+            title="2. How to use — complete step-by-step guide (every option explained)"
           >
-            <div className="space-y-2">
-              <p>
-                <b className="text-white">Upload:</b> click “Upload Image / PDF”,
-                drag files onto the dashed box, or press{" "}
-                <kbd className="px-1.5 py-0.5 rounded border border-zinc-700 bg-black text-[10px]">
-                  Ctrl+V
-                </kbd>{" "}
-                to paste a screenshot. Up to {MAX_FILES} files per batch.
-              </p>
-              <p>
-                <b className="text-white">PDF:</b> every page is rendered to a
-                canvas at 3× scale and OCR'd individually (first{" "}
-                {MAX_PDF_PAGES} pages).
-              </p>
-              <p>
-                <b className="text-white">Camera:</b> opens the rear camera by
-                default — tap Flip for the selfie camera, then Capture.
-              </p>
-              <p>
-                <b className="text-white">Accuracy boost:</b> open Advanced OCR
-                and choose PSM 6 for uniform blocks, PSM 11 for receipts, PSM 7
-                for single lines. Use the whitelist for numbers-only scans.
-              </p>
+            <div className="space-y-5">
+              {/* Step 1 */}
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  🚀 Step 1 — Choose your input method
+                </h3>
+                <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
+                  <li>
+                    <b className="text-white">📁 Upload Image / PDF</b> — Best
+                    for images already saved on your device. Accepts JPG, PNG,
+                    WEBP, BMP, GIF, TIFF and PDF. You can select up to{" "}
+                    <b>10 files at once</b> for batch OCR.
+                  </li>
+                  <li>
+                    <b className="text-white">📷 Live Camera</b> — Opens your
+                    phone's camera directly. Best for scanning physical
+                    documents or books on the spot. Tap <b>Flip</b> to switch
+                    between rear and selfie camera. Tap <b>Capture</b> to take
+                    the shot and instantly run OCR.
+                  </li>
+                  <li>
+                    <b className="text-white">📄 PDF Only</b> — Strictly for
+                    PDF files. Each page is rendered at 3× resolution for
+                    maximum accuracy and OCR'd individually.
+                  </li>
+                  <li>
+                    <b className="text-white">Drag &amp; drop box</b> — On
+                    desktop, drag files from your file manager directly onto
+                    the dashed area. It highlights when files are hovering.
+                  </li>
+                  <li>
+                    <b className="text-white">Ctrl + V (paste)</b> — Copy any
+                    image from anywhere (WhatsApp, browser, screenshot) and
+                    press Ctrl+V on this page. It auto-detects and OCRs the
+                    pasted image.
+                  </li>
+                </ul>
+              </div>
+
+              {/* Step 2 */}
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  🌐 Step 2 — Select the OCR language
+                </h3>
+                <p>
+                  Top-right dropdown me apni language choose karo. <b>Tesseract
+                  har language ke liye alag trained model use karta hai</b>, so
+                  correct selection is critical:
+                </p>
+                <ul className="mt-2 space-y-1 pl-4 list-disc marker:text-zinc-600">
+                  <li>
+                    <b>English</b> → pure English documents
+                  </li>
+                  <li>
+                    <b>Hindi</b> → Devanagari script only
+                  </li>
+                  <li>
+                    <b>Hindi + English</b> → mixed content (most common in India)
+                  </li>
+                  <li>
+                    <b>Arabic</b>, <b>Chinese</b>, <b>Japanese</b>, <b>Korean</b> — RTL &amp; CJK scripts
+                  </li>
+                </ul>
+                <p className="mt-2 text-zinc-500 text-xs">
+                  ⚠️ Wrong language = garbage output. Mixed content ke liye
+                  always "Hindi + English" jaisa combined option use karo.
+                </p>
+              </div>
+
+              {/* Step 3 */}
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  ⚙️ Step 3 — Image enhancement (settings panel)
+                </h3>
+                <p>
+                  Top par <b>"⚙️ Image enhancement &amp; OCR settings"</b> tap
+                  karo. Ye controls <b>next OCR run</b> par apply honge —
+                  pehle se processed files par nahi.
+                </p>
+
+                <div className="mt-3 space-y-3">
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ☀️ Brightness (50% – 150%)
+                    </p>
+                    <p className="text-xs">
+                      Image ko lighter ya darker banata hai. Faded ya underexposed
+                      scans ke liye <b>120–130%</b> try karo. Overexposed photos
+                      ke liye <b>80–90%</b>.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🌗 Contrast (50% – 200%)
+                    </p>
+                    <p className="text-xs">
+                      Text aur background ke beech difference badhata hai.
+                      Blurry/low-contrast documents ke liye <b>130–150%</b> best
+                      hai. Zyada high karne se text toot sakta hai.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🔄 Rotate (0° – 359°)
+                    </p>
+                    <p className="text-xs">
+                      Image ko rotate karta hai. Sideways photo ya tilted scan
+                      ke liye use karo. <b>Canvas expand hota hai</b> — corners
+                      crop nahi honge.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ⚫ Grayscale toggle
+                    </p>
+                    <p className="text-xs">
+                      Colored image ko black &amp; white me convert karta hai.
+                      Colored backgrounds ya highlighter wale documents ke liye
+                      useful — colours hata kar sirf text bachta hai.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ⚪ Black &amp; White (Binarisation)
+                    </p>
+                    <p className="text-xs">
+                      Har pixel ko pure black ya pure white banata hai — no
+                      middle gray. Best for old/faded documents, receipts, forms.
+                      Jab ON karo to ek <b>threshold slider</b> bhi aata hai.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🎚️ Binarisation threshold (60 – 220)
+                    </p>
+                    <p className="text-xs">
+                      Sirf tab dikhta hai jab B&amp;W ON ho. Batata hai ki kaunsa
+                      pixel black hoga. <b>Lower value</b> = darker threshold
+                      (sirf very dark text black). <b>Higher value</b> = more
+                      pixels black. Default <b>160</b> most docs ke liye perfect.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      🔍 Auto upscale toggle
+                    </p>
+                    <p className="text-xs">
+                      Chhoti images ko automatically enlarge karta hai (2× ya
+                      1.5×). Tesseract ko bade glyphs better padhte hain — small
+                      text accuracy drastically improve hoti hai. <b>ON rakhna
+                      recommended.</b>
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-zinc-800 bg-black/30 p-3">
+                    <p className="text-white text-xs font-bold mb-1">
+                      ✨ Auto clean text toggle
+                    </p>
+                    <p className="text-xs">
+                      OCR output me extra spaces, multiple blank lines, aur
+                      trailing whitespace fix karta hai. Clean output chahiye to
+                      ON rakho.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4 */}
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  🔬 Step 4 — Advanced OCR (accuracy boost)
+                </h3>
+                <p>
+                  Ye section <b>ab default open hai</b> — scroll karke seedha
+                  mil jayega. Do powerful settings hain:
+                </p>
+
+                <div className="mt-3 rounded-xl border border-zinc-800 bg-black/30 p-3">
+                  <p className="text-white text-xs font-bold mb-2">
+                    📄 Page Segmentation Mode (PSM)
+                  </p>
+                  <p className="text-xs mb-2">
+                    Ye Tesseract ko batata hai ki page par text{" "}
+                    <b>kaise arranged hai</b>. Ye setting accuracy ko kaafi
+                    badha sakti hai kyunki engine galat assumptions nahi karega.
+                  </p>
+                  <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600 text-xs">
+                    <li>
+                      <b>PSM 3 — Fully automatic</b>: Mixed layouts ke liye. Ye
+                      default hai. Jab aap unsure ho.
+                    </li>
+                    <li>
+                      <b>PSM 6 ⭐ — Single uniform block</b>: Best for most
+                      documents — book pages, letters, articles. Ek continuous
+                      block of text.
+                    </li>
+                    <li>
+                      <b>PSM 4 — Single column</b>: Newspaper column,
+                      single-column documents.
+                    </li>
+                    <li>
+                      <b>PSM 11 — Sparse text</b>: Receipts, business cards,
+                      invoices — jaha text scattered ho.
+                    </li>
+                    <li>
+                      <b>PSM 7 — Single text line</b>: Form field, address line,
+                      single row.
+                    </li>
+                    <li>
+                      <b>PSM 8 — Single word</b>: Sirf ek word. Number plates,
+                      single word images.
+                    </li>
+                    <li>
+                      <b>PSM 13 — Raw line</b>: No post-processing. Advanced
+                      users ke liye.
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="mt-3 rounded-xl border border-zinc-800 bg-black/30 p-3">
+                  <p className="text-white text-xs font-bold mb-2">
+                    ✅ Character whitelist
+                  </p>
+                  <p className="text-xs mb-2">
+                    Sirf specific characters recognize karo. Bahut powerful —
+                    galat characters eliminate ho jate hain, accuracy badh
+                    jati hai.
+                  </p>
+                  <ul className="space-y-1.5 pl-4 list-disc marker:text-zinc-600 text-xs">
+                    <li>
+                      <b>Numbers only</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789</code> — invoices, phone numbers, ID cards
+                    </li>
+                    <li>
+                      <b>Numbers + decimals</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789.,</code> — amounts, prices
+                    </li>
+                    <li>
+                      <b>Uppercase only</b> → <code className="bg-black px-1 rounded text-[10px]">ABCDEFGHIJKLMNOPQRSTUVWXYZ</code>
+                    </li>
+                    <li>
+                      <b>Alphanumeric</b> → <code className="bg-black px-1 rounded text-[10px]">0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ</code> — vehicle plates
+                    </li>
+                    <li>
+                      <b>Blank</b> — sab characters allow (normal use)
+                    </li>
+                  </ul>
+                  <p className="mt-2 text-zinc-500 text-xs">
+                    ⚠️ Ye setting bhi sirf next OCR run par apply hoti hai.
+                    Pehle se processed files retry karne par hi effect hoga.
+                  </p>
+                </div>
+              </div>
+
+              {/* Step 5 */}
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  📊 Step 5 — Review results &amp; use tools
+                </h3>
+                <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
+                  <li>
+                    <b className="text-white">Confidence score</b> — Har file
+                    ke upar dikhta hai (0–100%). 95%+ = excellent, 80%+ = good,
+                    below 70% = retry with better settings.
+                  </li>
+                  <li>
+                    <b className="text-white">Editable text</b> — Text area me
+                    directly edit kar sakte ho. Corrections auto-save honge.
+                  </li>
+                  <li>
+                    <b className="text-white">Filter box</b> — Top par search
+                    bar se file name ya content search karo.
+                  </li>
+                  <li>
+                    <b className="text-white">Text tools</b> — UPPER, lower,
+                    Title case (bulk apply). Find &amp; Replace bhi.
+                  </li>
+                  <li>
+                    <b className="text-white">Retry button</b> — Failed ya
+                    cancelled files ko naye settings ke saath dobara process karo.
+                  </li>
+                </ul>
+              </div>
+
+              {/* Step 6 */}
+              <div>
+                <h3 className="text-white font-bold text-sm mb-2">
+                  💾 Step 6 — Export &amp; share
+                </h3>
+                <ul className="space-y-2 pl-4 list-disc marker:text-zinc-600">
+                  <li>
+                    <b className="text-white">Copy All</b> — Sab results
+                    clipboard me.
+                  </li>
+                  <li>
+                    <b className="text-white">TXT</b> — Plain text file.
+                  </li>
+                  <li>
+                    <b className="text-white">ZIP</b> — Har file ka separate
+                    .txt zip me.
+                  </li>
+                  <li>
+                    <b className="text-white">PDF</b> — Combined PDF (Unicode-safe,
+                    Hindi/Arabic bhi sahi).
+                  </li>
+                  <li>
+                    <b className="text-white">CSV</b> — Excel/Sheets ke liye
+                    (File, Confidence, Words, Text).
+                  </li>
+                  <li>
+                    <b className="text-white">Share</b> — Native share sheet ya
+                    fallback clipboard + WhatsApp.
+                  </li>
+                  <li>
+                    <b className="text-white">Per-file</b>: Copy · TXT · PDF ·
+                    DOC · WhatsApp — har result card par.
+                  </li>
+                </ul>
+              </div>
             </div>
           </Accordion>
 
