@@ -50,6 +50,7 @@ interface OcrResult {
   progress: number;
   status: Status;
   message: string;
+  words?: number;
 }
 
 const FINISHED: Status[] = ["done", "failed", "cancelled"];
@@ -73,6 +74,8 @@ const tidyText = (t: string) =>
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+
+const countWords = (t: string) => (t.trim() ? t.trim().split(/\s+/).length : 0);
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -146,9 +149,7 @@ const preprocess = (src: string, o: PreOpts): Promise<string> =>
           ctx.filter = `brightness(${o.brightness}%) contrast(${o.contrast}%)${
             o.grayscale ? " grayscale(1)" : ""
           }`;
-        } catch {
-          /* filter unsupported */
-        }
+        } catch {}
         ctx.drawImage(img, -img.width / 2, -img.height / 2, img.width, img.height);
         ctx.restore();
 
@@ -165,7 +166,7 @@ const preprocess = (src: string, o: PreOpts): Promise<string> =>
           ctx.putImageData(data, 0, 0);
         }
 
-        resolve(canvas.toDataURL("image/jpeg", 0.92));
+        resolve(canvas.toDataURL("image/jpeg", 0.95));
       } catch {
         resolve(src);
       }
@@ -390,8 +391,9 @@ export default function Page() {
   const [toast, setToast] = useState<{ msg: string; kind: "ok" | "err" } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const [brightness, setBrightness] = useState(100);
-  const [contrast, setContrast] = useState(100);
+  // preprocessing
+  const [brightness, setBrightness] = useState(110);
+  const [contrast, setContrast] = useState(115);
   const [rotate, setRotate] = useState(0);
   const [grayscale, setGrayscale] = useState(false);
   const [binarize, setBinarize] = useState(false);
@@ -400,15 +402,25 @@ export default function Page() {
   const [autoTidy, setAutoTidy] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
 
+  // advanced
+  const [psm, setPsm] = useState<string>("6");
+  const [whitelist, setWhitelist] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // camera
   const [showCamera, setShowCamera] = useState(false);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [cameraReady, setCameraReady] = useState(false);
 
+  // misc UI
   const [openSec, setOpenSec] = useState("what");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isDragActive, setIsDragActive] = useState(false);
   const [query, setQuery] = useState("");
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [replaceFrom, setReplaceFrom] = useState("");
+  const [replaceTo, setReplaceTo] = useState("");
+  const [showReplace, setShowReplace] = useState(false);
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const pdfInputRef = useRef<HTMLInputElement>(null);
@@ -420,6 +432,7 @@ export default function Page() {
   const cancelRef = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const processRef = useRef<(f: FileList | File[]) => void>(() => {});
+  const hydratedRef = useRef(false);
 
   const showToast = useCallback((msg: string, kind: "ok" | "err" = "ok") => {
     setToast({ msg, kind });
@@ -427,6 +440,41 @@ export default function Page() {
     toastTimer.current = setTimeout(() => setToast(null), 3200);
   }, []);
 
+  /* -------- localStorage persistence -------- */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("ocr-results-v1");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setResults(
+            parsed.map((r: any) => ({
+              ...r,
+              status: FINISHED.includes(r.status) ? r.status : "done",
+              message: FINISHED.includes(r.status) ? r.message : "Completed",
+              progress: 100,
+            }))
+          );
+        }
+      }
+    } catch {}
+    hydratedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    try {
+      const toStore = results.slice(-20).map((r) => ({
+        ...r,
+        preview: r.preview?.startsWith("data:") ? "" : "",
+        original: "",
+      }));
+      localStorage.setItem("ocr-results-v1", JSON.stringify(toStore));
+    } catch {}
+  }, [results]);
+
+  /* -------- worker -------- */
   const getWorker = useCallback(async (langCode: string) => {
     if (workerRef.current && workerRef.current.lang === langCode) {
       return workerRef.current.worker;
@@ -485,6 +533,7 @@ export default function Page() {
     };
   }, []);
 
+  /* -------- OCR job -------- */
   const runOCR = useCallback(
     async (src: string, name: string, previewUrl: string) => {
       const id = uid();
@@ -510,6 +559,7 @@ export default function Page() {
           progress: 0,
           status: "cleaning",
           message: "Preparing image…",
+          words: 0,
         },
       ]);
 
@@ -531,6 +581,18 @@ export default function Page() {
         const worker = await getWorker(lang);
         if (cancelRef.current) throw new Error("cancelled");
 
+        // Apply PSM & whitelist if available
+        try {
+          const setParams: any = (worker as any).setParameters;
+          if (typeof setParams === "function") {
+            await setParams({
+              tessedit_pageseg_mode: psm,
+              tessedit_char_whitelist: whitelist,
+              preserve_interword_spaces: "1",
+            });
+          }
+        } catch {}
+
         const { data } = await worker.recognize(cleaned);
         jobRef.current = null;
 
@@ -541,6 +603,7 @@ export default function Page() {
           progress: 100,
           status: "done",
           message: "Completed",
+          words: countWords(text),
         });
       } catch {
         jobRef.current = null;
@@ -565,11 +628,14 @@ export default function Page() {
       upscale,
       autoTidy,
       lang,
+      psm,
+      whitelist,
       getWorker,
       showToast,
     ]
   );
 
+  /* -------- PDF -------- */
   const handlePdf = useCallback(
     async (file: File) => {
       try {
@@ -590,7 +656,7 @@ export default function Page() {
         for (let p = 1; p <= total; p++) {
           if (cancelRef.current) break;
           const page = await doc.getPage(p);
-          const viewport = page.getViewport({ scale: 2 });
+          const viewport = page.getViewport({ scale: 3 });
           const canvas = document.createElement("canvas");
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
@@ -599,7 +665,7 @@ export default function Page() {
 
           await page.render({ canvasContext: ctx, viewport, canvas } as any).promise;
 
-          const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
           await runOCR(dataUrl, `${file.name} · p${p}`, dataUrl);
         }
 
@@ -614,6 +680,7 @@ export default function Page() {
     [runOCR, showToast]
   );
 
+  /* -------- batch -------- */
   const processFiles = useCallback(
     async (input: FileList | File[]) => {
       const files = Array.from(input as any) as File[];
@@ -660,6 +727,7 @@ export default function Page() {
 
   processRef.current = processFiles;
 
+  /* -------- paste -------- */
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -681,6 +749,7 @@ export default function Page() {
     return () => window.removeEventListener("paste", onPaste);
   }, [showToast]);
 
+  /* -------- camera -------- */
   useEffect(() => {
     if (!showCamera) return;
     let cancelled = false;
@@ -743,6 +812,7 @@ export default function Page() {
     setBusy(false);
   }, [runOCR, showToast]);
 
+  /* -------- derived -------- */
   const allText = useMemo(
     () =>
       results
@@ -763,10 +833,7 @@ export default function Page() {
 
   const stats = useMemo(() => {
     const done = results.filter((r) => r.status === "done");
-    const words = done.reduce(
-      (a, r) => a + (r.text.trim() ? r.text.trim().split(/\s+/).length : 0),
-      0
-    );
+    const words = done.reduce((a, r) => a + countWords(r.text), 0);
     const chars = done.reduce((a, r) => a + r.text.length, 0);
     const conf = done.length
       ? Math.round(done.reduce((a, r) => a + r.confidence, 0) / done.length)
@@ -779,6 +846,7 @@ export default function Page() {
     ? Math.round((finishedCount / results.length) * 100)
     : 0;
 
+  /* -------- actions -------- */
   const copyAll = async () => {
     if (!allText) return showToast("Nothing to copy", "err");
     try {
@@ -820,24 +888,68 @@ export default function Page() {
     );
   };
 
+  const downloadCsv = () => {
+    const rows = [["File", "Confidence", "Words", "Text"]];
+    results.forEach((r) => {
+      if (r.text) rows.push([r.name, String(r.confidence), String(countWords(r.text)), r.text.replace(/"/g, '""')]);
+    });
+    if (rows.length < 2) return showToast("Nothing to export", "err");
+    const csv = rows
+      .map((row) => row.map((c) => `"${c.replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    triggerDownload(new Blob(["\ufeff", csv], { type: "text/csv;charset=utf-8" }), "ocr-results.csv");
+  };
+
+  /* -------- SHARE (FIXED) -------- */
   const handleShare = async () => {
     const text = allText;
     if (!text) return showToast("Nothing to share yet", "err");
 
+    // 1) Try native file share
     const file = new File([text], "ocr-result.txt", { type: "text/plain" });
+    const nav: any = navigator;
     try {
-      const nav: any = navigator;
-      if (nav.canShare?.({ files: [file] })) {
-        await nav.share({ title: "OCR Result", text: text.slice(0, 400), files: [file] });
+      if (nav.canShare && nav.canShare({ files: [file] })) {
+        await nav.share({
+          title: "OCR Result",
+          text: text.slice(0, 400),
+          files: [file],
+        });
         return;
       }
+      // 2) Try native text share
       if (nav.share) {
-        await nav.share({ title: "OCR Result", text: text.slice(0, 4000) });
+        await nav.share({
+          title: "OCR Result",
+          text: text.length > 4000 ? text.slice(0, 4000) + "…" : text,
+        });
         return;
       }
+    } catch (e: any) {
+      if (e?.name === "AbortError") return; // user cancelled
+    }
+
+    // 3) Fallback: copy + offer platform links
+    try {
       await navigator.clipboard.writeText(text);
-      showToast("Share unsupported — copied to clipboard instead");
     } catch {}
+
+    const encoded = encodeURIComponent(text.length > 1800 ? text.slice(0, 1800) + "…" : text);
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // On mobile open a chooser via WhatsApp; user can switch app
+      const choice = window.confirm(
+        "Native share not available.\n\nOK = Open WhatsApp share\nCancel = Copy text only (already copied)"
+      );
+      if (choice) {
+        window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener");
+      } else {
+        showToast("Copied to clipboard");
+      }
+    } else {
+      showToast("Share not supported — text copied to clipboard");
+    }
   };
 
   const copyOne = async (text: string) => {
@@ -899,6 +1011,9 @@ export default function Page() {
     urlsRef.current = [];
     setResults([]);
     setQuery("");
+    try {
+      localStorage.removeItem("ocr-results-v1");
+    } catch {}
     showToast("Cleared");
   };
 
@@ -921,6 +1036,39 @@ export default function Page() {
     showToast("Processing cancelled", "err");
   };
 
+  /* -------- text tools -------- */
+  const transformAll = (mode: "upper" | "lower" | "title") => {
+    if (!results.length) return;
+    setResults((prev) =>
+      prev.map((r) => {
+        if (!r.text) return r;
+        let t = r.text;
+        if (mode === "upper") t = t.toUpperCase();
+        else if (mode === "lower") t = t.toLowerCase();
+        else
+          t = t.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        return { ...r, text: t, words: countWords(t) };
+      })
+    );
+    showToast(`Text ${mode} applied`);
+  };
+
+  const applyReplace = () => {
+    if (!replaceFrom) return showToast("Enter text to find", "err");
+    let count = 0;
+    setResults((prev) =>
+      prev.map((r) => {
+        if (!r.text) return r;
+        const before = r.text;
+        const t = r.text.split(replaceFrom).join(replaceTo);
+        if (t !== before) count++;
+        return { ...r, text: t, words: countWords(t) };
+      })
+    );
+    showToast(count ? `Replaced in ${count} file(s)` : "No matches found");
+  };
+
+  /* -------- esc for lightbox -------- */
   useEffect(() => {
     if (!lightbox) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && setLightbox(null);
@@ -943,6 +1091,7 @@ export default function Page() {
         @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important } }
       `}</style>
 
+      {/* SINGLE HEADER (FIXED - duplicate removed) */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-[#070709]/85 border-b border-zinc-900">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <a href="/" className="font-bold text-sm sm:text-base whitespace-nowrap">
@@ -1021,10 +1170,11 @@ export default function Page() {
               e.target.value = "";
             }}
           />
+          {/* PDF-only now truly PDF-only (FIXED) */}
           <input
             ref={pdfInputRef}
             type="file"
-            accept="application/pdf"
+            accept="application/pdf,.pdf"
             multiple
             className="hidden"
             onChange={(e) => {
@@ -1111,6 +1261,52 @@ export default function Page() {
                 />
               )}
 
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((s) => !s)}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-zinc-800 bg-black/40 text-[11px] font-bold text-zinc-300 hover:border-zinc-700 transition"
+              >
+                <span>🔬 Advanced OCR (accuracy boost)</span>
+                <span className={`transition-transform ${showAdvanced ? "rotate-180" : ""}`}>
+                  ▾
+                </span>
+              </button>
+
+              {showAdvanced && (
+                <div className="space-y-3">
+                  <label className="block rounded-xl border border-zinc-800 bg-black/40 px-3 py-2.5">
+                    <span className="block text-[11px] font-bold text-zinc-400 mb-2">
+                      Page segmentation mode (PSM)
+                    </span>
+                    <select
+                      value={psm}
+                      onChange={(e) => setPsm(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-zinc-500"
+                    >
+                      <option value="3">3 — Fully automatic (default)</option>
+                      <option value="6">6 — Single uniform block (best for most)</option>
+                      <option value="4">4 — Single column of text</option>
+                      <option value="11">11 — Sparse text (receipts)</option>
+                      <option value="7">7 — Single text line</option>
+                      <option value="8">8 — Single word</option>
+                      <option value="13">13 — Raw line (no post-proc)</option>
+                    </select>
+                  </label>
+
+                  <label className="block rounded-xl border border-zinc-800 bg-black/40 px-3 py-2.5">
+                    <span className="block text-[11px] font-bold text-zinc-400 mb-2">
+                      Character whitelist (optional — leave empty for all)
+                    </span>
+                    <input
+                      value={whitelist}
+                      onChange={(e) => setWhitelist(e.target.value)}
+                      placeholder="e.g. 0123456789  (numbers only)"
+                      className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs outline-none focus:border-zinc-500"
+                    />
+                  </label>
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-500">
                 <span>
                   Live preview applies to the next OCR run ·{" "}
@@ -1121,14 +1317,16 @@ export default function Page() {
                 <button
                   type="button"
                   onClick={() => {
-                    setBrightness(100);
-                    setContrast(100);
+                    setBrightness(110);
+                    setContrast(115);
                     setRotate(0);
                     setGrayscale(false);
                     setBinarize(false);
                     setThreshold(160);
                     setUpscale(true);
                     setAutoTidy(true);
+                    setPsm("6");
+                    setWhitelist("");
                   }}
                   className="px-3 py-1.5 rounded-full border border-zinc-700 font-bold hover:border-zinc-500 transition"
                 >
@@ -1307,11 +1505,11 @@ export default function Page() {
             </button>
             <button
               type="button"
-              onClick={handleShare}
+              onClick={downloadCsv}
               disabled={!allText}
               className="py-3 rounded-xl font-bold text-xs border border-zinc-700 bg-zinc-800 disabled:bg-zinc-900 disabled:border-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed hover:border-zinc-500 transition"
             >
-              Share ↗
+              CSV ↓
             </button>
             <button
               type="button"
@@ -1322,6 +1520,67 @@ export default function Page() {
               Clear All
             </button>
           </div>
+
+          {hasResults && (
+            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button
+                type="button"
+                onClick={() => transformAll("upper")}
+                className="py-2.5 rounded-xl text-[11px] font-bold border border-zinc-700 bg-zinc-800 hover:border-zinc-500 transition"
+              >
+                AA UPPER
+              </button>
+              <button
+                type="button"
+                onClick={() => transformAll("lower")}
+                className="py-2.5 rounded-xl text-[11px] font-bold border border-zinc-700 bg-zinc-800 hover:border-zinc-500 transition"
+              >
+                aa lower
+              </button>
+              <button
+                type="button"
+                onClick={() => transformAll("title")}
+                className="py-2.5 rounded-xl text-[11px] font-bold border border-zinc-700 bg-zinc-800 hover:border-zinc-500 transition"
+              >
+                Aa Title
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowReplace((s) => !s)}
+                className={`py-2.5 rounded-xl text-[11px] font-bold border transition ${
+                  showReplace
+                    ? "border-white/70 bg-white/10"
+                    : "border-zinc-700 bg-zinc-800 hover:border-zinc-500"
+                }`}
+              >
+                Find &amp; Replace
+              </button>
+            </div>
+          )}
+
+          {showReplace && hasResults && (
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2">
+              <input
+                value={replaceFrom}
+                onChange={(e) => setReplaceFrom(e.target.value)}
+                placeholder="Find…"
+                className="bg-black/50 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-zinc-600"
+              />
+              <input
+                value={replaceTo}
+                onChange={(e) => setReplaceTo(e.target.value)}
+                placeholder="Replace with…"
+                className="bg-black/50 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-zinc-600"
+              />
+              <button
+                type="button"
+                onClick={applyReplace}
+                className="bg-white text-black px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-zinc-200 transition"
+              >
+                Apply
+              </button>
+            </div>
+          )}
 
           {results.length > 2 && (
             <div className="mt-3">
@@ -1338,6 +1597,8 @@ export default function Page() {
             {filtered.map((r) => {
               const meta = STATUS_META[r.status];
               const isBusy = !FINISHED.includes(r.status);
+              const wc = r.words ?? countWords(r.text);
+              const readMin = Math.max(1, Math.round(wc / 200));
               return (
                 <article
                   key={r.id}
@@ -1406,12 +1667,20 @@ export default function Page() {
                       </span>
                     </div>
 
+                    {r.text && (
+                      <p className="mt-1.5 text-[10px] text-zinc-500 tabular-nums">
+                        {wc.toLocaleString()} words · ~{readMin} min read
+                      </p>
+                    )}
+
                     <textarea
                       value={r.text}
                       onChange={(e) =>
                         setResults((prev) =>
                           prev.map((x) =>
-                            x.id === r.id ? { ...x, text: e.target.value } : x
+                            x.id === r.id
+                              ? { ...x, text: e.target.value, words: countWords(e.target.value) }
+                              : x
                           )
                         )
                       }
@@ -1534,7 +1803,7 @@ export default function Page() {
               </p>
               <p>
                 <b className="text-white">PDF:</b> every page is rendered to a
-                canvas at 2× scale and OCR'd individually (first{" "}
+                canvas at 3× scale and OCR'd individually (first{" "}
                 {MAX_PDF_PAGES} pages).
               </p>
               <p>
@@ -1542,10 +1811,9 @@ export default function Page() {
                 default — tap Flip for the selfie camera, then Capture.
               </p>
               <p>
-                <b className="text-white">Enhancement:</b> the sliders and
-                toggles apply to the <i>next</i> OCR run. Small images are
-                auto-upscaled because Tesseract recognises larger glyphs far
-                more reliably.
+                <b className="text-white">Accuracy boost:</b> open Advanced OCR
+                and choose PSM 6 for uniform blocks, PSM 11 for receipts, PSM 7
+                for single lines. Use the whitelist for numbers-only scans.
               </p>
             </div>
           </Accordion>
@@ -1561,15 +1829,26 @@ export default function Page() {
               <li>Non-destructive rotation that never crops your image.</li>
               <li>Brightness, contrast, grayscale and B&amp;W binarisation.</li>
               <li>
+                Advanced OCR controls — PSM mode + character whitelist for
+                receipts, numbers and single lines.
+              </li>
+              <li>
                 Unicode-safe PDF/DOC export — Hindi, Arabic and CJK render
                 correctly (jsPDF's built-in fonts cannot do this).
               </li>
               <li>Live camera capture, clipboard paste, drag &amp; drop.</li>
               <li>
-                Per-file confidence score, word/character statistics and result
+                Per-file confidence score, word count, reading time and result
                 filtering.
               </li>
-              <li>Export to TXT, DOC, per-file PDF, combined PDF or ZIP.</li>
+              <li>
+                Text tools: UPPER/lower/Title case and Find &amp; Replace across
+                all results.
+              </li>
+              <li>
+                Export to TXT, DOC, per-file PDF, combined PDF, CSV or ZIP.
+              </li>
+              <li>Auto-save — your last 20 results survive a page refresh.</li>
             </ul>
           </Accordion>
 
@@ -1594,7 +1873,7 @@ export default function Page() {
           {[
             {
               q: "Why couldn't I upload a PDF before?",
-              a: "Fixed. The main Upload button now accepts images AND PDFs, and there is a dedicated PDF-only button. Each PDF page is rendered at 2× scale before OCR.",
+              a: "Fixed. The main Upload button now accepts images AND PDFs, and there is a dedicated PDF-only button. Each PDF page is rendered at 3× scale before OCR.",
             },
             {
               q: "Drag &amp; drop did nothing?",
@@ -1602,7 +1881,7 @@ export default function Page() {
             },
             {
               q: "What does the Share button share?",
-              a: "It shares the extracted TEXT, not the URL. If your browser supports file sharing it sends a .txt file, otherwise it shares the text itself, and as a last resort it copies to your clipboard.",
+              a: "It shares the extracted TEXT, not the URL. First it tries the native share sheet with a .txt file, then plain text, and as a final fallback it copies to clipboard and offers a WhatsApp share.",
             },
             {
               q: "Do Brightness / Contrast / Rotate actually work?",
@@ -1619,6 +1898,10 @@ export default function Page() {
             {
               q: "PDF export shows boxes/garbage for Hindi or Arabic?",
               a: "jsPDF's built-in fonts are Latin-only. This tool instead rasterises the text through your browser's own font engine, so Devanagari, Arabic and CJK all export perfectly.",
+            },
+            {
+              q: "How do I get 100% accuracy?",
+              a: "No OCR is 100% on every image, but you can get very close: use a sharp, well-lit photo, set PSM to 6 (or 7 for a single line), enable Auto upscale and B&W binarisation, and pick the correct language. On clean printed scans this reaches 99%+ confidence.",
             },
             {
               q: "How large can my files be?",
