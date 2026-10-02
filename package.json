@@ -17,6 +17,7 @@
     "tesseract.js": "^5.1.0",
     "jspdf": "^2.5.1",
     "pdfjs-dist": "^4.4.168",
+        "resend": "^4.0.1",
     "utif": "^3.1.0"
   },
   "devDependencies": {
