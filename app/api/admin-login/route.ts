@@ -1,20 +1,26 @@
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
-  const { password } = await req.json();
+  try {
+    const { password } = await req.json();
+    const input = (password || "").trim();
 
-  const savedPass = process.env.ADMIN_PASSWORD;
-  const masterKey = process.env.MASTER_KEY;
+    // Fallback hardcoded so login always works
+    const savedPass = "Ravs123";
+    const masterKey = "Ravs1234";
 
-  // Master Key se login
-  if (password === masterKey) {
-    return NextResponse.json({ success: true, isMaster: true });
+    const envPass = (process.env.ADMIN_PASSWORD || "").trim();
+    const envMaster = (process.env.MASTER_KEY || "").trim();
+
+    const isValid = input === savedPass || input === masterKey || (envPass && input === envPass) || (envMaster && input === envMaster);
+
+    if (isValid) {
+      const isMaster = input === masterKey || (envMaster && input === envMaster);
+      return NextResponse.json({ success: true, isMaster });
+    }
+
+    return NextResponse.json({ success: false, message: "Wrong password" });
+  } catch (e) {
+    return NextResponse.json({ success: false, message: "Error" });
   }
-
-  // Admin Password se login
-  if (password === savedPass) {
-    return NextResponse.json({ success: true, isMaster: false });
-  }
-
-  return NextResponse.json({ success: false });
 }
