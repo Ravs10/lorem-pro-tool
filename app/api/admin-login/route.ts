@@ -1,3 +1,4 @@
+export const runtime = 'edge'
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { getCloudflareContext } from "@opennextjs/cloudflare"
@@ -24,27 +25,31 @@ export async function POST(req: Request) {
       };
 
       try {
-        // Cloudflare env + normal env dono try karo
+        // 1. pehle normal env
         let apiKey = process.env.RESEND_API_KEY;
         let emailTo = process.env.RECOVERY_EMAIL_TO;
         let emailFrom = process.env.RECOVERY_EMAIL_FROM || 'onboarding@resend.dev';
 
+        // 2. Cloudflare ka env (ye line tabhi chalegi jab upar runtime='edge' hoga)
         try {
-          const { env } = await getCloudflareContext({ async: true }) as any;
+          const ctx = await getCloudflareContext({ async: true }) as any;
+          const env = ctx?.env || {};
+          console.log("Cloudflare env keys:", Object.keys(env));
           if (env?.RESEND_API_KEY) apiKey = env.RESEND_API_KEY;
           if (env?.RECOVERY_EMAIL_TO) emailTo = env.RECOVERY_EMAIL_TO;
           if (env?.RECOVERY_EMAIL_FROM) emailFrom = env.RECOVERY_EMAIL_FROM;
-        } catch {}
-
-        if (!apiKey) {
-          return NextResponse.json({ success: false, message: "RESEND_API_KEY missing in Cloudflare" });
+        } catch (err) {
+          console.log("getCloudflareContext failed", err);
         }
 
-        // SDK ki jagah direct API - Missing API key error nahi ayega
+        if (!apiKey) {
+          return NextResponse.json({ success: false, message: "RESEND_API_KEY missing in Cloudflare - env me nahi mili" });
+        }
+
         const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            'Authorization': `Bearer ${apiKey.trim()}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
