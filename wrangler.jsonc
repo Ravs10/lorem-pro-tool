@@ -1,14 +1,10 @@
 {
   "name": "lorem-pro-tool",
+  "main": ".open-next/worker.js",
   "compatibility_date": "2024-12-15",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
-    
     "not_found_handling": "single-page-application"
-  },
-  "vars": {
-    "NEXT_PUBLIC_SUPABASE_URL": "https://... (aapka purana wala URL yahi rahega)",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "ey... (aapka purana wala key yahi rahega)"
   }
 }
