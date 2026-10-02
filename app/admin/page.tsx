@@ -9,6 +9,11 @@ export default function AdminPage() {
   const [pass, setPass] = useState("");
   const [isMaster, setIsMaster] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
+  // OTP ke liye naye states
+  const [showOtp, setShowOtp] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +37,6 @@ export default function AdminPage() {
     if (data) setTools(data);
   };
 
-  // --- FIX 1: Secure Login with mode ---
   const handleLogin = async () => {
     setLoading(true);
     const mode = showForgot? "master" : "admin";
@@ -44,6 +48,35 @@ export default function AdminPage() {
       setIsLoggedIn(true); setIsMaster(d.isMaster); fetchTools(); setPass("");
     } else alert(d.message || "Wrong password");
     setLoading(false);
+  };
+
+  // --- NAYA: OTP SEND ---
+  const handleSendOtp = async () => {
+    setLoading(true);
+    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "send-otp" }) });
+    const d = await res.json();
+    setLoading(false);
+    if(d.success){
+      alert("✅ OTP aapke email par bhej diya gaya: " + (process.env.NEXT_PUBLIC_RECOVERY_EMAIL_TO || "aapke email pe"));
+      setOtpSent(true);
+      setShowOtp(true);
+    } else {
+      alert("❌ "+d.message);
+    }
+  };
+
+  // --- NAYA: OTP VERIFY ---
+  const handleVerifyOtp = async () => {
+    if(!otp) return alert("OTP likho");
+    setLoading(true);
+    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "verify-otp", otp }) });
+    const d = await res.json();
+    setLoading(false);
+    if(d.success){
+      localStorage.setItem("lorem_admin", "true");
+      localStorage.setItem("lorem_is_master", "true");
+      setIsLoggedIn(true); setIsMaster(true); fetchTools();
+    } else alert(d.message || "Wrong OTP");
   };
 
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
@@ -73,8 +106,6 @@ const insertFormat = (b:any, a="") => {
   const newText = content.substring(0,s) + b + (sel||"text") + a + content.substring(e);
   setContent(newText);
 }
-
-// --- FIX 2: Secure Password Change via API ---
 const updatePasswordSecure = async (type: string, newValue: string) => {
   if(!newValue) return alert("Naya password likho");
   if(!authForChange) return alert("Pehle Master Key se verify karo (upar wala box)");
@@ -88,11 +119,26 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 p-8 rounded-[32px] shadow-xl w-full max-w-sm">
-          <h1 className="text-3xl font-bold mb-2 text-white">{showForgot? "Master Login 👑" : "Admin Login"}</h1>
-          <p className="text-white/70 text-sm mb-6">{showForgot? "Master Key Ravs1234 se login" : "Admin Password Ravs123 se login"}</p>
-          <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder={showForgot? "Enter Master Key" : "Enter Admin Password"} className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4"/>
-          <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-bold">{loading?"...": showForgot? "Unlock with Master" : "Login"}</button>
-          <button onClick={()=>setShowForgot(!showForgot)} className="w-full mt-4 text-white/90 text-sm underline">{showForgot? "Back to Admin Login" : "Forgot Password? Use Master Key"}</button>
+          <h1 className="text-3xl font-bold mb-2 text-white">{showOtp? "Verify OTP 🔐" : showForgot? "Master Login 👑" : "Admin Login"}</h1>
+          <p className="text-white/70 text-sm mb-6">{showOtp? "Email se OTP daalo" : showForgot? "Master Key Ravs1234 se login" : "Admin Password Ravs123 se login"}</p>
+
+          {!showOtp? (
+            <>
+              <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder={showForgot? "Enter Master Key" : "Enter Admin Password"} className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4"/>
+              <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-bold">{loading?"...": showForgot? "Unlock with Master" : "Login"}</button>
+
+              {/* NAYE BUTTONS */}
+              <button onClick={handleSendOtp} className="w-full mt-3 bg-white text-black p-3 rounded-2xl font-bold text-sm">{loading? "..." : "📧 Forgot Password? Send OTP to Email"}</button>
+              <button onClick={()=>setShowForgot(!showForgot)} className="w-full mt-3 text-white/90 text-sm underline">{showForgot? "Back to Admin Login" : "Use Master Key instead"}</button>
+            </>
+          ) : (
+            <>
+              <input type="text" value={otp} onChange={e=>setOtp(e.target.value)} placeholder="Enter 6 digit OTP" className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4 text-center text-xl tracking-widest"/>
+              <button onClick={handleVerifyOtp} className="w-full bg-green-600 text-white p-4 rounded-2xl font-bold">{loading?"...": "Verify OTP & Login"}</button>
+              <button onClick={()=>{setShowOtp(false); setOtpSent(false)}} className="w-full mt-4 text-white/90 text-sm underline">Back to Login</button>
+              <button onClick={handleSendOtp} className="w-full mt-2 text-white/80 text-xs underline">Resend OTP</button>
+            </>
+          )}
         </div>
       </div>
     );
