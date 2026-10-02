@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
-          from: 'Admin Recovery <onboarding@resend.dev>',
+          from: `Admin Recovery <${process.env.RECOVERY_EMAIL_FROM || 'onboarding@resend.dev'}>`,
           to: process.env.RECOVERY_EMAIL_TO!,
           subject: 'Your Admin OTP - Lorem Pro Tool',
           html: `<h2>Your OTP is: ${generatedOtp}</h2><p>Ye OTP 5 minute ke liye valid hai.</p>`
