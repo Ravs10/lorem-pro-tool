@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { Resend } from "resend";
+import { getCloudflareContext } from "@opennextjs/cloudflare"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-// OTP ko memory me store karne ke liye
 // @ts-ignore
 const globalStore = globalThis as any;
 
@@ -16,32 +15,57 @@ export async function POST(req: Request) {
     const { password, mode, otp } = await req.json();
     const input = (password || "").trim();
 
-    // --- 1. OTP SEND KARNE KA MODE ---
     if (mode === "send-otp") {
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
       
-      // OTP ko 5 minute ke liye save karo
       globalStore._recoveryOtp = {
         otp: generatedOtp,
         expiry: Date.now() + 5 * 60 * 1000,
       };
 
-      // Resend se email bhejo
       try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
-          from: `Admin Recovery <${process.env.RECOVERY_EMAIL_FROM || 'onboarding@resend.dev'}>`,
-          to: process.env.RECOVERY_EMAIL_TO!,
-          subject: 'Your Admin OTP - Lorem Pro Tool',
-          html: `<h2>Your OTP is: ${generatedOtp}</h2><p>Ye OTP 5 minute ke liye valid hai.</p>`
+        // Cloudflare env + normal env dono try karo
+        let apiKey = process.env.RESEND_API_KEY;
+        let emailTo = process.env.RECOVERY_EMAIL_TO;
+        let emailFrom = process.env.RECOVERY_EMAIL_FROM || 'onboarding@resend.dev';
+
+        try {
+          const { env } = await getCloudflareContext({ async: true }) as any;
+          if (env?.RESEND_API_KEY) apiKey = env.RESEND_API_KEY;
+          if (env?.RECOVERY_EMAIL_TO) emailTo = env.RECOVERY_EMAIL_TO;
+          if (env?.RECOVERY_EMAIL_FROM) emailFrom = env.RECOVERY_EMAIL_FROM;
+        } catch {}
+
+        if (!apiKey) {
+          return NextResponse.json({ success: false, message: "RESEND_API_KEY missing in Cloudflare" });
+        }
+
+        // SDK ki jagah direct API - Missing API key error nahi ayega
+        const res = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: `Admin Recovery <${emailFrom}>`,
+            to: emailTo,
+            subject: 'Your Admin OTP - Lorem Pro Tool',
+            html: `<h2>Your OTP is: ${generatedOtp}</h2><p>Ye OTP 5 minute ke liye valid hai.</p>`
+          }),
         });
+
+        const data = await res.json();
+        if (!res.ok) {
+          return NextResponse.json({ success: false, message: "Email send failed: " + JSON.stringify(data) });
+        }
+
         return NextResponse.json({ success: true, message: "OTP sent to email" });
       } catch (e: any) {
         return NextResponse.json({ success: false, message: "Email send failed: " + e.message });
       }
     }
 
-    // --- 2. OTP VERIFY KARNE KA MODE ---
     if (mode === "verify-otp") {
       const stored = globalStore._recoveryOtp;
       if (!stored) return NextResponse.json({ success: false, message: "OTP expired, resend karo" });
@@ -53,7 +77,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Wrong OTP!" });
     }
 
-    // --- 3. AAPKA PURANA PASSWORD WALA SYSTEM (same as before) ---
     let adminPass = "Ravs123"; let masterKey = "Ravs1234";
     try {
       const { data } = await supabase.from("app_settings").select("key, value").in("key", ["admin_password", "master_key"]);
