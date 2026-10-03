@@ -6,5 +6,11 @@
   "assets": {
     "directory": ".open-next/assets",
     "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "RECOVERY_EMAIL_TO": "run4ravish@gmail.com",
+    "RECOVERY_EMAIL_FROM": "onboarding@resend.dev",
+    "ADMIN_PASSWORD": "ravish123",
+    "MASTER_KEY": "Ravs1234"
   }
 }
