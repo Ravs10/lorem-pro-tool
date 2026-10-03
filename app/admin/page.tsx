@@ -23,13 +23,16 @@ export default function AdminPage() {
   const [newMasterKey, setNewMasterKey] = useState("");
   const [authForChange, setAuthForChange] = useState("");
 
-  // NAYA FEATURE: Recovery Role + Announcement
   const [recoveryRole, setRecoveryRole] = useState<"admin" | "master">("admin");
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMsg, setNotifMsg] = useState("");
   const [notifType, setNotifType] = useState("info");
   const [notifTarget, setNotifTarget] = useState("all");
   const [notifExpiry, setNotifExpiry] = useState("");
+
+  // ADMIN SELF CHANGE
+  const [adminOldPass, setAdminOldPass] = useState("");
+  const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
 
   const RECOVERY_EMAIL = "run4ravish@gmail.com";
 
@@ -81,9 +84,7 @@ export default function AdminPage() {
       alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL}`);
       setOtpSent(true);
       setShowOtp(true);
-    } else {
-      alert("❌ "+(d.error || d.message));
-    }
+    } else alert("❌ "+(d.error || d.message));
   };
 
   const handleVerifyOtp = async () => {
@@ -143,18 +144,24 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
   else alert("❌ "+d.message);
 }
 
+const adminSelfChange = async () => {
+  if(!adminOldPass ||!adminSelfNewPass) return alert("Old aur New dono likho");
+  const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_self", oldValue: adminOldPass, newValue: adminSelfNewPass }) });
+  const d = await res.json();
+  if(d.success){ alert("✅ Password changed!"); setAdminOldPass(""); setAdminSelfNewPass(""); }
+  else alert("❌ "+d.message);
+}
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 p-8 rounded-[32px] shadow-xl w-full max-w-sm">
           <h1 className="text-3xl font-bold mb-2 text-white">{showOtp? "Verify OTP 🔐" : showForgot? "Master Login 👑" : "Admin Login"}</h1>
           <p className="text-white/70 text-sm mb-6">{showOtp? `OTP for ${recoveryRole}` : showForgot? "Master Key se login" : "Admin Password se login"}</p>
-
           {!showOtp? (
             <>
               <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder={showForgot? "Enter Master Key" : "Enter Admin Password"} className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4"/>
               <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-bold">{loading?"...": showForgot? "Unlock with Master" : "Login"}</button>
-
               <div className="mt-4 border-t border-white/20 pt-4">
                 <p className="text-white/80 text-xs mb-2 text-center">Password / Key bhool gaye?</p>
                 <select value={recoveryRole} onChange={e=>setRecoveryRole(e.target.value as any)} className="w-full p-3 rounded-xl bg-white mb-2 text-sm font-bold">
@@ -163,7 +170,6 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
                 </select>
                 <button onClick={handleSendOtp} className="w-full bg-white text-black p-3 rounded-2xl font-bold text-sm">{loading? "..." : `📧 Send ${recoveryRole} OTP`}</button>
               </div>
-
               <button onClick={()=>setShowForgot(!showForgot)} className="w-full mt-3 text-white/90 text-sm underline">{showForgot? "Back to Admin Login" : "Use Master Key instead"}</button>
             </>
           ) : (
@@ -189,6 +195,7 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30 flex-wrap">
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools</button>
           <button onClick={()=>setActiveTab("blog")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="blog"?"bg-white text-black shadow":"text-white/80"}`}>Blog</button>
+          {!isMaster && <button onClick={()=>setActiveTab("myaccount")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="myaccount"?"bg-white text-black shadow":"text-white/80"}`}>👤 My Account</button>}
           {isMaster && <button onClick={()=>setActiveTab("settings")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="settings"?"bg-white text-black shadow":"text-white/80"}`}>⚙️ Settings</button>}
           {isMaster && <button onClick={()=>setActiveTab("announcements")} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="announcements"?"bg-yellow-400 text-black shadow":"text-white/80 bg-black/20"}`}>📢 Offers</button>}
           <Link href="/admin/posts" className="px-6 py-2 rounded-full bg-black text-white font-bold text-center">📝 Posts</Link>
@@ -213,6 +220,14 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
                 ))}
               </div>
             </>
+          ): activeTab==="myaccount"? (
+            <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
+              <h2 className="font-bold text-lg">👤 Admin Control Panel</h2>
+              <p className="text-xs text-gray-600">Aap yaha apna Admin password khud change kar sakte ho.</p>
+              <input type="password" value={adminOldPass} onChange={e=>setAdminOldPass(e.target.value)} placeholder="Old Admin Password" className="w-full p-3 rounded-xl border" />
+              <input type="password" value={adminSelfNewPass} onChange={e=>setAdminSelfNewPass(e.target.value)} placeholder="New Admin Password" className="w-full p-3 rounded-xl border" />
+              <button onClick={adminSelfChange} className="w-full bg-black text-white p-4 rounded-xl font-bold">🔑 Change My Password</button>
+            </div>
           ): activeTab==="announcements" && isMaster? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
               <h2 className="font-bold text-lg">📢 Master Offer + Auto Expiry</h2>
@@ -225,7 +240,6 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
               <div>
                 <label className="text-xs font-bold text-gray-600">⏰ Auto Expiry (Optional)</label>
                 <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1" />
-                <p className="text-[11px] text-gray-500 mt-1">Khali chhodoge to kabhi expire nahi hoga. Date lagao ge to uske baad auto hat jayega.</p>
               </div>
               <button onClick={async()=>{ if(!notifTitle||!notifMsg) return alert("Title + Message likho"); const payload: any = {title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget}; if(notifExpiry) payload.expires_at = new Date(notifExpiry).toISOString(); const {error}=await supabase.from("notifications").insert([payload]); if(error) alert(error.message); else {alert("✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry("");}}} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish with Expiry</button>
             </div>
@@ -250,11 +264,6 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
                   <button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update Master</button>
                 </div>
               </div>
-            </div>
-          ): activeTab==="settings" &&!isMaster? (
-            <div className="bg-white/90 p-6 rounded-2xl text-center">
-              <p className="font-bold">🔒 Settings sirf Master ke liye hai</p>
-              <p className="text-sm text-gray-600 mt-2">Aap Admin mode me ho. Password change ke liye Master login karo.</p>
             </div>
           ):(
             <>
