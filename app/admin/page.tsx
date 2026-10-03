@@ -23,7 +23,13 @@ export default function AdminPage() {
   const [newMasterKey, setNewMasterKey] = useState("");
   const [authForChange, setAuthForChange] = useState("");
 
-  // AAPKA RECOVERY EMAIL - Yahi par OTP jayega
+  // NAYA FEATURE: Recovery Role + Announcement
+  const [recoveryRole, setRecoveryRole] = useState<"admin" | "master">("admin");
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifMsg, setNotifMsg] = useState("");
+  const [notifType, setNotifType] = useState("info");
+  const [notifTarget, setNotifTarget] = useState("all");
+
   const RECOVERY_EMAIL = "run4ravish@gmail.com";
 
   useEffect(() => {
@@ -56,7 +62,7 @@ export default function AdminPage() {
       setIsMaster(!!d.is_master);
       fetchTools();
       setPass("");
-      setActiveTab("tools"); // Login ke baad hamesha Tools par
+      setActiveTab("tools");
     } else alert(d.error || "Wrong password");
     setLoading(false);
   };
@@ -66,13 +72,12 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // FIX: Email bhej raha hu taaki "Email required" error na aaye
-      body: JSON.stringify({ action: "send-otp", email: RECOVERY_EMAIL })
+      body: JSON.stringify({ action: "send-otp", email: RECOVERY_EMAIL, recovery_role: recoveryRole })
     });
     const d = await res.json();
     setLoading(false);
     if(d.success){
-      alert("✅ OTP aapke email ("+ RECOVERY_EMAIL +") par bhej diya gaya. Spam bhi check karo");
+      alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL}`);
       setOtpSent(true);
       setShowOtp(true);
     } else {
@@ -101,7 +106,6 @@ export default function AdminPage() {
   };
 
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
-
   const handleToolUpdate = async () => {
     const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id);
     if (error) alert(error.message); else { setEditTool(null); fetchTools(); }
@@ -143,19 +147,28 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
       <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 p-8 rounded-[32px] shadow-xl w-full max-w-sm">
           <h1 className="text-3xl font-bold mb-2 text-white">{showOtp? "Verify OTP 🔐" : showForgot? "Master Login 👑" : "Admin Login"}</h1>
-          <p className="text-white/70 text-sm mb-6">{showOtp? "Email se OTP daalo" : showForgot? "Master Key se login" : "Admin Password se login"}</p>
+          <p className="text-white/70 text-sm mb-6">{showOtp? `OTP for ${recoveryRole}` : showForgot? "Master Key se login" : "Admin Password se login"}</p>
 
           {!showOtp? (
             <>
               <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder={showForgot? "Enter Master Key" : "Enter Admin Password"} className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4"/>
               <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-bold">{loading?"...": showForgot? "Unlock with Master" : "Login"}</button>
-              <button onClick={handleSendOtp} className="w-full mt-3 bg-white text-black p-3 rounded-2xl font-bold text-sm">{loading? "..." : "📧 Forgot Password? Send OTP to Email"}</button>
+
+              <div className="mt-4 border-t border-white/20 pt-4">
+                <p className="text-white/80 text-xs mb-2 text-center">Password / Key bhool gaye?</p>
+                <select value={recoveryRole} onChange={e=>setRecoveryRole(e.target.value as any)} className="w-full p-3 rounded-xl bg-white mb-2 text-sm font-bold">
+                  <option value="admin">🔑 Recover Admin Password</option>
+                  <option value="master">👑 Recover Master Key</option>
+                </select>
+                <button onClick={handleSendOtp} className="w-full bg-white text-black p-3 rounded-2xl font-bold text-sm">{loading? "..." : `📧 Send ${recoveryRole} OTP`}</button>
+              </div>
+
               <button onClick={()=>setShowForgot(!showForgot)} className="w-full mt-3 text-white/90 text-sm underline">{showForgot? "Back to Admin Login" : "Use Master Key instead"}</button>
             </>
           ) : (
             <>
               <input type="text" value={otp} onChange={e=>setOtp(e.target.value)} placeholder="Enter 6 digit OTP" className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4 text-center text-xl tracking-widest"/>
-              <button onClick={handleVerifyOtp} className="w-full bg-green-600 text-white p-4 rounded-2xl font-bold">{loading?"...": "Verify OTP & Login"}</button>
+              <button onClick={handleVerifyOtp} className="w-full bg-green-600 text-white p-4 rounded-2xl font-bold">{loading?"...": `Verify & Login as ${recoveryRole}`}</button>
               <button onClick={()=>{setShowOtp(false); setOtpSent(false)}} className="w-full mt-4 text-white/90 text-sm underline">Back to Login</button>
               <button onClick={handleSendOtp} className="w-full mt-2 text-white/80 text-xs underline">Resend OTP</button>
             </>
@@ -175,8 +188,8 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30 flex-wrap">
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools</button>
           <button onClick={()=>setActiveTab("blog")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="blog"?"bg-white text-black shadow":"text-white/80"}`}>Blog</button>
-          {/* FIX: Settings tab sirf Master ko dikhega */}
           {isMaster && <button onClick={()=>setActiveTab("settings")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="settings"?"bg-white text-black shadow":"text-white/80"}`}>⚙️ Settings</button>}
+          {isMaster && <button onClick={()=>setActiveTab("announcements")} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="announcements"?"bg-yellow-400 text-black shadow":"text-white/80 bg-black/20"}`}>📢 Offers</button>}
           <Link href="/admin/posts" className="px-6 py-2 rounded-full bg-black text-white font-bold text-center">📝 Posts</Link>
         </div>
 
@@ -199,6 +212,18 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
                 ))}
               </div>
             </>
+          ): activeTab==="announcements" && isMaster? (
+            <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
+              <h2 className="font-bold text-lg">📢 Master Announcement / Offer Panel</h2>
+              <p className="text-xs text-gray-600">Yahan se aap kisi bhi tool par ya sabhi tools par notification / offer dikha sakte ho.</p>
+              <input value={notifTitle} onChange={e=>setNotifTitle(e.target.value)} placeholder="Title - e.g. Diwali 50% OFF" className="w-full p-3 rounded-xl border font-bold" />
+              <textarea value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} placeholder="Message - e.g. Use code DIWALI50" className="w-full p-3 rounded-xl border h-24"></textarea>
+              <div className="flex gap-2">
+                <select value={notifType} onChange={e=>setNotifType(e.target.value)} className="p-3 rounded-xl border"><option value="info">Info - Blue</option><option value="offer">Offer - Green</option><option value="alert">Alert - Red</option></select>
+                <select value={notifTarget} onChange={e=>setNotifTarget(e.target.value)} className="p-3 rounded-xl border flex-1"><option value="all">📍 Show on ALL Tools</option>{tools.map((t:any)=><option key={t.id} value={t.slug}>{t.name} only</option>)}</select>
+              </div>
+              <button onClick={async()=>{ if(!notifTitle||!notifMsg) return alert("Title + Message likho"); const {error}=await supabase.from("notifications").insert([{title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget}]); if(error) alert(error.message); else {alert("✅ Notification Live!"); setNotifTitle(""); setNotifMsg("");}}} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish Now</button>
+            </div>
           ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
               <h2 className="font-bold text-white text-lg">🔐 Advanced Password Control (Master Mode)</h2>
