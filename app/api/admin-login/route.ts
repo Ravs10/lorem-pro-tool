@@ -1,64 +1,67 @@
-import { NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
+const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+  process.env.SUPABASE_SERVICE_ROLE_KEY!, // SECURE - RLS bypass
+  { auth: { persistSession: false } }
+);
 
-const globalStore = globalThis as any;
+async function getSetting(key: string) {
+  const { data } = await supabaseAdmin.from("app_settings").select("value").eq("key", key).single();
+  return data?.value || null;
+}
 
 export async function POST(req: Request) {
   try {
-    const { password, mode, otp } = await req.json();
-    const input = (password || "").trim();
+    const { action, email, otp, password } = await req.json();
 
-    if (mode === "send-otp") {
+    const resendKey = await getSetting("resend_api_key");
+    const toEmail = await getSetting("recovery_email_to");
+    const fromEmail = await getSetting("recovery_email_from");
+    const adminPass = await getSetting("admin_password");
+    const masterKey = await getSetting("master_key");
+
+    if (!resendKey) return NextResponse.json({ error: "Resend key not set in app_settings" }, { status: 500 });
+
+    if (action === "send-otp") {
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      globalStore._recoveryOtp = { otp: generatedOtp, expiry: Date.now() + 5*60*1000 };
+      
+      const { error: otpError } = await supabaseAdmin.from("app_settings").upsert({ key: `otp_${email}`, value: JSON.stringify({ otp: generatedOtp, exp: Date.now() + 5*60*1000 }) });
+      if(otpError) throw otpError;
 
-      // Cloudflare Workers Builds me env direct process.env se aata hai
-      const apiKey = process.env.RESEND_API_KEY?.trim();
-      const emailTo = process.env.RECOVERY_EMAIL_TO || "run4ravish@gmail.com";
-      const emailFrom = process.env.RECOVERY_EMAIL_FROM || "onboarding@resend.dev";
-
-      if (!apiKey) {
-        console.log("ENV DEBUG:", Object.keys(process.env).filter(k=>k.includes("RESEND") || k.includes("RECOVERY")));
-        return NextResponse.json({ success: false, message: `RESEND_API_KEY missing. Build variables check karo.` });
-      }
-
-      const res = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: `Admin Recovery <${emailFrom}>`,
-          to: emailTo,
-          subject: 'Your Admin OTP',
-          html: `<h2>OTP: ${generatedOtp}</h2><p>5 min valid</p>`
-        }),
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ from: fromEmail, to: toEmail, subject: `OTP: ${generatedOtp} - Admin Login`, html: `<h2>Your OTP is ${generatedOtp}</h2><p>Valid for 5 minutes</p>` }),
       });
+      const result = await res.json();
+      if (!res.ok) return NextResponse.json({ error: result }, { status: 500 });
 
-      const data = await res.json();
-      if (!res.ok) return NextResponse.json({ success: false, message: "Resend: " + JSON.stringify(data) });
       return NextResponse.json({ success: true, message: "OTP sent" });
     }
 
-    if (mode === "verify-otp") {
-      const stored = globalStore._recoveryOtp;
-      if (!stored || Date.now() > stored.expiry) return NextResponse.json({ success: false, message: "OTP expired, resend karo" });
-      if ((otp||"").trim() === stored.otp) { globalStore._recoveryOtp = null; return NextResponse.json({ success: true, isMaster: true }); }
-      return NextResponse.json({ success: false, message: "Wrong OTP!" });
+    if (action === "verify-otp") {
+       const { data } = await supabaseAdmin.from("app_settings").select("value").eq("key", `otp_${email}`).single();
+       if(!data) return NextResponse.json({ error: "OTP not found" }, { status: 400 });
+       const saved = JSON.parse(data.value);
+       if (Date.now() > saved.exp) return NextResponse.json({ error: "OTP expired" }, { status: 400 });
+       if (saved.otp !== otp) return NextResponse.json({ error: "Invalid OTP" }, { status: 400 });
+       
+       await supabaseAdmin.from("app_settings").delete().eq("key", `otp_${email}`);
+       return NextResponse.json({ success: true, token: "admin_verified", admin_password: adminPass });
     }
 
-    let adminPass = "Ravs123", masterKey = "Ravs1234";
-    try {
-      const { data } = await supabase.from("app_settings").select("key, value").in("key", ["admin_password", "master_key"]);
-      if(data){ adminPass = data.find(d=>d.key==="admin_password")?.value?.trim() || adminPass; masterKey = data.find(d=>d.key==="master_key")?.value?.trim() || masterKey; }
-    } catch {}
+    if (action === "login") {
+        if (password === adminPass || password === masterKey) {
+            return NextResponse.json({ success: true });
+        }
+        return NextResponse.json({ error: "Wrong password" }, { status: 401 });
+    }
 
-    if (mode === "admin") return NextResponse.json(input === adminPass ? { success: true, isMaster: false } : { success: false, message: "Wrong Admin Password!" });
-    if (mode === "master") return NextResponse.json(input === masterKey ? { success: true, isMaster: true } : { success: false, message: "Wrong Master Key" });
+    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 
-    return NextResponse.json({ success: false });
-  } catch (e:any) { return NextResponse.json({ success: false, message: e.message }); }
+  } catch (e: any) {
+    return NextResponse.json({ error: e.message }, { status: 500 });
+  }
 }
