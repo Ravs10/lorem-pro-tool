@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { action, password, otp } = body;
+  const { action, password, otp, recovery_role } = body; // recovery_role = 'admin' | 'master'
 
   const ADMIN_PASS = process.env.ADMIN_PASSWORD || "ravish123";
   const MASTER_KEY = process.env.MASTER_KEY || "Ravs1234";
@@ -23,29 +23,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Wrong password" }, { status: 401 });
   }
 
-  // SEND OTP
+  // SEND OTP - Ab role ke saath
   if (action === "send-otp") {
-    if (!RESEND_KEY) return NextResponse.json({ success: false, error: "RESEND_API_KEY missing" }, { status: 500 });
-    if (!TO) return NextResponse.json({ success: false, error: "RECOVERY_EMAIL_TO missing" }, { status: 500 });
+    if (!RESEND_KEY || !TO) return NextResponse.json({ success: false, error: "Config missing" }, { status: 500 });
 
+    const roleToRecover = recovery_role === "master" ? "master" : "admin"; // default admin
     const code = Math.floor(100000 + Math.random() * 900000).toString();
 
     await supabase.from("otp_store").delete().eq("email", TO);
-    await supabase.from("otp_store").insert({ email: TO, code });
+    // Ab role bhi store kar rahe hain
+    await supabase.from("otp_store").insert({ email: TO, code, role: roleToRecover });
 
     const resend = new Resend(RESEND_KEY);
     const { error } = await resend.emails.send({
       from: FROM,
       to: TO,
-      subject: `Admin OTP: ${code}`,
-      html: `<h2>Your OTP is: ${code}</h2><p>Valid for 10 minutes</p>`,
+      subject: `${roleToRecover === "master" ? "Master Key" : "Admin"} OTP: ${code}`,
+      html: `<h2>${roleToRecover.toUpperCase()} OTP: ${code}</h2><p>Valid for 10 minutes. Role: ${roleToRecover}</p>`,
     });
 
     if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-    return NextResponse.json({ success: true, message: TO });
+    return NextResponse.json({ success: true, message: TO, role: roleToRecover });
   }
 
-  // VERIFY OTP
+  // VERIFY OTP - Jo role store kiya tha wahi wapas
   if (action === "verify-otp") {
     const { data } = await supabase.from("otp_store").select("*").eq("code", otp).order("created_at", { ascending: false }).limit(1).single();
     if (!data) return NextResponse.json({ success: false, error: "Wrong OTP" }, { status: 401 });
@@ -54,8 +55,10 @@ export async function POST(req: NextRequest) {
     if (isExpired) return NextResponse.json({ success: false, error: "OTP expired" }, { status: 401 });
 
     await supabase.from("otp_store").delete().eq("id", data.id);
-    // OTP se hamesha ADMIN login
-    return NextResponse.json({ success: true, is_master: false, role: "admin" });
+    
+    const recoveredRole = (data as any).role || "admin"; // purane OTP ke liye fallback admin
+    const isMaster = recoveredRole === "master";
+    return NextResponse.json({ success: true, is_master: isMaster, role: recoveredRole });
   }
 
   return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
