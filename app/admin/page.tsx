@@ -9,11 +9,9 @@ export default function AdminPage() {
   const [pass, setPass] = useState("");
   const [isMaster, setIsMaster] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
-  // OTP ke liye naye states
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +30,7 @@ export default function AdminPage() {
       fetchTools();
     }
   }, []);
+
   const fetchTools = async () => {
     const { data } = await supabase.from("tools").select("*").order("name");
     if (data) setTools(data);
@@ -39,51 +38,62 @@ export default function AdminPage() {
 
   const handleLogin = async () => {
     setLoading(true);
-    const mode = showForgot? "master" : "admin";
-    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pass, mode }) });
+    const res = await fetch("/api/admin-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "login", password: pass })
+    });
     const d = await res.json();
     if (d.success) {
       localStorage.setItem("lorem_admin", "true");
-      localStorage.setItem("lorem_is_master", d.isMaster? "true" : "false");
-      setIsLoggedIn(true); setIsMaster(d.isMaster); fetchTools(); setPass("");
-    } else alert(d.message || "Wrong password");
+      localStorage.setItem("lorem_is_master", "true");
+      setIsLoggedIn(true); setIsMaster(true); fetchTools(); setPass("");
+    } else alert(d.error || "Wrong password");
     setLoading(false);
   };
 
-  // --- NAYA: OTP SEND ---
   const handleSendOtp = async () => {
     setLoading(true);
-    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "send-otp" }) });
+    const res = await fetch("/api/admin-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "send-otp", email: "admin@lorem.com" })
+    });
     const d = await res.json();
     setLoading(false);
     if(d.success){
-      alert("✅ OTP aapke email par bhej diya gaya: " + (process.env.NEXT_PUBLIC_RECOVERY_EMAIL_TO || "aapke email pe"));
+      alert("✅ OTP aapke email par bhej diya gaya");
       setOtpSent(true);
       setShowOtp(true);
     } else {
-      alert("❌ "+d.message);
+      alert("❌ "+(d.error || d.message));
     }
   };
 
-  // --- NAYA: OTP VERIFY ---
   const handleVerifyOtp = async () => {
     if(!otp) return alert("OTP likho");
     setLoading(true);
-    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "verify-otp", otp }) });
+    const res = await fetch("/api/admin-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "verify-otp", email: "admin@lorem.com", otp })
+    });
     const d = await res.json();
     setLoading(false);
     if(d.success){
       localStorage.setItem("lorem_admin", "true");
       localStorage.setItem("lorem_is_master", "true");
       setIsLoggedIn(true); setIsMaster(true); fetchTools();
-    } else alert(d.message || "Wrong OTP");
+    } else alert(d.error || "Wrong OTP");
   };
 
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
+
   const handleToolUpdate = async () => {
     const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id);
     if (error) alert(error.message); else { setEditTool(null); fetchTools(); }
   };
+
 const contentRef = useRef(null)
 const renderPreview = (text:any) => {
   return text.split('\n').map((line:any, i:any) => {
@@ -108,7 +118,7 @@ const insertFormat = (b:any, a="") => {
 }
 const updatePasswordSecure = async (type: string, newValue: string) => {
   if(!newValue) return alert("Naya password likho");
-  if(!authForChange) return alert("Pehle Master Key se verify karo (upar wala box)");
+  if(!authForChange) return alert("Pehle Master Key se verify karo");
   const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) });
   const d = await res.json();
   if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); }
@@ -120,14 +130,12 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
       <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 p-8 rounded-[32px] shadow-xl w-full max-w-sm">
           <h1 className="text-3xl font-bold mb-2 text-white">{showOtp? "Verify OTP 🔐" : showForgot? "Master Login 👑" : "Admin Login"}</h1>
-          <p className="text-white/70 text-sm mb-6">{showOtp? "Email se OTP daalo" : showForgot? "Master Key Ravs1234 se login" : "Admin Password Ravs123 se login"}</p>
+          <p className="text-white/70 text-sm mb-6">{showOtp? "Email se OTP daalo" : showForgot? "Master Key se login" : "Admin Password se login"}</p>
 
           {!showOtp? (
             <>
               <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder={showForgot? "Enter Master Key" : "Enter Admin Password"} className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4"/>
               <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-bold">{loading?"...": showForgot? "Unlock with Master" : "Login"}</button>
-
-              {/* NAYE BUTTONS */}
               <button onClick={handleSendOtp} className="w-full mt-3 bg-white text-black p-3 rounded-2xl font-bold text-sm">{loading? "..." : "📧 Forgot Password? Send OTP to Email"}</button>
               <button onClick={()=>setShowForgot(!showForgot)} className="w-full mt-3 text-white/90 text-sm underline">{showForgot? "Back to Admin Login" : "Use Master Key instead"}</button>
             </>
