@@ -30,7 +30,6 @@ export default function AdminPage() {
   const [notifTarget, setNotifTarget] = useState("all");
   const [notifExpiry, setNotifExpiry] = useState("");
 
-  // ADMIN SELF CHANGE
   const [adminOldPass, setAdminOldPass] = useState("");
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
 
@@ -52,10 +51,11 @@ export default function AdminPage() {
   const handleLogin = async () => {
     if(!pass) return alert("Password likho");
     setLoading(true);
+    // FIX: showForgot = Master Login mode
     const res = await fetch("/api/admin-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "login", password: pass })
+      body: JSON.stringify({ action: "login", password: pass, isMasterLogin: showForgot })
     });
     const d = await res.json();
     if (d.success) {
@@ -76,12 +76,13 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "send-otp", email: RECOVERY_EMAIL, recovery_role: recoveryRole })
+      body: JSON.stringify({ action: "send-otp", recovery_role: recoveryRole })
     });
     const d = await res.json();
     setLoading(false);
     if(d.success){
-      alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL}`);
+      // Debug OTP dikhega jab email fail ho
+      alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL} ${d.debug_otp? `(Debug: ${d.debug_otp})` : ''}`);
       setOtpSent(true);
       setShowOtp(true);
     } else alert("❌ "+(d.error || d.message));
@@ -157,11 +158,11 @@ const adminSelfChange = async () => {
       <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 p-8 rounded-[32px] shadow-xl w-full max-w-sm">
           <h1 className="text-3xl font-bold mb-2 text-white">{showOtp? "Verify OTP 🔐" : showForgot? "Master Login 👑" : "Admin Login"}</h1>
-          <p className="text-white/70 text-sm mb-6">{showOtp? `OTP for ${recoveryRole}` : showForgot? "Master Key se login" : "Admin Password se login"}</p>
+          <p className="text-white/70 text-sm mb-6">{showOtp? `OTP for ${recoveryRole}` : showForgot? "Only Master Key allowed" : "Admin Password se login"}</p>
           {!showOtp? (
             <>
-              <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder={showForgot? "Enter Master Key" : "Enter Admin Password"} className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4"/>
-              <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-bold">{loading?"...": showForgot? "Unlock with Master" : "Login"}</button>
+              <input type="password" value={pass} onChange={e=>setPass(e.target.value)} placeholder={showForgot? "Enter Master Key ONLY" : "Enter Admin Password"} className="w-full p-4 rounded-2xl bg-white/90 outline-none mb-4"/>
+              <button onClick={handleLogin} className="w-full bg-black text-white p-4 rounded-2xl font-bold">{loading?"...": showForgot? "Unlock with Master ONLY" : "Login"}</button>
               <div className="mt-4 border-t border-white/20 pt-4">
                 <p className="text-white/80 text-xs mb-2 text-center">Password / Key bhool gaye?</p>
                 <select value={recoveryRole} onChange={e=>setRecoveryRole(e.target.value as any)} className="w-full p-3 rounded-xl bg-white mb-2 text-sm font-bold">
@@ -272,7 +273,15 @@ const adminSelfChange = async () => {
               <button type="button" onClick={()=>insertFormat("**","**")}>B</button><button type="button" onClick={()=>insertFormat("\n## ","")}>H2</button><button type="button" onClick={()=>insertFormat("\n### ","")}>H3</button><button type="button" onClick={()=>insertFormat("\n- ","")}>List</button><button type="button" onClick={()=>insertFormat("[", "](https://)")} >Link</button><button type="button" onClick={()=>setShowPreview(!showPreview)} className="ml-auto px-3 py-1 bg-purple-600 text-white rounded-lg">{showPreview? "Edit" : "Preview"}</button>
               </div>
               {!showPreview? (<textarea ref={contentRef} value={content} onChange={e=>setContent(e.target.value)} placeholder="Blog Content..." className="w-full h-[300px] p-4 rounded-xl border" />) : (<div className="w-full h-[300px] p-4 rounded-xl border bg-white overflow-y-auto whitespace-pre-wrap"><h2 className="font-bold text-lg mb-2">{title}</h2><div>{renderPreview(content)}</div></div>)}
-              <button onClick={async()=>{ if(!title ||!content) return alert("Fill all"); setLoading(true); await supabase.from("blogs").insert([{title, content}]); setLoading(false); setTitle(""); setContent(""); alert("Posted!"); }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">Post Blog</button>
+              <button onClick={async()=>{
+                if(!title ||!content) return alert("Fill all");
+                setLoading(true);
+                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+                const { error } = await supabase.from("blogs").insert([{title, content, slug}]);
+                if(error){ alert("❌ Publish Failed: "+error.message); }
+                else { alert("✅ Posted!"); setTitle(""); setContent(""); }
+                setLoading(false);
+              }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">{loading? "Posting..." : "Post Blog"}</button>
             </>
           )}
         </div>
