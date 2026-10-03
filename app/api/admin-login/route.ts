@@ -1,127 +1,69 @@
-export const dynamic = 'force-dynamic'
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-import { Resend } from 'resend'
+import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 
-function getSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
-  if (!url || !key) return null
-  return createClient(url, key)
-}
-
-// In-memory OTP store (Cloudflare Workers ke liye)
-const otpStore = (globalThis as any).__otpStore || ((globalThis as any).__otpStore = new Map())
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ravish123";
+const MASTER_KEY = process.env.MASTER_KEY || process.env.MASTER_PASSWORD || "";
+const RECOVERY_TO = process.env.RECOVERY_EMAIL_TO || process.env.ADMIN_EMAIL || "";
+const RECOVERY_FROM = process.env.RECOVERY_EMAIL_FROM || "onboarding@resend.dev";
+const RESEND_KEY = process.env.RESEND_API_KEY || "";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
-    const action = body.action || 'login'
-    const password = (body.password || body.pass || '').toString().trim()
+    const body = await req.json();
+    const { action, password, email, otp } = body;
 
-    // ---- SEND OTP - REAL EMAIL ----
-    if (action === 'send-otp') {
-      const email = (body.email || process.env.RECOVERY_EMAIL_TO || '').toString().trim()
-      if (!email) {
-        return NextResponse.json({ success: false, error: 'Email required' }, { status: 400 })
+    // 1. LOGIN
+    if (action === "login") {
+      if (!password) return NextResponse.json({ success: false, error: "Password required" }, { status: 400 });
+
+      if (MASTER_KEY && password === MASTER_KEY) {
+        return NextResponse.json({ success: true, is_master: true, role: "master" });
       }
-      const otp = Math.floor(100000 + Math.random() * 900000).toString()
-      const expiresAt = Date.now() + 10 * 60 * 1000 // 10 min
-
-      // Store OTP
-      otpStore.set(email, { otp, expiresAt })
-      
-      // Try Supabase also
-      const supabase = getSupabase()
-      if (supabase) {
-        try {
-          await supabase.from('admin_otps').upsert({ email, otp, expires_at: new Date(expiresAt).toISOString() }, { onConflict: 'email' })
-        } catch {}
+      if (password === ADMIN_PASSWORD) {
+        return NextResponse.json({ success: true, is_master: false, role: "admin" });
       }
-
-      // Send Real Email via Resend
-      try {
-        const resendKey = process.env.RESEND_API_KEY
-        const fromEmail = process.env.RECOVERY_EMAIL_FROM || 'onboarding@resend.dev'
-        if (resendKey) {
-          const resend = new Resend(resendKey)
-          await resend.emails.send({
-            from: fromEmail,
-            to: email,
-            subject: 'Lorem Pro Tool - Login OTP',
-            html: `<div style="font-family:sans-serif"><h2>Your OTP is: <b>${otp}</b></h2><p>Valid for 10 minutes.</p></div>`
-          })
-        }
-      } catch (e) {
-        console.log('Resend failed', e)
-        // Fail na kare, OTP store ho gaya hai, user ko bata denge
-      }
-
-      return NextResponse.json({ success: true, message: 'OTP sent to ' + email })
+      return NextResponse.json({ success: false, error: "Wrong password" }, { status: 401 });
     }
 
-    if (action === 'verify-otp') {
-      const email = (body.email || process.env.RECOVERY_EMAIL_TO || '').toString().trim()
-      const otp = (body.otp || '').toString().trim()
-      const record = otpStore.get(email)
+    // 2. SEND OTP - FIX: email required nahi, RECOVERY_TO use karega
+    if (action === "send-otp") {
+      const toEmail = email || RECOVERY_TO;
+      if (!toEmail) return NextResponse.json({ success: false, error: "RECOVERY_EMAIL_TO env missing" }, { status: 400 });
+      if (!RESEND_KEY) return NextResponse.json({ success: false, error: "RESEND_API_KEY missing" }, { status: 400 });
 
-      // Check memory first
-      if (record && record.otp === otp && Date.now() < record.expiresAt) {
-        otpStore.delete(email)
-        return NextResponse.json({ success: true, is_master: false, role: 'admin', via: 'otp' })
-      }
+      const resend = new Resend(RESEND_KEY);
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // Check Supabase
-      const supabase = getSupabase()
-      if (supabase) {
-        try {
-          const { data } = await supabase.from('admin_otps').select('*').eq('email', email).eq('otp', otp).maybeSingle()
-          if (data) {
-            await supabase.from('admin_otps').delete().eq('email', email)
-            return NextResponse.json({ success: true, is_master: false, role: 'admin', via: 'otp' })
-          }
-        } catch {}
-      }
-      
-      return NextResponse.json({ success: false, error: 'Wrong or expired OTP' }, { status: 401 })
+      // Store OTP in global (Cloudflare KV nahi hai to memory me, better hai Supabase ya KV use karo)
+      // Temporary: Cookie / header me bhejna best nahi, isliye hum isko env KV jaisa store kar rahe hai
+      // Simple fix ke liye hum isko 10 min ke liye memory me rakhte hain via global
+      (global as any).lastOtp = generatedOtp;
+      (global as any).lastOtpTime = Date.now();
+
+      await resend.emails.send({
+        from: RECOVERY_FROM,
+        to: toEmail,
+        subject: "Your Lorem Pro Tool Admin OTP",
+        html: `<h2>Your OTP is: <b>${generatedOtp}</b></h2><p>Valid for 10 minutes</p>`,
+      });
+
+      return NextResponse.json({ success: true, message: toEmail });
     }
 
-    // ---- LOGIN ACTION - ALAG ALAG ----
-    if (!password) {
-      return NextResponse.json({ success: false, error: 'Password required' }, { status: 400 })
+    // 3. VERIFY OTP
+    if (action === "verify-otp") {
+      const storedOtp = (global as any).lastOtp;
+      const storedTime = (global as any).lastOtpTime;
+      if (!storedOtp) return NextResponse.json({ success: false, error: "OTP not sent yet" }, { status: 400 });
+      if (Date.now() - storedTime > 10 * 60 * 1000) return NextResponse.json({ success: false, error: "OTP expired" }, { status: 400 });
+      if (otp !== storedOtp) return NextResponse.json({ success: false, error: "Wrong OTP" }, { status: 401 });
+
+      // OTP se login hamesha ADMIN hota hai, MASTER nahi
+      return NextResponse.json({ success: true, is_master: false, role: "admin" });
     }
 
-    const ADMIN_PASS = (process.env.ADMIN_PASSWORD || '').trim()
-    const MASTER_KEY = (process.env.MASTER_KEY || '').trim()
-    const FALLBACK = 'ravish123'
-
-    // 1. MASTER KEY -> is_master = true
-    if (MASTER_KEY && password === MASTER_KEY) {
-      return NextResponse.json({ success: true, is_master: true, role: 'master' })
-    }
-
-    // 2. ADMIN PASS -> is_master = false
-    if ((ADMIN_PASS && password === ADMIN_PASS) || password === FALLBACK) {
-      return NextResponse.json({ success: true, is_master: false, role: 'admin' })
-    }
-
-    // 3. Supabase check -> admin only
-    const supabase = getSupabase()
-    if (supabase) {
-      try {
-        const { data } = await supabase.from('admins').select('*').eq('password', password).maybeSingle()
-        if (data) {
-          const isMaster = (data as any).is_master === true || (data as any).role === 'master'
-          return NextResponse.json({ success: true, is_master: isMaster, role: isMaster ? 'master' : 'admin' })
-        }
-      } catch (e) {
-        console.log('supabase check failed', e)
-      }
-    }
-
-    return NextResponse.json({ success: false, error: 'Wrong password' }, { status: 401 })
-
+    return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
   }
 }
