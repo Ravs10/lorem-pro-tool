@@ -1,45 +1,38 @@
-
 export const dynamic = 'force-dynamic'
-
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !key) {
-    throw new Error('Missing Supabase env')
-  }
+  if (!url || !key) throw new Error('Missing Supabase env')
   return createClient(url, key)
 }
 
 export async function POST(req: NextRequest) {
   try {
     const supabase = getSupabase()
-    const { username, password } = await req.json()
+    const body = await req.json()
+    const password = body.password || body.next || body.current
 
-    if (!username || !password) {
-      return NextResponse.json({ error: 'Username password required' }, { status: 400 })
+    if (!password) {
+      return NextResponse.json({ error: 'Password required' }, { status: 400 })
     }
 
-    // Admin check from supabase table
+    // Supabase admins table me check karo
     const { data, error } = await supabase
       .from('admins')
       .select('*')
-      .eq('username', username)
-      .single()
+      .eq('password', password)
+      .maybeSingle()
 
-    if (error || !data) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    if (error) throw error
+    
+    if (!data) {
+      return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
     }
 
-    // Agar aap plain password use kar rahe ho to
-    if (data.password !== password) {
-       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
-    }
-
-    return NextResponse.json({ ok: true, message: 'Login success' })
-
+    return NextResponse.json({ ok: true })
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 })
   }
