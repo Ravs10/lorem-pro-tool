@@ -1,10 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
 export async function POST(req: NextRequest) {
-  // Ye route abhi Cloudflare Vars change nahi kar sakta, isliye sirf message dega
-  // Asli password change Cloudflare Dashboard se hi hota hai
-  return NextResponse.json({ 
-    success: false, 
-    message: "Password change sirf Cloudflare Dashboard > Runtime variables se hoga. Security ke liye API se change disable hai." 
-  }, { status: 400 });
+  try {
+    const { type, newValue, authKey, oldValue } = await req.json();
+    const { data: configs } = await supabase.from("admin_config").select("*");
+    const adminPass = configs?.find((c:any)=>c.key==="admin_password")?.value;
+    const masterKey = configs?.find((c:any)=>c.key==="master_key")?.value;
+
+    if (type === "admin_self") {
+      if (oldValue !== adminPass) return NextResponse.json({ success: false, message: "Old password galat hai" }, { status: 400 });
+      await supabase.from("admin_config").update({ value: newValue }).eq("key", "admin_password");
+      return NextResponse.json({ success: true, message: "Admin password changed!" });
+    }
+
+    if (authKey !== masterKey) return NextResponse.json({ success: false, message: "Master Key galat hai" }, { status: 401 });
+
+    if (type === "admin_password") {
+      await supabase.from("admin_config").update({ value: newValue }).eq("key", "admin_password");
+      return NextResponse.json({ success: true, message: "Admin Password Reset Done" });
+    }
+    if (type === "master_key") {
+      await supabase.from("admin_config").update({ value: newValue }).eq("key", "master_key");
+      return NextResponse.json({ success: true, message: "Master Key Updated" });
+    }
+    return NextResponse.json({ success: false, message: "Invalid type" }, { status: 400 });
+  } catch (e:any) { return NextResponse.json({ success: false, message: e.message }, { status: 500 }); }
 }
