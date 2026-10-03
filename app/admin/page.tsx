@@ -46,8 +46,13 @@ export default function AdminPage() {
     const d = await res.json();
     if (d.success) {
       localStorage.setItem("lorem_admin", "true");
-      localStorage.setItem("lorem_is_master", "true");
-      setIsLoggedIn(true); setIsMaster(true); fetchTools(); setPass("");
+      // FIX: API se jo aaye wahi save karo, hamesha true nahi
+      localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
+      localStorage.setItem("lorem_role", d.role || (d.is_master? "master" : "admin"));
+      setIsLoggedIn(true);
+      setIsMaster(!!d.is_master);
+      fetchTools();
+      setPass("");
     } else alert(d.error || "Wrong password");
     setLoading(false);
   };
@@ -57,12 +62,13 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "send-otp", email: "admin@lorem.com" })
+      // FIX: email empty bhejoge to API RECOVERY_EMAIL_TO use karega
+      body: JSON.stringify({ action: "send-otp" })
     });
     const d = await res.json();
     setLoading(false);
     if(d.success){
-      alert("✅ OTP aapke email par bhej diya gaya");
+      alert("✅ OTP aapke email ("+ (d.message || "Recovery Email") +") par bhej diya gaya");
       setOtpSent(true);
       setShowOtp(true);
     } else {
@@ -76,14 +82,18 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "verify-otp", email: "admin@lorem.com", otp })
+      body: JSON.stringify({ action: "verify-otp", otp })
     });
     const d = await res.json();
     setLoading(false);
     if(d.success){
       localStorage.setItem("lorem_admin", "true");
-      localStorage.setItem("lorem_is_master", "true");
-      setIsLoggedIn(true); setIsMaster(true); fetchTools();
+      // FIX: OTP se login hamesha ADMIN hota hai, MASTER nahi
+      localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
+      localStorage.setItem("lorem_role", d.role || "admin");
+      setIsLoggedIn(true);
+      setIsMaster(!!d.is_master);
+      fetchTools();
     } else alert(d.error || "Wrong OTP");
   };
 
@@ -156,7 +166,7 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
     <div className="min-h-screen p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-white">⚡ Lorem Pro Tool {isMaster && "👑 MASTER"}</h1>
+          <h1 className="text-2xl font-bold text-white">⚡ Lorem Pro Tool {isMaster? "👑 MASTER" : "🛡️ ADMIN"}</h1>
           <button onClick={()=>{localStorage.clear(); location.reload()}} className="px-4 py-2 bg-white/90 rounded-full shadow text-sm">Logout</button>
         </div>
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30 flex-wrap">
@@ -187,25 +197,29 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
             </>
           ): activeTab==="settings"? (
             <div className="space-y-6">
-              <h2 className="font-bold text-white text-lg">🔐 Advanced Password Control</h2>
+              <h2 className="font-bold text-white text-lg">🔐 Advanced Password Control {isMaster? "(Master Mode)" : "(Admin Mode)"}</h2>
               <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-2xl">
                 <h3 className="font-bold text-sm mb-2">🔑 Master Verification (Har change ke liye zaruri)</h3>
                 <input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Enter Master Key to verify" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" />
               </div>
               <div className="bg-white/90 p-5 rounded-2xl">
-                <h3 className="font-bold mb-3">Change / Reset Admin Password</h3>
+                <h3 className="font-bold mb-3">Change / Reset Admin Password {isMaster? "(Master can change)" : "(Need Master Verification)"}</h3>
                 <div className="flex gap-2">
                   <input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} placeholder="New Admin Password" className="flex-1 p-3 rounded-xl border" />
                   <button onClick={()=>updatePasswordSecure("admin_password", newAdminPass)} className="px-6 bg-black text-white rounded-xl font-bold">Reset</button>
                 </div>
               </div>
-              {isMaster && (
+              {isMaster? (
                 <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl">
                   <h3 className="font-bold mb-3">👑 Change Master Key (Master Only)</h3>
                   <div className="flex gap-2">
                     <input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" />
                     <button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update Master</button>
                   </div>
+                </div>
+              ) : (
+                <div className="bg-white/50 p-4 rounded-2xl text-center text-sm text-gray-600">
+                  🔒 Master Key change sirf Master login se dikhega. Aap Admin mode me ho.
                 </div>
               )}
             </div>
