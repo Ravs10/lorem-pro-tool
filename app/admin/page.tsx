@@ -23,6 +23,9 @@ export default function AdminPage() {
   const [newMasterKey, setNewMasterKey] = useState("");
   const [authForChange, setAuthForChange] = useState("");
 
+  // AAPKA RECOVERY EMAIL - Yahi par OTP jayega
+  const RECOVERY_EMAIL = "run4ravish@gmail.com";
+
   useEffect(() => {
     if (localStorage.getItem("lorem_admin") === "true") {
       setIsLoggedIn(true);
@@ -37,6 +40,7 @@ export default function AdminPage() {
   };
 
   const handleLogin = async () => {
+    if(!pass) return alert("Password likho");
     setLoading(true);
     const res = await fetch("/api/admin-login", {
       method: "POST",
@@ -46,13 +50,13 @@ export default function AdminPage() {
     const d = await res.json();
     if (d.success) {
       localStorage.setItem("lorem_admin", "true");
-      // FIX: API se jo aaye wahi save karo, hamesha true nahi
       localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
       localStorage.setItem("lorem_role", d.role || (d.is_master? "master" : "admin"));
       setIsLoggedIn(true);
       setIsMaster(!!d.is_master);
       fetchTools();
       setPass("");
+      setActiveTab("tools"); // Login ke baad hamesha Tools par
     } else alert(d.error || "Wrong password");
     setLoading(false);
   };
@@ -62,13 +66,13 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // FIX: email empty bhejoge to API RECOVERY_EMAIL_TO use karega
-      body: JSON.stringify({ action: "send-otp" })
+      // FIX: Email bhej raha hu taaki "Email required" error na aaye
+      body: JSON.stringify({ action: "send-otp", email: RECOVERY_EMAIL })
     });
     const d = await res.json();
     setLoading(false);
     if(d.success){
-      alert("✅ OTP aapke email ("+ (d.message || "Recovery Email") +") par bhej diya gaya");
+      alert("✅ OTP aapke email ("+ RECOVERY_EMAIL +") par bhej diya gaya. Spam bhi check karo");
       setOtpSent(true);
       setShowOtp(true);
     } else {
@@ -88,7 +92,6 @@ export default function AdminPage() {
     setLoading(false);
     if(d.success){
       localStorage.setItem("lorem_admin", "true");
-      // FIX: OTP se login hamesha ADMIN hota hai, MASTER nahi
       localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
       localStorage.setItem("lorem_role", d.role || "admin");
       setIsLoggedIn(true);
@@ -131,7 +134,7 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
   if(!authForChange) return alert("Pehle Master Key se verify karo");
   const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) });
   const d = await res.json();
-  if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); }
+  if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); setAuthForChange(""); }
   else alert("❌ "+d.message);
 }
 
@@ -172,7 +175,8 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30 flex-wrap">
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools</button>
           <button onClick={()=>setActiveTab("blog")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="blog"?"bg-white text-black shadow":"text-white/80"}`}>Blog</button>
-          <button onClick={()=>setActiveTab("settings")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="settings"?"bg-white text-black shadow":"text-white/80"}`}>⚙️ Settings</button>
+          {/* FIX: Settings tab sirf Master ko dikhega */}
+          {isMaster && <button onClick={()=>setActiveTab("settings")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="settings"?"bg-white text-black shadow":"text-white/80"}`}>⚙️ Settings</button>}
           <Link href="/admin/posts" className="px-6 py-2 rounded-full bg-black text-white font-bold text-center">📝 Posts</Link>
         </div>
 
@@ -195,33 +199,32 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
                 ))}
               </div>
             </>
-          ): activeTab==="settings"? (
+          ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
-              <h2 className="font-bold text-white text-lg">🔐 Advanced Password Control {isMaster? "(Master Mode)" : "(Admin Mode)"}</h2>
+              <h2 className="font-bold text-white text-lg">🔐 Advanced Password Control (Master Mode)</h2>
               <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-2xl">
                 <h3 className="font-bold text-sm mb-2">🔑 Master Verification (Har change ke liye zaruri)</h3>
                 <input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Enter Master Key to verify" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" />
               </div>
               <div className="bg-white/90 p-5 rounded-2xl">
-                <h3 className="font-bold mb-3">Change / Reset Admin Password {isMaster? "(Master can change)" : "(Need Master Verification)"}</h3>
+                <h3 className="font-bold mb-3">Change / Reset Admin Password</h3>
                 <div className="flex gap-2">
                   <input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} placeholder="New Admin Password" className="flex-1 p-3 rounded-xl border" />
                   <button onClick={()=>updatePasswordSecure("admin_password", newAdminPass)} className="px-6 bg-black text-white rounded-xl font-bold">Reset</button>
                 </div>
               </div>
-              {isMaster? (
-                <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl">
-                  <h3 className="font-bold mb-3">👑 Change Master Key (Master Only)</h3>
-                  <div className="flex gap-2">
-                    <input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" />
-                    <button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update Master</button>
-                  </div>
+              <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl">
+                <h3 className="font-bold mb-3">👑 Change Master Key (Master Only)</h3>
+                <div className="flex gap-2">
+                  <input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" />
+                  <button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update Master</button>
                 </div>
-              ) : (
-                <div className="bg-white/50 p-4 rounded-2xl text-center text-sm text-gray-600">
-                  🔒 Master Key change sirf Master login se dikhega. Aap Admin mode me ho.
-                </div>
-              )}
+              </div>
+            </div>
+          ): activeTab==="settings" &&!isMaster? (
+            <div className="bg-white/90 p-6 rounded-2xl text-center">
+              <p className="font-bold">🔒 Settings sirf Master ke liye hai</p>
+              <p className="text-sm text-gray-600 mt-2">Aap Admin mode me ho. Password change ke liye Master login karo.</p>
             </div>
           ):(
             <>
