@@ -29,6 +29,7 @@ export default function AdminPage() {
   const [notifMsg, setNotifMsg] = useState("");
   const [notifType, setNotifType] = useState("info");
   const [notifTarget, setNotifTarget] = useState("all");
+  const [notifExpiry, setNotifExpiry] = useState("");
 
   const RECOVERY_EMAIL = "run4ravish@gmail.com";
 
@@ -214,15 +215,19 @@ const updatePasswordSecure = async (type: string, newValue: string) => {
             </>
           ): activeTab==="announcements" && isMaster? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
-              <h2 className="font-bold text-lg">📢 Master Announcement / Offer Panel</h2>
-              <p className="text-xs text-gray-600">Yahan se aap kisi bhi tool par ya sabhi tools par notification / offer dikha sakte ho.</p>
+              <h2 className="font-bold text-lg">📢 Master Offer + Auto Expiry</h2>
               <input value={notifTitle} onChange={e=>setNotifTitle(e.target.value)} placeholder="Title - e.g. Diwali 50% OFF" className="w-full p-3 rounded-xl border font-bold" />
               <textarea value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} placeholder="Message - e.g. Use code DIWALI50" className="w-full p-3 rounded-xl border h-24"></textarea>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <select value={notifType} onChange={e=>setNotifType(e.target.value)} className="p-3 rounded-xl border"><option value="info">Info - Blue</option><option value="offer">Offer - Green</option><option value="alert">Alert - Red</option></select>
                 <select value={notifTarget} onChange={e=>setNotifTarget(e.target.value)} className="p-3 rounded-xl border flex-1"><option value="all">📍 Show on ALL Tools</option>{tools.map((t:any)=><option key={t.id} value={t.slug}>{t.name} only</option>)}</select>
               </div>
-              <button onClick={async()=>{ if(!notifTitle||!notifMsg) return alert("Title + Message likho"); const {error}=await supabase.from("notifications").insert([{title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget}]); if(error) alert(error.message); else {alert("✅ Notification Live!"); setNotifTitle(""); setNotifMsg("");}}} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish Now</button>
+              <div>
+                <label className="text-xs font-bold text-gray-600">⏰ Auto Expiry (Optional)</label>
+                <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1" />
+                <p className="text-[11px] text-gray-500 mt-1">Khali chhodoge to kabhi expire nahi hoga. Date lagao ge to uske baad auto hat jayega.</p>
+              </div>
+              <button onClick={async()=>{ if(!notifTitle||!notifMsg) return alert("Title + Message likho"); const payload: any = {title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget}; if(notifExpiry) payload.expires_at = new Date(notifExpiry).toISOString(); const {error}=await supabase.from("notifications").insert([payload]); if(error) alert(error.message); else {alert("✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry("");}}} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish with Expiry</button>
             </div>
           ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
