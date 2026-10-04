@@ -28,6 +28,7 @@ export default function ImageQRGenerator() {
   const [bulkSizes, setBulkSizes] = useState("300x250, 728x90, 1200x630, 800x600");
   const [isZipping, setIsZipping] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [openSection, setOpenSection] = useState<string | null>("guide");
   const API_BASE = "https://lorem-pro-tool.run4ravish.workers.dev/api";
 
   const qrData = useMemo(() => {
@@ -99,6 +100,16 @@ export default function ImageQRGenerator() {
   };
   const currentApiUrl = `${API_BASE}/${width}x${height}?text=${encodeURIComponent(text)}&bg=${bg.replace('#','')}&bg2=${bg2.replace('#','')}&color=${color.replace('#','')}&gradient=${useGradient?'1':'0'}`;
 
+  const Section = ({ id, title, children }: any) => (
+    <div className="bg-black border border-zinc-800 rounded-xl overflow-hidden">
+      <button onClick={() => setOpenSection(openSection === id? null : id)} className="w-full flex justify-between items-center p-4 text-left">
+        <span className="font-bold text-white text-base md:text-lg">{title}</span>
+        <span className="text-violet-400 text-2xl">{openSection === id? "−" : "+"}</span>
+      </button>
+      {openSection === id && <div className="px-5 pb-5 text-sm text-zinc-400 border-t border-zinc-800 pt-4 leading-relaxed">{children}</div>}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto p-6">
@@ -156,53 +167,58 @@ export default function ImageQRGenerator() {
           </div>
         </div>
 
-        {/* SEO ARTICLE - ACCORDION - GOOGLE KE LIYE */}
-        <div className="mt-16 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
-          <h2 className="text-3xl font-bold text-white text-center">Complete Guide to 2 in 1 Placeholder QR Generator</h2>
-          <p className="text-zinc-400 text-center mt-3 max-w-3xl mx-auto">
-            This is a free <strong>2-in-1 Ultra Pro Tool</strong> that combines a Placeholder Image Generator (best alternative to via.placeholder.com) and a powerful QR Code Generator. Create dummy images with custom size, text, colors, gradient and generate QR codes for UPI, WiFi, WhatsApp, URL without watermark.
-          </p>
+        <div className="mt-16 space-y-4">
+          <Section id="guide" title="📖 Complete Guide - What is 2 in 1 Tool?">
+            <p>This is a free <strong>2-in-1 Ultra Pro Tool</strong> that combines Placeholder Image Generator (best alternative to via.placeholder.com) and powerful QR Code Generator. You can create dummy images with custom size, text, colors, gradient and also generate QR codes for UPI, WiFi, WhatsApp, URL, Email without watermark.</p>
+            <p className="mt-3"><strong>Why this tool?</strong> Developers need dummy images daily for testing. via.placeholder.com is external and can be slow. Our tool uses YOUR OWN /api route - faster, reliable, plus QR feature.</p>
+            <h4 className="font-bold text-white mt-4">How to Use:</h4>
+            <ol className="list-decimal pl-5 mt-2 space-y-1">
+              <li>Set width, height, colors, text for placeholder</li>
+              <li>Canvas auto-previews - Download Image or copy API link</li>
+              <li>For bulk: enter sizes comma separated and click Bulk ZIP Download</li>
+              <li>For QR: select type, fill details and download QR</li>
+            </ol>
+          </Section>
 
-          <div className="grid md:grid-cols-2 gap-6 mt-8">
-            <div className="bg-black border border-zinc-800 rounded-xl p-5">
-              <h3 className="text-xl font-bold text-white">🖼️ Placeholder Features</h3>
-              <ul className="list-disc pl-5 mt-3 space-y-2 text-sm text-zinc-400">
-                <li><strong>Custom Size:</strong> Any size like 300x250, 728x90, 1920x1080, 1200x630</li>
-                <li><strong>Color & Gradient:</strong> Solid or dual gradient background</li>
-                <li><strong>Your Own API:</strong> /api/WIDTHxHEIGHT?text=&bg=&color= - No via.placeholder dependency</li>
-                <li><strong>Bulk ZIP:</strong> Enter 10+ sizes and download as ZIP in 1 click</li>
-              </ul>
-            </div>
-            <div className="bg-black border border-zinc-800 rounded-xl p-5">
-              <h3 className="text-xl font-bold text-white">📱 QR Generator Features</h3>
-              <ul className="list-disc pl-5 mt-3 space-y-2 text-sm text-zinc-400">
-                <li><strong>UPI QR:</strong> For Google Pay, PhonePe, Paytm with name & amount</li>
-                <li><strong>WiFi QR:</strong> Share WiFi without typing password</li>
-                <li><strong>WhatsApp QR:</strong> Direct chat with pre-filled message</li>
-                <li><strong>Download with Text:</strong> QR with data printed below</li>
-              </ul>
-            </div>
-          </div>
+          <Section id="placeholder" title="🖼️ Placeholder Generator Features">
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>Custom Width & Height:</strong> Any size 16x16 to 4000x4000 - supports ad sizes 300x250, 728x90, 1200x630 etc.</li>
+              <li><strong>Text Customization:</strong> Any text, auto-centered, font size adjusts with image size.</li>
+              <li><strong>Color & Gradient:</strong> Solid color or dual color gradient background with custom text color picker.</li>
+              <li><strong>Your Own API:</strong> <code>/api/WIDTHxHEIGHT?text=&bg=&color=&gradient=1</code> - Use in &lt;img&gt; tags directly.</li>
+              <li><strong>Bulk ZIP Download:</strong> Enter multiple sizes like <code>100x100, 200x200, 500x500</code> and get ZIP in one click.</li>
+              <li><strong>Canvas Based:</strong> Instant preview, no server delay.</li>
+            </ul>
+          </Section>
 
-          <div className="mt-10">
-            <h3 className="text-2xl font-bold text-white text-center mb-5">Frequently Asked Questions</h3>
+          <Section id="qr" title="📱 QR Generator Pro Features">
+            <ul className="list-disc pl-5 space-y-2">
+              <li><strong>UPI QR:</strong> Generate UPI payment QR with ID, name, amount - works with GPay, PhonePe, Paytm</li>
+              <li><strong>WiFi QR:</strong> Format WIFI:T:WPA;S:SSID;P:Password;; - guest scans and connects instantly</li>
+              <li><strong>WhatsApp QR:</strong> Generates wa.me link with phone + pre-filled message</li>
+              <li><strong>URL / Text / Email / Phone:</strong> All common QR types supported</li>
+              <li><strong>Download with Text Label:</strong> Our unique feature - QR image with data printed below it for easy identification</li>
+              <li><strong>Private:</strong> No data stored on server, QR generated via API on the fly</li>
+            </ul>
+          </Section>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-white text-center mb-4">❓ Frequently Asked Questions</h3>
             <div className="space-y-3">
               {[
-                { q: "Is this tool free and without watermark?", a: "Yes, 100% free, no watermark, no login, no limit. Unlimited images and QR codes for personal and commercial use." },
-                { q: "Difference from via.placeholder.com?", a: "via.placeholder.com is external and can go down. Our tool uses YOUR OWN /api route on your domain, so it's faster, supports gradient, bulk ZIP, and is fully reliable." },
-                { q: "How does Bulk ZIP Download work?", a: "It calls your own API for each size and packs all PNGs into a ZIP using JSZip. Perfect for developers needing 10-15 banner sizes at once." },
-                { q: "Is UPI QR safe?", a: "Yes, we generate standard UPI format (upi://pay?pa=...). Works with Google Pay, PhonePe, Paytm, BHIM. No data stored." },
-                { q: "Can I use this API in my projects?", a: "Yes. Your API link is public: /api/{width}x{height}?text=Hello&bg=111827&color=ffffff. Use it in <img> tags like via.placeholder.com." },
-                { q: "Does QR data stay private?", a: "Yes, total privacy. QR is generated client-side, we don't save URL, WiFi password, UPI ID or any data." }
+                { q: "Is this tool free and without watermark?", a: "Yes, 100% free, no watermark, no login, no limit. Unlimited images and QR codes." },
+                { q: "Difference from via.placeholder.com?", a: "via.placeholder.com is external and can go down. Our tool uses YOUR OWN /api route on your domain - faster, supports gradient, bulk ZIP." },
+                { q: "How does Bulk ZIP work?", a: "It calls your own API for each size and packs all PNGs into ZIP using JSZip. Perfect for 10-15 banner sizes." },
+                { q: "Is UPI QR safe?", a: "Yes, standard UPI format upi://pay?pa=... Works with all UPI apps. No data stored." },
+                { q: "Can I use API in my projects?", a: "Yes, public API: /api/{width}x{height}?text=Hello&bg=111827&color=ffffff. Use like placeholder.com" },
+                { q: "Is QR data private?", a: "Yes, total privacy. Client-side generation, we don't save any data." }
               ].map((faq, i) => (
                 <div key={i} className="bg-black border border-zinc-800 rounded-xl overflow-hidden">
                   <button onClick={() => setOpenFaq(openFaq === i? null : i)} className="w-full flex justify-between items-center p-4 text-left">
-                    <span className="font-semibold text-white text-sm md:text-base">{faq.q}</span>
+                    <span className="font-semibold text-white text-sm">{faq.q}</span>
                     <span className="text-violet-400 text-xl">{openFaq === i? "−" : "+"}</span>
                   </button>
-                  {openFaq === i && (
-                    <div className="px-4 pb-4 text-sm text-zinc-400 border-t border-zinc-800 pt-3">{faq.a}</div>
-                  )}
+                  {openFaq === i && <div className="px-4 pb-4 text-sm text-zinc-400 border-t border-zinc-800 pt-3">{faq.a}</div>}
                 </div>
               ))}
             </div>
