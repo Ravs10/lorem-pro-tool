@@ -22,15 +22,13 @@ export default function GlobalBannerWrapper() {
     (async () => {
       const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
       if (!data) return;
-      // filter expired
       const valid = data.filter((b:any) =>!b.expires_at || new Date(b.expires_at) > new Date());
 
-      // filter by current tool
       const filtered = valid.filter((b:any) => {
-        if (!b.target_tool) return true;
         if (b.target_tool === 'all') return true;
-        const targets = b.target_tool.split(',').map((s:string)=>s.trim());
-        return targets.includes(currentSlug) || targets.includes('all') || currentSlug === '' ;
+        if (currentSlug === '') return true; // homepage pe sab dikhao
+        const targets = b.target_tool.split(',').map((s:string)=>s.trim().toLowerCase());
+        return targets.includes(currentSlug.toLowerCase());
       });
       setBanners(filtered);
     })();
@@ -43,13 +41,11 @@ export default function GlobalBannerWrapper() {
       {banners.map((banner:any) => {
         const bg = styles[banner.type] || styles.info;
         return (
-          <div key={banner.id} className={`relative w-full bg-gradient-to-r ${bg} text-white py-3.5 px-12 text-center shadow-lg`}>
-            <button onClick={() => setBanners(p=>p.filter(x=>x.id!==banner.id))} className="absolute top-2 right-2 z-50 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 backdrop-blur border border-white/30 flex items-center justify-center text-white font-bold text-lg leading-none">×</button>
-            <div className="flex items-center justify-center gap-2 text-[14px] font-bold flex-wrap pr-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] font-black uppercase">{banner.type}</span>
-              <span>{banner.title}</span>
-              <span className="opacity-70">—</span>
-              <span className="font-medium">{banner.message}</span>
+          <div key={banner.id} className={`relative w-full bg-gradient-to-r ${bg} text-white py-3.5 px-12 text-center shadow-lg border-b border-white/10`}>
+            <button onClick={() => setBanners(p=>p.filter(x=>x.id!==banner.id))} className="absolute top-2 right-2 z-50 w-8 h-8 rounded-full bg-black/30 hover:bg-black/50 border border-white/30 flex items-center justify-center font-bold">×</button>
+            <div className="flex items-center justify-center gap-2 text-[14px] font-bold flex-wrap">
+              <span className="px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] uppercase">{banner.type}</span>
+              <span>{banner.title}</span><span className="opacity-70">—</span><span className="font-medium">{banner.message}</span>
             </div>
           </div>
         )
