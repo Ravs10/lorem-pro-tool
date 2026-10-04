@@ -29,6 +29,7 @@ export default function AdminPage() {
   const [notifType, setNotifType] = useState("info");
   const [notifTarget, setNotifTarget] = useState("all");
   const [notifExpiry, setNotifExpiry] = useState("");
+  const [offers, setOffers] = useState<any[]>([]);
 
   const [adminOldPass, setAdminOldPass] = useState("");
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
@@ -40,12 +41,18 @@ export default function AdminPage() {
       setIsLoggedIn(true);
       setIsMaster(localStorage.getItem("lorem_is_master")==="true");
       fetchTools();
+      fetchOffers();
     }
   }, []);
 
   const fetchTools = async () => {
     const { data } = await supabase.from("tools").select("*").order("name");
     if (data) setTools(data);
+  };
+
+  const fetchOffers = async () => {
+    const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
+    if (data) setOffers(data);
   };
 
   const handleLogin = async () => {
@@ -64,6 +71,7 @@ export default function AdminPage() {
       setIsLoggedIn(true);
       setIsMaster(!!d.is_master);
       fetchTools();
+      fetchOffers();
       setPass("");
       setActiveTab("tools");
     } else alert(d.error || "Wrong password");
@@ -103,6 +111,7 @@ export default function AdminPage() {
       setIsLoggedIn(true);
       setIsMaster(!!d.is_master);
       fetchTools();
+      fetchOffers();
     } else alert(d.error || "Wrong OTP");
   };
 
@@ -242,10 +251,45 @@ const adminSelfChange = async () => {
               </div>
               <button onClick={async()=>{
                 if(!notifTitle||!notifMsg) return alert("Title + Message likho");
-                const {error}=await supabase.from("notifications").insert([{title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget, expires_at: notifExpiry? new Date(notifExpiry).toISOString() : null }]);
+                const {error}=await supabase.from("notifications").insert([{title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget, expires_at: notifExpiry? new Date(notifExpiry).toISOString() : null, is_active: true }]);
                 if(error) alert("❌ Publish Failed: "+error.message);
-                else {alert("✅ Offer Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); }
+                else {alert("✅ Offer Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); fetchOffers(); }
               }} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish with Expiry</button>
+
+              <div className="mt-8 border-t pt-5">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-bold text-base">📋 Live Offers ({offers.length})</h3>
+                  <button onClick={fetchOffers} className="text-xs px-3 py-1 bg-gray-100 rounded-full">Refresh</button>
+                </div>
+                {offers.length===0? <p className="text-sm text-gray-500 text-center py-4">Koi offer nahi hai</p> : (
+                  <div className="grid gap-2">
+                    {offers.map((o:any)=>(
+                      <div key={o.id} className="p-3 border rounded-xl flex justify-between items-center bg-white shadow-sm">
+                        <div className="flex-1">
+                          <p className="font-bold text-sm">{o.title} <span className={`ml-2 text-[10px] px-2 py-0.5 rounded-full ${o.type==='offer'?'bg-green-100 text-green-700': o.type==='alert'?'bg-red-100 text-red-700':'bg-blue-100 text-blue-700'}`}>{o.type}</span></p>
+                          <p className="text-xs text-gray-600 mt-1">{o.message}</p>
+                          <p className="text-[10px] text-gray-400 mt-1">🎯 {o.target_tool} | ⏰ {o.expires_at? new Date(o.expires_at).toLocaleString() : 'No Expiry'}</p>
+                        </div>
+                        <div className="flex flex-col gap-2 ml-3">
+                          <button onClick={async()=>{
+                            if(!confirm("Is offer ko edit karna hai? Form me load hoga, purana delete hoga.")) return;
+                            setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setNotifTarget(o.target_tool);
+                            if(o.expires_at){ const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); }
+                            const {error}=await supabase.from("notifications").delete().eq("id", o.id);
+                            if(!error) fetchOffers();
+                            window.scrollTo({top:0, behavior:'smooth'});
+                          }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
+                          <button onClick={async()=>{
+                            if(!confirm(`"${o.title}" ko delete karna hai?`)) return;
+                            const {error}=await supabase.from("notifications").delete().eq("id", o.id);
+                            if(error) alert(error.message); else fetchOffers();
+                          }} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">Delete</button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
