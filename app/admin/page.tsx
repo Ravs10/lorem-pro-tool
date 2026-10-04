@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [notifTarget, setNotifTarget] = useState("all");
   const [notifExpiry, setNotifExpiry] = useState("");
   const [offers, setOffers] = useState<any[]>([]);
+  const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
 
   const [adminOldPass, setAdminOldPass] = useState("");
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
@@ -238,7 +239,7 @@ const adminSelfChange = async () => {
             </div>
           ): activeTab==="announcements" && isMaster? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
-              <h2 className="font-bold text-lg">📢 Master Offer + Auto Expiry</h2>
+              <h2 className="font-bold text-lg">📢 Master Offer + Auto Expiry {editingOfferId && <span className="text-xs bg-yellow-200 px-2 py-1 rounded-full">Editing Mode</span>}</h2>
               <input value={notifTitle} onChange={e=>setNotifTitle(e.target.value)} placeholder="Title - e.g. Diwali 50% OFF" className="w-full p-3 rounded-xl border font-bold" />
               <textarea value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} placeholder="Message - e.g. Use code DIWALI50" className="w-full p-3 rounded-xl border h-24"></textarea>
               <div className="flex gap-2 flex-wrap">
@@ -249,12 +250,24 @@ const adminSelfChange = async () => {
                 <label className="text-xs font-bold text-gray-600">⏰ Auto Expiry (Optional)</label>
                 <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1" />
               </div>
-              <button onClick={async()=>{
-                if(!notifTitle||!notifMsg) return alert("Title + Message likho");
-                const {error}=await supabase.from("notifications").insert([{title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget, expires_at: notifExpiry? new Date(notifExpiry).toISOString() : null, is_active: true }]);
-                if(error) alert("❌ Publish Failed: "+error.message);
-                else {alert("✅ Offer Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); fetchOffers(); }
-              }} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish with Expiry</button>
+              <div className="flex gap-2">
+                <button onClick={async()=>{
+                  if(!notifTitle||!notifMsg) return alert("Title + Message likho");
+                  setLoading(true);
+                  let error;
+                  if(editingOfferId){
+                    const res = await supabase.from("notifications").update({title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget, expires_at: notifExpiry? new Date(notifExpiry).toISOString() : null}).eq("id", editingOfferId);
+                    error = res.error;
+                  } else {
+                    const res = await supabase.from("notifications").insert([{title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget, expires_at: notifExpiry? new Date(notifExpiry).toISOString() : null, is_active: true }]);
+                    error = res.error;
+                  }
+                  setLoading(false);
+                  if(error) alert("❌ "+error.message);
+                  else { alert(editingOfferId? "✅ Updated!" : "✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setEditingOfferId(null); fetchOffers(); }
+                }} className="flex-1 bg-black text-white p-4 rounded-xl font-bold">{loading? "..." : editingOfferId? "💾 Update Offer" : "🚀 Publish with Expiry"}</button>
+                {editingOfferId && <button onClick={()=>{ setEditingOfferId(null); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); }} className="px-6 bg-gray-200 rounded-xl font-bold">Cancel</button>}
+              </div>
 
               <div className="mt-8 border-t pt-5">
                 <div className="flex justify-between items-center mb-3">
@@ -271,12 +284,13 @@ const adminSelfChange = async () => {
                           <p className="text-[10px] text-gray-400 mt-1">🎯 {o.target_tool} | ⏰ {o.expires_at? new Date(o.expires_at).toLocaleString() : 'No Expiry'}</p>
                         </div>
                         <div className="flex flex-col gap-2 ml-3">
-                          <button onClick={async()=>{
-                            if(!confirm("Is offer ko edit karna hai? Form me load hoga, purana delete hoga.")) return;
-                            setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setNotifTarget(o.target_tool);
+                          <button onClick={()=>{
+                            setNotifTitle(o.title);
+                            setNotifMsg(o.message);
+                            setNotifType(o.type);
+                            setNotifTarget(o.target_tool);
+                            setEditingOfferId(o.id);
                             if(o.expires_at){ const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); }
-                            const {error}=await supabase.from("notifications").delete().eq("id", o.id);
-                            if(!error) fetchOffers();
                             window.scrollTo({top:0, behavior:'smooth'});
                           }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
                           <button onClick={async()=>{
