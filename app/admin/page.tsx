@@ -34,15 +34,21 @@ export default function AdminPage() {
   const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
   const [adminOldPass, setAdminOldPass] = useState("");
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
-  const RECOVERY_EMAIL = "run4ravish@gmail.com";
 
+  // --- SECURE FIX: localStorage ki jagah cookie check ---
   useEffect(() => {
-    if (localStorage.getItem("lorem_admin") === "true") {
-      setIsLoggedIn(true);
-      setIsMaster(localStorage.getItem("lorem_is_master")==="true");
-      fetchTools();
-      fetchOffers();
-    }
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/me");
+        const d = await res.json();
+        if (d.role) {
+          setIsLoggedIn(true);
+          setIsMaster(d.role === "master");
+          fetchTools();
+          fetchOffers();
+        }
+      } catch {}
+    })();
   }, []);
 
   const fetchTools = async () => {
@@ -58,12 +64,10 @@ export default function AdminPage() {
   const handleLogin = async () => {
     if(!pass) return alert("Password likho");
     setLoading(true);
-    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", password: pass, isMasterLogin: showForgot }) });
+    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", password: pass }) });
     const d = await res.json();
     if (d.success) {
-      localStorage.setItem("lorem_admin", "true");
-      localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
-      setIsLoggedIn(true); setIsMaster(!!d.is_master); fetchTools(); fetchOffers(); setPass(""); setActiveTab("tools");
+      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); setPass(""); setActiveTab("tools");
     } else alert(d.error || "Wrong password");
     setLoading(false);
   };
@@ -79,8 +83,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "verify-otp", otp }) });
     const d = await res.json(); setLoading(false);
     if(d.success){
-      localStorage.setItem("lorem_admin", "true"); localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
-      setIsLoggedIn(true); setIsMaster(!!d.is_master); fetchTools(); fetchOffers();
+      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers();
     } else alert(d.error || "Wrong OTP");
   };
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
@@ -129,7 +132,7 @@ export default function AdminPage() {
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-white">⚡ Lorem Pro Tool {isMaster? "👑 MASTER" : "🛡️ ADMIN"}</h1>
-          <button onClick={()=>{localStorage.clear(); location.reload()}} className="px-4 py-2 bg-white/90 rounded-full shadow text-sm">Logout</button>
+          <button onClick={async()=>{ await fetch("/api/admin-logout", {method:"POST"}); location.reload() }} className="px-4 py-2 bg-white/90 rounded-full shadow text-sm">Logout</button>
         </div>
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30 flex-wrap">
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools</button>
