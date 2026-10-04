@@ -253,26 +253,37 @@ const adminSelfChange = async () => {
                 <option value="diwali">💜 Diwali - Purple Pink</option>
               </select>
 
-              {/* FIXED CHECKBOX SYSTEM */}
+              {/* FIXED CHECKBOX SYSTEM - STABLE VERSION */}
               <div className="bg-gray-50 p-3 rounded-xl border">
                 <label className="flex items-center gap-2 text-sm font-bold mb-3 cursor-pointer">
-                  <input type="checkbox" checked={isAllTools} onChange={e=>{ setIsAllTools(e.target.checked); if(e.target.checked){ setSelectedTools([]); }}} className="w-5 h-5" />
+                  <input type="checkbox" checked={isAllTools} onChange={e=>{ setIsAllTools(e.target.checked); if(e.target.checked) setSelectedTools([]); }} className="w-5 h-5" />
                   📍 Show on ALL Tools
                 </label>
                 {!isAllTools && (
-                  <div className="grid grid-cols-1 gap-1 max-h-[200px] overflow-y-auto bg-white p-2 rounded-lg border">
-                    {tools.map((t:any)=>(
-                      <label key={t.id} className="flex items-center gap-2 text-sm p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
-                        <input type="checkbox" checked={selectedTools.includes(t.slug)} onChange={e=>{
-                          if(e.target.checked) setSelectedTools([...selectedTools, t.slug]);
-                          else setSelectedTools(selectedTools.filter(s=>s!==t.slug));
-                        }} className="w-4 h-4" />
-                        {t.name} <span className="text-[10px] text-gray-400">({t.slug})</span>
-                      </label>
-                    ))}
-                  </div>
+                  <>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-bold text-gray-500">Tools chuno:</span>
+                      <div className="flex gap-2">
+                        <button type="button" onClick={()=>setSelectedTools(tools.map((t:any)=>t.slug))} className="text-xs px-2 py-1 bg-black text-white rounded-full">All Select</button>
+                        <button type="button" onClick={()=>setSelectedTools([])} className="text-xs px-2 py-1 bg-gray-200 rounded-full">Clear</button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 gap-1 max-h-[200px] overflow-y-auto bg-white p-2 rounded-lg border">
+                      {tools.map((t:any)=>(
+                        <label key={t.slug} className="flex items-center gap-2 text-sm p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+                          <input type="checkbox" checked={selectedTools.includes(t.slug)} onChange={e=>{
+                            const checked = e.target.checked;
+                            setSelectedTools(prev => checked? [...prev, t.slug] : prev.filter(s=>s!==t.slug));
+                          }} className="w-4 h-4" />
+                          {t.name} <span className="text-[10px] text-gray-400">({t.slug})</span>
+                        </label>
+                      ))}
+                    </div>
+                  </>
                 )}
-                {!isAllTools && <p className="text-[11px] mt-2 font-medium text-blue-600">Selected: {selectedTools.length>0? selectedTools.length + " tools" : "Koi nahi - ALL par nahi dikhega!"}</p>}
+                <p className="text-[11px] mt-2 font-bold text-blue-600">
+                  {isAllTools? '✓ ALL Tools par dikhega' : selectedTools.length>0? `✓ ${selectedTools.length} tools selected: ${selectedTools.join(', ')}` : '❌ Koi tool select nahi'}
+                </p>
               </div>
 
               <div className="bg-gray-50 p-3 rounded-xl border">
@@ -312,7 +323,7 @@ const adminSelfChange = async () => {
                         <button onClick={()=>{
                           setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setEditingOfferId(o.id);
                           if(o.target_tool==='all'){ setIsAllTools(true); setSelectedTools([]); }
-                          else { setIsAllTools(false); setSelectedTools(o.target_tool.split(',').map((s:string)=>s.trim())); }
+                          else { setIsAllTools(false); setSelectedTools(o.target_tool.split(',').map((s:string)=>s.trim()).filter(Boolean)); }
                           if(o.expires_at){ setNoExpiry(false); const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); } else { setNoExpiry(true); setNotifExpiry(""); }
                           window.scrollTo({top:0, behavior:'smooth'});
                         }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
