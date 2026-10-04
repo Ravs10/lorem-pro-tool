@@ -33,10 +33,8 @@ export default function AdminPage() {
   const [noExpiry, setNoExpiry] = useState(true);
   const [offers, setOffers] = useState<any[]>([]);
   const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
-
   const [adminOldPass, setAdminOldPass] = useState("");
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
-
   const RECOVERY_EMAIL = "run4ravish@gmail.com";
 
   useEffect(() => {
@@ -52,116 +50,48 @@ export default function AdminPage() {
     const { data } = await supabase.from("tools").select("*").order("name");
     if (data) setTools(data);
   };
-
   const fetchOffers = async () => {
     const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
     if (data) setOffers(data);
   };
 
+  const getToolKey = (t:any) => (t.slug && t.slug.trim()!== ""? t.slug.trim() : String(t.id));
+
   const handleLogin = async () => {
     if(!pass) return alert("Password likho");
     setLoading(true);
-    const res = await fetch("/api/admin-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "login", password: pass, isMasterLogin: showForgot })
-    });
+    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", password: pass, isMasterLogin: showForgot }) });
     const d = await res.json();
     if (d.success) {
       localStorage.setItem("lorem_admin", "true");
       localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
-      localStorage.setItem("lorem_role", d.role || (d.is_master? "master" : "admin"));
-      setIsLoggedIn(true);
-      setIsMaster(!!d.is_master);
-      fetchTools();
-      fetchOffers();
-      setPass("");
-      setActiveTab("tools");
+      setIsLoggedIn(true); setIsMaster(!!d.is_master); fetchTools(); fetchOffers(); setPass(""); setActiveTab("tools");
     } else alert(d.error || "Wrong password");
     setLoading(false);
   };
-
   const handleSendOtp = async () => {
     setLoading(true);
-    const res = await fetch("/api/admin-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "send-otp", recovery_role: recoveryRole })
-    });
-    const d = await res.json();
-    setLoading(false);
-    if(d.success){
-      alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL}`);
-      setOtpSent(true);
-      setShowOtp(true);
-    } else alert("❌ "+(d.error || d.message));
+    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "send-otp", recovery_role: recoveryRole }) });
+    const d = await res.json(); setLoading(false);
+    if(d.success){ alert(`✅ ${recoveryRole.toUpperCase()} OTP sent`); setOtpSent(true); setShowOtp(true); } else alert("❌ "+(d.error || d.message));
   };
-
   const handleVerifyOtp = async () => {
     if(!otp) return alert("OTP likho");
     setLoading(true);
-    const res = await fetch("/api/admin-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "verify-otp", otp })
-    });
-    const d = await res.json();
-    setLoading(false);
+    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "verify-otp", otp }) });
+    const d = await res.json(); setLoading(false);
     if(d.success){
-      localStorage.setItem("lorem_admin", "true");
-      localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
-      localStorage.setItem("lorem_role", d.role || "admin");
-      setIsLoggedIn(true);
-      setIsMaster(!!d.is_master);
-      fetchTools();
-      fetchOffers();
+      localStorage.setItem("lorem_admin", "true"); localStorage.setItem("lorem_is_master", d.is_master? "true" : "false");
+      setIsLoggedIn(true); setIsMaster(!!d.is_master); fetchTools(); fetchOffers();
     } else alert(d.error || "Wrong OTP");
   };
-
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
-  const handleToolUpdate = async () => {
-    const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id);
-    if (error) alert(error.message); else { setEditTool(null); fetchTools(); }
-  };
-
-const contentRef = useRef(null)
-const renderPreview = (text:any) => {
-  return text.split('\n').map((line:any, i:any) => {
-  if(line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold my-2">{line.slice(4)}</h3>
-if(line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold my-3">{line.slice(3)}</h2>
-    if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>
-    let parts = line.split(/(\*\*.*?\*\*)/g);
-    return <p key={i} className="my-1">{parts.map((p:any, j:any) => {
-      if(p.startsWith('**') && p.endsWith('**')) return <b key={j}>{p.slice(2,-2)}</b>
-      let linkMatch = p.match(/\[(.*)\]\((.*)\)/);
-      if(linkMatch) return <a key={j} href={linkMatch[2]} target="_blank" className="text-blue-600 underline">{linkMatch[1]}</a>
-      return p
-    })}</p>
-  })
-}
-const insertFormat = (b:any, a="") => {
-  const el:any = contentRef.current; if(!el) return;
-  const s = el.selectionStart, e = el.selectionEnd;
-  const sel = content.substring(s,e);
-  const newText = content.substring(0,s) + b + (sel||"text") + a + content.substring(e);
-  setContent(newText);
-}
-const updatePasswordSecure = async (type: string, newValue: string) => {
-  if(!newValue) return alert("Naya password likho");
-  if(!authForChange) return alert("Pehle Master Key se verify karo");
-  const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) });
-  const d = await res.json();
-  if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); setAuthForChange(""); }
-  else alert("❌ "+d.message);
-}
-
-const adminSelfChange = async () => {
-  if(!adminOldPass ||!adminSelfNewPass) return alert("Old aur New dono likho");
-  const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_self", oldValue: adminOldPass, newValue: adminSelfNewPass }) });
-  const d = await res.json();
-  if(d.success){ alert("✅ Password changed!"); setAdminOldPass(""); setAdminSelfNewPass(""); }
-  else alert("❌ "+d.message);
-}
+  const handleToolUpdate = async () => { const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id); if (error) alert(error.message); else { setEditTool(null); fetchTools(); } };
+  const contentRef = useRef(null)
+  const renderPreview = (text:any) => { return text.split('\n').map((line:any, i:any) => { if(line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold my-2">{line.slice(4)}</h3>; if(line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold my-3">{line.slice(3)}</h2>; if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>; let parts = line.split(/(\*\*.*?\*\*)/g); return <p key={i} className="my-1">{parts.map((p:any, j:any) => { if(p.startsWith('**') && p.endsWith('**')) return <b key={j}>{p.slice(2,-2)}</b>; let linkMatch = p.match(/\[(.*)\]\((.*)\)/); if(linkMatch) return <a key={j} href={linkMatch[2]} target="_blank" className="text-blue-600 underline">{linkMatch[1]}</a>; return p })}</p> }) }
+  const insertFormat = (b:any, a="") => { const el:any = contentRef.current; if(!el) return; const s = el.selectionStart, e = el.selectionEnd; const sel = content.substring(s,e); const newText = content.substring(0,s) + b + (sel||"text") + a + content.substring(e); setContent(newText); }
+  const updatePasswordSecure = async (type: string, newValue: string) => { if(!newValue) return alert("Naya password likho"); if(!authForChange) return alert("Pehle Master Key se verify karo"); const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) }); const d = await res.json(); if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); setAuthForChange(""); } else alert("❌ "+d.message); }
+  const adminSelfChange = async () => { if(!adminOldPass ||!adminSelfNewPass) return alert("Old aur New dono likho"); const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_self", oldValue: adminOldPass, newValue: adminSelfNewPass }) }); const d = await res.json(); if(d.success){ alert("✅ Password changed!"); setAdminOldPass(""); setAdminSelfNewPass(""); } else alert("❌ "+d.message); }
 
   if (!isLoggedIn) {
     return (
@@ -221,7 +151,7 @@ const adminSelfChange = async () => {
                   <div key={tool.id} className={`p-4 rounded-2xl backdrop-blur border shadow-sm flex justify-between items-center transition-all ${tool.is_active? "bg-white/90 border-white/50" : "bg-red-50/80 border-red-200 opacity-70"}`}>
                     <div className="flex items-center gap-3">
                       <button onClick={()=>toggleTool(tool)} className={`w-12 h-7 rounded-full p-1 transition-all ${tool.is_active? "bg-green-500" : "bg-gray-300"}`}><div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${tool.is_active? "translate-x-5" : "translate-x-0"}`}></div></button>
-                      <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug}</p></div>
+                      <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug || tool.id}</p></div>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={()=>window.open(`/${tool.slug}`, '_blank')} className="text-xs px-3 py-2 bg-black text-white rounded-full">View</button>
@@ -234,7 +164,6 @@ const adminSelfChange = async () => {
           ): activeTab==="myaccount"? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
               <h2 className="font-bold text-lg">👤 Admin Control Panel</h2>
-              <p className="text-xs text-gray-600">Aap yaha apna Admin password khud change kar sakte ho.</p>
               <input type="password" value={adminOldPass} onChange={e=>setAdminOldPass(e.target.value)} placeholder="Old Admin Password" className="w-full p-3 rounded-xl border" />
               <input type="password" value={adminSelfNewPass} onChange={e=>setAdminSelfNewPass(e.target.value)} placeholder="New Admin Password" className="w-full p-3 rounded-xl border" />
               <button onClick={adminSelfChange} className="w-full bg-black text-white p-4 rounded-xl font-bold">🔑 Change My Password</button>
@@ -242,55 +171,48 @@ const adminSelfChange = async () => {
           ): activeTab==="announcements" && isMaster? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
               <h2 className="font-bold text-lg">📢 Master Offer {editingOfferId && <span className="text-xs bg-yellow-200 px-2 py-1 rounded-full ml-2">Editing</span>}</h2>
-              <input value={notifTitle} onChange={e=>setNotifTitle(e.target.value)} placeholder="Title - e.g. Diwali 50% OFF" className="w-full p-3 rounded-xl border font-bold" />
+              <input value={notifTitle} onChange={e=>setNotifTitle(e.target.value)} placeholder="Title" className="w-full p-3 rounded-xl border font-bold" />
               <textarea value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} placeholder="Message" className="w-full p-3 rounded-xl border h-24"></textarea>
               <select value={notifType} onChange={e=>setNotifType(e.target.value)} className="w-full p-3 rounded-xl border font-bold bg-white">
-                <option value="info">🔵 Info - Blue</option>
-                <option value="offer">🟢 Offer - Green</option>
-                <option value="alert">🔴 Alert - Red</option>
-                <option value="warning">🟡 Warning - Orange</option>
-                <option value="premium">⚫ Premium - Black Gold</option>
-                <option value="diwali">💜 Diwali - Purple Pink</option>
+                <option value="info">🔵 Info - Blue</option><option value="offer">🟢 Offer - Green</option><option value="alert">🔴 Alert - Red</option><option value="warning">🟡 Warning - Orange</option><option value="premium">⚫ Premium - Black Gold</option><option value="diwali">💜 Diwali - Purple</option>
               </select>
 
-              {/* FIXED CHECKBOX SYSTEM - STABLE VERSION */}
               <div className="bg-gray-50 p-3 rounded-xl border">
                 <label className="flex items-center gap-2 text-sm font-bold mb-3 cursor-pointer">
-                  <input type="checkbox" checked={isAllTools} onChange={e=>{ setIsAllTools(e.target.checked); if(e.target.checked) setSelectedTools([]); }} className="w-5 h-5" />
+                  <input type="checkbox" checked={isAllTools} onChange={e=>{ const c=e.target.checked; setIsAllTools(c); if(c) setSelectedTools([]); }} className="w-5 h-5" />
                   📍 Show on ALL Tools
                 </label>
                 {!isAllTools && (
                   <>
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-bold text-gray-500">Tools chuno:</span>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-xs font-bold">Tools:</span>
                       <div className="flex gap-2">
-                        <button type="button" onClick={()=>setSelectedTools(tools.map((t:any)=>t.slug))} className="text-xs px-2 py-1 bg-black text-white rounded-full">All Select</button>
-                        <button type="button" onClick={()=>setSelectedTools([])} className="text-xs px-2 py-1 bg-gray-200 rounded-full">Clear</button>
+                        <button type="button" onClick={()=>setSelectedTools(tools.map((t:any)=>getToolKey(t)))} className="text-xs bg-black text-white px-2 py-1 rounded-full">All</button>
+                        <button type="button" onClick={()=>setSelectedTools([])} className="text-xs bg-gray-200 px-2 py-1 rounded-full">Clear</button>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 gap-1 max-h-[200px] overflow-y-auto bg-white p-2 rounded-lg border">
-                      {tools.map((t:any)=>(
-                        <label key={t.slug} className="flex items-center gap-2 text-sm p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
-                          <input type="checkbox" checked={selectedTools.includes(t.slug)} onChange={e=>{
-                            const checked = e.target.checked;
-                            setSelectedTools(prev => checked? [...prev, t.slug] : prev.filter(s=>s!==t.slug));
-                          }} className="w-4 h-4" />
-                          {t.name} <span className="text-[10px] text-gray-400">({t.slug})</span>
-                        </label>
-                      ))}
+                    <div className="bg-white border rounded-lg max-h-[220px] overflow-y-auto p-2 grid gap-1">
+                      {tools.map((t:any)=>{
+                        const key = getToolKey(t);
+                        const checked = selectedTools.includes(key);
+                        return (
+                          <label key={key} className="flex items-center gap-2 text-sm p-2 hover:bg-gray-100 rounded cursor-pointer">
+                            <input type="checkbox" checked={checked} onChange={(e)=>{
+                              const isChecked = e.target.checked;
+                              setSelectedTools(prev => isChecked? [...prev, key] : prev.filter(k=>k!==key));
+                            }} className="w-4 h-4" />
+                            {t.name} <span className="text-[10px] text-gray-400">({key})</span>
+                          </label>
+                        )
+                      })}
                     </div>
                   </>
                 )}
-                <p className="text-[11px] mt-2 font-bold text-blue-600">
-                  {isAllTools? '✓ ALL Tools par dikhega' : selectedTools.length>0? `✓ ${selectedTools.length} tools selected: ${selectedTools.join(', ')}` : '❌ Koi tool select nahi'}
-                </p>
+                <p className="text-[11px] mt-2 font-bold text-blue-600">{isAllTools? '✓ ALL par dikhega' : selectedTools.length>0? `✓ ${selectedTools.length} selected: ${selectedTools.join(', ')}` : '❌ Koi select nahi'}</p>
               </div>
 
               <div className="bg-gray-50 p-3 rounded-xl border">
-                <label className="flex items-center gap-2 text-sm font-bold mb-2 cursor-pointer">
-                  <input type="checkbox" checked={noExpiry} onChange={e=>{ setNoExpiry(e.target.checked); if(e.target.checked) setNotifExpiry(""); }} className="w-4 h-4" />
-                  ♾️ Lifetime (No Expiry)
-                </label>
+                <label className="flex items-center gap-2 text-sm font-bold mb-2 cursor-pointer"><input type="checkbox" checked={noExpiry} onChange={e=>{ setNoExpiry(e.target.checked); if(e.target.checked) setNotifExpiry(""); }} className="w-4 h-4" />♾️ Lifetime</label>
                 {!noExpiry && <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1 bg-white" />}
               </div>
 
@@ -298,15 +220,14 @@ const adminSelfChange = async () => {
                 <button onClick={async()=>{
                   const finalTarget = isAllTools? "all" : selectedTools.join(',');
                   if(!notifTitle||!notifMsg) return alert("Title + Message likho");
-                  if(!isAllTools && selectedTools.length===0) return alert("Kam se kam 1 tool tick karo ya ALL select karo");
+                  if(!isAllTools && selectedTools.length===0) return alert("1 tool select karo");
                   setLoading(true);
-                  const payload = {title:notifTitle,message:notifMsg,type:notifType,target_tool:finalTarget, expires_at: noExpiry ||!notifExpiry? null : new Date(notifExpiry).toISOString()};
+                  const payload = {title:notifTitle,message:notifMsg,type:notifType,target_tool:finalTarget, expires_at: noExpiry ||!notifExpiry? null : new Date(notifExpiry).toISOString(), is_active: true};
                   let error;
                   if(editingOfferId){ const res = await supabase.from("notifications").update(payload).eq("id", editingOfferId); error=res.error; }
-                  else { const res = await supabase.from("notifications").insert([{...payload, is_active:true}]); error=res.error; }
+                  else { const res = await supabase.from("notifications").insert([payload]); error=res.error; }
                   setLoading(false);
-                  if(error) alert("❌ "+error.message);
-                  else { alert(editingOfferId? "✅ Updated!" : "✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); setIsAllTools(true); setSelectedTools([]); setEditingOfferId(null); fetchOffers(); }
+                  if(error) alert("❌ "+error.message); else { alert(editingOfferId? "✅ Updated!" : "✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); setIsAllTools(true); setSelectedTools([]); setEditingOfferId(null); fetchOffers(); }
                 }} className="flex-1 bg-black text-white p-4 rounded-xl font-bold">{loading? "..." : editingOfferId? "💾 Update" : "🚀 Publish"}</button>
                 {editingOfferId && <button onClick={()=>{ setEditingOfferId(null); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); setIsAllTools(true); setSelectedTools([]); }} className="px-6 bg-gray-200 rounded-xl font-bold">Cancel</button>}
               </div>
@@ -318,13 +239,13 @@ const adminSelfChange = async () => {
                     <div key={o.id} className="p-3 border rounded-xl bg-white shadow-sm">
                       <p className="font-bold text-sm">{o.title} <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-gray-100">{o.type}</span></p>
                       <p className="text-xs text-gray-600 mt-1">{o.message}</p>
-                      <p className="text-[10px] text-gray-500 mt-1 break-all">🎯 {o.target_tool} | {o.expires_at? `⏰ ${new Date(o.expires_at).toLocaleString()}` : '♾️ Lifetime'}</p>
+                      <p className="text-[10px] text-gray-500 mt-1 break-all">🎯 {o.target_tool}</p>
                       <div className="flex gap-2 mt-2">
                         <button onClick={()=>{
                           setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setEditingOfferId(o.id);
                           if(o.target_tool==='all'){ setIsAllTools(true); setSelectedTools([]); }
                           else { setIsAllTools(false); setSelectedTools(o.target_tool.split(',').map((s:string)=>s.trim()).filter(Boolean)); }
-                          if(o.expires_at){ setNoExpiry(false); const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); } else { setNoExpiry(true); setNotifExpiry(""); }
+                          if(o.expires_at){ setNoExpiry(false); const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); } else { setNoExpiry(true); }
                           window.scrollTo({top:0, behavior:'smooth'});
                         }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
                         <button onClick={async()=>{ if(!confirm("Delete?")) return; await supabase.from("notifications").delete().eq("id", o.id); fetchOffers(); }} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">Delete</button>
@@ -336,25 +257,10 @@ const adminSelfChange = async () => {
             </div>
           ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
-              <h2 className="font-bold text-white text-lg">🔐 Advanced Password Control (Master Mode)</h2>
-              <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-2xl">
-                <h3 className="font-bold text-sm mb-2">🔑 Master Verification</h3>
-                <input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Enter Master Key" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" />
-              </div>
-              <div className="bg-white/90 p-5 rounded-2xl">
-                <h3 className="font-bold mb-3">Change Admin Password</h3>
-                <div className="flex gap-2">
-                  <input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} placeholder="New Admin Password" className="flex-1 p-3 rounded-xl border" />
-                  <button onClick={()=>updatePasswordSecure("admin_password", newAdminPass)} className="px-6 bg-black text-white rounded-xl font-bold">Reset</button>
-                </div>
-              </div>
-              <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl">
-                <h3 className="font-bold mb-3">👑 Change Master Key</h3>
-                <div className="flex gap-2">
-                  <input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" />
-                  <button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update</button>
-                </div>
-              </div>
+              <h2 className="font-bold text-white text-lg">🔐 Master Settings</h2>
+              <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-2xl"><input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Master Key" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" /></div>
+              <div className="bg-white/90 p-5 rounded-2xl"><div className="flex gap-2"><input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} placeholder="New Admin Password" className="flex-1 p-3 rounded-xl border" /><button onClick={()=>updatePasswordSecure("admin_password", newAdminPass)} className="px-6 bg-black text-white rounded-xl font-bold">Reset</button></div></div>
+              <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl"><div className="flex gap-2"><input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" /><button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update</button></div></div>
             </div>
           ):(
             <>
@@ -363,15 +269,7 @@ const adminSelfChange = async () => {
               <button type="button" onClick={()=>insertFormat("**","**")}>B</button><button type="button" onClick={()=>insertFormat("\n## ","")}>H2</button><button type="button" onClick={()=>insertFormat("\n### ","")}>H3</button><button type="button" onClick={()=>insertFormat("\n- ","")}>List</button><button type="button" onClick={()=>insertFormat("[", "](https://)")} >Link</button><button type="button" onClick={()=>setShowPreview(!showPreview)} className="ml-auto px-3 py-1 bg-purple-600 text-white rounded-lg">{showPreview? "Edit" : "Preview"}</button>
               </div>
               {!showPreview? (<textarea ref={contentRef} value={content} onChange={e=>setContent(e.target.value)} placeholder="Blog Content..." className="w-full h-[300px] p-4 rounded-xl border" />) : (<div className="w-full h-[300px] p-4 rounded-xl border bg-white overflow-y-auto whitespace-pre-wrap"><h2 className="font-bold text-lg mb-2">{title}</h2><div>{renderPreview(content)}</div></div>)}
-              <button onClick={async()=>{
-                if(!title ||!content) return alert("Fill all");
-                setLoading(true);
-                const slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-                const { error } = await supabase.from("blogs").insert([{title, content, slug}]);
-                if(error){ alert("❌ Publish Failed: "+error.message); }
-                else { alert("✅ Posted!"); setTitle(""); setContent(""); }
-                setLoading(false);
-              }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">{loading? "Posting..." : "Post Blog"}</button>
+              <button onClick={async()=>{ if(!title ||!content) return alert("Fill all"); setLoading(true); const slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); const { error } = await supabase.from("blogs").insert([{title, content, slug}]); if(error){ alert("❌ "+error.message); } else { alert("✅ Posted!"); setTitle(""); setContent(""); } setLoading(false); }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">{loading? "Posting..." : "Post Blog"}</button>
             </>
           )}
         </div>
