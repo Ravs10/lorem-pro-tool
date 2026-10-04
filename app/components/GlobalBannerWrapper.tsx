@@ -54,23 +54,28 @@ export default function GlobalBannerWrapper() {
           key={banner.id}
           className={`relative w-full bg-gradient-to-r ${styles[banner.type] || styles.info} bg-[length:300%_100%] animate-gradient text-white py-2.5 px-3 pr-11 text-center border-b border-white/20 shadow-md overflow-hidden`}
         >
-          {/* Shine */}
           <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shine" />
 
-          {/* X - Top Right Corner Fixed */}
           <button
             onClick={() => setBanners(p=>p.filter(x=>x.id!==banner.id))}
             className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/30 border border-white/40 text-white font-bold text-sm leading-none flex items-center justify-center hover:bg-black/50 hover:rotate-90 transition-all duration-300 z-20"
           >×</button>
 
-          <div className="relative z-10 flex items-center justify-center gap-1.5 flex-wrap text-[14px] leading-tight">
+          <div className="relative z-10 flex items-center justify-center gap-1.5 flex-wrap leading-tight">
             <span className="bg-white text-black text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider animate-pulseBadge">
               {banner.type}
             </span>
             <span className="animate-bounceIcon">{icons[banner.type] || "✨"}</span>
-            {/* Blink Animation Added */}
-            <b className="font-extrabold animate-blink">{banner.title}</b>
-            <span className="opacity-90 font-medium">— {banner.message}</span>
+
+            {/* Heading - Size bada + Alag Color */}
+            <b className="font-extrabold text-[16px] text-yellow-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] tracking-wide animate-blink">
+              {banner.title}
+            </b>
+
+            {/* Body - 1px bada (15px) */}
+            <span className="opacity-95 font-medium text-[15px]">
+              — {banner.message}
+            </span>
           </div>
         </div>
       ))}
@@ -94,13 +99,13 @@ export default function GlobalBannerWrapper() {
         }
         @keyframes blinkText {
           0%, 50%, 100% { opacity: 1; }
-          25%, 75% { opacity: 0.4; }
+          25%, 75% { opacity: 0.3; }
         }
-       .animate-gradient { animation: gradientMove 4s ease infinite; }
-       .animate-shine { animation: shineMove 3s ease-in-out infinite; }
-       .animate-pulseBadge { animation: pulseBadge 1.5s ease-in-out infinite; }
-       .animate-bounceIcon { animation: bounceIcon 1s ease-in-out infinite; }
-       .animate-blink { animation: blinkText 1.2s ease-in-out infinite; }
+      .animate-gradient { animation: gradientMove 4s ease infinite; }
+      .animate-shine { animation: shineMove 3s ease-in-out infinite; }
+      .animate-pulseBadge { animation: pulseBadge 1.5s ease-in-out infinite; }
+      .animate-bounceIcon { animation: bounceIcon 1s ease-in-out infinite; }
+      .animate-blink { animation: blinkText 2.2s ease-in-out infinite; }
       `}</style>
     </div>
   );
