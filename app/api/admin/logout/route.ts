@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
+
 export async function POST() {
   const res = NextResponse.json({ success: true });
-  res.cookies.set("role", "", { maxAge: 0, path: "/" });
+  res.cookies.set("role", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 0,
+  });
   return res;
 }
