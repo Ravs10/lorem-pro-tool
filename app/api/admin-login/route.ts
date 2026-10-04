@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify({ from: "onboarding@resend.dev", to: "run4ravish@gmail.com", subject: `OTP ${newOtp}`, html: `<h1>${newOtp}</h1>` })
       });
     } catch(e){}
-    return NextResponse.json({ success: true, debug_otp: newOtp });
+    return NextResponse.json({ success: true });
   }
 
   if (action === "verify-otp") {
