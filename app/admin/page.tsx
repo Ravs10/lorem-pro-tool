@@ -34,6 +34,7 @@ export default function AdminPage() {
   const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
   const [adminOldPass, setAdminOldPass] = useState("");
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
+  const [newMasterEmail, setNewMasterEmail] = useState("");
 
   // --- SECURE FIX ---
   useEffect(() => {
@@ -75,7 +76,11 @@ export default function AdminPage() {
     setLoading(true);
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "send-otp", recovery_role: recoveryRole }) });
     const d = await res.json(); setLoading(false);
-    if(d.success){ alert(`✅ ${recoveryRole.toUpperCase()} OTP sent`); setOtpSent(true); setShowOtp(true); } else alert("❌ "+(d.error || d.message));
+    if(d.success){
+      const masked = d.maskedEmail || "your email";
+      alert(`✅ OTP sent to ${masked}`);
+      setOtpSent(true); setShowOtp(true);
+    } else alert("❌ "+(d.error || d.message));
   };
   const handleVerifyOtp = async () => {
     if(!otp) return alert("OTP likho");
@@ -91,7 +96,7 @@ export default function AdminPage() {
   const contentRef = useRef(null)
   const renderPreview = (text:any) => { return text.split('\n').map((line:any, i:any) => { if(line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold my-2">{line.slice(4)}</h3>; if(line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold my-3">{line.slice(3)}</h2>; if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>; let parts = line.split(/(\*\*.*?\*\*)/g); return <p key={i} className="my-1">{parts.map((p:any, j:any) => { if(p.startsWith('**') && p.endsWith('**')) return <b key={j}>{p.slice(2,-2)}</b>; let linkMatch = p.match(/\[(.*)\]\((.*)\)/); if(linkMatch) return <a key={j} href={linkMatch[2]} target="_blank" className="text-blue-600 underline">{linkMatch[1]}</a>; return p })}</p> }) }
   const insertFormat = (b:any, a="") => { const el:any = contentRef.current; if(!el) return; const s = el.selectionStart, e = el.selectionEnd; const sel = content.substring(s,e); const newText = content.substring(0,s) + b + (sel||"text") + a + content.substring(e); setContent(newText); }
-  const updatePasswordSecure = async (type: string, newValue: string) => { if(!newValue) return alert("Naya password likho"); if(!authForChange) return alert("Pehle Master Key se verify karo"); const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) }); const d = await res.json(); if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); setAuthForChange(""); } else alert("❌ "+d.message); }
+  const updatePasswordSecure = async (type: string, newValue: string) => { if(!newValue) return alert("Naya password likho"); if(!authForChange && type!=="admin_password" && type!=="master_key") {} ; const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) }); const d = await res.json(); if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); setAuthForChange(""); } else alert("❌ "+d.message); }
   const adminSelfChange = async () => { if(!adminOldPass ||!adminSelfNewPass) return alert("Old aur New dono likho"); const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_self", oldValue: adminOldPass, newValue: adminSelfNewPass }) }); const d = await res.json(); if(d.success){ alert("✅ Password changed!"); setAdminOldPass(""); setAdminSelfNewPass(""); } else alert("❌ "+d.message); }
 
   const handleLogout = async () => {
@@ -289,9 +294,28 @@ export default function AdminPage() {
           ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
               <h2 className="font-bold text-white text-lg">🔐 Master Settings</h2>
-              <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-2xl"><input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Master Key" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" /></div>
+              <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-2xl">
+                <p className="text-xs font-bold mb-2">Master Key Verification (Agar OTP se login ho to khali chhod sakte ho)</p>
+                <input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Master Key (optional if logged in via OTP)" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" />
+              </div>
               <div className="bg-white/90 p-5 rounded-2xl"><div className="flex gap-2"><input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} placeholder="New Admin Password" className="flex-1 p-3 rounded-xl border" /><button onClick={()=>updatePasswordSecure("admin_password", newAdminPass)} className="px-6 bg-black text-white rounded-xl font-bold">Reset</button></div></div>
               <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl"><div className="flex gap-2"><input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" /><button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update</button></div></div>
+
+              <div className="bg-blue-50 border border-blue-300 p-5 rounded-2xl">
+                <h3 className="font-bold text-sm mb-2">📧 Emergency Email Change</h3>
+                <p className="text-xs text-gray-500 mb-2">Master Key bhool gaye? OTP se login hai to yahan se email change kar sakte ho</p>
+                <div className="flex gap-2">
+                  <input value={newMasterEmail} onChange={e=>setNewMasterEmail(e.target.value)} placeholder="New Recovery Email" className="flex-1 p-3 rounded-xl border" />
+                  <button onClick={async()=>{
+                    if(!newMasterEmail.includes("@")) return alert("Valid email likho");
+                    setLoading(true);
+                    const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "change-master-email", newEmail: newMasterEmail }) });
+                    const d = await res.json();
+                    setLoading(false);
+                    if(d.success){ alert(`✅ Email updated to ${d.maskedEmail}`); setNewMasterEmail(""); } else alert("❌ "+(d.error || d.message));
+                  }} className="px-6 bg-blue-600 text-white rounded-xl font-bold">{loading? "..." : "Update Email"}</button>
+                </div>
+              </div>
             </div>
           ):(
             <>
