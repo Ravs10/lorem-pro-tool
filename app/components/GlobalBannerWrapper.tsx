@@ -14,12 +14,7 @@ const styles: any = {
 };
 
 const icons: any = {
-  info: "💡",
-  offer: "🎉",
-  alert: "🚨",
-  warning: "⚠️",
-  premium: "👑",
-  diwali: "🪔"
+  info: "💡", offer: "🎉", alert: "🚨", warning: "⚠️", premium: "👑", diwali: "🪔"
 };
 
 export default function GlobalBannerWrapper() {
@@ -36,16 +31,13 @@ export default function GlobalBannerWrapper() {
         if(s) idToSlug[String(t.id).toLowerCase()] = s;
         idToSlug[s] = s;
       });
-
       const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
       if (!data) return;
       const valid = data.filter((b:any) => b.is_active!== false && (!b.expires_at || new Date(b.expires_at) > new Date()));
-
       const filtered = valid.filter((b:any) => {
         const raw = (b.target_tool || 'all').toLowerCase();
         if (raw === 'all') return true;
         if (!currentSlug) return false;
-
         const targets = raw.split(',').map((s:string)=>s.trim()).filter(Boolean);
         const expanded = targets.map((t:string)=> idToSlug[t] || t);
         return expanded.some((t:string)=> t && (currentSlug === t || currentSlug.includes(t) || t.includes(currentSlug)));
@@ -60,29 +52,24 @@ export default function GlobalBannerWrapper() {
       {banners.map((banner:any) => (
         <div
           key={banner.id}
-          className={`relative w-full bg-gradient-to-r ${styles[banner.type] || styles.info} bg-[length:300%_100%] animate-gradient text-white py-3.5 px-12 text-center border-b border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.2)] overflow-hidden group`}
+          className={`relative w-full bg-gradient-to-r ${styles[banner.type] || styles.info} bg-[length:300%_100%] animate-gradient text-white py-2.5 px-3 pr-11 text-center border-b border-white/20 shadow-md overflow-hidden`}
         >
-          {/* Shine Effect */}
+          {/* Shine */}
           <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shine" />
 
-          {/* Glowing dots */}
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-1 left-[10%] w-1 h-1 bg-white rounded-full animate-ping" />
-            <div className="absolute bottom-1 left-[30%] w-1 h-1 bg-white rounded-full animate-ping delay-700" />
-            <div className="absolute top-2 right-[20%] w-1 h-1 bg-white rounded-full animate-ping delay-300" />
-          </div>
-
+          {/* X - Top Right Corner Fixed */}
           <button
             onClick={() => setBanners(p=>p.filter(x=>x.id!==banner.id))}
-            className="absolute top-1/2 -translate-y-1/2 right-2 w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm border border-white/30 font-bold hover:bg-black/40 hover:rotate-90 transition-all duration-300 z-20"
+            className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-black/30 border border-white/40 text-white font-bold text-sm leading-none flex items-center justify-center hover:bg-black/50 hover:rotate-90 transition-all duration-300 z-20"
           >×</button>
 
-          <div className="relative z-10 flex items-center justify-center gap-2 flex-wrap">
-            <span className="bg-white text-black text-[10px] px-2.5 py-1 rounded-full font-black uppercase tracking-wider shadow-md animate-pulseBadge">
+          <div className="relative z-10 flex items-center justify-center gap-1.5 flex-wrap text-[14px] leading-tight">
+            <span className="bg-white text-black text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider animate-pulseBadge">
               {banner.type}
             </span>
-            <span className="text-base animate-bounceIcon">{icons[banner.type] || "✨"}</span>
-            <b className="font-extrabold tracking-wide">{banner.title}</b>
+            <span className="animate-bounceIcon">{icons[banner.type] || "✨"}</span>
+            {/* Blink Animation Added */}
+            <b className="font-extrabold animate-blink">{banner.title}</b>
             <span className="opacity-90 font-medium">— {banner.message}</span>
           </div>
         </div>
@@ -98,28 +85,22 @@ export default function GlobalBannerWrapper() {
           100% { transform: translateX(200%); }
         }
         @keyframes pulseBadge {
-          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); }
-          50% { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(255,255,255,0); }
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
         }
         @keyframes bounceIcon {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
+          50% { transform: translateY(-2px); }
         }
-       .animate-gradient {
-          animation: gradientMove 4s ease infinite;
+        @keyframes blinkText {
+          0%, 50%, 100% { opacity: 1; }
+          25%, 75% { opacity: 0.4; }
         }
-       .animate-shine {
-          animation: shineMove 3s ease-in-out infinite;
-        }
-       .animate-pulseBadge {
-          animation: pulseBadge 1.8s ease-in-out infinite;
-        }
-       .animate-bounceIcon {
-          animation: bounceIcon 1.2s ease-in-out infinite;
-        }
-       .group:hover.animate-gradient {
-          animation-play-state: paused;
-        }
+       .animate-gradient { animation: gradientMove 4s ease infinite; }
+       .animate-shine { animation: shineMove 3s ease-in-out infinite; }
+       .animate-pulseBadge { animation: pulseBadge 1.5s ease-in-out infinite; }
+       .animate-bounceIcon { animation: bounceIcon 1s ease-in-out infinite; }
+       .animate-blink { animation: blinkText 1.2s ease-in-out infinite; }
       `}</style>
     </div>
   );
