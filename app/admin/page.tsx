@@ -51,7 +51,6 @@ export default function AdminPage() {
   const handleLogin = async () => {
     if(!pass) return alert("Password likho");
     setLoading(true);
-    // FIX: showForgot = Master Login mode
     const res = await fetch("/api/admin-login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -81,7 +80,6 @@ export default function AdminPage() {
     const d = await res.json();
     setLoading(false);
     if(d.success){
-      // Debug OTP dikhega jab email fail ho
       alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL}`);
       setOtpSent(true);
       setShowOtp(true);
@@ -242,7 +240,12 @@ const adminSelfChange = async () => {
                 <label className="text-xs font-bold text-gray-600">⏰ Auto Expiry (Optional)</label>
                 <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1" />
               </div>
-              <button onClick={async()=>{ if(!notifTitle||!notifMsg) return alert("Title + Message likho"); const payload: any = {title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget}; if(notifExpiry) payload.expires_at = new Date(notifExpiry).toISOString(); const {error}=await supabase.from("notifications").insert([payload]); if(error) alert(error.message); else {alert("✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry("");}}} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish with Expiry</button>
+              <button onClick={async()=>{
+                if(!notifTitle||!notifMsg) return alert("Title + Message likho");
+                const {error}=await supabase.from("notifications").insert([{title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget, expires_at: notifExpiry? new Date(notifExpiry).toISOString() : null }]);
+                if(error) alert("❌ Publish Failed: "+error.message);
+                else {alert("✅ Offer Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); }
+              }} className="w-full bg-black text-white p-4 rounded-xl font-bold">🚀 Publish with Expiry</button>
             </div>
           ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
