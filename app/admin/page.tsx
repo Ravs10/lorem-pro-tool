@@ -22,7 +22,6 @@ export default function AdminPage() {
   const [newAdminPass, setNewAdminPass] = useState("");
   const [newMasterKey, setNewMasterKey] = useState("");
   const [authForChange, setAuthForChange] = useState("");
-
   const [recoveryRole, setRecoveryRole] = useState<"admin" | "master">("admin");
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMsg, setNotifMsg] = useState("");
@@ -54,8 +53,7 @@ export default function AdminPage() {
     const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
     if (data) setOffers(data);
   };
-
-  const getToolKey = (t:any) => (t.slug && t.slug.trim()!== ""? t.slug.trim() : String(t.id));
+  const getToolKey = (t:any) => (t.slug && String(t.slug).trim()!==""? String(t.slug).trim() : String(t.id));
 
   const handleLogin = async () => {
     if(!pass) return alert("Password likho");
@@ -145,13 +143,28 @@ export default function AdminPage() {
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-[24px] p-6 shadow-xl">
           {activeTab==="tools"?(
             <>
-              <h2 className="font-bold mb-4 text-white text-lg">Tools Control ({tools.length})</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="font-bold text-white text-lg">Tools Control ({tools.length})</h2>
+                <button onClick={async()=>{
+                  if(!confirm("Saare khali slugs ko naam se auto-generate kar du?")) return;
+                  setLoading(true);
+                  for(const t of tools){
+                    if(!t.slug || String(t.slug).trim()===""){
+                      const newSlug = String(t.name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+                      await supabase.from("tools").update({slug:newSlug}).eq("id", t.id);
+                    }
+                  }
+                  setLoading(false);
+                  alert("✅ Saare slugs fix ho gaye!");
+                  fetchTools();
+                }} className="px-4 py-2 bg-yellow-400 text-black rounded-full text-xs font-bold">{loading? "..." : "🛠️ Fix Empty Slugs (1 Click)"}</button>
+              </div>
               <div className="grid gap-3">
                 {tools.map((tool:any)=>(
                   <div key={tool.id} className={`p-4 rounded-2xl backdrop-blur border shadow-sm flex justify-between items-center transition-all ${tool.is_active? "bg-white/90 border-white/50" : "bg-red-50/80 border-red-200 opacity-70"}`}>
                     <div className="flex items-center gap-3">
                       <button onClick={()=>toggleTool(tool)} className={`w-12 h-7 rounded-full p-1 transition-all ${tool.is_active? "bg-green-500" : "bg-gray-300"}`}><div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${tool.is_active? "translate-x-5" : "translate-x-0"}`}></div></button>
-                      <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug || tool.id}</p></div>
+                      <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug? tool.slug : "❌ SLUG KHALI - Fix button dabao"}</p></div>
                     </div>
                     <div className="flex gap-2">
                       <button onClick={()=>window.open(`/${tool.slug}`, '_blank')} className="text-xs px-3 py-2 bg-black text-white rounded-full">View</button>
@@ -187,7 +200,7 @@ export default function AdminPage() {
                     <div className="flex justify-between mb-2">
                       <span className="text-xs font-bold">Tools:</span>
                       <div className="flex gap-2">
-                        <button type="button" onClick={()=>setSelectedTools(tools.map((t:any)=>getToolKey(t)))} className="text-xs bg-black text-white px-2 py-1 rounded-full">All</button>
+                        <button type="button" onClick={()=>setSelectedTools(tools.map((t:any)=>getToolKey(t)))} className="text-xs bg-black text-white px-2 py-1 rounded-full">All Select</button>
                         <button type="button" onClick={()=>setSelectedTools([])} className="text-xs bg-gray-200 px-2 py-1 rounded-full">Clear</button>
                       </div>
                     </div>
@@ -233,22 +246,30 @@ export default function AdminPage() {
               </div>
 
               <div className="mt-6 border-t pt-4">
-                <h3 className="font-bold text-base mb-3">📋 Live Offers ({offers.length})</h3>
+                <h3 className="font-bold text-base mb-3">📋 Live Offers ({offers.length}) - Tick karke ON/OFF karo</h3>
                 <div className="grid gap-2">
                   {offers.map((o:any)=>(
-                    <div key={o.id} className="p-3 border rounded-xl bg-white shadow-sm">
-                      <p className="font-bold text-sm">{o.title} <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-gray-100">{o.type}</span></p>
-                      <p className="text-xs text-gray-600 mt-1">{o.message}</p>
-                      <p className="text-[10px] text-gray-500 mt-1 break-all">🎯 {o.target_tool}</p>
-                      <div className="flex gap-2 mt-2">
-                        <button onClick={()=>{
-                          setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setEditingOfferId(o.id);
-                          if(o.target_tool==='all'){ setIsAllTools(true); setSelectedTools([]); }
-                          else { setIsAllTools(false); setSelectedTools(o.target_tool.split(',').map((s:string)=>s.trim()).filter(Boolean)); }
-                          if(o.expires_at){ setNoExpiry(false); const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); } else { setNoExpiry(true); }
-                          window.scrollTo({top:0, behavior:'smooth'});
-                        }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
-                        <button onClick={async()=>{ if(!confirm("Delete?")) return; await supabase.from("notifications").delete().eq("id", o.id); fetchOffers(); }} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">Delete</button>
+                    <div key={o.id} className={`p-3 border rounded-xl shadow-sm flex gap-3 items-start ${o.is_active===false? 'bg-gray-100 opacity-60' : 'bg-white'}`}>
+                      <input type="checkbox" checked={o.is_active!==false} onChange={async(e)=>{
+                        const newVal = e.target.checked;
+                        setOffers(prev=>prev.map(x=>x.id===o.id? {...x, is_active: newVal}: x));
+                        const {error} = await supabase.from("notifications").update({is_active: newVal}).eq("id", o.id);
+                        if(error) alert(error.message);
+                      }} className="w-5 h-5 mt-1" title="ON/OFF publish" />
+                      <div className="flex-1">
+                        <p className="font-bold text-sm">{o.title} <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-gray-100">{o.type}</span> {o.is_active===false && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full ml-1">OFF</span>}</p>
+                        <p className="text-xs text-gray-600 mt-1">{o.message}</p>
+                        <p className="text-[10px] text-gray-500 mt-1 break-all">🎯 {o.target_tool} | {o.expires_at? `⏰ ${new Date(o.expires_at).toLocaleString()}` : '♾️ Lifetime'}</p>
+                        <div className="flex gap-2 mt-2">
+                          <button onClick={()=>{
+                            setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setEditingOfferId(o.id);
+                            if(o.target_tool==='all'){ setIsAllTools(true); setSelectedTools([]); }
+                            else { setIsAllTools(false); setSelectedTools(o.target_tool.split(',').map((s:string)=>s.trim()).filter(Boolean)); }
+                            if(o.expires_at){ setNoExpiry(false); const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); } else { setNoExpiry(true); }
+                            window.scrollTo({top:0, behavior:'smooth'});
+                          }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
+                          <button onClick={async()=>{ if(!confirm("Delete?")) return; await supabase.from("notifications").delete().eq("id", o.id); fetchOffers(); }} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">Delete</button>
+                        </div>
                       </div>
                     </div>
                   ))}
