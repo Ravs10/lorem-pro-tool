@@ -82,7 +82,7 @@ export default function AdminPage() {
     setLoading(false);
     if(d.success){
       // Debug OTP dikhega jab email fail ho
-      alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL} ${d.debug_otp? `(Debug: ${d.debug_otp})` : ''}`);
+      alert(`✅ ${recoveryRole.toUpperCase()} OTP sent to ${RECOVERY_EMAIL}`);
       setOtpSent(true);
       setShowOtp(true);
     } else alert("❌ "+(d.error || d.message));
