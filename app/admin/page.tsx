@@ -27,7 +27,8 @@ export default function AdminPage() {
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMsg, setNotifMsg] = useState("");
   const [notifType, setNotifType] = useState("info");
-  const [notifTarget, setNotifTarget] = useState("all");
+  const [selectedTools, setSelectedTools] = useState<string[]>([]);
+  const [isAllTools, setIsAllTools] = useState(true);
   const [notifExpiry, setNotifExpiry] = useState("");
   const [noExpiry, setNoExpiry] = useState(true);
   const [offers, setOffers] = useState<any[]>([]);
@@ -240,104 +241,107 @@ const adminSelfChange = async () => {
             </div>
           ): activeTab==="announcements" && isMaster? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
-              <h2 className="font-bold text-lg">📢 Master Offer + Auto Expiry {editingOfferId && <span className="text-xs bg-yellow-200 px-2 py-1 rounded-full ml-2">Editing Mode</span>}</h2>
+              <h2 className="font-bold text-lg">📢 Master Offer {editingOfferId && <span className="text-xs bg-yellow-200 px-2 py-1 rounded-full ml-2">Editing</span>}</h2>
               <input value={notifTitle} onChange={e=>setNotifTitle(e.target.value)} placeholder="Title - e.g. Diwali 50% OFF" className="w-full p-3 rounded-xl border font-bold" />
-              <textarea value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} placeholder="Message - e.g. Use code DIWALI50" className="w-full p-3 rounded-xl border h-24"></textarea>
+              <textarea value={notifMsg} onChange={e=>setNotifMsg(e.target.value)} placeholder="Message" className="w-full p-3 rounded-xl border h-24"></textarea>
+              <select value={notifType} onChange={e=>setNotifType(e.target.value)} className="w-full p-3 rounded-xl border font-bold bg-white">
+                <option value="info">🔵 Info - Blue</option>
+                <option value="offer">🟢 Offer - Green</option>
+                <option value="alert">🔴 Alert - Red</option>
+                <option value="warning">🟡 Warning - Orange</option>
+                <option value="premium">⚫ Premium - Black Gold</option>
+                <option value="diwali">💜 Diwali - Purple Pink</option>
+              </select>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <select value={notifType} onChange={e=>setNotifType(e.target.value)} className="p-3 rounded-xl border font-bold bg-white">
-                  <option value="info">🔵 Info - Blue</option>
-                  <option value="offer">🟢 Offer - Green</option>
-                  <option value="alert">🔴 Alert - Red</option>
-                  <option value="warning">🟡 Warning - Orange/Yellow</option>
-                  <option value="premium">⚫ Premium - Black + Gold</option>
-                  <option value="diwali">💜 Diwali - Purple Pink</option>
-                </select>
-                <select value={notifTarget} onChange={e=>setNotifTarget(e.target.value)} className="p-3 rounded-xl border flex-1 bg-white"><option value="all">📍 Show on ALL Tools</option>{tools.map((t:any)=><option key={t.id} value={t.slug}>{t.name} only</option>)}</select>
+              {/* FIXED CHECKBOX SYSTEM */}
+              <div className="bg-gray-50 p-3 rounded-xl border">
+                <label className="flex items-center gap-2 text-sm font-bold mb-3 cursor-pointer">
+                  <input type="checkbox" checked={isAllTools} onChange={e=>{ setIsAllTools(e.target.checked); if(e.target.checked){ setSelectedTools([]); }}} className="w-5 h-5" />
+                  📍 Show on ALL Tools
+                </label>
+                {!isAllTools && (
+                  <div className="grid grid-cols-1 gap-1 max-h-[200px] overflow-y-auto bg-white p-2 rounded-lg border">
+                    {tools.map((t:any)=>(
+                      <label key={t.id} className="flex items-center gap-2 text-sm p-2 hover:bg-gray-100 rounded-lg cursor-pointer">
+                        <input type="checkbox" checked={selectedTools.includes(t.slug)} onChange={e=>{
+                          if(e.target.checked) setSelectedTools([...selectedTools, t.slug]);
+                          else setSelectedTools(selectedTools.filter(s=>s!==t.slug));
+                        }} className="w-4 h-4" />
+                        {t.name} <span className="text-[10px] text-gray-400">({t.slug})</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {!isAllTools && <p className="text-[11px] mt-2 font-medium text-blue-600">Selected: {selectedTools.length>0? selectedTools.length + " tools" : "Koi nahi - ALL par nahi dikhega!"}</p>}
               </div>
 
               <div className="bg-gray-50 p-3 rounded-xl border">
                 <label className="flex items-center gap-2 text-sm font-bold mb-2 cursor-pointer">
                   <input type="checkbox" checked={noExpiry} onChange={e=>{ setNoExpiry(e.target.checked); if(e.target.checked) setNotifExpiry(""); }} className="w-4 h-4" />
-                  ♾️ Post without Expiry (Lifetime - ye option wapas laga diya)
+                  ♾️ Lifetime (No Expiry)
                 </label>
-                {!noExpiry && (
-                  <>
-                    <label className="text-xs font-bold text-gray-600">⏰ Auto Expiry Date</label>
-                    <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1 bg-white" />
-                  </>
-                )}
-                {noExpiry && <p className="text-[11px] text-green-600 font-medium">✓ Ye offer kabhi expire nahi hoga</p>}
+                {!noExpiry && <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1 bg-white" />}
               </div>
 
               <div className="flex gap-2">
                 <button onClick={async()=>{
+                  const finalTarget = isAllTools? "all" : selectedTools.join(',');
                   if(!notifTitle||!notifMsg) return alert("Title + Message likho");
+                  if(!isAllTools && selectedTools.length===0) return alert("Kam se kam 1 tool tick karo ya ALL select karo");
                   setLoading(true);
+                  const payload = {title:notifTitle,message:notifMsg,type:notifType,target_tool:finalTarget, expires_at: noExpiry ||!notifExpiry? null : new Date(notifExpiry).toISOString()};
                   let error;
-                  const payload = {title:notifTitle,message:notifMsg,type:notifType,target_tool:notifTarget, expires_at: noExpiry ||!notifExpiry? null : new Date(notifExpiry).toISOString()};
-                  if(editingOfferId){
-                    const res = await supabase.from("notifications").update(payload).eq("id", editingOfferId);
-                    error = res.error;
-                  } else {
-                    const res = await supabase.from("notifications").insert([{...payload, is_active: true }]);
-                    error = res.error;
-                  }
+                  if(editingOfferId){ const res = await supabase.from("notifications").update(payload).eq("id", editingOfferId); error=res.error; }
+                  else { const res = await supabase.from("notifications").insert([{...payload, is_active:true}]); error=res.error; }
                   setLoading(false);
                   if(error) alert("❌ "+error.message);
-                  else { alert(editingOfferId? "✅ Updated!" : "✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); setEditingOfferId(null); fetchOffers(); }
-                }} className="flex-1 bg-black text-white p-4 rounded-xl font-bold">{loading? "..." : editingOfferId? "💾 Update Offer" : noExpiry? "🚀 Publish Lifetime" : "🚀 Publish with Expiry"}</button>
-                {editingOfferId && <button onClick={()=>{ setEditingOfferId(null); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); }} className="px-6 bg-gray-200 rounded-xl font-bold">Cancel</button>}
+                  else { alert(editingOfferId? "✅ Updated!" : "✅ Published!"); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); setIsAllTools(true); setSelectedTools([]); setEditingOfferId(null); fetchOffers(); }
+                }} className="flex-1 bg-black text-white p-4 rounded-xl font-bold">{loading? "..." : editingOfferId? "💾 Update" : "🚀 Publish"}</button>
+                {editingOfferId && <button onClick={()=>{ setEditingOfferId(null); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); setIsAllTools(true); setSelectedTools([]); }} className="px-6 bg-gray-200 rounded-xl font-bold">Cancel</button>}
               </div>
 
-              <div className="mt-8 border-t pt-5">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="font-bold text-base">📋 Live Offers ({offers.length})</h3>
-                  <button onClick={fetchOffers} className="text-xs px-3 py-1 bg-gray-100 rounded-full">Refresh</button>
-                </div>
-                {offers.length===0? <p className="text-sm text-gray-500 text-center py-4">Koi offer nahi hai</p> : (
-                  <div className="grid gap-2">
-                    {offers.map((o:any)=>(
-                      <div key={o.id} className="p-3 border rounded-xl flex justify-between items-center bg-white shadow-sm">
-                        <div className="flex-1">
-                          <p className="font-bold text-sm flex items-center gap-2">{o.title} <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold
-                            ${o.type==='offer'?'bg-green-100 text-green-700': o.type==='alert'?'bg-red-100 text-red-700': o.type==='warning'?'bg-amber-100 text-amber-700': o.type==='premium'?'bg-black text-yellow-400': o.type==='diwali'?'bg-purple-100 text-purple-700':'bg-blue-100 text-blue-700'}`}>{o.type}</span></p>
-                          <p className="text-xs text-gray-600 mt-1">{o.message}</p>
-                          <p className="text-[10px] text-gray-400 mt-1">🎯 {o.target_tool} | {o.expires_at? `⏰ ${new Date(o.expires_at).toLocaleString()}` : '♾️ Lifetime'}</p>
-                        </div>
-                        <div className="flex flex-col gap-2 ml-3">
-                          <button onClick={()=>{
-                            setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setNotifTarget(o.target_tool); setEditingOfferId(o.id);
-                            if(o.expires_at){ setNoExpiry(false); const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); } else { setNoExpiry(true); setNotifExpiry(""); }
-                            window.scrollTo({top:0, behavior:'smooth'});
-                          }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
-                          <button onClick={async()=>{ if(!confirm(`"${o.title}" ko delete karna hai?`)) return; const {error}=await supabase.from("notifications").delete().eq("id", o.id); if(error) alert(error.message); else fetchOffers(); }} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">Delete</button>
-                        </div>
+              <div className="mt-6 border-t pt-4">
+                <h3 className="font-bold text-base mb-3">📋 Live Offers ({offers.length})</h3>
+                <div className="grid gap-2">
+                  {offers.map((o:any)=>(
+                    <div key={o.id} className="p-3 border rounded-xl bg-white shadow-sm">
+                      <p className="font-bold text-sm">{o.title} <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-gray-100">{o.type}</span></p>
+                      <p className="text-xs text-gray-600 mt-1">{o.message}</p>
+                      <p className="text-[10px] text-gray-500 mt-1 break-all">🎯 {o.target_tool} | {o.expires_at? `⏰ ${new Date(o.expires_at).toLocaleString()}` : '♾️ Lifetime'}</p>
+                      <div className="flex gap-2 mt-2">
+                        <button onClick={()=>{
+                          setNotifTitle(o.title); setNotifMsg(o.message); setNotifType(o.type); setEditingOfferId(o.id);
+                          if(o.target_tool==='all'){ setIsAllTools(true); setSelectedTools([]); }
+                          else { setIsAllTools(false); setSelectedTools(o.target_tool.split(',').map((s:string)=>s.trim())); }
+                          if(o.expires_at){ setNoExpiry(false); const d=new Date(o.expires_at); const pad=(n:number)=>String(n).padStart(2,'0'); setNotifExpiry(`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`); } else { setNoExpiry(true); setNotifExpiry(""); }
+                          window.scrollTo({top:0, behavior:'smooth'});
+                        }} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button>
+                        <button onClick={async()=>{ if(!confirm("Delete?")) return; await supabase.from("notifications").delete().eq("id", o.id); fetchOffers(); }} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">Delete</button>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           ): activeTab==="settings" && isMaster? (
             <div className="space-y-6">
               <h2 className="font-bold text-white text-lg">🔐 Advanced Password Control (Master Mode)</h2>
               <div className="bg-yellow-50 border-2 border-yellow-400 p-4 rounded-2xl">
-                <h3 className="font-bold text-sm mb-2">🔑 Master Verification (Har change ke liye zaruri)</h3>
-                <input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Enter Master Key to verify" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" />
+                <h3 className="font-bold text-sm mb-2">🔑 Master Verification</h3>
+                <input value={authForChange} onChange={e=>setAuthForChange(e.target.value)} type="password" placeholder="Enter Master Key" className="w-full p-3 rounded-xl border-2 border-yellow-400 bg-white" />
               </div>
               <div className="bg-white/90 p-5 rounded-2xl">
-                <h3 className="font-bold mb-3">Change / Reset Admin Password</h3>
+                <h3 className="font-bold mb-3">Change Admin Password</h3>
                 <div className="flex gap-2">
                   <input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} placeholder="New Admin Password" className="flex-1 p-3 rounded-xl border" />
                   <button onClick={()=>updatePasswordSecure("admin_password", newAdminPass)} className="px-6 bg-black text-white rounded-xl font-bold">Reset</button>
                 </div>
               </div>
               <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl">
-                <h3 className="font-bold mb-3">👑 Change Master Key (Master Only)</h3>
+                <h3 className="font-bold mb-3">👑 Change Master Key</h3>
                 <div className="flex gap-2">
                   <input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" />
-                  <button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update Master</button>
+                  <button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update</button>
                 </div>
               </div>
             </div>
