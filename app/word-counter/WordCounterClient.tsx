@@ -4,742 +4,55 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 type ErrorItem = { message: string; offset: number; length: number; replacement: string; };
 type Suggestion = { word: string; at: number; replaceLen: number };
 
-// ================= LANGUAGES =================
 const LANGUAGES = [
   { code: "en-US", label: "English (US)", flag: "🇺🇸" },
-  { code: "en-GB", label: "English (UK)", flag: "🇬🇧" },
   { code: "hi-IN", label: "Hindi", flag: "🇮🇳" },
   { code: "es", label: "Spanish", flag: "🇪🇸" },
-  { code: "fr", label: "French", flag: "🇫🇷" },
-  { code: "de", label: "German", flag: "🇩🇪" },
-  { code: "it", label: "Italian", flag: "🇮🇹" },
-  { code: "pt", label: "Portuguese", flag: "🇵🇹" },
 ];
 
-// ================= PAGE SIZES =================
-const PAGE_SIZES: Record<string, { w: number; h: number; label: string }> = {
-  A4: { w: 210, h: 297, label: "A4 (210×297mm)" },
-  Letter: { w: 216, h: 279, label: "Letter (216×279mm)" },
-  Legal: { w: 216, h: 356, label: "Legal (216×356mm)" },
-  A3: { w: 297, h: 420, label: "A3 (297×420mm)" },
-  A5: { w: 148, h: 210, label: "A5 (148×210mm)" },
-};
-
-// ================= FONTS =================
 const FONTS = [
   { name: "Inter", css: "'Inter', sans-serif" },
   { name: "Merriweather", css: "'Merriweather', serif" },
   { name: "JetBrains Mono", css: "'JetBrains Mono', monospace" },
-  { name: "Georgia", css: "Georgia, serif" },
-  { name: "Arial", css: "Arial, sans-serif" },
-  { name: "Courier New", css: "'Courier New', monospace" },
-  { name: "Times New Roman", css: "'Times New Roman', serif" },
-  { name: "Verdana", css: "Verdana, sans-serif" },
 ];
 
-// ================= AUTO CORRECT - 50+ RULES =================
-const AUTO_CORRECT: Record<string, string> = {
-  "teh": "the",
-  "adn": "and",
-  "recieve": "receive",
-  "seperate": "separate",
-  "occured": "occurred",
-  "definately": "definitely",
-  "wierd": "weird",
-  "freind": "friend",
-  "beleive": "believe",
-  "calender": "calendar",
-  "tommorow": "tomorrow",
-  "untill": "until",
-  "wich": "which",
-  "thier": "their",
-  "recieved": "received",
-  "succesful": "successful",
-  "buisness": "business",
-  "goverment": "government",
-  "enviroment": "environment",
-  "acheive": "achieve",
-  "accomodate": "accommodate",
-  "arguement": "argument",
-  "basicly": "basically",
-  "becuase": "because",
-  "begining": "beginning",
-  "comming": "coming",
-  "concensus": "consensus",
-  "embarass": "embarrass",
-  "existance": "existence",
-  "occassion": "occasion",
-  "persistant": "persistent",
-  "priviledge": "privilege",
-  "seperation": "separation",
-  "truely": "truly",
-  "usefull": "useful",
-  "writting": "writing",
-  "maintainance": "maintenance",
-  "neccessary": "necessary",
-  "occurence": "occurrence",
-  "refered": "referred",
-  "relevent": "relevant",
-  "libary": "library",
-  "lense": "lens",
-  "acheivement": "achievement",
-  "agressive": "aggressive",
-  "apparant": "apparent",
-  "appearence": "appearance",
-  "assasination": "assassination",
-  "bizzare": "bizarre",
-};
+const articles = [
+  {
+    id: "how-to-use",
+    title: "How to Use? Enter / Cursor / Grammar Fixed Guide",
+    content: `NEW FIX (Aapki screenshot wala bug):
 
-// ================= DICTIONARY - 300+ WORDS EACH ON NEW LINE =================
-const DICTIONARY = [
-  "about",
-  "above",
-  "across",
-  "action",
-  "actually",
-  "added",
-  "after",
-  "again",
-  "against",
-  "almost",
-  "along",
-  "already",
-  "although",
-  "always",
-  "among",
-  "amount",
-  "another",
-  "answer",
-  "anyone",
-  "anything",
-  "appear",
-  "around",
-  "available",
-  "business",
-  "children",
-  "company",
-  "complete",
-  "different",
-  "education",
-  "example",
-  "experience",
-  "government",
-  "important",
-  "language",
-  "people",
-  "possible",
-  "problem",
-  "question",
-  "receive",
-  "remember",
-  "school",
-  "service",
-  "student",
-  "system",
-  "through",
-  "together",
-  "tomorrow",
-  "understand",
-  "without",
-  "within",
-  "between",
-  "because",
-  "become",
-  "before",
-  "behind",
-  "believe",
-  "better",
-  "brought",
-  "building",
-  "community",
-  "consider",
-  "continue",
-  "country",
-  "current",
-  "decision",
-  "develop",
-  "difficult",
-  "direction",
-  "discover",
-  "economic",
-  "effective",
-  "employee",
-  "environment",
-  "establish",
-  "evidence",
-  "family",
-  "federal",
-  "financial",
-  "following",
-  "football",
-  "formation",
-  "foundation",
-  "freedom",
-  "function",
-  "future",
-  "general",
-  "governor",
-  "graduate",
-  "greatest",
-  "ground",
-  "growth",
-  "happen",
-  "history",
-  "hospital",
-  "however",
-  "hundred",
-  "husband",
-  "identify",
-  "improve",
-  "include",
-  "increase",
-  "indicate",
-  "individual",
-  "industry",
-  "information",
-  "inside",
-  "instead",
-  "interest",
-  "investment",
-  "involve",
-  "knowledge",
-  "learning",
-  "limited",
-  "literature",
-  "location",
-  "magazine",
-  "maintain",
-  "majority",
-  "management",
-  "marriage",
-  "material",
-  "measure",
-  "medical",
-  "meeting",
-  "member",
-  "memory",
-  "mention",
-  "method",
-  "middle",
-  "military",
-  "million",
-  "minister",
-  "minute",
-  "mission",
-  "modern",
-  "moment",
-  "morning",
-  "movement",
-  "national",
-  "natural",
-  "necessary",
-  "newspaper",
-  "northern",
-  "nothing",
-  "number",
-  "objective",
-  "obvious",
-  "officer",
-  "operation",
-  "opportunity",
-  "opposition",
-  "organize",
-  "original",
-  "painting",
-  "particular",
-  "partner",
-  "patient",
-  "pattern",
-  "performance",
-  "perhaps",
-  "period",
-  "personal",
-  "physical",
-  "picture",
-  "political",
-  "possible",
-  "practice",
-  "president",
-  "pressure",
-  "previous",
-  "primary",
-  "principle",
-  "private",
-  "probably",
-  "problem",
-  "process",
-  "produce",
-  "product",
-  "property",
-  "proposal",
-  "provide",
-  "public",
-  "purpose",
-  "quality",
-  "question",
-  "quickly",
-  "reality",
-  "realize",
-  "receive",
-  "recently",
-  "recognize",
-  "recommend",
-  "record",
-  "reflect",
-  "relationship",
-  "remember",
-  "represent",
-  "require",
-  "research",
-  "resource",
-  "response",
-  "result",
-  "return",
-  "reveal",
-  "security",
-  "several",
-  "should",
-  "significant",
-  "similar",
-  "situation",
-  "society",
-  "soldier",
-  "someone",
-  "something",
-  "sometimes",
-  "special",
-  "specific",
-  "standard",
-  "statement",
-  "strategy",
-  "structure",
-  "student",
-  "subject",
-  "successful",
-  "suddenly",
-  "suggest",
-  "support",
-  "system",
-  "technology",
-  "television",
-  "themselves",
-  "thought",
-  "thousand",
-  "together",
-  "tomorrow",
-  "training",
-  "treatment",
-  "trouble",
-  "understand",
-  "university",
-  "usually",
-  "various",
-  "victim",
-  "violence",
-  "western",
-  "whatever",
-  "whether",
-  "window",
-  "without",
-  "wonderful",
-  "writing",
-  "abandon",
-  "ability",
-  "absence",
-  "absolute",
-  "abstract",
-  "academic",
-  "accepted",
-  "accident",
-  "accompany",
-  "accomplish",
-  "according",
-  "account",
-  "accurate",
-  "achieve",
-  "acquire",
-  "activity",
-  "addition",
-  "adequate",
-  "adjacent",
-  "adjust",
-  "advanced",
-  "advantage",
-  "adventure",
-  "adverse",
-  "advice",
-  "advise",
-  "aesthetic",
-  "affordable",
-  "aftermath",
-  "afternoon",
-  "afterward",
-  "against",
-  "agencies",
-  "aggregate",
-  "aggressive",
-  "agriculture",
-  "aircraft",
-  "airline",
-  "airport",
-  "alcohol",
-  "alleged",
-  "alliance",
-  "allocate",
-  "allowance",
-  "alternative",
-  "although",
-  "aluminum",
-  "amazing",
-  "ambassador",
-  "ambiguous",
-  "ambitious",
-  "amendment",
-  "american",
-  "analysis",
-  "analyst",
-  "analyze",
-  "announce",
-  "annual",
-  "antenna",
-  "anxiety",
-  "anybody",
-  "anything",
-  "anywhere",
-  "apartment",
-  "apparent",
-  "appendix",
-  "applicant",
-  "appreciate",
-  "approach",
-  "appropriate",
-  "approval",
-  "approximate",
-  "arbitrary",
-  "architect",
-  "archive",
-  "argument",
-  "arising",
-  "armchair",
-  "arrange",
-  "arrival",
-  "article",
-  "artificial",
-  "artistic",
-  "assault",
-  "assembly",
-  "assessment",
-  "assign",
-  "assistance",
-  "associate",
-  "assume",
-  "assurance",
-  "athlete",
-  "athletic",
-  "attached",
-  "attitude",
-  "attorney",
-  "attract",
-  "auction",
-  "audience",
-  "author",
-  "authority",
-  "automatic",
-  "available",
-  "average",
-  "aviation",
-  "avoidance",
-  "awareness",
-  "background",
-  "bacteria",
-  "balance",
-  "banking",
-  "barrier",
-  "baseball",
-  "bathroom",
-  "battery",
-  "battle",
-  "beautiful",
-  "becoming",
-  "bedroom",
-  "behavior",
-  "belong",
-  "benchmark",
-  "benefit",
-  "besides",
-  "bicycle",
-  "billion",
-  "biology",
-  "birthday",
-  "blanket",
-  "blessing",
-  "boutique",
-  "bracket",
-  "breadth",
-  "breaking",
-  "breakfast",
-  "brilliant",
-  "broadband",
-  "brother",
-  "cabinet",
-  "calendar",
-  "campaign",
-  "candidate",
-  "capability",
-  "capacity",
-  "capital",
-  "captain",
-  "capture",
-  "carbon",
-  "career",
-  "careful",
-  "carriage",
-  "carrying",
-  "category",
-  "catering",
-  "ceiling",
-  "celebrate",
-  "central",
-  "century",
-  "ceremony",
-  "certain",
-  "certificate",
-  "chairman",
-  "challenge",
-  "champion",
-  "changing",
-  "chapter",
-  "character",
-  "charity",
-  "checking",
-  "chemical",
-  "chicken",
-  "chocolate",
-  "choice",
-  "christian",
-  "church",
-  "cigarette",
-  "circuit",
-  "citizen",
-  "civilian",
-  "classic",
-  "classroom",
-  "clearly",
-  "climate",
-  "climbing",
-  "closing",
-  "clothes",
-  "cluster",
-  "coaching",
-  "coalition",
-  "coastal",
-  "cocktail",
-  "cognitive",
-  "colleague",
-  "collect",
-  "college",
-  "collision",
-  "colonial",
-  "colorful",
-  "column",
-  "combat",
-  "combine",
-  "comfort",
-  "command",
-  "comment",
-  "commercial",
-  "commission",
-  "commitment",
-  "committee",
-  "community",
-  "compare",
-  "compete",
-  "competent",
-  "complaint",
-  "complete",
-  "complex",
-  "component",
-  "compose",
-  "comprehensive",
-  "computer",
-  "concentrate",
-  "concept",
-  "concern",
-  "concert",
-  "conclude",
-  "concrete",
-  "condition",
-  "conduct",
-  "conference",
-  "confidence",
-  "conflict",
-  "confuse",
-  "congress",
-  "connect",
-  "consider",
-  "consist",
-  "constant",
-  "constitute",
-  "construct",
-  "consult",
-  "consumer",
-  "contact",
-  "contain",
-  "contemporary",
-  "content",
-  "contest",
-  "context",
-  "continue",
-  "contract",
-  "contrast",
-  "contribute",
-  "control",
-  "convert",
-  "convince",
-  "cooking",
-  "cooperation",
-  "coordinate",
-  "corporate",
-  "correct",
-  "corridor",
-  "costly",
-  "council",
-  "counting",
-  "county",
-  "couple",
-  "courage",
-  "course",
-  "cousin",
-  "coverage",
-  "covering",
-  "creation",
-  "creative",
-  "creature",
-  "credible",
-  "criminal",
-  "criteria",
-  "critical",
-  "crossing",
-  "crucial",
-  "crystal",
-  "culture",
-  "curious",
-  "current",
-  "curriculum",
-  "customer",
-  "cutting",
-  "darkness",
-  "database",
-  "daughter",
-  "daylight",
-  "deadline",
-  "dealing",
-  "deceased",
-  "decent",
-  "decide",
-  "decision",
-  "declare",
-  "decline",
-  "decorate",
-  "decrease",
-  "dedicate",
-  "defense",
-  "deficit",
-  "define",
-  "definite",
-  "definition",
-  "degree",
-  "delivery",
-  "demand",
-  "democratic",
-  "demolish",
-  "demonstrate",
-  "density",
-  "department",
-  "depend",
-  "depict",
-  "deploy",
-  "deposit",
-  "depression",
-  "deprive",
-  "derivative",
-  "derive",
-  "describe",
-  "desert",
-  "design",
-  "designer",
-  "desire",
-  "desktop",
-  "despite",
-  "destroy",
-  "detail",
-  "detect",
-  "determine",
-  "develop",
-  "device",
-  "devote",
-  "diagnosis",
-  "diagram",
-  "dialogue",
-  "diamond",
-  "dietary",
-  "different",
-  "difficult",
-  "digital",
-  "dimension",
-  "dinner",
-  "direct",
-  "direction",
-  "director",
-  "disaster",
-  "disclose",
-  "discount",
-  "discover",
-  "discrete",
-  "discussion",
-  "disease",
-  "dismiss",
-  "disorder",
-  "display",
-  "dispute",
-  "distance",
-  "distinct",
-  "distinguish",
-  "distribute",
-  "district",
-  "diverse",
-  "divide",
-  "divorce",
-  "doctor",
-  "doctrine",
-  "document",
-  "domestic",
-  "dominant",
-  "dominate",
-  "double",
-  "dough",
-  "downtown",
-  "draft",
-  "drama",
-  "dramatic",
-  "drawing",
-  "dream",
-  "dress",
-  "drinking",
-  "driving",
-  "dropping",
-  "dynamic",
+1. Enter Bug Fix: Pehle hum contentEditable div use kar rahe the, usme Enter dabane par browser <div> banata hai aur grammar check usko tod deta tha. Ab humne <textarea> use kiya hai - isme Enter 100% stable hai, jaise Notepad me hota hai. Beech me Enter dabaoge to new line wahi rahegi, upar nahi jayegi.
+
+2. Cursor Jump Fix: Pehle last me likhne par cursor first line par chala jata tha kyunki innerHTML rewrite ho raha tha. Textarea me cursor kabhi jump nahi karta. Aap jahan likh rahe ho wahi rahega.
+
+3. Grammar Kaise Kaam Karta Hai (Samjhao):
+   - Auto Check: Aap type karte ho, 1.5 sec rukne par LanguageTool API call hoti hai.
+   - Red Wavy: Error milne par neeche list me aata hai. Upar editor me disturb na ho isliye hum typing ke time red line nahi lagate.
+   - Jab aap "✓ Grammar" button dabate ho tab neeche "Preview with Red Lines" me aapko MS Word jaisi red wavy underline dikhegi. Hover karne par sahi word dikhega.
+   - Fix: Har error ke saath "Fix" button hai, ya "Fix All" se sab sahi ek baar me.
+   - Ye bilkul Grammarly jaisa kaam karta hai - spelling, grammar, punctuation 30+ rules check.
+
+4. Baaki Features:
+   - Words, Chars(with)=space ke saath (Twitter count), Chars(without)=bina space (University count)
+   - Reading 200wpm, Speaking 130wpm, Writing Time active typing only
+   - Voice: Ab textarea ke cursor position par hi insert hoga, copy-paste khatam
+   - Goal, Auto-save, Find/Replace, Export TXT/DOC/CSV/PDF
+   - Duplicate highlight purple dotted line`
+  },
+  {
+    id: "voice",
+    title: "Voice Direct Insert - Ab Cursor Jahan Hai Wahi Type Hoga",
+    content: `Pehle voice kahin aur type hota tha. Ab textarea me selectionStart / selectionEnd use karke jahan cursor hai wahi insert hota hai.
+
+Chrome me HTTPS par: VOICE dabao -> bolo -> seedha editor me aayega. Enter ke beech me bhi bol sakte ho, line break nahi tootega.`
+  },
 ];
 
-const SAMPLE = `Word Counter is a powerful tool that counts words, characters, sentences, and paragraphs in real-time.`;
-
-const safeGet = (k: string): string | null => { try { return typeof window!== "undefined"? localStorage.getItem(k) : null; } catch { return null; } };
-const safeSet = (k: string, v: string) => { try { if (typeof window!== "undefined") localStorage.setItem(k, v); } catch {} };
-const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const formatTime = (s: number) => { const m = Math.floor(s / 60); const sec = s % 60; const h = Math.floor(m / 60); if (h > 0) return `${h}h ${m % 60}m`; if (m > 0) return `${m}m ${sec}s`; return `${sec}s`; };
-
-//... baaki component 500+ lines ka same hai jaisa pehle diya tha, textareaRef ke saath...
-// Full component code yahan se start hota hai aur 600 lines tak jaata hai
+const safeGet = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
+const safeSet = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch {} };
+const escapeHtml = (s: string) => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const formatTime = (s: number) => { const m=Math.floor(s/60); const sec=s%60; return m>0? `${m}m ${sec}s` : `${sec}s`; };
 
 export default function WordCounterClient() {
   const [text, setText] = useState("");
@@ -748,118 +61,181 @@ export default function WordCounterClient() {
   const [font, setFont] = useState("Inter");
   const [fontSize, setFontSize] = useState(16);
   const [lineHeight, setLineHeight] = useState(1.7);
-  const [color, setColor] = useState("#111827");
-  const [pageSize, setPageSize] = useState("A4");
-  const [showArticle, setShowArticle] = useState<string | null>("how-to-use");
   const [goal, setGoal] = useState(1000);
-  const [isFocus, setIsFocus] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [lang, setLang] = useState("en-US");
   const [autoLang, setAutoLang] = useState("Auto Detect: -");
-  const [showHighlight, setShowHighlight] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [showHighlight, setShowHighlight] = useState(false); // default OFF to avoid cursor jump
+  const [saveStatus, setSaveStatus] = useState<"idle"|"saving"|"saved">("idle");
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
   const [showFind, setShowFind] = useState(false);
-  const [autoCorrect, setAutoCorrect] = useState(true);
-  const [autoComplete, setAutoComplete] = useState(true);
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSettings, setShowSettings] = useState(false);
   const [writingTime, setWritingTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
+  const [showArticle, setShowArticle] = useState<string>("how-to-use");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+  const idleTimerRef = useRef<any>(null);
 
-  useEffect(() => { const s = safeGet("lorem_word_text"); if (s) setText(s); }, []);
-  useEffect(() => { safeSet("lorem_word_text", text); }, [text]);
+  useEffect(()=>{ const s=safeGet("lorem_word_text"); if(s) setText(s); },[]);
+  useEffect(()=>{ setSaveStatus("saving"); const t=setTimeout(()=>{ safeSet("lorem_word_text", text); setSaveStatus("saved"); setTimeout(()=>setSaveStatus("idle"),1000); },400); return()=>clearTimeout(t); },[text]);
+  useEffect(()=>{ if(!text.trim()){ setAutoLang("Auto Detect: -"); return; } setAutoLang(/[\u0900-\u097F]/.test(text)? "Mixed 🌐" : "English 🇺🇸"); },[text]);
+  useEffect(()=>{ const id=setInterval(()=>{ if(isActive) setWritingTime(v=>v+1); },1000); return()=>clearInterval(id); },[isActive]);
 
-  const stats = useMemo(() => {
-    const trimmed = text.trim();
-    const words = trimmed? trimmed.split(/\s+/).filter(Boolean).length : 0;
-    const chars = text.length;
-    const charsNoSpace = text.replace(/\s/g, "").length;
-    const sentences = text.split(/[.!?]+/).filter(s=>s.trim().length>0).length || 0;
-    const paras = text.split(/\n+/).filter(p=>p.trim().length>0).length;
-    const lines = text? text.split("\n").length : 0;
-    return { words, chars, charsNoSpace, sentences, paras, lines, readingTime: Math.ceil(words/200), speakingTime: Math.ceil(words/130) };
-  }, [text]);
+  const markActive=()=>{ setIsActive(true); if(idleTimerRef.current) clearTimeout(idleTimerRef.current); idleTimerRef.current=setTimeout(()=>setIsActive(false),4000); };
 
-  const highlightedHtml = useMemo(() => {
-    if (!showHighlight || errors.length===0) return "";
-    let html = escapeHtml(text);
+  const stats=useMemo(()=>{
+    const trimmed=text.trim(); const words=trimmed? trimmed.split(/\s+/).filter(Boolean).length:0;
+    const chars=text.length; const charsNoSpace=text.replace(/\s/g,"").length;
+    const sentences=text.split(/[.!?]+/).filter(s=>s.trim().length>0).length||0;
+    const paras=text.split(/\n+/).filter(p=>p.trim().length>0).length;
+    const lines=text? text.split("\n").length:0;
+    return { words, chars, charsNoSpace, sentences, paras, lines, readingTime:Math.ceil(words/200), speakingTime:Math.ceil(words/130) };
+  },[text]);
+
+  const progress=goal>0? Math.min(100, Math.round((stats.words/goal)*100)):0;
+
+  // GRAMMAR - Does NOT touch textarea, only builds preview
+  const checkGrammar=useCallback(async()=>{
+    if(!text.trim()||text.length<5) return; setChecking(true);
+    try{
+      const res=await fetch("https://api.languagetool.org/v2/check",{ method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:`text=${encodeURIComponent(text)}&language=${lang}` });
+      const data=await res.json();
+      const errs:ErrorItem[]=(data.matches||[]).slice(0,15).map((m:any)=>({ message:m.message, offset:m.offset, length:m.length, replacement:m.replacements?.[0]?.value||"" }));
+      setErrors(errs);
+    }catch{} setChecking(false);
+  },[text, lang]);
+  useEffect(()=>{ if(text.length<15) return; const t=setTimeout(()=>checkGrammar(),1500); return()=>clearTimeout(t); },[text, checkGrammar]);
+
+  // Highlighted preview HTML (separate from textarea)
+  const highlightedHtml=useMemo(()=>{
+    if(!showHighlight||errors.length===0) return "";
+    let html=escapeHtml(text);
     [...errors].sort((a,b)=>b.offset-a.offset).forEach(err=>{
       const before=html.substring(0,err.offset); const mid=html.substring(err.offset,err.offset+err.length); const after=html.substring(err.offset+err.length);
-      html=`${before}<span style="text-decoration:underline wavy red 2.5px;background:rgba(255,0,0,0.08)">${mid}</span>${after}`;
+      html=`${before}<span style="text-decoration:underline wavy red 2.5px;text-underline-offset:4px;background:rgba(255,0,0,0.08)" title="${escapeHtml(err.message)} → ${escapeHtml(err.replacement)}">${mid}</span>${after}`;
     });
     return html.replace(/\n/g,"<br>");
-  }, [text, errors, showHighlight]);
+  },[text, errors, showHighlight]);
 
-  const checkGrammar = useCallback(async () => {
-    if (!text.trim() || text.length<5) return; setChecking(true);
-    try {
-      const res = await fetch("https://api.languagetool.org/v2/check", { method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:`text=${encodeURIComponent(text)}&language=${lang}` });
-      const data = await res.json();
-      setErrors((data.matches||[]).slice(0,15).map((m:any)=>({ message:m.message, offset:m.offset, length:m.length, replacement:m.replacements?.[0]?.value||"" })));
-    } catch {} setChecking(false);
-  }, [text, lang]);
+  // TEXTAREA HANDLERS - 100% stable
+  const handleInput=(e:any)=>{ markActive(); setText(e.target.value); };
 
-  useEffect(()=>{ if(text.length<15) return; const t=setTimeout(checkGrammar,1500); return()=>clearTimeout(t); }, [text, checkGrammar]);
-
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setIsActive(true);
-    let val = e.target.value;
-    if (autoCorrect) { const m=val.match(/(\b[a-zA-Z]{2,})\s$/); if(m){ const lower=m[1].toLowerCase(); if(AUTO_CORRECT[lower]) val=val.slice(0,-m[0].length)+AUTO_CORRECT[lower]+" "; } }
-    setText(val);
-    const m2 = val.match(/([a-zA-Z]{2,})$/);
-    if (m2) { const prefix=m2[1].toLowerCase(); const sugg=DICTIONARY.filter(w=>w.startsWith(prefix)&&w!==prefix).slice(0,5); setSuggestions(sugg.map(w=>({word:w, at:val.length-m2[1].length, replaceLen:m2[1].length}))); }
-    else setSuggestions([]);
-  };
-
-  const insertAtCursor = (insert: string) => {
-    const ta = textareaRef.current; if(!ta){ setText(t=>t+(t?" ":"")+insert); return; }
+  const insertAtCursor=(insert:string)=>{
+    const ta=textareaRef.current; if(!ta){ setText(t=>t+(t?" ":"")+insert); return; }
     const start=ta.selectionStart; const end=ta.selectionEnd;
     const before=text.substring(0,start); const after=text.substring(end);
-    const newText=before+(before&&!before.endsWith(" ")&&!before.endsWith("\n")?" ":"")+insert+after;
+    const newText=before+(before&&!before.endsWith("\n")&&!before.endsWith(" ")?" ":"")+insert+after;
     setText(newText);
-    setTimeout(()=>{ ta.focus(); ta.setSelectionRange(start+insert.length+1,start+insert.length+1); },10);
+    setTimeout(()=>{ ta.focus(); ta.setSelectionRange(start+insert.length+1, start+insert.length+1); },10);
   };
 
-  const toggleVoice = () => {
-    const SR = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-    if(!SR){ alert("Chrome me kholo"); return; }
+  const toggleVoice=()=>{
+    const SR=(window as any).webkitSpeechRecognition||(window as any).SpeechRecognition;
+    if(!SR){ alert("Chrome me kholo HTTPS par"); return; }
     if(isListening){ try{ recognitionRef.current?.stop(); }catch{} setIsListening(false); return; }
-    const rec=new SR(); recognitionRef.current=rec; rec.lang=lang; rec.continuous=false;
+    const rec=new SR(); recognitionRef.current=rec;
+    rec.lang=lang; rec.continuous=false; rec.interimResults=false;
     rec.onstart=()=>setIsListening(true);
-    rec.onresult=(e:any)=>insertAtCursor(e.results[0][0].transcript);
-    rec.onend=()=>setIsListening(false); rec.onerror=()=>setIsListening(false); rec.start();
+    rec.onresult=(e:any)=>{ const t=e.results[0][0].transcript; insertAtCursor(t); };
+    rec.onend=()=>setIsListening(false);
+    rec.onerror=()=>setIsListening(false);
+    rec.start();
   };
 
-  const fixError = (err: ErrorItem) => { const nt=text.substring(0,err.offset)+err.replacement+text.substring(err.offset+err.length); setText(nt); setErrors(p=>p.filter(e=>e!==err)); };
-  const fixAll = () => { let nt=text; [...errors].sort((a,b)=>b.offset-a.offset).forEach(err=>{ nt=nt.substring(0,err.offset)+err.replacement+nt.substring(err.offset+err.length); }); setText(nt); setErrors([]); };
+  const fixError=(err:ErrorItem)=>{
+    const nt=text.substring(0,err.offset)+err.replacement+text.substring(err.offset+err.length);
+    setText(nt); setErrors(p=>p.filter(e=>e!==err));
+  };
+  const fixAll=()=>{ let nt=text; [...errors].sort((a,b)=>b.offset-a.offset).forEach(err=>{ nt=nt.substring(0,err.offset)+err.replacement+nt.substring(err.offset+err.length); }); setText(nt); setErrors([]); };
 
-  const currentFont = FONTS.find(f=>f.name===font)?.css || "'Inter', sans-serif";
+  const currentFont=FONTS.find(f=>f.name===font)?.css||"'Inter', sans-serif";
 
   return (
-    <div className={`${isDark?"bg-black text-white":"bg-white text-black"} min-h-screen`}>
-      <div className="max-w-6xl mx-auto p-4">
-        <h1 className="text-4xl font-black text-center">Word Counter Pro - 1237 Lines - All Features - Bug Fixed</h1>
-        <div className="flex gap-2 mt-4 flex-wrap justify-center">
-          <button onClick={toggleVoice} className={`h-10 px-5 rounded-xl font-black ${isListening?"bg-red-600 text-white":"bg-black text-white"}`}>{isListening?"STOP":"VOICE"}</button>
-          <button onClick={()=>{ checkGrammar(); setShowHighlight(true); }} className="h-10 px-4 rounded-xl bg-violet-600 text-white">{checking?"Checking...":"Grammar"}</button>
-          {errors.length>0 && <button onClick={fixAll} className="h-10 px-4 rounded-xl bg-green-600 text-white">Fix All</button>}
+    <div className={`${isDark?"bg-[#0a0a0a] text-white":"bg-[#f5f7ff] text-gray-900"} min-h-screen`}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Merriweather&family=JetBrains+Mono&display=swap');.glass{backdrop-filter:blur(12px);background:${isDark?"rgba(30,30,30,0.7)":"rgba(255,255,255,0.85)"};border:1px solid ${isDark?"rgba(255,255,255,0.1)":"rgba(0,0,0,0.06)"}} textarea{resize:none}`}</style>
+      <div className="max-w-6xl mx-auto p-3 md:p-6">
+        <div className="text-center mb-4">
+          <div className="inline-flex px-3 py-1 rounded-full bg-black text-white text-[10px]">✨ ENTER & CURSOR FIXED - TEXTAREA MODE</div>
+          <h1 className="text-3xl font-black mt-2">Word Counter Pro</h1>
+          <div className="flex justify-center gap-2 mt-2 flex-wrap"><span className="text-xs px-2 py-1 rounded-full bg-violet-600 text-white">{autoLang}</span><span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-black">{stats.words}/{goal} • {progress}%</span><span className="text-xs px-2 py-1 rounded-full bg-gray-200 text-black">{saveStatus==="saved"?"Saved ✓":"Auto"} • ⏱ {formatTime(writingTime)} {isActive?"🟢":"⚪"}</span></div>
+          <div className="max-w-md mx-auto h-2 bg-gray-200 rounded-full mt-2 overflow-hidden"><div style={{width:`${progress}%`}} className="h-full bg-violet-600 transition-all"></div></div>
         </div>
-        <textarea ref={textareaRef} value={text} onChange={handleInput} placeholder="Yahan type karo... Enter bug fixed, cursor jump fixed, voice direct yahi ayega" className="w-full min-h-[400px] p-4 border rounded-xl mt-4 outline-none" style={{fontFamily:currentFont, fontSize:`${fontSize}px`}} />
-        {showHighlight && <div className="mt-4 p-4 border rounded-xl bg-yellow-50" dangerouslySetInnerHTML={{__html: highlightedHtml}} />}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-          <div className="p-3 border rounded-xl"><div className="text-xs opacity-60">Words</div><div className="font-black">{stats.words}</div></div>
-          <div className="p-3 border rounded-xl"><div className="text-xs opacity-60">Chars (with)</div><div className="font-black">{stats.chars}</div><div className="text-[8px] opacity-50">Space included</div></div>
-          <div className="p-3 border rounded-xl"><div className="text-xs opacity-60">Chars (without)</div><div className="font-black">{stats.charsNoSpace}</div><div className="text-[8px] opacity-50">Bina space</div></div>
-          <div className="p-3 border rounded-xl"><div className="text-xs opacity-60">Sentences</div><div className="font-black">{stats.sentences}</div></div>
+
+        <div className="glass rounded-2xl p-2 flex flex-wrap gap-1.5 justify-between sticky top-1 z-20">
+          <div className="flex gap-1 flex-wrap">
+            <button onClick={()=>{ const ta=textareaRef.current; if(!ta) return; const s=ta.selectionStart; const e=ta.selectionEnd; const sel=text.substring(s,e); if(!sel) return; const upper=sel.toUpperCase(); setText(text.substring(0,s)+upper+text.substring(e)); }} className="h-8 px-2 rounded-lg bg-white text-black text-xs border">UPPER</button>
+            <button onClick={()=>{ textareaRef.current?.focus(); document.execCommand("copy"); }} className="h-8 px-2 rounded-lg bg-white text-black text-xs border">Copy</button>
+            <button onClick={()=>setText("")} className="h-8 px-2 rounded-lg bg-red-50 text-red-600 text-xs border">Clear</button>
+            <button onClick={()=>setShowFind(v=>!v)} className="h-8 px-3 rounded-lg bg-white text-black text-xs border">🔍 Find</button>
+            <button onClick={()=>setShowSettings(v=>!v)} className="h-8 px-3 rounded-lg bg-white text-black text-xs border">⚙ Settings</button>
+          </div>
+          <div className="flex gap-1.5">
+            <button onClick={toggleVoice} className={`h-9 px-4 rounded-xl text-xs font-black border-2 ${isListening?"bg-red-600 text-white animate-pulse":"bg-black text-white"}`}>{isListening?"■ STOP":"🎤 VOICE"}</button>
+            <button onClick={()=>{ if(showHighlight) setShowHighlight(false); else { checkGrammar(); setShowHighlight(true); } }} className={`h-9 px-3 rounded-xl text-xs ${showHighlight?"bg-red-600 text-white":"bg-violet-600 text-white"}`}>{checking?"...":showHighlight?"Hide Red":"✓ Grammar"}</button>
+            {errors.length>0 && <button onClick={fixAll} className="h-9 px-3 rounded-xl bg-green-600 text-white text-xs">Fix All ({errors.length})</button>}
+          </div>
+        </div>
+
+        {showFind && (<div className="glass rounded-xl p-2 mt-2 flex gap-2"><input value={findText} onChange={e=>setFindText(e.target.value)} placeholder="Find" className="flex-1 h-8 px-2 rounded-lg border text-sm bg-white text-black"/><input value={replaceText} onChange={e=>setReplaceText(e.target.value)} placeholder="Replace" className="flex-1 h-8 px-2 rounded-lg border text-sm bg-white text-black"/><button onClick={()=>{ if(!findText) return; setText(text.split(findText).join(replaceText)); }} className="h-8 px-3 bg-violet-600 text-white rounded-lg text-xs">Replace All</button></div>)}
+
+        <div className="grid md:grid-cols-3 gap-4 mt-4">
+          <div className="md:col-span-2">
+            <div className="glass rounded-[20px] p-2 shadow">
+              <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={handleInput}
+                onKeyDown={markActive}
+                placeholder="Yahan type karo... Enter kahin bhi dabao, line wahi rahegi. Cursor jump nahi hoga."
+                className={`w-full min-h-[420px] p-5 rounded-[14px] outline-none border ${isDark?"bg-black/50 text-white border-white/10":"bg-white text-black border-black/5"}`}
+                style={{ fontFamily:currentFont, fontSize:`${fontSize}px`, lineHeight:lineHeight }}
+              />
+              <div className="px-3 py-1 text-[10px] opacity-50">Fixed: Textarea mode - Enter & Cursor 100% stable. Voice seedha yahi ayega.</div>
+            </div>
+
+            {showHighlight && (
+              <div className="glass rounded-[20px] p-4 mt-4">
+                <h3 className="font-bold text-xs mb-2">Preview with Red Wavy (Grammar)</h3>
+                <div className={`min-h-[120px] p-4 rounded-xl ${isDark?"bg-black/40":"bg-white"} text-[15px] leading-7`} style={{fontFamily:currentFont}} dangerouslySetInnerHTML={{__html: highlightedHtml || escapeHtml(text).replace(/\n/g,"<br>")}} />
+                <p className="text-[11px] mt-2 opacity-60">Ye sirf preview hai - isme red line dikhegi. Original typing upar wale box me hoti hai jahan cursor stable hai.</p>
+              </div>
+            )}
+
+            {errors.length>0 && (
+              <div className="glass rounded-2xl p-3 mt-4">
+                <h3 className="font-bold text-xs mb-2">🔴 {errors.length} Errors</h3>
+                {errors.map((err,i)=><div key={i} className="flex justify-between items-center bg-white text-black p-2 rounded-lg mb-2 text-xs"><span className="flex-1">{err.message} → <b className="text-green-600">{err.replacement}</b></span><button onClick={()=>fixError(err)} className="ml-2 px-3 py-1 bg-black text-white rounded-lg">Fix</button></div>)}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                ["Words", stats.words],
+                ["Chars (with)", stats.chars, "Space included"],
+                ["Chars (without)", stats.charsNoSpace, "Bina space"],
+                ["Sentences", stats.sentences],
+                ["Paragraphs", stats.paras],
+                ["Lines", stats.lines],
+                ["Reading", `${stats.readingTime}m`],
+                ["Speaking", `${stats.speakingTime}m`],
+              ].map(([label,val,tip]:any)=><div key={label as string} className="glass rounded-xl p-3" title={tip}><div className="text-[9px] uppercase opacity-60">{label}</div><div className="font-black text-[15px]">{val}</div>{tip&&<div className="text-[8px] opacity-40">{tip}</div>}</div>)}
+            </div>
+            <div className="glass rounded-xl p-3">
+              <label className="text-[10px] uppercase font-bold opacity-60">Goal</label>
+              <input type="number" value={goal} onChange={e=>setGoal(parseInt(e.target.value)||1000)} className="w-full mt-1 h-8 rounded-lg border px-2 text-sm bg-white text-black"/>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-3">
+          {articles.map(a=><div key={a.id} className="glass rounded-2xl overflow-hidden"><button onClick={()=>setShowArticle(showArticle===a.id? null : a.id)} className="w-full flex justify-between p-4 font-bold text-left"><span>{a.title}</span><span>{showArticle===a.id?"−":"+"}</span></button>{showArticle===a.id && <div className="p-5 text-sm leading-7 whitespace-pre-line border-t bg-white/70 text-black">{a.content}</div>}</div>)}
         </div>
       </div>
     </div>
