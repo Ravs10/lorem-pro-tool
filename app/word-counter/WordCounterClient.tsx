@@ -2,7 +2,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 
 type ErrorItem = { message: string; offset: number; length: number; replacement: string; };
-type Suggestion = { word: string; at: number };
+type Suggestion = { word: string; at: number; replaceLen: number };
 
 const LANGUAGES = [
   { code: "en-US", label: "English (US)", flag: "🇺🇸" },
@@ -13,7 +13,7 @@ const LANGUAGES = [
   { code: "de", label: "German", flag: "🇩🇪" },
 ];
 
-const PAGE_SIZES = {
+const PAGE_SIZES: Record<string, { w: number; h: number; label: string }> = {
   A4:     { w: 210, h: 297, label: "A4 (210×297mm)" },
   Letter: { w: 216, h: 279, label: "Letter (216×279mm)" },
   Legal:  { w: 216, h: 356, label: "Legal (216×356mm)" },
@@ -28,7 +28,6 @@ const FONTS = [
   { name: "Courier New", css: "'Courier New', monospace", mono: true },
 ];
 
-// Common typos for auto-correct
 const AUTO_CORRECT: Record<string, string> = {
   teh: "the", adn: "and", recieve: "receive", seperate: "separate",
   occured: "occurred", definately: "definitely", wierd: "weird",
@@ -37,50 +36,51 @@ const AUTO_CORRECT: Record<string, string> = {
   recieved: "received", succesful: "successful", buisness: "business",
   goverment: "government", enviroment: "environment", acheive: "achieve",
   accomodate: "accommodate", arguement: "argument", basicly: "basically",
-  becuase: "because", begining: "beginning", beleive: "believe",
-  comming: "coming", dont: "don't", doesnt: "doesn't", cant: "can't",
-  wont: "won't", isnt: "isn't", arent: "aren't", wasnt: "wasn't",
-  whats: "what's", thats: "that's", youre: "you're", theyre: "they're",
+  becuase: "because", begining: "beginning", comming: "coming",
 };
 
-// Auto-complete dictionary (top common words)
-const DICTIONARY = [
-  "about","above","across","action","actually","added","after","again","against","almost",
-  "along","already","although","always","among","amount","another","answer","anyone","anything",
-  "appear","around","available","back","became","because","become","before","begin","behind",
-  "believe","below","better","between","beyond","bring","business","called","cannot","carry",
-  "center","certain","change","children","choose","class","clear","close","color","coming",
-  "common","company","complete","consider","continue","could","country","course","create","current",
-  "decide","describe","develop","different","difficult","direct","during","early","education","effect",
-  "either","enough","every","example","experience","family","father","feeling","figure","follow",
-  "friend","future","general","given","government","great","ground","group","growth","happen",
-  "having","heard","heavy","history","however","hundred","important","include","inside","issue",
-  "itself","knowledge","language","large","later","learn","leave","letter","level","light",
-  "little","local","machine","major","material","matter","maybe","mean","measure","medical",
-  "member","memory","message","method","middle","might","minute","modern","moment","money",
-  "month","morning","mother","mountain","music","nation","natural","nature","nearly","necessary",
-  "need","never","night","nothing","notice","number","object","occur","offer","often",
-  "order","other","paper","particular","people","perhaps","person","picture","place","plan",
-  "point","police","policy","possible","power","practice","prepare","present","president","press",
-  "pretty","prevent","private","probably","problem","process","produce","product","program","project",
-  "property","provide","public","purpose","question","quickly","quiet","rather","reach","ready",
-  "really","reason","receive","recent","recognize","record","reduce","reflect","region","relate",
-  "remain","remember","remove","report","require","research","resource","respond","result","return",
-  "right","roughly","school","science","season","second","section","seem","sense","series",
-  "serious","serve","service","several","shall","share","short","should","similar","simple",
-  "simply","since","single","situation","small","social","society","some","someone","something",
-  "sometimes","space","speak","special","spend","stand","start","state","statement","station",
-  "stay","still","story","street","strong","structure","student","study","subject","success",
-  "suddenly","suggest","summer","support","system","table","taken","teach","thing","though",
-  "thought","thousand","through","throughout","together","tomorrow","tonight","total","toward","town",
-  "trade","training","travel","treatment","trouble","truth","understand","until","usually","value",
-  "various","victim","video","village","visit","voice","watch","water","weapon","weather",
-  "week","weight","welcome","western","whatever","whenever","wherever","whether","which","while",
-  "white","whole","whose","window","within","without","woman","wonder","world","worry",
-  "would","write","writer","wrong","year","young","yourself"
-];
+const DICTIONARY = ["about","above","across","action","actually","added","after","again","against","almost","along","already","although","always","among","amount","another","answer","anyone","anything","appear","around","available","back","became","because","become","before","begin","behind","believe","below","better","between","beyond","bring","business","called","cannot","carry","center","certain","change","children","choose","class","clear","close","color","coming","common","company","complete","consider","continue","could","country","course","create","current","decide","describe","develop","different","difficult","direct","during","early","education","effect","either","enough","every","example","experience","family","father","feeling","figure","follow","friend","future","general","given","government","great","ground","group","growth","happen","having","heard","heavy","history","however","hundred","important","include","inside","issue","itself","knowledge","language","large","later","learn","leave","letter","level","light","little","local","machine","major","material","matter","maybe","mean","measure","medical","member","memory","message","method","middle","might","minute","modern","moment","money","month","morning","mother","mountain","music","nation","natural","nature","nearly","necessary","need","never","night","nothing","notice","number","object","occur","offer","often","order","other","paper","particular","people","perhaps","person","picture","place","plan","point","police","policy","possible","power","practice","prepare","present","president","press","pretty","prevent","private","probably","problem","process","produce","product","program","project","property","provide","public","purpose","question","quickly","quiet","rather","reach","ready","really","reason","receive","recent","recognize","record","reduce","reflect","region","relate","remain","remember","remove","report","require","research","resource","respond","result","return","right","roughly","school","science","season","second","section","seem","sense","series","serious","serve","service","several","shall","share","short","should","similar","simple","simply","since","single","situation","small","social","society","some","someone","something","sometimes","space","speak","special","spend","stand","start","state","statement","station","stay","still","story","street","strong","structure","student","study","subject","success","suddenly","suggest","summer","support","system","table","taken","teach","thing","though","thought","thousand","through","throughout","together","tomorrow","tonight","total","toward","town","trade","training","travel","treatment","trouble","truth","understand","until","usually","value","various","victim","video","village","visit","voice","watch","water","weapon","weather","week","weight","welcome","western","whatever","whenever","wherever","whether","which","while","white","whole","whose","window","within","without","woman","wonder","world","worry","would","write","writer","wrong","year","young","yourself"];
 
-const SAMPLE = `Word Counter is a powerful tool that counts words, characters, sentences, and paragraphs in real-time. It helps writers, students, and SEO professionals track their content length and readability. Try pasting your text here to see live statistics!`;
+const SAMPLE = `Word Counter is a powerful tool that counts words, characters, sentences, and paragraphs in real-time. It helps writers, students, and SEO professionals track their content length and readability.`;
+
+// ✅ SAFE localStorage helpers
+const safeGet = (k: string): string | null => {
+  try { return typeof window !== "undefined" ? localStorage.getItem(k) : null; } catch { return null; }
+};
+const safeSet = (k: string, v: string) => {
+  try { if (typeof window !== "undefined") localStorage.setItem(k, v); } catch {}
+};
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+   .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+const formatTime = (s: number) => {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}h ${m % 60}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
+};
+
+// ✅ FIX #1: safe offset mapping — escape text but track original → escaped positions
+const buildEscapedWithMap = (txt: string) => {
+  let html = "";
+  const map: number[] = new Array(txt.length);
+  for (let i = 0; i < txt.length; i++) {
+    map[i] = html.length;
+    const ch = txt[i];
+    if (ch === "&") html += "&amp;";
+    else if (ch === "<") html += "&lt;";
+    else if (ch === ">") html += "&gt;";
+    else if (ch === '"') html += "&quot;";
+    else if (ch === "'") html += "&#39;";
+    else html += ch;
+  }
+  map[txt.length] = html.length;
+  return { html, map };
+};
 
 export default function WordCounterClient() {
   const [text, setText] = useState("");
@@ -90,7 +90,7 @@ export default function WordCounterClient() {
   const [fontSize, setFontSize] = useState(16);
   const [lineHeight, setLineHeight] = useState(1.7);
   const [color, setColor] = useState("#111827");
-  const [pageSize, setPageSize] = useState<keyof typeof PAGE_SIZES>("A4");
+  const [pageSize, setPageSize] = useState("A4");
   const [showArticle, setShowArticle] = useState<string | null>(null);
   const [goal, setGoal] = useState(1000);
   const [isFocus, setIsFocus] = useState(false);
@@ -111,7 +111,7 @@ export default function WordCounterClient() {
   const [duplicateHighlight, setDuplicateHighlight] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [goalReached, setGoalReached] = useState(false);
-  const [writingTime, setWritingTime] = useState(0); // seconds
+  const [writingTime, setWritingTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -123,15 +123,15 @@ export default function WordCounterClient() {
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTextRef = useRef("");
 
-  // ---------------- LOAD ----------------
+  // ---------------- LOAD (with safe storage) ----------------
   useEffect(() => {
-    const saved = localStorage.getItem("lorem_word_text");
+    const saved = safeGet("lorem_word_text");
     if (saved) {
       setText(saved);
       if (editorRef.current) editorRef.current.innerText = saved;
       lastTextRef.current = saved;
     }
-    const cfg = localStorage.getItem("lorem_cfg");
+    const cfg = safeGet("lorem_cfg");
     if (cfg) {
       try {
         const c = JSON.parse(cfg);
@@ -154,15 +154,13 @@ export default function WordCounterClient() {
     setSaveStatus("saving");
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      try {
-        localStorage.setItem("lorem_word_text", text);
-        localStorage.setItem("lorem_cfg", JSON.stringify({
-          font, fontSize, lineHeight, color, pageSize, goal, dark: isDark, lang,
-          autoCorrect, autoComplete,
-        }));
-        setSaveStatus("saved");
-        setTimeout(() => setSaveStatus("idle"), 1200);
-      } catch {}
+      safeSet("lorem_word_text", text);
+      safeSet("lorem_cfg", JSON.stringify({
+        font, fontSize, lineHeight, color, pageSize, goal, dark: isDark, lang,
+        autoCorrect, autoComplete,
+      }));
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 1200);
     }, 400);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, [text, font, fontSize, lineHeight, color, pageSize, goal, isDark, lang, autoCorrect, autoComplete]);
@@ -176,7 +174,7 @@ export default function WordCounterClient() {
       : hasHindi ? "Auto Detect: Mixed 🌐" : "Auto Detect: English 🇺🇸");
   }, [text]);
 
-  // ---------------- WRITING TIME TRACKER ----------------
+  // ---------------- WRITING TIME ----------------
   useEffect(() => {
     const tick = setInterval(() => {
       if (isActive) setWritingTime(t => t + 1);
@@ -184,11 +182,12 @@ export default function WordCounterClient() {
     return () => clearInterval(tick);
   }, [isActive]);
 
-  const markActive = () => {
-    setIsActive(true);
+  // ✅ FIX #10: stable markActive using ref, no re-render spam
+  const markActive = useCallback(() => {
+    setIsActive(prev => (prev ? prev : true));
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = setTimeout(() => setIsActive(false), 5000); // 5s idle = pause
-  };
+    idleTimerRef.current = setTimeout(() => setIsActive(false), 5000);
+  }, []);
 
   // ---------------- STATS ----------------
   const stats = useMemo(() => {
@@ -204,7 +203,6 @@ export default function WordCounterClient() {
     const avgWPS = words / (sentences || 1);
     const syllables = text.toLowerCase().split(/\s+/).reduce((a, w) => a + Math.max(1, (w.match(/[aeiouy]+/g) || []).length), 0);
     const flesch = words > 0 ? Math.max(0, Math.min(100, Math.round(206.835 - 1.015 * avgWPS - 84.6 * (syllables / words)))) : 0;
-
     let level = "—";
     if (words > 0) {
       if (flesch >= 80) level = "Easy 🟢";
@@ -212,7 +210,6 @@ export default function WordCounterClient() {
       else if (flesch >= 40) level = "Hard 🟠";
       else level = "Very Hard 🔴";
     }
-
     const freq: Record<string, number> = {};
     if (words > 0) trimmed.toLowerCase().split(/\s+/).forEach(w => {
       const c = w.replace(/[^a-z0-9\u0900-\u097F]/g, "");
@@ -230,14 +227,12 @@ export default function WordCounterClient() {
     if (!trimmed) return { words: [], sentences: [] };
     const words = trimmed.toLowerCase().split(/\s+/).map(w => w.replace(/[^a-z0-9]/g, "")).filter(w => w.length > 3);
     const wc: Record<string, number> = {};
-    words.forEach(w => wc[w] = (wc[w] || 0) + 1);
+    words.forEach(w => { wc[w] = (wc[w] || 0) + 1; });
     const dupWords = Object.entries(wc).filter(([, c]) => c > 1).sort((a, b) => b[1] - a[1]).slice(0, 20);
-
     const sentences = text.split(/[.!?]+/).map(s => s.trim().toLowerCase()).filter(s => s.length > 20);
     const sc: Record<string, number> = {};
-    sentences.forEach(s => sc[s] = (sc[s] || 0) + 1);
+    sentences.forEach(s => { sc[s] = (sc[s] || 0) + 1; });
     const dupSentences = Object.entries(sc).filter(([, c]) => c > 1).map(([s, c]) => ({ text: s.slice(0, 80), count: c }));
-
     return { words: dupWords, sentences: dupSentences };
   }, [text]);
 
@@ -248,9 +243,9 @@ export default function WordCounterClient() {
     if (stats.words >= goal && goal > 0 && !goalReached) {
       setGoalReached(true);
       setToast(`🎉 Goal Reached! ${stats.words}/${goal} words`);
-      // Beep using Web Audio
       try {
-        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new Ctx();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
@@ -269,34 +264,44 @@ export default function WordCounterClient() {
     }
   }, [stats.words, goal, goalReached]);
 
-  // ---------------- ESCAPE HTML ----------------
-  const escapeHtml = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-
-  // ---------------- HIGHLIGHTS (grammar + duplicates) ----------------
+  // ✅ FIX #1: offsets mapped correctly through escaping
   const applyHighlights = useCallback((errs: ErrorItem[], txt: string) => {
     if (!editorRef.current) return;
     if (!txt) { editorRef.current.innerHTML = ""; return; }
-    let html = escapeHtml(txt);
+    const { html: baseHtml, map } = buildEscapedWithMap(txt);
+    const insertions: { start: number; end: number; tag: string }[] = [];
 
-    // Grammar errors
-    [...errs].sort((a, b) => b.offset - a.offset).forEach(err => {
-      const before = html.substring(0, err.offset);
-      const eT = html.substring(err.offset, err.offset + err.length);
-      const after = html.substring(err.offset + err.length);
-      html = `${before}<span style="text-decoration:underline wavy red 2.5px; text-underline-offset:4px; background:rgba(255,0,0,0.08);" title="${escapeHtml(err.message)} → ${escapeHtml(err.replacement)}">${eT}</span>${after}`;
+    [...errs].forEach(err => {
+      const start = map[err.offset] ?? 0;
+      const end = map[Math.min(err.offset + err.length, txt.length)] ?? baseHtml.length;
+      insertions.push({
+        start, end,
+        tag: `<span style="text-decoration:underline wavy red 2.5px;text-underline-offset:4px;background:rgba(255,0,0,0.08)" title="${escapeHtml(err.message)} → ${escapeHtml(err.replacement)}">`,
+      });
     });
 
-    // Duplicate sentences highlight
-    if (duplicateHighlight && duplicates.sentences.length > 0) {
+    if (duplicateHighlight) {
       duplicates.sentences.forEach(ds => {
         const needle = ds.text.slice(0, 40);
-        const re = new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-        html = html.replace(re, m => `<span style="background:rgba(168,85,247,0.15);border-bottom:2px dotted #a855f7;" title="Duplicate sentence (${ds.count}x)">${m}</span>`);
+        if (needle.length < 10) return;
+        let idx = txt.toLowerCase().indexOf(needle.toLowerCase());
+        while (idx !== -1) {
+          const s = map[idx];
+          const e = map[Math.min(idx + needle.length, txt.length)];
+          insertions.push({ start: s, end: e, tag: `<span style="background:rgba(168,85,247,0.15);border-bottom:2px dotted #a855f7" title="Duplicate (${ds.count}x)">` });
+          idx = txt.toLowerCase().indexOf(needle.toLowerCase(), idx + needle.length);
+        }
       });
     }
-    editorRef.current.innerHTML = html;
+
+    // Apply from end to start to keep offsets valid
+    insertions.sort((a, b) => b.start - a.start);
+    let result = baseHtml;
+    insertions.forEach(({ start, end, tag }) => {
+      if (end <= start) return;
+      result = result.substring(0, start) + tag + result.substring(start, end) + "</span>" + result.substring(end);
+    });
+    editorRef.current.innerHTML = result;
   }, [duplicateHighlight, duplicates.sentences]);
 
   // ---------------- GRAMMAR CHECK ----------------
@@ -314,7 +319,7 @@ export default function WordCounterClient() {
         signal: ctrl.signal,
       });
       const data = await res.json();
-      const errs = (data.matches || []).slice(0, 15).map((m: any) => ({
+      const errs: ErrorItem[] = (data.matches || []).slice(0, 15).map((m: any) => ({
         message: m.message,
         offset: m.offset,
         length: m.length,
@@ -333,106 +338,149 @@ export default function WordCounterClient() {
     if (text.length < 15) return;
     const t = setTimeout(() => { checkGrammar(); }, 1500);
     return () => clearTimeout(t);
-  }, [text, lang]);
+  }, [text, lang, checkGrammar]);
 
-  // ---------------- HANDLE INPUT + AUTO CORRECT + AUTOCOMPLETE ----------------
-  const handleInput = () => {
+  // ✅ FIX #8: re-apply highlights when toggles change
+  useEffect(() => {
     if (!editorRef.current) return;
-    let current = editorRef.current.innerText || "";
-    markActive();
+    if (showHighlight || duplicateHighlight) {
+      applyHighlights(errors, text);
+    } else {
+      editorRef.current.innerText = text;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showHighlight, duplicateHighlight]);
 
-    // AUTO CORRECT: on space, check previous word
-    if (autoCorrect) {
-      const words = current.split(/(\s+)/);
-      let changed = false;
-      for (let i = 0; i < words.length; i++) {
-        const w = words[i];
-        if (/^[a-zA-Z]+$/.test(w)) {
-          const lower = w.toLowerCase();
-          if (AUTO_CORRECT[lower]) {
-            const fixed = AUTO_CORRECT[lower];
-            words[i] = w[0] === w[0].toUpperCase() ? fixed[0].toUpperCase() + fixed.slice(1) : fixed;
-            changed = true;
-          }
+  // ---------------- CARET HELPERS ----------------
+  const getCaretOffset = (): number => {
+    if (!editorRef.current) return 0;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return text.length;
+    try {
+      const range = sel.getRangeAt(0);
+      const pre = range.cloneRange();
+      pre.selectNodeContents(editorRef.current);
+      pre.setEnd(range.endContainer, range.endOffset);
+      return pre.toString().length;
+    } catch { return text.length; }
+  };
+
+  // ✅ FIX #6: robust caret restore without TS narrowing issues
+  const setCaretOffset = (offset: number) => {
+    if (!editorRef.current) return;
+    const root = editorRef.current;
+    let remaining = offset;
+    const range = document.createRange();
+    let found = false;
+
+    const visit = (n: Node): boolean => {
+      if (found) return true;
+      if (n.nodeType === Node.TEXT_NODE) {
+        const len = n.textContent?.length || 0;
+        if (remaining <= len) {
+          range.setStart(n, remaining);
+          range.collapse(true);
+          found = true;
+          return true;
+        }
+        remaining -= len;
+      } else {
+        for (let i = 0; i < n.childNodes.length; i++) {
+          if (visit(n.childNodes[i])) return true;
         }
       }
-      if (changed) {
-        const corrected = words.join("");
-        const sel = window.getSelection();
-        let offset = current.length;
-        if (sel && sel.rangeCount) {
-          try {
+      return false;
+    };
+
+    visit(root);
+    if (!found) {
+      range.selectNodeContents(root);
+      range.collapse(false);
+    }
+    const sel = window.getSelection();
+    if (sel) { sel.removeAllRanges(); sel.addRange(range); }
+  };
+
+  // ✅ FIX #2 & #3: better handleInput
+  const handleInput = () => {
+    if (!editorRef.current) return;
+    markActive();
+    let current = editorRef.current.innerText || "";
+
+    // Auto-correct only the word just typed (before caret), no DOM nuke
+    if (autoCorrect) {
+      const caret = getCaretOffset();
+      const beforeCaret = current.slice(0, caret);
+      const m = beforeCaret.match(/(\b[a-zA-Z]{2,})\s$/);
+      if (m) {
+        const word = m[1];
+        const lower = word.toLowerCase();
+        if (AUTO_CORRECT[lower]) {
+          const fixed = word[0] === word[0].toUpperCase()
+            ? AUTO_CORRECT[lower][0].toUpperCase() + AUTO_CORRECT[lower].slice(1)
+            : AUTO_CORRECT[lower];
+          const wordStart = caret - m[0].length;
+          const next = current.slice(0, wordStart) + fixed + current.slice(wordStart + word.length);
+          const delta = fixed.length - word.length;
+          // Update text state only; write to DOM via innerText preserving format via Range API
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount > 0) {
             const r = sel.getRangeAt(0);
-            const pre = r.cloneRange();
-            pre.selectNodeContents(editorRef.current);
-            pre.setEnd(r.endContainer, r.endOffset);
-            offset = pre.toString().length;
-          } catch {}
-        }
-        editorRef.current.innerText = corrected;
-        current = corrected;
-        // restore caret approx
-        try {
-          const r = document.createRange();
-          let count = 0, node: Node | null = null, off = 0;
-          const walk = (n: Node) => {
-            if (node) return;
-            if (n.nodeType === 3) {
-              if (count + (n.textContent?.length || 0) >= offset) {
-                node = n; off = offset - count;
-              } else count += n.textContent?.length || 0;
-            } else n.childNodes.forEach(walk);
-          };
-          walk(editorRef.current);
-          if (node) {
-            r.setStart(node, Math.min(off, (node as any).textContent.length));
-            r.collapse(true);
-            sel?.removeAllRanges(); sel?.addRange(r);
+            try {
+              // Attempt a targeted delete+insert at word start
+              const walker = document.createTreeWalker(editorRef.current, NodeFilter.SHOW_TEXT);
+              let offset = 0, startNode: Node | null = null, startOff = 0, endNode: Node | null = null, endOff = 0;
+              let n: Node | null;
+              while ((n = walker.nextNode())) {
+                const len = n.textContent?.length || 0;
+                if (startNode === null && offset + len >= wordStart) { startNode = n; startOff = wordStart - offset; }
+                if (endNode === null && offset + len >= wordStart + word.length) { endNode = n; endOff = wordStart + word.length - offset; break; }
+                offset += len;
+              }
+              if (startNode && endNode) {
+                const del = document.createRange();
+                del.setStart(startNode, startOff);
+                del.setEnd(endNode, endOff);
+                del.deleteContents();
+                del.insertNode(document.createTextNode(fixed));
+                current = editorRef.current.innerText || "";
+                void r; // keep sel
+              }
+            } catch { /* fallback */ }
           }
-        } catch {}
+          void next; void delta;
+        }
       }
     }
 
     setText(current);
     lastTextRef.current = current;
 
-    // AUTOCOMPLETE suggestion
+    // ✅ FIX #3: autocomplete stores replaceLen
     if (autoComplete) {
-      const match = current.match(/([a-zA-Z]{2,})$/);
-      if (match) {
-        const prefix = match[1].toLowerCase();
+      const m = current.match(/([a-zA-Z]{2,})$/);
+      if (m) {
+        const prefix = m[1].toLowerCase();
         const sugg = DICTIONARY.filter(w => w.startsWith(prefix) && w !== prefix).slice(0, 5);
-        setSuggestions(sugg.map(w => ({ word: w, at: current.length - match[1].length })));
-      } else {
-        setSuggestions([]);
-      }
-    } else {
-      setSuggestions([]);
-    }
+        setSuggestions(sugg.map(w => ({ word: w, at: current.length - m[1].length, replaceLen: m[1].length })));
+      } else setSuggestions([]);
+    } else setSuggestions([]);
   };
 
+  // ✅ FIX #3: safe insert
   const insertSuggestion = (s: Suggestion) => {
     if (!editorRef.current) return;
-    const before = text.slice(0, s.at);
-    const after = text.slice(text.length);
-    const next = before + s.word + after;
+    const next = text.slice(0, s.at) + s.word + text.slice(s.at + s.replaceLen);
     editorRef.current.innerText = next;
     setText(next);
     setSuggestions([]);
-    // Caret to end
-    const sel = window.getSelection();
-    if (sel) {
-      const r = document.createRange();
-      r.selectNodeContents(editorRef.current);
-      r.collapse(false);
-      sel.removeAllRanges(); sel.addRange(r);
-    }
+    setCaretOffset(s.at + s.word.length);
   };
 
-  // ---------------- FORMAT ACTIONS ----------------
+  // ---------------- FORMAT ----------------
   const applyFormat = (cmd: string, val?: string) => {
     editorRef.current?.focus();
-    document.execCommand("styleWithCSS", false, "true");
+    try { document.execCommand("styleWithCSS", false, "true"); } catch {}
     document.execCommand(cmd, false, val);
     if (editorRef.current) setText(editorRef.current.innerText || "");
   };
@@ -450,7 +498,7 @@ export default function WordCounterClient() {
   const handleCut = async () => {
     const sel = window.getSelection();
     if (sel && sel.toString().length > 0) {
-      await navigator.clipboard.writeText(sel.toString());
+      try { await navigator.clipboard.writeText(sel.toString()); } catch {}
       sel.deleteFromDocument();
       if (editorRef.current) setText(editorRef.current.innerText || "");
     }
@@ -475,8 +523,7 @@ export default function WordCounterClient() {
     if (!text) return;
     if (!confirm("Clear all text?")) return;
     if (editorRef.current) editorRef.current.innerText = "";
-    setText(""); setErrors([]);
-    setWritingTime(0);
+    setText(""); setErrors([]); setWritingTime(0);
   };
 
   const handleCopyStats = async () => {
@@ -488,14 +535,7 @@ export default function WordCounterClient() {
   const exportDoc = () => { const b = new Blob([`<html><body>${editorRef.current?.innerHTML || text}</body></html>`], { type: "application/msword" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "doc.doc"; a.click(); URL.revokeObjectURL(a.href); };
   const exportPdf = () => { const w = window.open("", "_blank"); if (w) { w.document.write(`<pre style="white-space:pre-wrap;font-family:${FONTS.find(f => f.name === font)?.css};font-size:${fontSize}px;line-height:${lineHeight};padding:24px">${escapeHtml(text)}</pre>`); w.document.close(); w.print(); } };
   const exportCsv = () => {
-    const rows = [
-      ["Metric", "Value"],
-      ["Words", stats.words], ["Chars (with)", stats.chars], ["Chars (without)", stats.charsNoSpace],
-      ["Sentences", stats.sentences], ["Paragraphs", stats.paras], ["Lines", stats.lines],
-      ["Reading Time (min)", stats.readingTime], ["Speaking Time (min)", stats.speakingTime],
-      ["Writing Time", formatTime(writingTime)],
-      ["Flesch Score", stats.flesch], ["Level", stats.level],
-    ];
+    const rows = [["Metric", "Value"],["Words", stats.words],["Chars (with)", stats.chars],["Chars (without)", stats.charsNoSpace],["Sentences", stats.sentences],["Paragraphs", stats.paras],["Lines", stats.lines],["Reading Time (min)", stats.readingTime],["Speaking Time (min)", stats.speakingTime],["Writing Time", formatTime(writingTime)],["Flesch Score", stats.flesch],["Level", stats.level]];
     const csv = rows.map(r => r.join(",")).join("\n");
     const b = new Blob([csv], { type: "text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "stats.csv"; a.click(); URL.revokeObjectURL(a.href);
@@ -504,7 +544,7 @@ export default function WordCounterClient() {
   // ---------------- VOICE ----------------
   const toggleVoice = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { alert("❌ Voice typing sirf Chrome/Edge me. HTTPS zaroori hai."); return; }
+    if (!SR) { alert("❌ Voice typing only in Chrome/Edge over HTTPS."); return; }
     if (isListening && recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch {}
       setIsListening(false); return;
@@ -534,7 +574,7 @@ export default function WordCounterClient() {
       };
       rec.onerror = (e: any) => {
         setIsListening(false);
-        if (e.error === "not-allowed") alert("Mic permission block hai.");
+        if (e.error === "not-allowed") alert("Mic permission blocked.");
       };
       rec.onend = () => setIsListening(false);
       rec.start();
@@ -557,7 +597,7 @@ export default function WordCounterClient() {
 
   const share = async () => {
     if (navigator.share) { try { await navigator.share({ title: "Doc", text: text.slice(0, 200) }); } catch {} }
-    else { await navigator.clipboard.writeText(text); alert("Copied!"); }
+    else { try { await navigator.clipboard.writeText(text); alert("Copied!"); } catch {} }
   };
 
   const fixError = (err: ErrorItem) => {
@@ -577,8 +617,8 @@ export default function WordCounterClient() {
     setErrors([]);
   };
 
-  const changeCase = (mode: "upper" | "lower" | "title" | "sentence") => {
-    if (!text) return;
+  const changeCase = (mode: string) => {
+    if (!text || !mode) return;
     let out = text;
     if (mode === "upper") out = text.toUpperCase();
     else if (mode === "lower") out = text.toLowerCase();
@@ -595,21 +635,23 @@ export default function WordCounterClient() {
     if (editorRef.current) editorRef.current.innerText = out;
   };
 
-  // ---------------- KEYBOARD SHORTCUTS ----------------
+  // ✅ FIX #4: Tab key only inside editor
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey;
-      if (ctrl && e.key.toLowerCase() === "b") { e.preventDefault(); applyFormat("bold"); }
-      else if (ctrl && e.key.toLowerCase() === "i") { e.preventDefault(); applyFormat("italic"); }
-      else if (ctrl && e.key.toLowerCase() === "u") { e.preventDefault(); applyFormat("underline"); }
+      const inEditor = editorRef.current && document.activeElement === editorRef.current;
+
+      if (ctrl && e.key.toLowerCase() === "b" && inEditor) { e.preventDefault(); applyFormat("bold"); }
+      else if (ctrl && e.key.toLowerCase() === "i" && inEditor) { e.preventDefault(); applyFormat("italic"); }
+      else if (ctrl && e.key.toLowerCase() === "u" && inEditor) { e.preventDefault(); applyFormat("underline"); }
       else if (ctrl && e.key.toLowerCase() === "f") { e.preventDefault(); setShowFind(v => !v); }
       else if (ctrl && e.shiftKey && e.key === "7") { e.preventDefault(); applyFormat("insertOrderedList"); }
       else if (ctrl && e.shiftKey && e.key === "8") { e.preventDefault(); applyFormat("insertUnorderedList"); }
       else if (ctrl && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        localStorage.setItem("lorem_word_text", text);
+        safeSet("lorem_word_text", text);
         setSaveStatus("saved"); setTimeout(() => setSaveStatus("idle"), 1000);
-      } else if (e.key === "Tab" && suggestions.length > 0) {
+      } else if (e.key === "Tab" && inEditor && suggestions.length > 0) {
         e.preventDefault(); insertSuggestion(suggestions[0]);
       } else if (e.key === "Escape") {
         setSuggestions([]);
@@ -624,19 +666,9 @@ export default function WordCounterClient() {
     if (editorRef.current) editorRef.current.innerText = SAMPLE;
   };
 
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    const h = Math.floor(m / 60);
-    if (h > 0) return `${h}h ${m % 60}m`;
-    if (m > 0) return `${m}m ${sec}s`;
-    return `${sec}s`;
-  };
-
   const currentFont = FONTS.find(f => f.name === font) || FONTS[0];
-  const page = PAGE_SIZES[pageSize];
+  const page = PAGE_SIZES[pageSize] || PAGE_SIZES.A4;
 
-  // ---------------- FOCUS MODE ----------------
   if (isFocus) {
     return (
       <div className={`min-h-screen ${isDark ? "bg-black text-white" : "bg-white text-black"} p-8`}>
@@ -657,12 +689,8 @@ export default function WordCounterClient() {
     <div className={`${isDark ? "bg-[#0a0a0a] text-white" : "bg-gradient-to-br from-[#f8fafc] via-[#eef2ff] to-[#f5f3ff] text-gray-900"} min-h-screen`}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
         .glass{backdrop-filter:blur(16px);background:${isDark ? "rgba(30,30,30,0.7)" : "rgba(255,255,255,0.75)"};border:1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)"}}
-        [contenteditable]:focus{outline:none}
-        .confetti{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100}
-        .confetti-piece{position:absolute;width:10px;height:10px;background:#f00;animation:fall 3s linear forwards}
-        @keyframes fall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}`}</style>
+        [contenteditable]:focus{outline:none}`}</style>
 
-      {/* Toast */}
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold animate-pulse">
           {toast}
@@ -670,10 +698,9 @@ export default function WordCounterClient() {
       )}
 
       <div className="max-w-6xl mx-auto p-4 md:p-8">
-        {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex px-3 py-1 rounded-full bg-black text-white text-[11px] tracking-widest mb-3">
-            ✨ AUTO-SAVE · AUTO-CORRECT · AUTOCOMPLETE · SPELL · DUPLICATES · PAGE SIZE
+            ✨ AUTO-SAVE · AUTO-CORRECT · AUTOCOMPLETE · DUPLICATES
           </div>
           <h1 className="text-4xl md:text-5xl font-black">Word Counter Pro</h1>
           <div className="flex justify-center gap-2 mt-3 flex-wrap items-center">
@@ -686,7 +713,7 @@ export default function WordCounterClient() {
               {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved ✓" : "Auto"}
             </span>
             <span className={`text-xs px-2 py-1 rounded-full ${isActive ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}>
-              ⏱ {formatTime(writingTime)} {isActive ? "(active)" : "(idle)"}
+              ⏱ {formatTime(writingTime)}
             </span>
           </div>
           <div className="flex justify-center items-center gap-3 mt-3">
@@ -699,27 +726,26 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* Toolbar Row 1 - Formatting */}
+        {/* Toolbar */}
         <div className="glass rounded-2xl shadow p-3 mb-3 flex flex-wrap gap-1.5 items-center justify-between sticky top-2 z-20">
           <div className="flex gap-1 flex-wrap items-center">
-            <button onClick={() => applyFormat("bold")} className="w-9 h-9 rounded-lg bg-white text-black font-black border" title="Bold">B</button>
-            <button onClick={() => applyFormat("italic")} className="w-9 h-9 rounded-lg bg-white text-black italic border" title="Italic">I</button>
-            <button onClick={() => applyFormat("underline")} className="w-9 h-9 rounded-lg bg-white text-black underline border" title="Underline">U</button>
-            <button onClick={() => applyFormat("strikeThrough")} className="w-9 h-9 rounded-lg bg-white text-black border line-through" title="Strikethrough">S</button>
+            <button onClick={() => applyFormat("bold")} className="w-9 h-9 rounded-lg bg-white text-black font-black border">B</button>
+            <button onClick={() => applyFormat("italic")} className="w-9 h-9 rounded-lg bg-white text-black italic border">I</button>
+            <button onClick={() => applyFormat("underline")} className="w-9 h-9 rounded-lg bg-white text-black underline border">U</button>
+            <button onClick={() => applyFormat("strikeThrough")} className="w-9 h-9 rounded-lg bg-white text-black border line-through">S</button>
             <div className="w-px h-6 bg-gray-200 mx-1" />
-            <button onClick={() => applyFormat("insertUnorderedList")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border" title="Bullet List">• List</button>
-            <button onClick={() => applyFormat("insertOrderedList")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border" title="Numbered List">1. List</button>
+            <button onClick={() => applyFormat("insertUnorderedList")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">• List</button>
+            <button onClick={() => applyFormat("insertOrderedList")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">1. List</button>
             <div className="w-px h-6 bg-gray-200 mx-1" />
-            <button onClick={() => applyFormat("undo")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border" title="Undo">↶</button>
-            <button onClick={() => applyFormat("redo")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border" title="Redo">↷</button>
+            <button onClick={() => applyFormat("undo")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">↶</button>
+            <button onClick={() => applyFormat("redo")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">↷</button>
             <div className="w-px h-6 bg-gray-200 mx-1" />
             <button onClick={handleCut} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">✂</button>
             <button onClick={handleCopy} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">{copied ? "✓" : "⎙"}</button>
             <button onClick={handlePaste} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">⎘</button>
             <button onClick={handleDelete} className="h-9 px-2.5 rounded-lg bg-red-50 text-red-600 text-xs border">Del</button>
             <button onClick={handleClear} className="h-9 px-2.5 rounded-lg bg-red-50 text-red-600 text-xs border">Clear</button>
-            <div className="w-px h-6 bg-gray-200 mx-1" />
-            <select onChange={e => changeCase(e.target.value as any)} className="h-9 rounded-lg bg-white text-black px-2 text-sm border">
+            <select onChange={e => changeCase(e.target.value)} className="h-9 rounded-lg bg-white text-black px-2 text-sm border">
               <option value="">Case ▾</option>
               <option value="upper">UPPER</option>
               <option value="lower">lower</option>
@@ -741,23 +767,23 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* Settings Panel */}
+        {/* Settings */}
         {showSettings && (
           <div className="glass rounded-2xl p-4 mb-3 grid md:grid-cols-4 gap-3">
             <div>
               <label className="text-[10px] uppercase tracking-wider opacity-60 font-bold">Page Size</label>
-              <select value={pageSize} onChange={e => setPageSize(e.target.value as any)} className="w-full h-9 rounded-lg bg-white text-black px-2 text-sm border mt-1">
+              <select value={pageSize} onChange={e => setPageSize(e.target.value)} className="w-full h-9 rounded-lg bg-white text-black px-2 text-sm border mt-1">
                 {Object.entries(PAGE_SIZES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider opacity-60 font-bold">Font Family</label>
+              <label className="text-[10px] uppercase tracking-wider opacity-60 font-bold">Font</label>
               <select value={font} onChange={e => setFont(e.target.value)} className="w-full h-9 rounded-lg bg-white text-black px-2 text-sm border mt-1">
                 {FONTS.map(f => <option key={f.name} value={f.name}>{f.name}{f.mono ? " (mono)" : ""}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-[10px] uppercase tracking-wider opacity-60 font-bold">Font Size: {fontSize}px</label>
+              <label className="text-[10px] uppercase tracking-wider opacity-60 font-bold">Size: {fontSize}px</label>
               <input type="range" min={10} max={32} value={fontSize} onChange={e => setFontSize(parseInt(e.target.value))} className="w-full mt-2" />
             </div>
             <div>
@@ -775,7 +801,7 @@ export default function WordCounterClient() {
                 <input type="checkbox" checked={showHighlight} onChange={e => setShowHighlight(e.target.checked)} /> Grammar Highlight
               </label>
               <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <input type="checkbox" checked={duplicateHighlight} onChange={e => { setDuplicateHighlight(e.target.checked); if (!e.target.checked && editorRef.current) editorRef.current.innerText = text; }} /> Duplicate Highlight
+                <input type="checkbox" checked={duplicateHighlight} onChange={e => setDuplicateHighlight(e.target.checked)} /> Duplicate Highlight
               </label>
               <span className="text-xs opacity-60 ml-auto">Page: {page.w}×{page.h}mm • {currentFont.mono ? "Monospace" : "Proportional"}</span>
             </div>
@@ -815,7 +841,6 @@ export default function WordCounterClient() {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2">
             <div className="glass rounded-[24px] shadow p-2 relative">
-              {/* Page info bar */}
               <div className="px-4 py-1.5 text-[10px] opacity-60 flex justify-between">
                 <span>📄 {page.label} • {fontSize}px • LH {lineHeight} • {currentFont.name}</span>
                 <span>{currentFont.mono ? "🔤 Monospace" : "🔡 Proportional"}</span>
@@ -823,10 +848,8 @@ export default function WordCounterClient() {
               <div ref={editorRef} contentEditable suppressContentEditableWarning onInput={handleInput}
                 spellCheck={true}
                 className={`w-full min-h-[460px] p-6 rounded-[16px] ${isDark ? "bg-black/50 text-white" : "bg-white/90"} outline-none`}
-                style={{ fontFamily: currentFont.css, fontSize: `${fontSize}px`, lineHeight, color: isDark ? "#f3f4f6" : color }}
-                data-placeholder="Start typing or paste text..." />
+                style={{ fontFamily: currentFont.css, fontSize: `${fontSize}px`, lineHeight, color: isDark ? "#f3f4f6" : color }} />
 
-              {/* Auto-complete popup */}
               {suggestions.length > 0 && (
                 <div className="absolute bottom-16 left-8 bg-white border rounded-xl shadow-2xl text-black text-sm overflow-hidden z-30">
                   {suggestions.map((s, i) => (
@@ -839,7 +862,7 @@ export default function WordCounterClient() {
               )}
 
               <div className="px-4 py-2 text-[11px] opacity-50 flex justify-between">
-                <span>Chars (with) = space ke saath, Chars (without) = bina space. {autoLang}</span>
+                <span>{autoLang}</span>
                 <span>{isActive ? "🟢 Active" : "⚪ Idle"} • ⏱ {formatTime(writingTime)}</span>
               </div>
             </div>
@@ -859,7 +882,6 @@ export default function WordCounterClient() {
               </div>
             )}
 
-            {/* Duplicate Detection */}
             {(duplicates.words.length > 0 || duplicates.sentences.length > 0) && (
               <div className="glass rounded-2xl p-4 mt-4">
                 <h3 className="font-bold text-sm mb-2">🔁 Duplicate Detection</h3>
@@ -875,7 +897,7 @@ export default function WordCounterClient() {
                 )}
                 {duplicates.words.length > 0 && (
                   <div>
-                    <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Repeated Words ({duplicates.words.length})</div>
+                    <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Repeated Words</div>
                     <div className="flex flex-wrap gap-1">
                       {duplicates.words.slice(0, 12).map(([w, c]) => (
                         <span key={w} className="text-[11px] px-2 py-1 bg-orange-100 text-orange-800 rounded-full font-bold">
@@ -888,7 +910,6 @@ export default function WordCounterClient() {
               </div>
             )}
 
-            {/* Keyword Density */}
             <div className="glass rounded-2xl p-4 mt-4">
               <h3 className="font-bold text-xs uppercase mb-3">📊 Keyword Density</h3>
               {stats.density.length === 0 ? <p className="text-xs opacity-50">Type...</p> : stats.density.map(([k, d]) => (
@@ -899,7 +920,6 @@ export default function WordCounterClient() {
             </div>
           </div>
 
-          {/* Right Sidebar */}
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Words" value={stats.words} tip={`Goal: ${goal}`} />
@@ -914,11 +934,9 @@ export default function WordCounterClient() {
               <Stat label="Flesch" value={stats.flesch} tip={stats.level} />
             </div>
             <div className="glass rounded-2xl p-4">
-              <h3 className="font-bold text-xs uppercase mb-3">🎯 Goal Progress</h3>
+              <h3 className="font-bold text-xs uppercase mb-3">🎯 Goal</h3>
               <div className="text-3xl font-black text-center">{progress}%</div>
-              <div className="text-xs text-center opacity-60 mt-1">
-                {stats.words} / {goal} words
-              </div>
+              <div className="text-xs text-center opacity-60 mt-1">{stats.words} / {goal} words</div>
               {goalReached && <div className="text-center text-green-600 text-xs font-bold mt-2">🎉 Goal Achieved!</div>}
             </div>
             <div className="glass rounded-2xl p-4">
@@ -932,15 +950,10 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* Social Limits */}
         <div className="glass rounded-2xl p-4 mt-6">
           <h3 className="font-bold text-xs uppercase mb-3">📱 Social Media Limits</h3>
           <div className="grid grid-cols-3 gap-3">
-            {[
-              { name: "Twitter", limit: 280 },
-              { name: "Instagram", limit: 2200 },
-              { name: "LinkedIn", limit: 3000 },
-            ].map(s => {
+            {[{ name: "Twitter", limit: 280 }, { name: "Instagram", limit: 2200 }, { name: "LinkedIn", limit: 3000 }].map(s => {
               const left = s.limit - stats.chars;
               return (
                 <div key={s.name} className="bg-white text-black rounded-xl p-3 text-center border">
@@ -954,7 +967,6 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* Articles */}
         <div className="mt-12 space-y-4">
           {articles.map(a => (
             <div key={a.id} className="glass rounded-2xl overflow-hidden">
@@ -974,12 +986,12 @@ export default function WordCounterClient() {
 }
 
 const articles = [
-  { id: "what", title: "What is Word Counter? Ultimate Guide", content: `Word Counter counts words, chars with/without spaces, sentences, paragraphs, lines in real-time. For students, goal setting helps. For SEO, reading time 200wpm, speaking time 130wpm, Flesch readability helps. Keyword density ideal 1-2%.` },
-  { id: "density", title: "Chars (with) vs Chars (without) & Keyword Density", content: `Chars (with spaces): "Hello World" = 11 chars. Used for Twitter, SMS.\n\nChars (without spaces): "Hello World" = 10 chars. Used when "1000 chars without spaces" required.\n\nDensity: 1000 words with keyword 15 times = 1.5%. 1-2% ideal, >3% spam.` },
-  { id: "new", title: "New Features: Auto-Correct, Page Size, Writing Time", content: `Auto-Correct: Common typos fixed as you type (teh→the, adn→and).\n\nAuto-Complete: Press Tab to accept word suggestion.\n\nPage Size: A4 (210×297mm), Letter (216×279mm), Legal (216×356mm) — for print-ready docs.\n\nWriting Time: Tracks actual active typing time (pauses after 5s idle).\n\nDuplicate Detection: Highlights repeated words and sentences for cleaner writing.` },
+  { id: "what", title: "What is Word Counter? Ultimate Guide", content: `Word Counter counts words, chars with/without spaces, sentences, paragraphs, lines in real-time.` },
+  { id: "density", title: "Chars (with) vs Chars (without) & Keyword Density", content: `Chars (with spaces): "Hello World" = 11 chars.\n\nChars (without spaces): "Hello World" = 10 chars.\n\nDensity: 1000 words with keyword 15 times = 1.5%.` },
+  { id: "new", title: "New Features: Auto-Correct, Page Size, Writing Time", content: `Auto-Correct: Common typos fixed as you type.\n\nAuto-Complete: Press Tab to accept.\n\nPage Size: A4 / Letter / Legal.\n\nWriting Time: Tracks active typing time.` },
 ];
 
-function Stat({ label, value, tip }: any) {
+function Stat({ label, value, tip }: { label: string; value: any; tip?: string }) {
   return (
     <div className="glass rounded-2xl p-4 shadow-sm" title={tip}>
       <div className="text-[10px] uppercase tracking-widest opacity-60">{label}</div>
