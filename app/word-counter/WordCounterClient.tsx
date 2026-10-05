@@ -1134,9 +1134,11 @@ const otherTools = [
   { icon: "🔐", name: "Base64 Encoder", desc: "Encode and decode Base64 text or files", link: "#" },
   { icon: "🔗", name: "URL Encoder", desc: "Encode URLs and query strings safely", link: "#" },
 ];
-
 const articlesData = [
-  { id: "what-is", title: "📖 What is Word Counter? Complete Guide", content: `A Word Counter is a digital tool that analyzes written text and provides instant statistics — word count, character count, sentence count, paragraph count, reading time, and more.
+  {
+    id: "what-is",
+    title: "📖 What is Word Counter? Complete Guide",
+    content: `A Word Counter is a digital tool that analyzes written text and provides instant statistics — word count, character count, sentence count, paragraph count, reading time, and more.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1183,8 +1185,12 @@ Aim for 60-70 for general web content.
 
 PRIVACY
 
-Everything runs in-browser. Auto-save uses localStorage. Only "Grammar Check" sends to LanguageTool API.` },
-  { id: "user-guide", title: "📘 Complete User Guide — Every Feature Step-by-Step", content: `═══════════════════════════════
+Everything runs in-browser. Auto-save uses localStorage. Only "Grammar Check" sends to LanguageTool API.`
+  },
+  {
+    id: "user-guide",
+    title: "📘 Complete User Guide — Every Feature Step-by-Step",
+    content: `═══════════════════════════════
 STEP 1: START WRITING
 ═══════════════════════════════
 Click the big editor box. Type freely. Stats update in real-time. Auto-saves every 400ms ("Saved ✓" in header).
@@ -1273,7 +1279,7 @@ Ctrl+F or click "🔍 Find". Type search text, replace text, click Replace All.
 ═══════════════════════════════
 STEP 10: POMODORO TIMER
 ═══════════════════════════════
-Click "🍅 25:00" in header. Timer counts down 25 minutes. On completion: toast notification and auto-reset. Ideal for distraction-free sprints.
+Click "🍅 25:00" in header. Timer counts down 25 minutes. On completion: toast notification and auto-reset.
 
 ═══════════════════════════════
 STEP 11: FONT & PAGE CUSTOMIZATION
@@ -1316,8 +1322,12 @@ Click "🌙" to switch to dark theme. All glass cards adapt.
 ═══════════════════════════════
 STEP 16: KEYBOARD SHORTCUTS
 ═══════════════════════════════
-Press Ctrl+/ anytime to see the panel. Full list below in "Keyboard Shortcuts" article.` },
-  { id: "shortcuts", title: "⌨️ All Keyboard Shortcuts — Master Guide", content: `Complete list of 20+ keyboard shortcuts. Press Ctrl+/ to toggle the shortcut panel anytime.
+Press Ctrl+/ anytime to see the panel. Full list in "Keyboard Shortcuts" article.`
+  },
+  {
+    id: "shortcuts",
+    title: "⌨️ All Keyboard Shortcuts — Master Guide",
+    content: `Complete list of 20+ keyboard shortcuts. Press Ctrl+/ to toggle the shortcut panel anytime.
 
 ═══════════════════════════════
 FORMATTING
@@ -1366,8 +1376,12 @@ PRO TIPS
 1. Ctrl+A then Ctrl+B = Bold entire document
 2. Select word → Ctrl+K → paste URL = instant link
 3. Ctrl+/ anytime = quick reference
-4. Works across all input fields too (Find, Replace, Goal)` },
-  { id: "grammarly", title: "🔍 Grammarly vs LanguageTool — Honest Comparison", content: `Real Grammarly API is only available for Enterprise/Business accounts ($$$$/year). It's NOT free.
+4. Works across all input fields too (Find, Replace, Goal)`
+  },
+  {
+    id: "grammarly",
+    title: "🔍 Grammarly vs LanguageTool — Honest Comparison",
+    content: `Real Grammarly API is only available for Enterprise/Business accounts (paid). It is NOT free for public use.
 
 We use LanguageTool — the best free alternative.
 
@@ -1409,8 +1423,12 @@ LIMITATIONS
 ═══════════════════════════════
 BOTTOM LINE
 ═══════════════════════════════
-LanguageTool covers 95% of common errors for free. Perfect for students, writers, bloggers, and professionals. No credit card, no sign-up.` },
-  { id: "color-fix", title: "🎨 How Selection-Only Color Works (New Fix)", content: `The old version applied color to the ENTIRE document even when you wanted only some text colored. This is now FIXED.
+LanguageTool covers 95% of common errors for free. Perfect for students, writers, bloggers, and professionals. No credit card, no sign-up.`
+  },
+  {
+    id: "color-fix",
+    title: "🎨 How Selection-Only Color Works (New Fix)",
+    content: `The old version applied color to the ENTIRE document even when you wanted only some text colored. This is now FIXED.
 
 ═══════════════════════════════
 HOW TO USE (CORRECT WAY)
@@ -1423,7 +1441,7 @@ HOW TO USE (CORRECT WAY)
 ═══════════════════════════════
 WHAT IF NOTHING IS SELECTED?
 ═══════════════════════════════
-You'll see a warning toast: "⚠ Pehle text select karo, phir color choose karo"
+You will see a warning toast: "⚠ Pehle text select karo, phir color choose karo"
 Color will NOT be applied. This prevents accidental full-document changes.
 
 ═══════════════════════════════
@@ -1445,7 +1463,7 @@ PALETTE SWATCHES
 ═══════════════════════════════
 TECHNICAL EXPLANATION
 ═══════════════════════════════
-▸ Selection saved in `savedRangeRef` on mouseup/keyup/blur
+▸ Selection saved in savedRangeRef on mouseup/keyup/blur
 ▸ When color changes → selection restored automatically
 ▸ document.execCommand("foreColor", color) applied to range
 ▸ Same for highlight via "hiliteColor"
@@ -1463,8 +1481,12 @@ Q: Can I color multi-paragraph selection?
 A: Yes! Select across paragraphs — entire selection colors.
 
 Q: How to remove color?
-A: Select colored text → click "Tx" (Clear Formatting) button.` },
-  { id: "faq-article", title: "❓ Complete FAQ — 15 Common Questions", content: `Q1: Is this Word Counter free?
+A: Select colored text → click "Tx" (Clear Formatting) button.`
+  },
+  {
+    id: "faq-article",
+    title: "❓ Complete FAQ — 15 Common Questions",
+    content: `Q1: Is this Word Counter free?
 A: Yes, 100% free forever. No sign-up, no ads, no limits.
 
 Q2: Is my text saved on your servers?
@@ -1483,13 +1505,13 @@ Q6: Which keyboard shortcuts are supported?
 A: 20+ shortcuts. Ctrl+B/I/U for bold/italic/underline, Ctrl+Z/Y undo/redo, Ctrl+K link, Ctrl+F find, Ctrl+S save, Ctrl+L/E/R/J alignment, Ctrl+Shift+7/8 lists, Ctrl+/ panel, Tab autocomplete.
 
 Q7: How accurate is reading time?
-A: Based on 200 words per minute (average adult). Speaking time uses 130 wpm. Times vary by reader.
+A: Based on 200 words per minute (average adult). Speaking time uses 130 wpm.
 
 Q8: What's a good Flesch Score?
 A: Web content: 60-70. Social media: 70-80. Academic: 30-50. Higher = easier.
 
 Q9: Why doesn't voice typing work?
-A: Needs Chrome/Edge over HTTPS. Check mic permission (lock icon in address bar). Firefox/Safari don't support Web Speech API.
+A: Needs Chrome/Edge over HTTPS. Check mic permission. Firefox/Safari don't support Web Speech API.
 
 Q10: What is ideal keyword density?
 A: 1-2% ideal for SEO. Above 3% looks like keyword stuffing.
@@ -1501,13 +1523,14 @@ Q12: How does the Pomodoro timer work?
 A: Click 🍅 to start 25-minute focus session. Toast when complete. Auto-resets.
 
 Q13: What fonts are available?
-A: 14 fonts across 3 categories: Sans-serif (Inter, Poppins, Roboto, Arial, Verdana), Serif (Merriweather, Playfair Display, Lora, Georgia, Times New Roman), Monospace (JetBrains Mono, Fira Code, Roboto Mono, Courier New).
+A: 14 fonts: Sans-serif (Inter, Poppins, Roboto, Arial, Verdana), Serif (Merriweather, Playfair Display, Lora, Georgia, Times New Roman), Monospace (JetBrains Mono, Fira Code, Roboto Mono, Courier New).
 
 Q14: Can I export my work?
 A: Yes — TXT, HTML (styled), MD (markdown), DOC (Word), CSV (stats), PDF.
 
 Q15: What's the maximum text length?
-A: Practically unlimited. Tested with 100,000+ words without performance issues.` },
+A: Practically unlimited. Tested with 100,000+ words without performance issues.`
+  },
 ];
 
 function Stat({ label, value, tip }: { label: string; value: any; tip?: string }) {
