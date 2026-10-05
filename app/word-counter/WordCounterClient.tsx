@@ -74,9 +74,18 @@ export default function WordCounter() {
         </div>
 
         <div className="mt-12 bg-white rounded-2xl border p-6 prose max-w-none">
-          <h2 className="text-xl font-bold">What is Word Counter?</h2>
-          <p className="text-gray-600 text-sm">Our free word counter helps writers, students and SEO experts count words and characters accurately. Perfect for essays, blogs, and social media captions.</p>
-        </div>
+  <h2 className="text-xl font-bold">What is Word Counter? (FAQ for Google)</h2>
+  <p className="text-sm text-gray-600">Our free word counter helps writers, students and SEO experts count words and characters accurately. Perfect for essays, blogs, and social media captions.</p>
+  
+  <h3 className="font-bold mt-4">How many words is 500 characters?</h3>
+  <p className="text-sm text-gray-600">Approx 70-100 words.</p>
+
+  <h3 className="font-bold mt-3">Is this word counter free?</h3>
+  <p className="text-sm text-gray-600">Yes, 100% free, no login, data never leaves your browser — fully private.</p>
+  
+  <h3 className="font-bold mt-3">Can I count keyword density?</h3>
+  <p className="text-sm text-gray-600">Yes, we show top 5 keywords automatically for SEO.</p>
+</div>
       </div>
     </div>
   );
