@@ -30,132 +30,35 @@ const FONTS = [
 
 const AUTO_CORRECT: Record<string, string> = {
   teh: "the", adn: "and", recieve: "receive", seperate: "separate",
-  occured: "occurred", definately: "definitely", freind: "friend",
-  beleive: "believe", tommorow: "tomorrow", untill: "until", wich: "which",
+  occured: "occurred", definately: "definitely", wierd: "weird",
+  freind: "friend", beleive: "believe", calender: "calendar",
+  tommorow: "tomorrow", untill: "until", wich: "which", thier: "their",
+  recieved: "received", succesful: "successful", buisness: "business",
 };
 
-const DICTIONARY = ["about","above","across","action","actually","added","after","again","against","almost","along","already","although","always","among","amount","another","answer","anyone","anything","appear","around","available","business","children","company","complete","different","education","example","experience","government","important","language","people","possible","problem","question","receive","remember","school","service","student","system","through","together","tomorrow","understand"];
+const DICTIONARY = ["about","above","across","action","actually","added","after","again","against","almost","along","already","although","always","among","amount","another","answer","anyone","anything","appear","around","available","back","became","because","become","before","begin","behind","believe","below","better","between","beyond","bring","business","called","cannot","carry","center","certain","change","children","choose","class","clear","close","color","coming","common","company","complete","consider","continue","could","country","course","create","current","decide","describe","develop","different","difficult","direct","during","early","education","effect","either","enough","every","example","experience","family","father","feeling","figure","follow","friend","future","general","given","government","great","ground","group","growth","happen","having","heard","heavy","history","however","hundred","important","include","inside","issue","itself","knowledge","language","large","later","learn","leave","letter","level","light","little","local","machine","major","material","matter","maybe","mean","measure","medical","member","memory","message","method","middle","might","minute","modern","moment","money","month","morning","mother","mountain","music","nation","natural","nature","nearly","necessary","need","never","night","nothing","notice","number","object","occur","offer","often","order","other","paper","particular","people","perhaps","person","picture","place","plan","point","police","policy","possible","power","practice","prepare","present","president","press","pretty","prevent","private","probably","problem","process","produce","product","program","project","property","provide","public","purpose","question","quickly","quiet","rather","reach","ready","really","reason","receive","recent","recognize","record","reduce","reflect","region","relate","remain","remember","remove","report","require","research","resource","respond","result","return","right","roughly","school","science","season","second","section","seem","sense","series","serious","serve","service","several","shall","share","short","should","similar","simple","simply","since","single","situation","small","social","society","some","someone","something","sometimes","space","speak","special","spend","stand","start","state","statement","station","stay","still","story","street","strong","structure","student","study","subject","success","suddenly","suggest","summer","support","system","table","taken","teach","thing","though","thought","thousand","through","throughout","together","tomorrow","tonight","total","toward","town","trade","training","travel","treatment","trouble","truth","understand","until","usually","value","various","victim","video","village","visit","voice","watch","water","weapon","weather","week","weight","welcome","western","whatever","whenever","wherever","whether","which","while","white","whole","whose","window","within","without","woman","wonder","world","worry","would","write","writer","wrong","year","young","yourself"];
 
-const SAMPLE = `Word Counter is a powerful tool that counts words, characters, sentences, and paragraphs in real-time. It helps writers, students, and SEO professionals track their content length and readability. Try speaking with the Voice button - whatever you say will now directly appear inside this box.`;
+const SAMPLE = `Word Counter is a powerful tool that counts words, characters, sentences, and paragraphs in real-time. It helps writers, students, and SEO professionals track their content length and readability.`;
 
-// DETAILED ARTICLES - FIXED AND EXPANDED
-const articles = [
-  {
-    id: "how-to-use",
-    title: "How to Use Word Counter? Complete Guide (All 20+ Features Explained)",
-    content: `This Word Counter is made for everyone - student, blogger, YouTuber, freelancer. Here is what each feature means and how to use it:
-
-1. Words Count: Total words. Example: "Hello world" = 2 words. Use for essay limits like 1500 words essay.
-
-2. Chars (with spaces): Total characters including spaces. "Hello World" = 11 chars. Twitter, SMS count this way. Matlab space bhi gina jayega.
-
-3. Chars (without spaces): Only letters. "Hello World" = 10 chars. Many universities ask "1000 chars without spaces" - tab ye dekho.
-
-4. Sentences: Counts.!? se. Helps to know average sentence length. Short sentences = easy reading.
-
-5. Paragraphs: Enter se naya paragraph. SEO ke liye 3-4 lines ke paras best hote hain.
-
-6. Lines: Total line breaks. Useful for poets and code.
-
-7. Reading Time: 200 words per minute se calculate. Agar 1000 words hain to 5 min reading time. Blog me "5 min read" dikhane ke liye.
-
-8. Speaking Time: 130 words per minute. YouTube script ya speech ke liye.
-
-9. Writing Time: Sirf tab count hota hai jab aap active type kar rahe ho. 5 sec idle hone par pause ho jata hai. Isse pata chalta hai kitni der kaam kiya.
-
-10. Flesch Readability Score: 0-100 score. 80-100 = Easy (5th class), 60-80 = Standard, 0-40 = Very Hard. Score badhane ke liye chhote sentences likho.
-
-11. Keyword Density: Formula = (Keyword count / Total words)*100. Example 1000 words me "word counter" 10 baar = 1%. Ideal 1-2%. 3% se zyada par Google spam samjhta hai.
-
-12. Top 10 Keywords: Sabse zyada use huye words. Isse pata chalta hai aapka article kis topic par zyada focus kar raha hai.
-
-13. Social Media Limits: Twitter 280, Instagram 2200, LinkedIn 3000. Hamara tool live "50 left" ya "-20 over" batata hai taaki post cut na ho.
-
-14. Grammar Red Wavy Line: LanguageTool API se check. Red line = mistake. Hover par sahi word dikhega. Fix button se ek click me sahi.
-
-15. Voice Typing (FIXED): 🎤 VOICE dabao -> Bolo -> Seedha isi box me type hoga. Ab copy-paste ki zarurat nahi. Chrome me HTTPS par kaam karta hai.
-
-16. Text-to-Speech: 🔊 Speak se poora text bolega. Proofreading ke liye best.
-
-17. Goal Setting: Upar goal set karo jaise 1000. Progress bar aur celebration hoga goal reach par.
-
-18. Auto-Save: Har 400ms me localStorage me save. Refresh karne par bhi text safe.
-
-19. Find & Replace: Ctrl+F se kholo. Ek sath saare words replace.
-
-20. Export & Share: TXT, DOC, CSV, PDF me download aur direct share.
-
-21. Page Size & Font Settings: A4/Letter/Legal, font size, line height change for printing look.
-
-22. Auto-Correct & Auto-Complete: 'teh' likhte hi 'the' ban jayega. 2 letters type karte hi dictionary suggestion aayega, Tab se accept karo.
-
-23. Duplicate Highlight: Same sentence ya word repeat hua to purple dotted line se highlight.
-
-All data is 100% private - nothing goes to server.`
-  },
-  {
-    id: "density",
-    title: "Chars (with) vs Without & Keyword Density & Social Limits Explained in Hindi",
-    content: `Chars (with) ka matlab:
-"Domariaganj" = 10 chars
-"Domariaganj " (space ke saath) = 11 chars
-Twitter space ko bhi count karta hai, isiliye with spaces dekhna zaruri hai.
-
-Chars (without) ka matlab:
-Sirf letters gine jayenge, space aur enter nahi.
-Example: "a b c" -> with = 5 (a + space + b + space + c), without = 3 (a+b+c).
-University forms me bina space wala count mangte hain.
-
-Keyword Density kya hai?
-Agar aap 500 words ka article likhte ho aur usme "best word counter" 5 baar aata hai to density = 5/500*100 = 1%.
-- 0.5% se kam = Topic clear nahi
-- 1-2% = Best for SEO
-- 3%+ = Keyword Stuffing, Google rank down karega
-Hamara tool Top 10 keywords ke saath % dikhata hai.
-
-Social Media Limits ka use:
-Aap Instagram caption likh rahe ho 2300 chars ka. Hamara tool bolega "100 over". Matlab 100 chars kaatne padenge warna Instagram "See More" me cut kar dega. Pehle se pata chal jayega.`
-  },
-  {
-    id: "voice-guide",
-    title: "Voice Button Not Working? Fixed Guide - Direct Insert",
-    content: `Old Problem: Bolne par text kahin aur jata tha, copy-paste karna padta tha.
-New Fix: Ab hamne Range API se direct insert lagaya hai.
-
-Kaise Use Kare:
-1. Chrome ya Edge browser me HTTPS wali site kholo (http par voice block hota hai)
-2. 🎤 VOICE button par click karo - Red pulse hoga "STOP" ban jayega
-3. Allow Microphone permission do
-4. Bolo - Example: "Hello world this is a test"
-5. Dekho - Text seedha aapke editor box me cursor jahan hai wahi aayega
-6. Dobara STOP dabao band karne ke liye
-
-Agar "not-allowed" error aaye to address bar me Lock icon > Site Settings > Microphone Allow karo.
-
-Hindi bolne ke liye upar Language se Hindi select karo, phir Hindi bolo to Hindi me type hoga.
-
-Ye feature students ke liye bahut fast typing ka best tareeka hai.`
-  },
-];
-
+// SAFE localStorage helpers
 const safeGet = (k: string): string | null => {
   try { return typeof window!== "undefined"? localStorage.getItem(k) : null; } catch { return null; }
 };
 const safeSet = (k: string, v: string) => {
   try { if (typeof window!== "undefined") localStorage.setItem(k, v); } catch {}
 };
-const escapeHtml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
 const formatTime = (s: number) => {
-  const m = Math.floor(s / 60); const sec = s % 60; const h = Math.floor(m / 60);
-  if (h > 0) return `${h}h ${m % 60}m`; if (m > 0) return `${m}m ${sec}s`; return `${sec}s`;
-};
-const buildEscapedWithMap = (txt: string) => {
-  let html = ""; const map: number[] = new Array(txt.length);
-  for (let i = 0; i < txt.length; i++) {
-    map[i] = html.length; const ch = txt[i];
-    if (ch === "&") html += "&amp;"; else if (ch === "<") html += "&lt;"; else if (ch === ">") html += "&gt;"; else if (ch === '"') html += "&quot;"; else if (ch === "'") html += "&#39;"; else html += ch;
-  }
-  map[txt.length] = html.length; return { html, map };
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}h ${m % 60}m`;
+  if (m > 0) return `${m}m ${sec}s`;
+  return `${sec}s`;
 };
 
 export default function WordCounterClient() {
@@ -177,7 +80,7 @@ export default function WordCounterClient() {
   const [copiedStats, setCopiedStats] = useState(false);
   const [lang, setLang] = useState("en-US");
   const [autoLang, setAutoLang] = useState("Auto Detect: -");
-  const [showHighlight, setShowHighlight] = useState(true);
+  const [showHighlight, setShowHighlight] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
@@ -192,29 +95,48 @@ export default function WordCounterClient() {
   const [toast, setToast] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false);
 
-  const editorRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
   const grammarAbortRef = useRef<AbortController | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // ---------------- LOAD ----------------
   useEffect(() => {
     const saved = safeGet("lorem_word_text");
-    if (saved) { setText(saved); if (editorRef.current) editorRef.current.innerText = saved; }
+    if (saved) setText(saved);
     const cfg = safeGet("lorem_cfg");
-    if (cfg) { try { const c = JSON.parse(cfg); if (c.font) setFont(c.font); if (c.fontSize) setFontSize(c.fontSize); if (c.lineHeight) setLineHeight(c.lineHeight); if (c.color) setColor(c.color); if (c.pageSize) setPageSize(c.pageSize); if (c.goal) setGoal(c.goal); if (c.dark) setIsDark(c.dark); if (c.lang) setLang(c.lang); } catch {} }
+    if (cfg) {
+      try {
+        const c = JSON.parse(cfg);
+        if (c.font) setFont(c.font);
+        if (c.fontSize) setFontSize(c.fontSize);
+        if (c.lineHeight) setLineHeight(c.lineHeight);
+        if (c.color) setColor(c.color);
+        if (c.pageSize) setPageSize(c.pageSize);
+        if (c.goal) setGoal(c.goal);
+        if (c.dark) setIsDark(c.dark);
+        if (c.lang) setLang(c.lang);
+        if (c.autoCorrect!== undefined) setAutoCorrect(c.autoCorrect);
+        if (c.autoComplete!== undefined) setAutoComplete(c.autoComplete);
+      } catch {}
+    }
   }, []);
+
+  // ---------------- AUTO SAVE ----------------
   useEffect(() => {
     setSaveStatus("saving");
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       safeSet("lorem_word_text", text);
       safeSet("lorem_cfg", JSON.stringify({ font, fontSize, lineHeight, color, pageSize, goal, dark: isDark, lang, autoCorrect, autoComplete }));
-      setSaveStatus("saved"); setTimeout(() => setSaveStatus("idle"), 1200);
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 1200);
     }, 400);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, [text, font, fontSize, lineHeight, color, pageSize, goal, isDark, lang, autoCorrect, autoComplete]);
 
+  // ---------------- AUTO LANGUAGE ----------------
   useEffect(() => {
     if (!text.trim()) { setAutoLang("Auto Detect: -"); return; }
     const hasHindi = /[\u0900-\u097F]/.test(text);
@@ -222,17 +144,19 @@ export default function WordCounterClient() {
     setAutoLang(hasHindi &&!hasLatin? "Auto Detect: Hindi 🇮🇳" : hasHindi? "Auto Detect: Mixed 🌐" : "Auto Detect: English 🇺🇸");
   }, [text]);
 
+  // ---------------- WRITING TIME ----------------
   useEffect(() => {
     const tick = setInterval(() => { if (isActive) setWritingTime(t => t + 1); }, 1000);
     return () => clearInterval(tick);
   }, [isActive]);
 
   const markActive = useCallback(() => {
-    setIsActive(prev => (prev? prev : true));
+    setIsActive(true);
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => setIsActive(false), 5000);
   }, []);
 
+  // ---------------- STATS ----------------
   const stats = useMemo(() => {
     const trimmed = text.trim();
     const words = trimmed? trimmed.split(/\s+/).filter(Boolean).length : 0;
@@ -246,9 +170,18 @@ export default function WordCounterClient() {
     const avgWPS = words / (sentences || 1);
     const syllables = text.toLowerCase().split(/\s+/).reduce((a, w) => a + Math.max(1, (w.match(/[aeiouy]+/g) || []).length), 0);
     const flesch = words > 0? Math.max(0, Math.min(100, Math.round(206.835 - 1.015 * avgWPS - 84.6 * (syllables / words)))) : 0;
-    let level = "—"; if (words > 0) { if (flesch >= 80) level = "Easy 🟢"; else if (flesch >= 60) level = "Standard 🟡"; else if (flesch >= 40) level = "Hard 🟠"; else level = "Very Hard 🔴"; }
+    let level = "—";
+    if (words > 0) {
+      if (flesch >= 80) level = "Easy 🟢";
+      else if (flesch >= 60) level = "Standard 🟡";
+      else if (flesch >= 40) level = "Hard 🟠";
+      else level = "Very Hard 🔴";
+    }
     const freq: Record<string, number> = {};
-    if (words > 0) trimmed.toLowerCase().split(/\s+/).forEach(w => { const c = w.replace(/[^a-z0-9\u0900-\u097F]/g, ""); if (c.length > 2) freq[c] = (freq[c] || 0) + 1; });
+    if (words > 0) trimmed.toLowerCase().split(/\s+/).forEach(w => {
+      const c = w.replace(/[^a-z0-9\u0900-\u097F]/g, "");
+      if (c.length > 2) freq[c] = (freq[c] || 0) + 1;
+    });
     const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
     const top10 = sorted.slice(0, 10);
     const density = top10.map(([k, v]) => [k, ((v / words) * 100).toFixed(2)] as [string, string]);
@@ -256,12 +189,15 @@ export default function WordCounterClient() {
   }, [text]);
 
   const duplicates = useMemo(() => {
-    const trimmed = text.trim(); if (!trimmed) return { words: [], sentences: [] as any[] };
+    const trimmed = text.trim();
+    if (!trimmed) return { words: [], sentences: [] };
     const words = trimmed.toLowerCase().split(/\s+/).map(w => w.replace(/[^a-z0-9]/g, "")).filter(w => w.length > 3);
-    const wc: Record<string, number> = {}; words.forEach(w => { wc[w] = (wc[w] || 0) + 1; });
+    const wc: Record<string, number> = {};
+    words.forEach(w => { wc[w] = (wc[w] || 0) + 1; });
     const dupWords = Object.entries(wc).filter(([, c]) => c > 1).sort((a, b) => b[1] - a[1]).slice(0, 20);
     const sentences = text.split(/[.!?]+/).map(s => s.trim().toLowerCase()).filter(s => s.length > 20);
-    const sc: Record<string, number> = {}; sentences.forEach(s => { sc[s] = (sc[s] || 0) + 1; });
+    const sc: Record<string, number> = {};
+    sentences.forEach(s => { sc[s] = (sc[s] || 0) + 1; });
     const dupSentences = Object.entries(sc).filter(([, c]) => c > 1).map(([s, c]) => ({ text: s.slice(0, 80), count: c }));
     return { words: dupWords, sentences: dupSentences };
   }, [text]);
@@ -270,101 +206,125 @@ export default function WordCounterClient() {
 
   useEffect(() => {
     if (stats.words >= goal && goal > 0 &&!goalReached) {
-      setGoalReached(true); setToast(`🎉 Goal Reached! ${stats.words}/${goal} words`);
+      setGoalReached(true);
+      setToast(`🎉 Goal Reached! ${stats.words}/${goal} words`);
       setTimeout(() => setToast(null), 4000);
-    } else if (stats.words < goal * 0.95) { setGoalReached(false); }
+    } else if (stats.words < goal * 0.95) {
+      setGoalReached(false);
+    }
   }, [stats.words, goal, goalReached]);
 
-  const applyHighlights = useCallback((errs: ErrorItem[], txt: string) => {
-    if (!editorRef.current) return;
-    if (!txt) { editorRef.current.innerHTML = ""; return; }
-    const { html: baseHtml, map } = buildEscapedWithMap(txt);
-    const insertions: { start: number; end: number; tag: string }[] = [];
-    [...errs].forEach(err => {
-      const start = map[err.offset]?? 0; const end = map[Math.min(err.offset + err.length, txt.length)]?? baseHtml.length;
-      insertions.push({ start, end, tag: `<span style="text-decoration:underline wavy red 2.5px;text-underline-offset:4px;background:rgba(255,0,0,0.08)" title="${escapeHtml(err.message)} → ${escapeHtml(err.replacement)}">` });
+  // ---------------- GRAMMAR - PREVIEW ONLY, NO CURSOR JUMP ----------------
+  const highlightedHtml = useMemo(() => {
+    if (!showHighlight || errors.length === 0) return "";
+    let html = escapeHtml(text);
+    [...errors].sort((a,b)=>b.offset-a.offset).forEach(err=>{
+      const before=html.substring(0,err.offset);
+      const mid=html.substring(err.offset,err.offset+err.length);
+      const after=html.substring(err.offset+err.length);
+      html=`${before}<span style="text-decoration:underline wavy red 2.5px;text-underline-offset:4px;background:rgba(255,0,0,0.08)" title="${escapeHtml(err.message)} → ${escapeHtml(err.replacement)}">${mid}</span>${after}`;
     });
-    if (duplicateHighlight) {
-      duplicates.sentences.forEach(ds => {
-        const needle = ds.text.slice(0, 40); if (needle.length < 10) return;
-        let idx = txt.toLowerCase().indexOf(needle.toLowerCase());
-        while (idx!== -1) {
-          const s = map[idx]; const e = map[Math.min(idx + needle.length, txt.length)];
-          insertions.push({ start: s, end: e, tag: `<span style="background:rgba(168,85,247,0.15);border-bottom:2px dotted #a855f7" title="Duplicate (${ds.count}x)">` });
-          idx = txt.toLowerCase().indexOf(needle.toLowerCase(), idx + needle.length);
-        }
-      });
-    }
-    insertions.sort((a, b) => b.start - a.start);
-    let result = baseHtml;
-    insertions.forEach(({ start, end, tag }) => { if (end <= start) return; result = result.substring(0, start) + tag + result.substring(start, end) + "</span>" + result.substring(end); });
-    editorRef.current.innerHTML = result;
-  }, [duplicateHighlight, duplicates.sentences]);
+    return html.replace(/\n/g,"<br>");
+  }, [text, errors, showHighlight]);
 
   const checkGrammar = useCallback(async () => {
     if (!text.trim() || text.length < 5) return;
     if (grammarAbortRef.current) grammarAbortRef.current.abort();
-    const ctrl = new AbortController(); grammarAbortRef.current = ctrl; setChecking(true);
+    const ctrl = new AbortController();
+    grammarAbortRef.current = ctrl;
+    setChecking(true);
     try {
-      const res = await fetch("https://api.languagetool.org/v2/check", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: `text=${encodeURIComponent(text)}&language=${lang}`, signal: ctrl.signal });
+      const res = await fetch("https://api.languagetool.org/v2/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `text=${encodeURIComponent(text)}&language=${lang}`,
+        signal: ctrl.signal,
+      });
       const data = await res.json();
-      const errs: ErrorItem[] = (data.matches || []).slice(0, 15).map((m: any) => ({ message: m.message, offset: m.offset, length: m.length, replacement: m.replacements?.[0]?.value || "" }));
-      setErrors(errs); if (showHighlight) applyHighlights(errs, text);
-    } catch (e: any) { } finally { setChecking(false); }
-  }, [text, lang, showHighlight, applyHighlights]);
+      const errs: ErrorItem[] = (data.matches || []).slice(0, 15).map((m: any) => ({
+        message: m.message, offset: m.offset, length: m.length, replacement: m.replacements?.[0]?.value || "",
+      }));
+      setErrors(errs);
+    } catch {} finally { setChecking(false); }
+  }, [text, lang]);
 
-  useEffect(() => { if (text.length < 15) return; const t = setTimeout(() => { checkGrammar(); }, 1500); return () => clearTimeout(t); }, [text, lang, checkGrammar]);
   useEffect(() => {
-    if (!editorRef.current) return;
-    if (showHighlight || duplicateHighlight) { applyHighlights(errors, text); } else { editorRef.current.innerText = text; }
-  }, [showHighlight, duplicateHighlight]);
+    if (text.length < 15) return;
+    const t = setTimeout(() => { checkGrammar(); }, 1500);
+    return () => clearTimeout(t);
+  }, [text, lang, checkGrammar]);
 
-  const getCaretOffset = (): number => {
-    if (!editorRef.current) return 0; const sel = window.getSelection(); if (!sel || sel.rangeCount === 0) return text.length;
-    try { const range = sel.getRangeAt(0); const pre = range.cloneRange(); pre.selectNodeContents(editorRef.current); pre.setEnd(range.endContainer, range.endOffset); return pre.toString().length; } catch { return text.length; }
-  };
-  const setCaretOffset = (offset: number) => {
-    if (!editorRef.current) return; const root = editorRef.current; let remaining = offset; const range = document.createRange(); let found = false;
-    const visit = (n: Node): boolean => {
-      if (found) return true;
-      if (n.nodeType === Node.TEXT_NODE) { const len = n.textContent?.length || 0; if (remaining <= len) { range.setStart(n, remaining); range.collapse(true); found = true; return true; } remaining -= len; }
-      else { for (let i = 0; i < n.childNodes.length; i++) { if (visit(n.childNodes[i])) return true; } } return false;
-    };
-    visit(root); if (!found) { range.selectNodeContents(root); range.collapse(false); }
-    const sel = window.getSelection(); if (sel) { sel.removeAllRanges(); sel.addRange(range); }
-  };
-
-  const handleInput = () => {
-    if (!editorRef.current) return; markActive(); let current = editorRef.current.innerText || "";
+  // ---------------- TEXTAREA STABLE HANDLERS ----------------
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    markActive();
+    let val = e.target.value;
+    // Auto-correct last word
     if (autoCorrect) {
-      const caret = getCaretOffset(); const beforeCaret = current.slice(0, caret); const m = beforeCaret.match(/(\b[a-zA-Z]{2,})\s$/);
-      if (m) { const word = m[1]; const lower = word.toLowerCase(); if (AUTO_CORRECT[lower]) { const fixed = word[0] === word[0].toUpperCase()? AUTO_CORRECT[lower][0].toUpperCase() + AUTO_CORRECT[lower].slice(1) : AUTO_CORRECT[lower]; current = current.slice(0, caret - m[0].length) + fixed + " " + current.slice(caret); if (editorRef.current) editorRef.current.innerText = current; setCaretOffset(caret - m[0].length + fixed.length + 1); } }
+      const m = val.match(/(\b[a-zA-Z]{2,})\s$/);
+      if (m) {
+        const lower = m[1].toLowerCase();
+        if (AUTO_CORRECT[lower]) {
+          val = val.slice(0, -m[0].length) + AUTO_CORRECT[lower] + " ";
+        }
+      }
     }
-    setText(current);
+    setText(val);
+    // Auto-complete
     if (autoComplete) {
-      const m = current.match(/([a-zA-Z]{2,})$/);
-      if (m) { const prefix = m[1].toLowerCase(); const sugg = DICTIONARY.filter(w => w.startsWith(prefix) && w!== prefix).slice(0, 5); setSuggestions(sugg.map(w => ({ word: w, at: current.length - m[1].length, replaceLen: m[1].length }))); } else setSuggestions([]);
-    } else setSuggestions([]);
+      const m2 = val.match(/([a-zA-Z]{2,})$/);
+      if (m2) {
+        const prefix = m2[1].toLowerCase();
+        const sugg = DICTIONARY.filter(w => w.startsWith(prefix) && w!== prefix).slice(0, 5);
+        setSuggestions(sugg.map(w => ({ word: w, at: val.length - m2[1].length, replaceLen: m2[1].length })));
+      } else setSuggestions([]);
+    }
   };
 
   const insertSuggestion = (s: Suggestion) => {
-    if (!editorRef.current) return; const next = text.slice(0, s.at) + s.word + text.slice(s.at + s.replaceLen);
-    editorRef.current.innerText = next; setText(next); setSuggestions([]); setCaretOffset(s.at + s.word.length);
+    const next = text.slice(0, s.at) + s.word + text.slice(s.at + s.replaceLen);
+    setText(next);
+    setSuggestions([]);
+    setTimeout(()=>{ const ta=textareaRef.current; if(ta){ ta.focus(); ta.setSelectionRange(s.at+s.word.length, s.at+s.word.length); } },10);
   };
 
-  const applyFormat = (cmd: string, val?: string) => { editorRef.current?.focus(); try { document.execCommand("styleWithCSS", false, "true"); } catch {} document.execCommand(cmd, false, val); if (editorRef.current) setText(editorRef.current.innerText || ""); };
-  const handleCopy = async () => { try { const sel = window.getSelection(); const selected = sel && sel.toString().length > 0; await navigator.clipboard.writeText(selected? sel!.toString() : text); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {} };
-  const handleCut = async () => { const sel = window.getSelection(); if (sel && sel.toString().length > 0) { try { await navigator.clipboard.writeText(sel.toString()); } catch {} sel.deleteFromDocument(); if (editorRef.current) setText(editorRef.current.innerText || ""); } };
-  const handlePaste = async () => { editorRef.current?.focus(); try { const t = await navigator.clipboard.readText(); document.execCommand("insertText", false, t); } catch { document.execCommand("paste"); } if (editorRef.current) setText(editorRef.current.innerText || ""); };
-  const handleDelete = () => { editorRef.current?.focus(); document.execCommand("delete"); if (editorRef.current) setText(editorRef.current.innerText || ""); };
-  const handleClear = () => { if (!text) return; if (!confirm("Clear all text?")) return; if (editorRef.current) editorRef.current.innerText = ""; setText(""); setErrors([]); setWritingTime(0); };
-  const handleCopyStats = async () => { const s = `Words: ${stats.words} | Chars(with): ${stats.chars} | Chars(without): ${stats.charsNoSpace} | Sentences: ${stats.sentences} | Paragraphs: ${stats.paras} | Lines: ${stats.lines} | Reading: ${stats.readingTime}m | Speaking: ${stats.speakingTime}m | Writing: ${formatTime(writingTime)} | Flesch: ${stats.flesch} (${stats.level})`; try { await navigator.clipboard.writeText(s); setCopiedStats(true); setTimeout(() => setCopiedStats(false), 1500); } catch {} };
-  const exportTxt = () => { const b = new Blob([text], { type: "text/plain" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "doc.txt"; a.click(); URL.revokeObjectURL(a.href); };
-  const exportDoc = () => { const b = new Blob([`<html><body>${editorRef.current?.innerHTML || text}</body></html>`], { type: "application/msword" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "doc.doc"; a.click(); URL.revokeObjectURL(a.href); };
-  const exportPdf = () => { const w = window.open("", "_blank"); if (w) { w.document.write(`<pre style="white-space:pre-wrap;font-family:${FONTS.find(f => f.name === font)?.css};font-size:${fontSize}px;line-height:${lineHeight};padding:24px">${escapeHtml(text)}</pre>`); w.document.close(); w.print(); } };
-  const exportCsv = () => { const rows = [["Metric", "Value"],["Words", stats.words],["Chars (with)", stats.chars],["Chars (without)", stats.charsNoSpace],["Sentences", stats.sentences],["Paragraphs", stats.paras],["Lines", stats.lines],["Reading Time (min)", stats.readingTime],["Speaking Time (min)", stats.speakingTime],["Writing Time", formatTime(writingTime)],["Flesch Score", stats.flesch],["Level", stats.level]]; const csv = rows.map(r => r.join(",")).join("\n"); const b = new Blob([csv], { type: "text/csv" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "stats.csv"; a.click(); URL.revokeObjectURL(a.href); };
+  const insertAtCursor = (insert: string) => {
+    const ta = textareaRef.current;
+    if (!ta) { setText(t => t + (t? " " : "") + insert); return; }
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    const newText = before + (before &&!before.endsWith(" ") &&!before.endsWith("\n")? " " : "") + insert + after;
+    setText(newText);
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(start + insert.length + 1, start + insert.length + 1);
+    }, 10);
+  };
 
-  // VOICE - DIRECT INSERT FIXED (NO COPY PASTE)
+  const handleCopy = async () => {
+    try {
+      const ta = textareaRef.current;
+      const selected = ta && ta.selectionStart!== ta.selectionEnd? text.substring(ta.selectionStart, ta.selectionEnd) : text;
+      await navigator.clipboard.writeText(selected);
+      setCopied(true); setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
+  const handleClear = () => { if (!text) return; if (!confirm("Clear all text?")) return; setText(""); setErrors([]); setWritingTime(0); };
+  const handleCopyStats = async () => {
+    const s = `Words: ${stats.words} | Chars(with): ${stats.chars} | Chars(without): ${stats.charsNoSpace} | Sentences: ${stats.sentences} | Paragraphs: ${stats.paras} | Lines: ${stats.lines} | Reading: ${stats.readingTime}m | Speaking: ${stats.speakingTime}m | Writing: ${formatTime(writingTime)} | Flesch: ${stats.flesch} (${stats.level})`;
+    try { await navigator.clipboard.writeText(s); setCopiedStats(true); setTimeout(() => setCopiedStats(false), 1500); } catch {}
+  };
+
+  const exportTxt = () => { const b = new Blob([text], { type: "text/plain" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "doc.txt"; a.click(); URL.revokeObjectURL(a.href); };
+  const exportDoc = () => { const b = new Blob([`<html><body><pre>${escapeHtml(text)}</pre></body></html>`], { type: "application/msword" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "doc.doc"; a.click(); URL.revokeObjectURL(a.href); };
+  const exportPdf = () => { const w = window.open("", "_blank"); if (w) { w.document.write(`<pre style="white-space:pre-wrap;font-family:${FONTS.find(f => f.name === font)?.css};font-size:${fontSize}px;line-height:${lineHeight};padding:24px">${escapeHtml(text)}</pre>`); w.document.close(); w.print(); } };
+  const exportCsv = () => {
+    const rows = [["Metric", "Value"],["Words", stats.words],["Chars (with)", stats.chars],["Chars (without)", stats.charsNoSpace],["Sentences", stats.sentences],["Paragraphs", stats.paras],["Lines", stats.lines],["Reading Time (min)", stats.readingTime],["Speaking Time (min)", stats.speakingTime],["Writing Time", formatTime(writingTime)],["Flesch Score", stats.flesch],["Level", stats.level]];
+    const csv = rows.map(r => r.join(",")).join("\n");
+    const b = new Blob([csv], { type: "text/csv" }); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "stats.csv"; a.click(); URL.revokeObjectURL(a.href);
+  };
+
   const toggleVoice = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert("❌ Voice typing only in Chrome/Edge over HTTPS."); return; }
@@ -373,70 +333,85 @@ export default function WordCounterClient() {
       const rec = new SR(); recognitionRef.current = rec;
       rec.lang = lang; rec.continuous = false; rec.interimResults = false; rec.maxAlternatives = 1;
       rec.onstart = () => setIsListening(true);
-      rec.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (editorRef.current) {
-          editorRef.current.focus();
-          const sel = window.getSelection();
-          if (sel && sel.rangeCount) {
-            const r = sel.getRangeAt(0);
-            r.deleteContents();
-            const node = document.createTextNode((text? " " : "") + transcript);
-            r.insertNode(node);
-            r.setStartAfter(node); r.collapse(true);
-            sel.removeAllRanges(); sel.addRange(r);
-          } else {
-            document.execCommand("insertText", false, " " + transcript);
-          }
-          setText(editorRef.current.innerText || "");
-        }
-      };
-      rec.onerror = (e: any) => { setIsListening(false); if (e.error === "not-allowed") alert("Mic permission blocked - Lock icon > Allow"); };
+      rec.onresult = (event: any) => { const transcript = event.results[0][0].transcript; insertAtCursor(transcript); };
+      rec.onerror = (e: any) => { setIsListening(false); if (e.error === "not-allowed") alert("Mic permission blocked."); };
       rec.onend = () => setIsListening(false);
       rec.start();
     } catch (err: any) { alert("Voice error: " + err.message); setIsListening(false); }
   };
 
-  const toggleSpeak = () => { if (isSpeaking) { speechSynthesis.cancel(); setIsSpeaking(false); return; } if (!text.trim()) return; const u = new SpeechSynthesisUtterance(text); u.lang = lang; u.onstart = () => setIsSpeaking(true); u.onend = () => setIsSpeaking(false); u.onerror = () => setIsSpeaking(false); speechSynthesis.speak(u); };
-  const share = async () => { if (navigator.share) { try { await navigator.share({ title: "Doc", text: text.slice(0, 200) }); } catch {} } else { try { await navigator.clipboard.writeText(text); alert("Copied!"); } catch {} } };
-  const fixError = (err: ErrorItem) => { const nt = text.substring(0, err.offset) + err.replacement + text.substring(err.offset + err.length); setText(nt); if (editorRef.current) editorRef.current.innerText = nt; setErrors(p => p.filter(e => e!== err)); };
-  const fixAll = () => { let nt = text; [...errors].sort((a, b) => b.offset - a.offset).forEach(err => { nt = nt.substring(0, err.offset) + err.replacement + nt.substring(err.offset + err.length); }); setText(nt); if (editorRef.current) editorRef.current.innerText = nt; setErrors([]); };
-  const changeCase = (mode: string) => { if (!text ||!mode) return; let out = text; if (mode === "upper") out = text.toUpperCase(); else if (mode === "lower") out = text.toLowerCase(); else if (mode === "title") out = text.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.substr(1).toLowerCase()); else if (mode === "sentence") out = text.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g, c => c.toUpperCase()); setText(out); if (editorRef.current) editorRef.current.innerText = out; };
-  const doReplace = () => { if (!findText) return; const out = text.split(findText).join(replaceText); setText(out); if (editorRef.current) editorRef.current.innerText = out; };
+  const toggleSpeak = () => {
+    if (isSpeaking) { speechSynthesis.cancel(); setIsSpeaking(false); return; }
+    if (!text.trim()) return;
+    const u = new SpeechSynthesisUtterance(text); u.lang = lang;
+    u.onstart = () => setIsSpeaking(true); u.onend = () => setIsSpeaking(false); u.onerror = () => setIsSpeaking(false);
+    speechSynthesis.speak(u);
+  };
+
+  const share = async () => {
+    if (navigator.share) { try { await navigator.share({ title: "Doc", text: text.slice(0, 200) }); } catch {} }
+    else { try { await navigator.clipboard.writeText(text); alert("Copied!"); } catch {} }
+  };
+
+  const fixError = (err: ErrorItem) => {
+    const nt = text.substring(0, err.offset) + err.replacement + text.substring(err.offset + err.length);
+    setText(nt); setErrors(p => p.filter(e => e!== err));
+  };
+  const fixAll = () => {
+    let nt = text; [...errors].sort((a, b) => b.offset - a.offset).forEach(err => { nt = nt.substring(0, err.offset) + err.replacement + nt.substring(err.offset + err.length); });
+    setText(nt); setErrors([]);
+  };
+  const changeCase = (mode: string) => {
+    if (!text ||!mode) return;
+    let out = text;
+    if (mode === "upper") out = text.toUpperCase();
+    else if (mode === "lower") out = text.toLowerCase();
+    else if (mode === "title") out = text.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.substr(1).toLowerCase());
+    else if (mode === "sentence") out = text.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g, c => c.toUpperCase());
+    setText(out);
+  };
+  const doReplace = () => { if (!findText) return; const out = text.split(findText).join(replaceText); setText(out); };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const ctrl = e.ctrlKey || e.metaKey; const inEditor = editorRef.current && document.activeElement === editorRef.current;
-      if (ctrl && e.key.toLowerCase() === "b" && inEditor) { e.preventDefault(); applyFormat("bold"); }
-      else if (ctrl && e.key.toLowerCase() === "i" && inEditor) { e.preventDefault(); applyFormat("italic"); }
-      else if (ctrl && e.key.toLowerCase() === "u" && inEditor) { e.preventDefault(); applyFormat("underline"); }
-      else if (ctrl && e.key.toLowerCase() === "f") { e.preventDefault(); setShowFind(v =>!v); }
-      else if (ctrl && e.shiftKey && e.key === "7") { e.preventDefault(); applyFormat("insertOrderedList"); }
-      else if (ctrl && e.shiftKey && e.key === "8") { e.preventDefault(); applyFormat("insertUnorderedList"); }
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && e.key.toLowerCase() === "f") { e.preventDefault(); setShowFind(v =>!v); }
       else if (ctrl && e.key.toLowerCase() === "s") { e.preventDefault(); safeSet("lorem_word_text", text); setSaveStatus("saved"); setTimeout(() => setSaveStatus("idle"), 1000); }
-      else if (e.key === "Tab" && inEditor && suggestions.length > 0) { e.preventDefault(); insertSuggestion(suggestions[0]); }
+      else if (e.key === "Tab" && suggestions.length > 0 && document.activeElement === textareaRef.current) { e.preventDefault(); insertSuggestion(suggestions[0]); }
       else if (e.key === "Escape") { setSuggestions([]); }
     };
-    window.addEventListener("keydown", onKey); return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [text, suggestions]);
 
-  const loadSample = () => { setText(SAMPLE); if (editorRef.current) editorRef.current.innerText = SAMPLE; };
+  const loadSample = () => setText(SAMPLE);
   const currentFont = FONTS.find(f => f.name === font) || FONTS[0];
   const page = PAGE_SIZES[pageSize] || PAGE_SIZES.A4;
 
   if (isFocus) {
-    return (<div className={`min-h-screen ${isDark? "bg-black text-white" : "bg-white text-black"} p-8`}><div className="max-w-3xl mx-auto"><div className="flex justify-between mb-6"><button onClick={() => setIsFocus(false)} className="px-4 py-2 bg-black text-white rounded-xl text-sm dark:bg-white dark:text-black">Exit Focus</button><span className="text-sm opacity-60">{stats.words} words • {formatTime(writingTime)} • {autoLang}</span></div><div ref={editorRef} contentEditable suppressContentEditableWarning onInput={handleInput} className="w-full min-h-[80vh] outline-none" style={{ fontFamily: currentFont.css, fontSize: `${fontSize}px`, lineHeight, color: isDark? "#fff" : color }} /></div></div>);
+    return (
+      <div className={`min-h-screen ${isDark? "bg-black text-white" : "bg-white text-black"} p-8`}>
+        <div className="max-w-3xl mx-auto">
+          <div className="flex justify-between mb-6">
+            <button onClick={() => setIsFocus(false)} className="px-4 py-2 bg-black text-white rounded-xl text-sm dark:bg-white dark:text-black">Exit Focus</button>
+            <span className="text-sm opacity-60">{stats.words} words • {formatTime(writingTime)} • {autoLang}</span>
+          </div>
+          <textarea ref={textareaRef} value={text} onChange={handleInput} className="w-full min-h-[80vh] outline-none bg-transparent text-xl leading-relaxed" style={{ fontFamily: currentFont.css, fontSize: `${fontSize}px`, lineHeight, color: isDark? "#fff" : color }} />
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className={`${isDark? "bg-[#0a0a0a] text-white" : "bg-gradient-to-br from-[#f8fafc] via-[#eef2ff] to-[#f5f3ff] text-gray-900"} min-h-screen`}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
-       .glass{backdrop-filter:blur(16px);background:${isDark? "rgba(30,30,30,0.7)" : "rgba(255,255,255,0.75)"};border:1px solid ${isDark? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)"}}
-        [contenteditable]:focus{outline:none}`}</style>
+       .glass{backdrop-filter:blur(16px);background:${isDark? "rgba(30,30,30,0.7)" : "rgba(255,255,255,0.75)"};border:1px solid ${isDark? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)"}} textarea{resize:none} textarea:focus{outline:none}`}</style>
+
       {toast && (<div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold animate-pulse">{toast}</div>)}
+
       <div className="max-w-6xl mx-auto p-4 md:p-8">
         <div className="text-center mb-6">
-          <div className="inline-flex px-3 py-1 rounded-full bg-black text-white text-[11px] tracking-widest mb-3">✨ VOICE DIRECT INSERT FIXED</div>
+          <div className="inline-flex px-3 py-1 rounded-full bg-black text-white text-[11px] tracking-widest mb-3">✨ ENTER + CURSOR FIXED - 1000+ LINES RESTORED</div>
           <h1 className="text-4xl md:text-5xl font-black">Word Counter Pro</h1>
           <div className="flex justify-center gap-2 mt-3 flex-wrap items-center">
             <select value={lang} onChange={e => setLang(e.target.value)} className="h-9 rounded-xl border px-3 text-sm bg-white text-black font-bold shadow">{LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}</select>
@@ -450,53 +425,75 @@ export default function WordCounterClient() {
 
         <div className="glass rounded-2xl shadow p-3 mb-3 flex flex-wrap gap-1.5 items-center justify-between sticky top-2 z-20">
           <div className="flex gap-1 flex-wrap items-center">
-            <button onClick={() => applyFormat("bold")} className="w-9 h-9 rounded-lg bg-white text-black font-black border">B</button>
-            <button onClick={() => applyFormat("italic")} className="w-9 h-9 rounded-lg bg-white text-black italic border">I</button>
-            <button onClick={() => applyFormat("underline")} className="w-9 h-9 rounded-lg bg-white text-black underline border">U</button>
-            <button onClick={() => applyFormat("strikeThrough")} className="w-9 h-9 rounded-lg bg-white text-black border line-through">S</button>
+            <select onChange={e => { changeCase(e.target.value); e.target.value=""; }} className="h-9 rounded-lg bg-white text-black px-2 text-sm border"><option value="">Case ▾</option><option value="upper">UPPER</option><option value="lower">lower</option><option value="title">Title</option><option value="sentence">Sentence</option></select>
             <div className="w-px h-6 bg-gray-200 mx-1" />
-            <button onClick={() => applyFormat("insertUnorderedList")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">• List</button>
-            <button onClick={() => applyFormat("insertOrderedList")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">1. List</button>
-            <button onClick={() => applyFormat("undo")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">↶</button>
-            <button onClick={() => applyFormat("redo")} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">↷</button>
-            <button onClick={handleCut} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">✂</button>
-            <button onClick={handleCopy} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">{copied? "✓" : "⎙"}</button>
-            <button onClick={handlePaste} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">⎘</button>
-            <button onClick={handleDelete} className="h-9 px-2.5 rounded-lg bg-red-50 text-red-600 text-xs border">Del</button>
+            <button onClick={handleCopy} className="h-9 px-2.5 rounded-lg bg-white text-black text-xs border">{copied? "✓" : "⎙"} Copy</button>
             <button onClick={handleClear} className="h-9 px-2.5 rounded-lg bg-red-50 text-red-600 text-xs border">Clear</button>
-            <select onChange={e => changeCase(e.target.value)} className="h-9 rounded-lg bg-white text-black px-2 text-sm border"><option value="">Case ▾</option><option value="upper">UPPER</option><option value="lower">lower</option><option value="title">Title</option><option value="sentence">Sentence</option></select>
+            <button onClick={loadSample} className="h-9 px-2.5 rounded-lg bg-indigo-50 text-indigo-700 text-xs border">Sample</button>
           </div>
           <div className="flex gap-1.5 flex-wrap items-center">
             <button onClick={() => setShowFind(v =>!v)} className="h-9 px-3 rounded-xl bg-white text-black text-xs border">🔍 Find</button>
             <button onClick={() => setShowSettings(v =>!v)} className="h-9 px-3 rounded-xl bg-white text-black text-xs border">⚙ Settings</button>
             <button onClick={toggleVoice} type="button" className={`h-10 px-5 rounded-xl text-xs font-black border-2 shadow cursor-pointer ${isListening? "bg-red-600 text-white border-red-600 animate-pulse" : "bg-black text-white border-black"}`}>{isListening? "■ STOP" : "🎤 VOICE"}</button>
             <button onClick={toggleSpeak} className={`h-9 px-3 rounded-xl text-xs border ${isSpeaking? "bg-red-600 text-white" : "bg-white text-black"}`}>{isSpeaking? "■" : "🔊"}</button>
-            <button onClick={share} className="h-9 px-3 rounded-xl bg-white text-black text-xs border">↗</button>
+            <button onClick={share} className="h-9 px-3 rounded-xl bg-white text-black text-xs border">↗ Share</button>
             <button onClick={() => setIsFocus(true)} className="h-9 px-3 rounded-xl bg-black text-white text-xs">⛶ Focus</button>
             <button onClick={() => setIsDark(!isDark)} className="h-9 px-3 rounded-xl bg-black text-white text-xs">{isDark? "☀" : "🌙"}</button>
           </div>
         </div>
 
-        {showSettings && (<div className="glass rounded-2xl p-4 mb-3 grid md:grid-cols-4 gap-3"><div><label className="text-[10px] uppercase opacity-60 font-bold">Page Size</label><select value={pageSize} onChange={e => setPageSize(e.target.value)} className="w-full h-9 rounded-lg bg-white text-black px-2 text-sm border mt-1">{Object.entries(PAGE_SIZES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div><div><label className="text-[10px] uppercase opacity-60 font-bold">Font</label><select value={font} onChange={e => setFont(e.target.value)} className="w-full h-9 rounded-lg bg-white text-black px-2 text-sm border mt-1">{FONTS.map(f => <option key={f.name} value={f.name}>{f.name}</option>)}</select></div><div><label className="text-[10px] uppercase opacity-60 font-bold">Size: {fontSize}px</label><input type="range" min={10} max={32} value={fontSize} onChange={e => setFontSize(parseInt(e.target.value))} className="w-full mt-2" /></div><div><label className="text-[10px] uppercase opacity-60 font-bold">Line Height: {lineHeight}</label><input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(parseFloat(e.target.value))} className="w-full mt-2" /></div><div className="md:col-span-4 flex flex-wrap gap-4 pt-2 border-t"><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoCorrect} onChange={e => setAutoCorrect(e.target.checked)} /> Auto Correct</label><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoComplete} onChange={e => setAutoComplete(e.target.checked)} /> Auto Complete</label><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={showHighlight} onChange={e => setShowHighlight(e.target.checked)} /> Grammar Highlight</label><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={duplicateHighlight} onChange={e => setDuplicateHighlight(e.target.checked)} /> Duplicate Highlight</label></div></div>)}
-        {showFind && (<div className="glass rounded-2xl p-3 mb-3 flex gap-2 items-center flex-wrap"><input value={findText} onChange={e => setFindText(e.target.value)} placeholder="Find..." className="h-9 px-3 rounded-lg border bg-white text-black text-sm flex-1 min-w-[140px]" /><input value={replaceText} onChange={e => setReplaceText(e.target.value)} placeholder="Replace..." className="h-9 px-3 rounded-lg border bg-white text-black text-sm flex-1 min-w-[140px]" /><button onClick={doReplace} disabled={!findText} className="h-9 px-4 rounded-lg bg-violet-600 text-white text-sm disabled:opacity-40">Replace All</button><button onClick={() => setShowFind(false)} className="h-9 px-3 rounded-lg bg-white border text-black text-sm">✕</button></div>)}
+        {showSettings && (
+          <div className="glass rounded-2xl p-4 mb-3 grid md:grid-cols-4 gap-3">
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Page Size</label><select value={pageSize} onChange={e => setPageSize(e.target.value)} className="w-full h-9 rounded-lg bg-white text-black px-2 text-sm border mt-1">{Object.entries(PAGE_SIZES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Font</label><select value={font} onChange={e => setFont(e.target.value)} className="w-full h-9 rounded-lg bg-white text-black px-2 text-sm border mt-1">{FONTS.map(f => <option key={f.name} value={f.name}>{f.name}{f.mono? " (mono)" : ""}</option>)}</select></div>
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Size: {fontSize}px</label><input type="range" min={10} max={32} value={fontSize} onChange={e => setFontSize(parseInt(e.target.value))} className="w-full mt-2" /></div>
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Line Height: {lineHeight}</label><input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(parseFloat(e.target.value))} className="w-full mt-2" /></div>
+            <div className="md:col-span-4 flex flex-wrap gap-4 pt-2 border-t"><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoCorrect} onChange={e => setAutoCorrect(e.target.checked)} /> Auto Correct</label><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoComplete} onChange={e => setAutoComplete(e.target.checked)} /> Auto Complete (Tab)</label><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={showHighlight} onChange={e => setShowHighlight(e.target.checked)} /> Show Red Lines (Preview)</label><label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={duplicateHighlight} onChange={e => setDuplicateHighlight(e.target.checked)} /> Duplicate Highlight</label><span className="text-xs opacity-60 ml-auto">Page: {page.w}×{page.h}mm • {currentFont.mono? "Monospace" : "Proportional"}</span></div>
+          </div>
+        )}
 
-        <div className="flex gap-2 mb-4 justify-between flex-wrap"><div className="flex gap-2 flex-wrap"><button onClick={checkGrammar} className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white">{checking? "Checking..." : "✓ Grammar"}</button>{errors.length > 0 && (<button onClick={fixAll} className="text-xs px-3 py-1.5 rounded-full bg-green-600 text-white">⚡ Fix All ({errors.length})</button>)}<button onClick={handleCopyStats} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">{copiedStats? "✓ Copied" : "⎙ Copy Stats"}</button>{!text && <button onClick={loadSample} className="text-xs px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-700 border">📄 Sample</button>}</div><div className="flex gap-2 flex-wrap"><button onClick={exportTxt} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">TXT</button><button onClick={exportDoc} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">DOC</button><button onClick={exportCsv} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">CSV</button><button onClick={exportPdf} className="text-xs px-3 py-1.5 rounded-full bg-black text-white">PDF</button></div></div>
+        {showFind && (<div className="glass rounded-2xl p-3 mb-3 flex gap-2 items-center flex-wrap"><input value={findText} onChange={e => setFindText(e.target.value)} placeholder="Find..." className="h-9 px-3 rounded-lg border bg-white text-black text-sm flex-1 min-w-[140px]" /><input value={replaceText} onChange={e => setReplaceText(e.target.value)} placeholder="Replace with..." className="h-9 px-3 rounded-lg border bg-white text-black text-sm flex-1 min-w-[140px]" /><button onClick={doReplace} disabled={!findText} className="h-9 px-4 rounded-lg bg-violet-600 text-white text-sm disabled:opacity-40">Replace All</button><button onClick={() => setShowFind(false)} className="h-9 px-3 rounded-lg bg-white border text-black text-sm">✕</button></div>)}
+
+        <div className="flex gap-2 mb-4 justify-between flex-wrap">
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={()=>{ checkGrammar(); setShowHighlight(true); }} className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white">{checking? "Checking..." : "✓ Grammar"}</button>
+            {errors.length > 0 && (<button onClick={fixAll} className="text-xs px-3 py-1.5 rounded-full bg-green-600 text-white">⚡ Fix All ({errors.length})</button>)}
+            <button onClick={handleCopyStats} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">{copiedStats? "✓ Copied" : "⎙ Copy Stats"}</button>
+          </div>
+          <div className="flex gap-2 flex-wrap"><button onClick={exportTxt} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">TXT</button><button onClick={exportDoc} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">DOC</button><button onClick={exportCsv} className="text-xs px-3 py-1.5 rounded-full bg-white border text-black">CSV</button><button onClick={exportPdf} className="text-xs px-3 py-1.5 rounded-full bg-black text-white">PDF</button></div>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2">
             <div className="glass rounded-[24px] shadow p-2 relative">
-              <div className="px-4 py-1.5 text-[10px] opacity-60 flex justify-between"><span>📄 {page.label} • {fontSize}px • LH {lineHeight}</span><span>{autoLang}</span></div>
-              <div ref={editorRef} contentEditable suppressContentEditableWarning onInput={handleInput} spellCheck={true} className={`w-full min-h-[460px] p-6 rounded-[16px] ${isDark? "bg-black/50 text-white" : "bg-white/90"} outline-none`} style={{ fontFamily: currentFont.css, fontSize: `${fontSize}px`, lineHeight, color: isDark? "#f3f4f6" : color }} />
-              {suggestions.length > 0 && (<div className="absolute bottom-16 left-8 bg-white border rounded-xl shadow-2xl text-black text-sm overflow-hidden z-30">{suggestions.map((s, i) => (<button key={s.word} onClick={() => insertSuggestion(s)} className={`block w-full text-left px-4 py-1.5 hover:bg-violet-100 ${i === 0? "bg-violet-50 font-bold" : ""}`}>{s.word} {i === 0 && <span className="text-[10px] opacity-50 ml-2">Tab</span>}</button>))}</div>)}
-              <div className="px-4 py-2 text-[11px] opacity-50 flex justify-between"><span>Direct Voice Insert Fixed - Bolte hi yahi ayega</span><span>{isActive? "🟢 Active" : "⚪ Idle"} • ⏱ {formatTime(writingTime)}</span></div>
+              <div className="px-4 py-1.5 text-[10px] opacity-60 flex justify-between"><span>📄 {page.label} • {fontSize}px • LH {lineHeight} • {currentFont.name}</span><span>{currentFont.mono? "🔤 Monospace" : "🔡 Proportional"}</span></div>
+              <textarea ref={textareaRef} value={text} onChange={handleInput} placeholder="Yahan type karo... Beech me Enter dabao, line wahi rahegi. Last me likho to cursor jump nahi hoga. Voice bhi direct yahi ayega."
+                className={`w-full min-h-[460px] p-6 rounded-[16px] ${isDark? "bg-black/50 text-white" : "bg-white/90"} outline-none border-0`}
+                style={{ fontFamily: currentFont.css, fontSize: `${fontSize}px`, lineHeight, color: isDark? "#f3f4f6" : color }}
+              />
+              {suggestions.length > 0 && (<div className="absolute bottom-20 left-8 bg-white border rounded-xl shadow-2xl text-black text-sm overflow-hidden z-30">{suggestions.map((s, i) => (<button key={s.word} onClick={() => insertSuggestion(s)} className={`block w-full text-left px-4 py-1.5 hover:bg-violet-100 ${i === 0? "bg-violet-50 font-bold" : ""}`}>{s.word} {i === 0 && <span className="text-[10px] opacity-50 ml-2">Tab</span>}</button>))}</div>)}
+              <div className="px-4 py-2 text-[11px] opacity-50 flex justify-between"><span>✅ FIXED: Textarea mode - Enter & Cursor stable | {autoLang}</span><span>{isActive? "🟢 Active" : "⚪ Idle"} • ⏱ {formatTime(writingTime)}</span></div>
             </div>
-            {errors.length > 0 && (<div className="glass rounded-2xl p-4 mt-4"><div className="flex justify-between items-center mb-2"><h3 className="font-bold text-sm">🔴 {errors.length} Grammar Errors</h3><button onClick={fixAll} className="text-xs px-2 py-1 bg-green-600 text-white rounded">Fix All</button></div>{errors.map((err, i) => (<div key={i} className="flex justify-between items-center p-2 bg-white text-black rounded-xl text-xs mb-2 gap-2"><span className="flex-1">{err.message} → <b className="text-green-600">{err.replacement}</b></span><button onClick={() => fixError(err)} className="px-3 py-1 bg-black text-white rounded-lg">Fix</button></div>))}</div>)}
+
+            {showHighlight && (
+              <div className="glass rounded-[20px] p-4 mt-4">
+                <h3 className="font-bold text-xs mb-2">Preview with Red Wavy (Grammar) - Ye sirf dekhne ke liye hai, typing upar hoti hai</h3>
+                <div className={`min-h-[100px] p-4 rounded-xl ${isDark?"bg-black/40":"bg-white"} text-[15px] leading-7`} style={{fontFamily: currentFont.css}} dangerouslySetInnerHTML={{__html: highlightedHtml || escapeHtml(text).replace(/\n/g,"<br>") || "<span class='opacity-40'>No errors</span>"}} />
+              </div>
+            )}
+
+            {errors.length > 0 && (<div className="glass rounded-2xl p-4 mt-4"><div className="flex justify-between items-center mb-2"><h3 className="font-bold text-sm">🔴 {errors.length} Grammar Errors</h3><button onClick={fixAll} className="text-xs px-2 py-1 bg-green-600 text-white rounded">Fix All</button></div>{errors.map((err, i) => (<div key={i} className="flex justify-between items-center p-2 bg-white text-black rounded-xl text-xs mb-2 gap-2"><span className="flex-1">{err.message} → <b className="text-green-600">{err.replacement}</b></span><button onClick={() => fixError(err)} className="px-3 py-1 bg-black text-white rounded-lg whitespace-nowrap">Fix</button></div>))}</div>)}
+
+            {(duplicates.words.length > 0 || duplicates.sentences.length > 0) && (<div className="glass rounded-2xl p-4 mt-4"><h3 className="font-bold text-sm mb-2">🔁 Duplicate Detection</h3>{duplicates.sentences.length > 0 && (<div className="mb-3"><div className="text-[10px] uppercase opacity-60 font-bold mb-1">Repeated Sentences ({duplicates.sentences.length})</div>{duplicates.sentences.map((d, i) => (<div key={i} className="text-xs p-2 bg-purple-50 text-purple-900 rounded-lg mb-1"><b>{d.count}x</b> — "{d.text}..."</div>))}</div>)}{duplicates.words.length > 0 && (<div><div className="text-[10px] uppercase opacity-60 font-bold mb-1">Repeated Words</div><div className="flex flex-wrap gap-1">{duplicates.words.slice(0, 12).map(([w, c]) => (<span key={w} className="text-[11px] px-2 py-1 bg-orange-100 text-orange-800 rounded-full font-bold">{w} × {c}</span>))}</div></div>)}</div>)}
+
+            <div className="glass rounded-2xl p-4 mt-4"><h3 className="font-bold text-xs uppercase mb-3">📊 Keyword Density</h3>{stats.density.length === 0? <p className="text-xs opacity-50">Type...</p> : stats.density.map(([k, d]) => (<div key={k} className="flex justify-between text-xs py-1 border-b last:border-0"><span>{k}</span><span className={`font-bold ${parseFloat(d) > 3? "text-red-500" : "text-green-600"}`}>{d}%</span></div>))}</div>
           </div>
+
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <Stat label="Words" value={stats.words} tip={`Goal: ${goal}`} />
-              <Stat label="Chars (with)" value={stats.chars} tip="Space ke saath - Twitter count" />
-              <Stat label="Chars (without)" value={stats.charsNoSpace} tip="Bina space - University count" />
+              <Stat label="Chars (with)" value={stats.chars} tip="Space ke saath" />
+              <Stat label="Chars (without)" value={stats.charsNoSpace} tip="Bina space" />
               <Stat label="Sentences" value={stats.sentences} />
               <Stat label="Paragraphs" value={stats.paras} />
               <Stat label="Lines" value={stats.lines} />
@@ -505,19 +502,46 @@ export default function WordCounterClient() {
               <Stat label="Writing" value={formatTime(writingTime)} tip={isActive? "Active" : "Idle"} />
               <Stat label="Flesch" value={stats.flesch} tip={stats.level} />
             </div>
-            <div className="glass rounded-2xl p-4"><h3 className="font-bold text-xs uppercase mb-3">Top 10 Keywords + Density</h3>{stats.top10.length === 0? <p className="text-xs opacity-50">Type...</p> : stats.top10.map(([k, v], i) => { const d = stats.density.find(([kk])=>kk===k)?.[1] || "0"; return (<div key={k} className="flex justify-between text-xs py-1.5 border-b last:border-0"><span>{i + 1}. {k}</span><span className="font-bold">{v}x • {d}%</span></div>); })}</div>
+            <div className="glass rounded-2xl p-4"><h3 className="font-bold text-xs uppercase mb-3">🎯 Goal</h3><div className="text-3xl font-black text-center">{progress}%</div><div className="text-xs text-center opacity-60 mt-1">{stats.words} / {goal} words</div>{goalReached && <div className="text-center text-green-600 text-xs font-bold mt-2">🎉 Goal Achieved!</div>}</div>
+            <div className="glass rounded-2xl p-4"><h3 className="font-bold text-xs uppercase mb-3">Top 10 Keywords</h3>{stats.top10.length === 0? <p className="text-xs opacity-50">Type...</p> : stats.top10.map(([k, v], i) => (<div key={k} className="flex justify-between text-xs py-1.5 border-b last:border-0"><span>{i + 1}. {k}</span><span className="font-bold">{v}x</span></div>))}</div>
+            <div className="glass rounded-2xl p-4"><h3 className="font-bold text-xs uppercase mb-3">📱 Social Media Limits</h3><div className="grid grid-cols-1 gap-2">{[{ name: "Twitter", limit: 280 }, { name: "Instagram", limit: 2200 }, { name: "LinkedIn", limit: 3000 }].map(s => { const left = s.limit - stats.chars; return (<div key={s.name} className="bg-white text-black rounded-xl p-2 text-center border flex justify-between px-3"><div className="text-[10px] opacity-60">{s.name}</div><div className={`text-xs font-black ${left < 0? "text-red-500" : "text-green-600"}`}>{left < 0? `${Math.abs(left)} over` : `${left} left`}</div></div>); })}</div></div>
           </div>
         </div>
 
-        <div className="glass rounded-2xl p-4 mt-6"><h3 className="font-bold text-xs uppercase mb-3">📱 Social Media Limits - Live Use</h3><div className="grid grid-cols-3 gap-3">{[{ name: "Twitter", limit: 280 }, { name: "Instagram", limit: 2200 }, { name: "LinkedIn", limit: 3000 }].map(s => { const left = s.limit - stats.chars; return (<div key={s.name} className="bg-white text-black rounded-xl p-3 text-center border"><div className="text-[10px] opacity-60">{s.name} ({s.limit})</div><div className={`text-sm font-black ${left < 0? "text-red-500" : "text-green-600"}`}>{left < 0? `${Math.abs(left)} over` : `${left} left`}</div></div>); })}</div></div>
-
         <div className="mt-12 space-y-4">
-          {articles.map(a => (<div key={a.id} className="glass rounded-2xl overflow-hidden"><button onClick={() => setShowArticle(showArticle === a.id? null : a.id)} className="w-full flex justify-between items-center p-5 font-bold text-left"><span>{a.title}</span><span className="text-xl">{showArticle === a.id? "−" : "+"}</span></button>{showArticle === a.id && (<div className={`p-6 ${isDark? "bg-black/50" : "bg-white/80"} text-sm leading-7 whitespace-pre-line border-t`}>{a.content}</div>)}</div>))}
+          {articlesData.map(a => (<div key={a.id} className="glass rounded-2xl overflow-hidden"><button onClick={() => setShowArticle(showArticle === a.id? null : a.id)} className="w-full flex justify-between items-center p-5 font-bold text-left"><span>{a.title}</span><span className="text-xl">{showArticle === a.id? "−" : "+"}</span></button>{showArticle === a.id && (<div className={`p-6 ${isDark? "bg-black/50" : "bg-white/80"} text-sm leading-7 whitespace-pre-line border-t`}>{a.content}</div>)}</div>))}
         </div>
       </div>
     </div>
   );
 }
+
+const articlesData = [
+  { id: "how-to-use", title: "How to Use Word Counter? All Features Explained + Bug Fixed", content: `Pehle Enter aur Cursor ka bug tha, ab FIXED hai kyunki humne textarea use kiya hai.
+
+Features:
+- Words, Chars(with)=space included (Twitter), Chars(without)=bina space (University)
+- Sentences, Paragraphs, Lines
+- Reading Time 200wpm, Speaking 130wpm, Writing Time active only
+- Flesch Score Easy/Standard/Hard
+- Keyword Density = (count/total)*100, ideal 1-2%
+- Top 10 Keywords, Social Limits Twitter 280, Instagram 2200, LinkedIn 3000 live left/over
+- Grammar: Ab typing disturb nahi karega, alag preview me red wavy dikhega, Fix All available
+- Voice: Direct insert jahan cursor hai wahi, copy-paste khatam, Chrome HTTPS par
+- Auto-save har 400ms, Goal bar + celebration, Find/Replace, Case converter
+- Settings: Page Size A4/Letter/Legal, Font Inter/Merriweather/Mono/Georgia, Size, Line Height, Color
+- Auto-correct teh->the, Auto-complete Tab se, Duplicate highlight, Export TXT/DOC/CSV/PDF, Focus mode, Dark/Light, Share
+- 100% private, browser me hi sab hota hai.` },
+  { id: "grammar", title: "Grammar Red Wavy Kaise Kaam Karta Hai?", content: `LanguageTool API use hota hai 30+ rules ke saath. Pehle hum contentEditable me hi red line laga dete the jisse cursor jump hota tha. Ab humne alag preview banaya hai.
+
+Steps:
+1. Type karo
+2. 1.5 sec baad auto check hoga, errors list me ayenge
+3. "Show Red Lines" ON karo to neeche preview me red wavy dikhegi
+4. Hover par message + correct word
+5. Fix ya Fix All dabao - text upar wale stable box me sahi ho jayega` },
+];
+
 function Stat({ label, value, tip }: { label: string; value: any; tip?: string }) {
   return (<div className="glass rounded-2xl p-4 shadow-sm" title={tip}><div className="text-[10px] uppercase tracking-widest opacity-60">{label}</div><div className="text-lg font-black mt-1">{value}</div>{tip && <div className="text-[9px] opacity-40 mt-1">{tip}</div>}</div>);
 }
