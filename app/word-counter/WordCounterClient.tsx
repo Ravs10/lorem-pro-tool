@@ -52,7 +52,7 @@ const AUTO_CORRECT: Record<string, string> = {
 
 const DICTIONARY = ["about","above","across","action","actually","added","after","again","against","almost","along","already","although","always","among","amount","another","answer","anyone","anything","appear","around","available","back","became","because","become","before","begin","behind","believe","below","better","between","beyond","bring","business","called","cannot","carry","center","certain","change","children","choose","class","clear","close","color","coming","common","company","complete","consider","continue","could","country","course","create","current","decide","describe","develop","different","difficult","direct","during","early","education","effect","either","enough","every","example","experience","family","father","feeling","figure","follow","friend","future","general","given","government","great","ground","group","growth","happen","having","heard","heavy","history","however","hundred","important","include","inside","issue","itself","knowledge","language","large","later","learn","leave","letter","level","light","little","local","machine","major","material","matter","maybe","mean","measure","medical","member","memory","message","method","middle","might","minute","modern","moment","money","month","morning","mother","mountain","music","nation","natural","nature","nearly","necessary","need","never","night","nothing","notice","number","object","occur","offer","often","order","other","paper","particular","people","perhaps","person","picture","place","plan","point","police","policy","possible","power","practice","prepare","present","president","press","pretty","prevent","private","probably","problem","process","produce","product","program","project","property","provide","public","purpose","question","quickly","quiet","rather","reach","ready","really","reason","receive","recent","recognize","record","reduce","reflect","region","relate","remain","remember","remove","report","require","research","resource","respond","result","return","right","roughly","school","science","season","second","section","seem","sense","series","serious","serve","service","several","shall","share","short","should","similar","simple","simply","since","single","situation","small","social","society","some","someone","something","sometimes","space","speak","special","spend","stand","start","state","statement","station","stay","still","story","street","strong","structure","student","study","subject","success","suddenly","suggest","summer","support","system","table","taken","teach","thing","though","thought","thousand","through","throughout","together","tomorrow","tonight","total","toward","town","trade","training","travel","treatment","trouble","truth","understand","until","usually","value","various","victim","video","village","visit","voice","watch","water","weapon","weather","week","weight","welcome","western","whatever","whenever","wherever","whether","which","while","white","whole","whose","window","within","without","woman","wonder","world","worry","would","write","writer","wrong","year","young","yourself"];
 
-const SAMPLE = `Word Counter Pro is a powerful tool. Select some text and click 🎨 to color it — only the selection will change!`;
+const SAMPLE = `Word Counter Pro is a powerful tool. Select some text and click the color box to color it — only the selection will change!`;
 
 const safeGet = (k: string): string | null => {
   try { return typeof window !== "undefined" ? localStorage.getItem(k) : null; } catch { return null; }
@@ -70,7 +70,7 @@ const formatTime = (s: number) => {
   return `${sec}s`;
 };
 
-// ✅ Character-offset helpers (used for selection-safe color + highlighting)
+// Character-offset helpers for reliable selection restore
 const getTextOffset = (node: Node, offset: number, root: Node): number => {
   let count = 0;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
@@ -115,7 +115,7 @@ export default function WordCounterClient() {
   const [copiedStats, setCopiedStats] = useState(false);
   const [lang, setLang] = useState("en-US");
   const [autoLang, setAutoLang] = useState("Auto Detect: -");
-  const [showHighlight, setShowHighlight] = useState(false);
+  const [showHighlight, setShowHighlight] = useState(true);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [findText, setFindText] = useState("");
   const [replaceText, setReplaceText] = useState("");
@@ -273,7 +273,6 @@ export default function WordCounterClient() {
     const wc: Record<string, number> = {};
     words.forEach(w => { wc[w] = (wc[w] || 0) + 1; });
     const dupWords = Object.entries(wc).filter(([, c]) => c > 1).sort((a, b) => b[1] - a[1]).slice(0, 20);
-    // Duplicate sentences: use trimmed original sentences (not lowercased) so preview search works
     const rawSentences = text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 20);
     const lowerMap: Record<string, { orig: string; count: number }> = {};
     rawSentences.forEach(s => {
@@ -306,7 +305,7 @@ export default function WordCounterClient() {
     setText(newText);
   }, []);
 
-  // ✅ FIXED: save selection as character offsets (survives DOM changes)
+  // Save selection as character offsets
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
@@ -318,7 +317,6 @@ export default function WordCounterClient() {
     if (start !== end) savedSelRef.current = { start, end };
   }, []);
 
-  // ✅ Global listener keeps selection offsets fresh
   useEffect(() => {
     const handler = () => {
       const sel = window.getSelection();
@@ -453,43 +451,54 @@ export default function WordCounterClient() {
     return () => document.removeEventListener("selectionchange", updateActiveFormats);
   }, [updateActiveFormats]);
 
-  // ✅ FIXED: color applies ONLY to saved selection (offsets → fresh Range)
+  // ✅ Color only to live/restored selection, never whole document
   const applyColorToSelection = useCallback((newColor: string, isHighlight = false) => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    const saved = savedSelRef.current;
-    if (!saved || saved.start === saved.end) {
-      setToast("⚠ Pehle text select karo, phir color choose karo");
-      setTimeout(() => setToast(null), 2200);
-      return;
+    // Prefer LIVE selection (most reliable)
+    const liveSel = window.getSelection();
+    let hasLive = false;
+    if (liveSel && liveSel.rangeCount > 0 && !liveSel.isCollapsed) {
+      const r = liveSel.getRangeAt(0);
+      if (editor.contains(r.commonAncestorContainer) && r.toString().length > 0) hasLive = true;
     }
 
-    const startPos = getNodeAtOffset(saved.start, editor);
-    const endPos = getNodeAtOffset(saved.end, editor);
-    if (!startPos || !endPos) {
-      setToast("⚠ Selection lost — dobara select karo");
-      setTimeout(() => setToast(null), 2200);
-      return;
+    if (!hasLive) {
+      // Try restoring from saved offsets
+      const saved = savedSelRef.current;
+      if (!saved || saved.start === saved.end) {
+        setToast("⚠ Pehle text select karo, phir color choose karo");
+        setTimeout(() => setToast(null), 2200);
+        return;
+      }
+      const startPos = getNodeAtOffset(saved.start, editor);
+      const endPos = getNodeAtOffset(saved.end, editor);
+      if (!startPos || !endPos) {
+        setToast("⚠ Selection lost — dobara select karo");
+        setTimeout(() => setToast(null), 2200);
+        return;
+      }
+      editor.focus();
+      try {
+        const range = document.createRange();
+        range.setStart(startPos.node, startPos.offset);
+        range.setEnd(endPos.node, endPos.offset);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+      } catch {
+        setToast("⚠ Selection restore fail — dobara select karo");
+        setTimeout(() => setToast(null), 2200);
+        return;
+      }
+    } else {
+      editor.focus();
     }
 
-    editor.focus();
-    try {
-      const range = document.createRange();
-      range.setStart(startPos.node, startPos.offset);
-      range.setEnd(endPos.node, endPos.offset);
-      const sel = window.getSelection();
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-    } catch {
-      setToast("⚠ Selection restore fail — dobara select karo");
-      setTimeout(() => setToast(null), 2200);
-      return;
-    }
-
-    // Verify actual non-collapsed selection before applying
+    // Final guard
     const verify = window.getSelection();
-    if (!verify || verify.toString().length === 0) {
+    if (!verify || verify.isCollapsed || verify.toString().length === 0) {
       setToast("⚠ Pehle text select karo, phir color choose karo");
       setTimeout(() => setToast(null), 2200);
       return;
@@ -506,7 +515,11 @@ export default function WordCounterClient() {
 
   // -------- GRAMMAR --------
   const checkGrammar = useCallback(async () => {
-    if (!text.trim() || text.length < 5) return;
+    const txt = (editorRef.current?.innerText || text || "").trim();
+    if (!txt || txt.length < 5) {
+      setErrors([]);
+      return;
+    }
     if (grammarAbortRef.current) grammarAbortRef.current.abort();
     const ctrl = new AbortController();
     grammarAbortRef.current = ctrl;
@@ -515,50 +528,59 @@ export default function WordCounterClient() {
       const res = await fetch("https://api.languagetool.org/v2/check", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: `text=${encodeURIComponent(text)}&language=${lang}&level=picky`,
+        body: `text=${encodeURIComponent(txt)}&language=${lang}&level=picky`,
         signal: ctrl.signal,
       });
+      if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
-      const errs: ErrorItem[] = (data.matches || []).slice(0, 20).map((m: any) => ({
-        message: m.message, offset: m.offset, length: m.length,
+      const errs: ErrorItem[] = (data.matches || []).slice(0, 30).map((m: any) => ({
+        message: m.message || "Issue",
+        offset: typeof m.offset === "number" ? m.offset : 0,
+        length: typeof m.length === "number" ? m.length : 0,
         replacement: m.replacements?.[0]?.value || "",
         category: m.rule?.category?.name || m.rule?.issueType || "Grammar",
       }));
       setErrors(errs);
-    } catch {} finally { setChecking(false); }
+    } catch (e: any) {
+      if (e?.name !== "AbortError") {
+        setErrors([]);
+      }
+    } finally {
+      setChecking(false);
+    }
   }, [text, lang]);
 
+  // Auto-check debounced
   useEffect(() => {
-    if (text.length < 15) return;
-    const t = setTimeout(() => { checkGrammar(); }, 1500);
+    if (text.length < 15) { setErrors([]); return; }
+    const t = setTimeout(() => { checkGrammar(); }, 1200);
     return () => clearTimeout(t);
   }, [text, lang, checkGrammar]);
 
-  // ✅ FIXED: build highlights from ORIGINAL text offsets (no escape-before-slice bug)
-  // Also adds duplicate-sentence highlighting when enabled
-  const highlightedHtml = useMemo(() => {
-    if (!text) return "";
+  // ✅ Build HTML that renders red wavy + duplicate highlights INSIDE the editor when toggled on
+  const buildHighlightedHtml = useCallback((plain: string) => {
+    if (!plain) return "";
     type Seg = { start: number; end: number; priority: number; tag: string };
     const segments: Seg[] = [];
 
-    // Grammar errors (priority 1)
-    if (errors.length > 0) {
+    if (showHighlight && errors.length > 0) {
       errors.forEach(err => {
-        if (err.offset < 0 || err.offset + err.length > text.length) return;
+        if (err.offset < 0 || err.offset + err.length > plain.length) return;
+        if (err.length === 0) return;
         const cat = err.category || "";
         const clr = /spell/i.test(cat) ? "red" : /punct/i.test(cat) ? "orange" : /style/i.test(cat) ? "violet" : "red";
+        const label = `${escapeHtml(cat)}: ${escapeHtml(err.message)}${err.replacement ? " → " + escapeHtml(err.replacement) : ""}`;
         segments.push({
           start: err.offset,
           end: err.offset + err.length,
           priority: 1,
-          tag: `<span style="text-decoration:underline wavy ${clr} 2.5px;text-underline-offset:4px;background:rgba(255,0,0,0.10)" title="${escapeHtml(cat)}: ${escapeHtml(err.message)} → ${escapeHtml(err.replacement)}">`,
+          tag: `<span data-lt-error="1" style="text-decoration: underline wavy ${clr} 2px; text-underline-offset: 4px; background: rgba(255,0,0,0.08); cursor: pointer;" title="${label}">`,
         });
       });
     }
 
-    // Duplicate sentences (priority 2)
     if (duplicateHighlight && duplicates.sentences.length > 0) {
-      const lowerText = text.toLowerCase();
+      const lowerText = plain.toLowerCase();
       duplicates.sentences.forEach(ds => {
         const needle = ds.text;
         if (needle.length < 10) return;
@@ -569,41 +591,73 @@ export default function WordCounterClient() {
             start: idx,
             end: idx + needle.length,
             priority: 2,
-            tag: `<span style="background:rgba(168,85,247,0.18);border-bottom:2px dotted #a855f7" title="Duplicate sentence (${ds.count}x)">`,
+            tag: `<span style="background: rgba(168,85,247,0.18); border-bottom: 2px dotted #a855f7;" title="Duplicate sentence (${ds.count}x)">`,
           });
           idx = lowerText.indexOf(lowerNeedle, idx + needle.length);
         }
       });
     }
 
-    if (segments.length === 0) return escapeHtml(text).replace(/\n/g, "<br>");
+    if (segments.length === 0) return escapeHtml(plain).replace(/\n/g, "<br>");
 
-    // Sort ascending; on tie, grammar (priority 1) wins over duplicate (2)
     segments.sort((a, b) => a.start - b.start || a.priority - b.priority);
-
-    // Drop overlapping segments (keep earliest)
     const filtered: Seg[] = [];
     let lastEnd = 0;
     for (const seg of segments) {
-      if (seg.start >= lastEnd) {
-        filtered.push(seg);
-        lastEnd = seg.end;
-      }
+      if (seg.start >= lastEnd) { filtered.push(seg); lastEnd = seg.end; }
     }
 
-    // Build final HTML: escape outside, wrap inside
     const parts: string[] = [];
     let cursor = 0;
     for (const seg of filtered) {
-      parts.push(escapeHtml(text.substring(cursor, seg.start)));
+      parts.push(escapeHtml(plain.substring(cursor, seg.start)));
       parts.push(seg.tag);
-      parts.push(escapeHtml(text.substring(seg.start, seg.end)));
+      parts.push(escapeHtml(plain.substring(seg.start, seg.end)));
       parts.push("</span>");
       cursor = seg.end;
     }
-    parts.push(escapeHtml(text.substring(cursor)));
+    parts.push(escapeHtml(plain.substring(cursor)));
     return parts.join("").replace(/\n/g, "<br>");
-  }, [text, errors, duplicateHighlight, duplicates.sentences]);
+  }, [showHighlight, errors, duplicateHighlight, duplicates.sentences]);
+
+  // Same HTML for the preview panel below
+  const highlightedHtml = useMemo(() => buildHighlightedHtml(text), [text, buildHighlightedHtml]);
+
+  // ✅ Apply or clear inline highlights in the EDITOR itself (preserves caret when user types)
+  const applyInlineHighlights = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const plain = editor.innerText || "";
+    if (!plain) return;
+    // Save caret to restore
+    const caret = getCaretOffset();
+    const newHtml = buildHighlightedHtml(plain);
+    editor.innerHTML = newHtml;
+    // Restore caret
+    try { setCaretOffset(Math.min(caret, plain.length)); } catch {}
+  }, [buildHighlightedHtml]);
+
+  const clearInlineHighlights = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const plain = editor.innerText || "";
+    const caret = getCaretOffset();
+    editor.innerText = plain;
+    try { setCaretOffset(Math.min(caret, plain.length)); } catch {}
+  }, []);
+
+  // Re-apply inline highlights when toggles change or errors change, but NOT while user is actively typing
+  useEffect(() => {
+    if (!editorRef.current) return;
+    if (!showHighlight && !duplicateHighlight) {
+      clearInlineHighlights();
+      return;
+    }
+    // Debounced apply
+    const t = setTimeout(() => { applyInlineHighlights(); }, 200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showHighlight, duplicateHighlight, errors, duplicates.sentences]);
 
   // -------- EDIT OPS --------
   const handleCut = () => {
@@ -695,11 +749,13 @@ export default function WordCounterClient() {
   };
 
   const fixError = (err: ErrorItem) => {
-    const nt = text.substring(0, err.offset) + err.replacement + text.substring(err.offset + err.length);
+    const plain = text;
+    const nt = plain.substring(0, err.offset) + err.replacement + plain.substring(err.offset + err.length);
     if (editorRef.current) editorRef.current.innerText = nt;
     setHtml(editorRef.current?.innerHTML || "");
     setText(nt);
     setErrors(p => p.filter(e => e !== err));
+    setTimeout(() => { if (showHighlight || duplicateHighlight) applyInlineHighlights(); }, 50);
   };
   const fixAll = () => {
     let nt = text;
@@ -844,7 +900,7 @@ export default function WordCounterClient() {
 
       <div className="max-w-6xl mx-auto p-4 md:p-8 relative">
         <div className="text-center mb-6">
-          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v6 · GRAMMAR RED LINES · DUPLICATE HIGHLIGHT · SELECTION-ONLY COLOR</div>
+          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v7 · INLINE RED LINES · WORKING GRAMMAR · SELECTION-ONLY COLOR</div>
           <h1 className="text-5xl md:text-6xl font-black gradient-text">Word Counter Pro</h1>
           <p className="mt-2 opacity-70 text-sm">Full writing studio with rich text editor, grammar check, and 30+ tools</p>
           <div className="flex justify-center gap-2 mt-4 flex-wrap items-center">
@@ -873,7 +929,6 @@ export default function WordCounterClient() {
           </div>
         )}
 
-        {/* TOOLBAR ROW 1 */}
         <div className="glass rounded-2xl p-3 mb-2 flex flex-wrap gap-1.5 items-center justify-between sticky top-2 z-20">
           <div className="flex gap-1 flex-wrap items-center">
             <button onClick={() => exec("undo")} className="h-9 px-3 rounded-lg glass-btn text-xs font-bold" title="Undo (Ctrl+Z)">↶ Undo</button>
@@ -905,7 +960,6 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* TOOLBAR ROW 2 - FORMATTING */}
         {showFormatBar && (
           <div className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20 transition-all duration-300">
             <button onClick={() => exec("bold")} className={`fmt-btn glass-btn ${activeFormats.bold ? "active" : ""}`} title="Bold (Ctrl+B)"><b>B</b></button>
@@ -938,7 +992,6 @@ export default function WordCounterClient() {
             <button onClick={() => exec("justifyFull")} className={`fmt-btn glass-btn ${activeFormats.justifyFull ? "active" : ""}`}>≡</button>
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* TEXT COLOR — applies only to selection */}
             <div className="flex items-center gap-1" title="Text color (applies to selected text only)">
               <span className="text-[10px] font-bold opacity-60">A</span>
               <input type="color" value={color}
@@ -957,7 +1010,6 @@ export default function WordCounterClient() {
               ))}
             </div>
 
-            {/* Highlight color */}
             <div className="flex items-center gap-1 ml-1" title="Highlight color (applies to selected text only)">
               <span className="text-[10px] font-bold opacity-60">H</span>
               <input type="color" value={highlight}
@@ -1015,7 +1067,7 @@ export default function WordCounterClient() {
             <div className="md:col-span-4 flex flex-wrap gap-4 pt-2 border-t border-white/30">
               <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoCorrect} onChange={e => setAutoCorrect(e.target.checked)} /> Auto Correct</label>
               <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoComplete} onChange={e => setAutoComplete(e.target.checked)} /> Auto Complete (Tab)</label>
-              <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={showHighlight} onChange={e => setShowHighlight(e.target.checked)} /> Show Red Wavy</label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={showHighlight} onChange={e => setShowHighlight(e.target.checked)} /> Show Red Wavy (inline in editor)</label>
               <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={duplicateHighlight} onChange={e => setDuplicateHighlight(e.target.checked)} /> Duplicate Highlight</label>
               <span className="text-xs opacity-60 ml-auto">📄 {page.w}×{page.h}mm • {currentFont.mono ? "Mono" : "Prop"}</span>
             </div>
@@ -1033,7 +1085,7 @@ export default function WordCounterClient() {
 
         <div className="flex gap-2 mb-4 justify-between flex-wrap">
           <div className="flex gap-2 flex-wrap">
-            <button onClick={() => { checkGrammar(); setShowHighlight(true); }} className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold">{checking ? "Checking..." : "✓ Grammar Check"}</button>
+            <button onClick={() => { checkGrammar(); }} className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold">{checking ? "Checking..." : "✓ Grammar Check"}</button>
             {errors.length > 0 && (<button onClick={fixAll} className="text-xs px-3 py-1.5 rounded-full bg-green-500 text-white font-bold">⚡ Fix All ({errors.length})</button>)}
             <button onClick={handleCopyStats} className="text-xs px-3 py-1.5 rounded-full glass-btn font-bold">{copiedStats ? "✓ Copied" : "⎙ Copy Stats"}</button>
             <button onClick={loadSample} className="text-xs px-3 py-1.5 rounded-full glass-btn font-bold">📄 Sample</button>
@@ -1081,34 +1133,27 @@ export default function WordCounterClient() {
               </div>
             </div>
 
-            {showHighlight && (
-              <div className="glass rounded-3xl p-4 mt-4">
-                <h3 className="font-bold text-xs mb-2">🔍 Grammar Preview (LanguageTool — free Grammarly alternative)</h3>
-                <div className={`min-h-[80px] p-4 rounded-2xl ${isDark ? "bg-black/30" : "bg-white/60"} text-[15px] leading-7`} style={{ fontFamily: currentFont.css }} dangerouslySetInnerHTML={{ __html: highlightedHtml || "<span class='opacity-40'>Start typing to see grammar highlights...</span>" }} />
-                <div className="mt-2 text-[10px] opacity-50 flex gap-3 flex-wrap">
-                  <span><span className="inline-block w-3 h-0.5 bg-red-500 align-middle" /> Grammar/Spelling</span>
-                  <span><span className="inline-block w-3 h-0.5 bg-orange-500 align-middle" /> Punctuation</span>
-                  <span><span className="inline-block w-3 h-0.5 bg-violet-500 align-middle" /> Style</span>
-                  {duplicateHighlight && <span><span className="inline-block w-3 h-0.5 bg-purple-400 align-middle" /> Duplicate</span>}
-                </div>
-              </div>
-            )}
-
             {errors.length > 0 && (
               <div className="glass rounded-2xl p-4 mt-4">
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-bold text-sm">🔴 {errors.length} Issues Found</h3>
+                  <h3 className="font-bold text-sm">🔴 {errors.length} Grammar Issues</h3>
                   <button onClick={fixAll} className="text-xs px-2 py-1 bg-green-500 text-white rounded font-bold">Fix All</button>
                 </div>
-                {errors.map((err, i) => (
-                  <div key={i} className="flex justify-between items-center p-2 glass rounded-xl text-xs mb-2 gap-2">
-                    <span className="flex-1">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 font-bold mr-2">{err.category}</span>
-                      {err.message} → <b className="text-green-600 dark:text-green-400">{err.replacement || "—"}</b>
-                    </span>
-                    {err.replacement && <button onClick={() => fixError(err)} className="px-3 py-1 bg-black text-white rounded-lg whitespace-nowrap font-bold">Fix</button>}
-                  </div>
-                ))}
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {errors.map((err, i) => (
+                    <div key={i} className="flex justify-between items-center p-3 glass rounded-xl text-xs gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 font-bold">{err.category}</span>
+                          <span className="opacity-60 text-[10px]">"{text.substr(err.offset, Math.min(err.length, 30))}{err.length > 30 ? "..." : ""}"</span>
+                        </div>
+                        <div>{err.message}</div>
+                        {err.replacement && <div className="mt-1">Suggest: <b className="text-green-600 dark:text-green-400">{err.replacement}</b></div>}
+                      </div>
+                      {err.replacement && <button onClick={() => fixError(err)} className="px-3 py-1.5 bg-black text-white rounded-lg whitespace-nowrap font-bold">Fix</button>}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -1239,7 +1284,7 @@ export default function WordCounterClient() {
         </section>
 
         <footer className="mt-16 text-center text-xs opacity-60 pb-8">
-          <p>✨ Word Counter Pro v6 — 100% private, browser-only, no data sent to server</p>
+          <p>✨ Word Counter Pro v7 — 100% private, browser-only, no data sent to server</p>
           <p className="mt-1">Made with 💜 for writers, students, and SEO professionals</p>
         </footer>
       </div>
@@ -1321,30 +1366,29 @@ Everything runs in-browser. Auto-save uses localStorage. Only "Grammar Check" se
     content: `═══════════════════════════════
 STEP 1: START WRITING
 ═══════════════════════════════
-Click the big editor box. Type freely. Stats update in real-time. Auto-saves every 400ms ("Saved ✓" in header).
+Click the big editor box. Type freely. Stats update in real-time. Auto-saves every 400ms.
 
 ═══════════════════════════════
 STEP 2: RICH TEXT FORMATTING TOOLS
 ═══════════════════════════════
-The second toolbar row has ALL formatting. Use "▼ Show Format Bar" toggle to hide/show it.
+Second toolbar row has ALL formatting. Use "▼ Show Format Bar" toggle.
 
 ▸ B (Bold) — Ctrl+B
 ▸ I (Italic) — Ctrl+I
 ▸ U (Underline) — Ctrl+U
 ▸ S (Strikethrough) — Ctrl+Shift+S
-▸ X² (Superscript) / X₂ (Subscript)
+▸ X² / X₂ — Superscript / Subscript
 ▸ H Dropdown — Heading 1/2/3, Paragraph, Quote, Code Block
-▸ • (Bullet List) — Ctrl+Shift+8
-▸ 1. (Numbered List) — Ctrl+Shift+7
-▸ ⇤ Outdent / ⇥ Indent
-▸ ⬅ ↔ ➡ ≡ (Alignment) — Ctrl+L/E/R/J
+▸ • / 1. — Bullet / Numbered lists
+▸ ⇤ ⇥ — Outdent / Indent
+▸ ⬅ ↔ ➡ ≡ — Alignment
 ▸ Text Color (A) — APPLIES ONLY TO SELECTED TEXT
-▸ H Highlight Color — APPLIES ONLY TO SELECTED TEXT
-▸ Tx (Clear Formatting)
-▸ 🔗 Insert Link — Ctrl+K
+▸ H Highlight — APPLIES ONLY TO SELECTED TEXT
+▸ Tx — Clear formatting
+▸ 🔗 Link — Ctrl+K
 ▸ ― Horizontal Rule
 ▸ 😊 Emoji Picker
-▸ Aa Case — UPPER / lower / Title / Sentence
+▸ Aa Case — UPPER/lower/Title/Sentence
 
 HOW TO USE COLOR:
 1. Select text with mouse
@@ -1353,130 +1397,114 @@ HOW TO USE COLOR:
 4. If nothing selected → warning toast
 
 ═══════════════════════════════
-STEP 3: UNDO / REDO
+STEP 3: UNDO / REDO — Ctrl+Z / Ctrl+Y
 ═══════════════════════════════
-Top toolbar: Undo (Ctrl+Z) and Redo (Ctrl+Y or Ctrl+Shift+Z).
 
 ═══════════════════════════════
 STEP 4: CUT / COPY / PASTE / DELETE
 ═══════════════════════════════
-▸ Cut — Select then click
-▸ Copy — Copies selection, or all if none selected
-▸ Paste — Inserts at cursor
-▸ Backspace — Delete before cursor
-▸ Delete — Delete after cursor
-▸ Clear — Wipe all (with confirm)
+▸ Cut / Copy / Paste / Backspace / Delete / Clear buttons
 
 ═══════════════════════════════
-STEP 5: SET WORD GOAL
+STEP 5: WORD GOAL — Header में number change करो
 ═══════════════════════════════
-Change the number in header to any target. Progress bar fills. When reached: green toast.
 
 ═══════════════════════════════
-STEP 6: GRAMMAR CHECK (Grammarly alternative)
+STEP 6: GRAMMAR CHECK (NEW v7)
 ═══════════════════════════════
-Click "✓ Grammar Check". Errors appear with category badges. Click "Show Red Wavy" to see inline preview with red wavy underlines.
+1. Click "✓ Grammar Check" OR just type (auto-checks 1.2s after stop)
+2. Red wavy lines appear INLINE in the editor
+3. Errors list below shows:
+   ▸ Category badge (Spelling / Grammar / Punctuation / Style)
+   ▸ Original snippet
+   ▸ Message describing the issue
+   ▸ Suggested replacement
+4. Click "Fix" for individual or "Fix All" for batch
 
-▸ Spelling (red underline)
-▸ Grammar (red underline)
-▸ Punctuation (orange underline)
-▸ Style (violet underline)
+Colors used:
+▸ Red underline = Spelling / Grammar
+▸ Orange underline = Punctuation
+▸ Violet underline = Style
 
-Click "Fix" for individual, "Fix All" for batch.
-
-═══════════════════════════════
-STEP 7: DUPLICATE DETECTION
-═══════════════════════════════
-Enable in Settings → "Duplicate Highlight". Repeated sentences get purple background with dotted bottom border in preview. Repeated words shown as chips.
-
-═══════════════════════════════
-STEP 8: VOICE TYPING
-═══════════════════════════════
-Click "VOICE". Speak naturally. Chrome/Edge over HTTPS required.
+Hover over red line in editor to see tooltip.
 
 ═══════════════════════════════
-STEP 9: TEXT TO SPEECH
+STEP 7: DUPLICATE DETECTION — Settings में ON करो
 ═══════════════════════════════
-Click speaker icon to hear text read aloud.
 
 ═══════════════════════════════
-STEP 10: FIND & REPLACE
+STEP 8: VOICE TYPING — Chrome/Edge required
 ═══════════════════════════════
-Ctrl+F or click "Find". Type search/replace, click Replace All.
 
 ═══════════════════════════════
-STEP 11: POMODORO TIMER
+STEP 9: TEXT TO SPEECH — Speaker icon
 ═══════════════════════════════
-Click "25:00" in header. 25-min countdown. Toast on complete.
+
+═══════════════════════════════
+STEP 10: FIND & REPLACE — Ctrl+F
+═══════════════════════════════
+
+═══════════════════════════════
+STEP 11: POMODORO TIMER — Tomato icon
+═══════════════════════════════
 
 ═══════════════════════════════
 STEP 12: FONT & PAGE CUSTOMIZATION
 ═══════════════════════════════
-Click "Settings":
 ▸ Page Size — A4 / Letter / Legal
 ▸ Font Family — 14 options
-▸ Font Size — 10-32px slider
-▸ Line Height — 1.0-2.5 slider
+▸ Font Size — 10-32px
+▸ Line Height — 1.0-2.5
 
 ═══════════════════════════════
-STEP 13: EXPORT
+STEP 13: EXPORT — TXT, HTML, MD, DOC, CSV, PDF
 ═══════════════════════════════
-TXT, HTML, MD, DOC, CSV, PDF
 
 ═══════════════════════════════
-STEP 14: FOCUS MODE
+STEP 14: FOCUS MODE — Fullscreen icon
 ═══════════════════════════════
-Click fullscreen icon for distraction-free writing.
 
 ═══════════════════════════════
-STEP 15: DARK MODE
+STEP 15: DARK MODE — Moon icon
 ═══════════════════════════════
-Click moon icon.
 
 ═══════════════════════════════
-STEP 16: KEYBOARD SHORTCUTS
-═══════════════════════════════
-Press Ctrl+/ for panel.`
+STEP 16: KEYBOARD SHORTCUTS — Ctrl+/
+═══════════════════════════════`
   },
   {
     id: "shortcuts",
     title: "⌨️ All Keyboard Shortcuts — Master Guide",
-    content: `Press Ctrl+/ to toggle the shortcut panel anytime.
+    content: `Press Ctrl+/ to toggle panel.
 
 ═══════════════════════════════
 FORMATTING
 ═══════════════════════════════
-Ctrl + B — Bold
-Ctrl + I — Italic
-Ctrl + U — Underline
-Ctrl + Shift + S — Strikethrough
-Ctrl + Shift + X — Strikethrough (alt)
-Ctrl + K — Insert Link
-Ctrl + Shift + 7 — Numbered List
-Ctrl + Shift + 8 — Bullet List
-Ctrl + Tab — Increase Indent
+Ctrl+B / I / U — Bold / Italic / Underline
+Ctrl+Shift+S or X — Strikethrough
+Ctrl+K — Insert Link
+Ctrl+Shift+7 — Numbered List
+Ctrl+Shift+8 — Bullet List
+Ctrl+Tab — Increase Indent
 
 ═══════════════════════════════
 ALIGNMENT
 ═══════════════════════════════
-Ctrl + L — Align Left
-Ctrl + E — Align Center
-Ctrl + R — Align Right
-Ctrl + J — Justify
+Ctrl+L — Left
+Ctrl+E — Center
+Ctrl+R — Right
+Ctrl+J — Justify
 
 ═══════════════════════════════
 EDIT
 ═══════════════════════════════
-Ctrl + Z — Undo
-Ctrl + Y — Redo
-Ctrl + Shift + Z — Redo (alt)
-Ctrl + C — Copy
-Ctrl + X — Cut
-Ctrl + V — Paste
-Ctrl + A — Select all
-Ctrl + F — Find & Replace
-Ctrl + S — Force Save
-Ctrl + / — Shortcut Panel
+Ctrl+Z — Undo
+Ctrl+Y or Ctrl+Shift+Z — Redo
+Ctrl+C / X / V — Copy / Cut / Paste
+Ctrl+A — Select all
+Ctrl+F — Find & Replace
+Ctrl+S — Force Save
+Ctrl+/ — Shortcut Panel
 
 ═══════════════════════════════
 AUTOCOMPLETE
@@ -1486,51 +1514,65 @@ Esc — Close popups`
   },
   {
     id: "grammarly",
-    title: "🔍 Grammarly vs LanguageTool — Honest Comparison",
-    content: `Real Grammarly API is only available for Enterprise/Business accounts (paid). It is NOT free.
-
-We use LanguageTool — the best free alternative.
+    title: "🔍 Grammar Check — How It Works (NEW v7)",
+    content: `Real Grammarly API is Enterprise-only (paid). We use LanguageTool — 100% free, 30+ languages.
 
 ═══════════════════════════════
-LANGUAGETOOL FEATURES
+HOW RED LINES WORK NOW
 ═══════════════════════════════
-• 30+ languages
-• 5000+ grammar rules
-• Categories: Spelling, Grammar, Style, Punctuation
-• Free forever (no API key)
-• Privacy: only sends on manual "Check"
+1. Type text in editor
+2. Wait 1.2s → auto-check triggers
+3. OR click "✓ Grammar Check" button
+4. Errors render as red wavy underline directly in editor
+5. Hover to see tooltip with message + suggestion
+6. Errors panel below shows detailed list
 
 ═══════════════════════════════
-CATEGORIES EXPLAINED
+UNDERLINE COLORS
 ═══════════════════════════════
-▸ Spelling (red) — typos
-▸ Grammar (red) — tense, agreement
-▸ Punctuation (orange) — comma, period
-▸ Style (violet) — wordiness, passive voice
+▸ Red wavy = Spelling / Grammar
+▸ Orange wavy = Punctuation
+▸ Violet wavy = Style issue
 
 ═══════════════════════════════
-HOW OUR RED LINES WORK
+ERRORS PANEL
 ═══════════════════════════════
-1. Click "✓ Grammar Check" button
-2. Wait ~1-2 seconds
-3. "Show Red Wavy" preview shows underlines
-4. Hover for message + suggestion
-5. Click "Fix" or "Fix All"
+Each error card shows:
+▸ Category badge
+▸ Original snippet in quotes
+▸ Issue description
+▸ Suggested fix
+▸ "Fix" button
 
-Note: preview is separate from the editor to keep typing smooth.`
+Click "Fix All" to correct everything at once.
+
+═══════════════════════════════
+TOGGLE ON/OFF
+═══════════════════════════════
+Settings → "Show Red Wavy (inline in editor)"
+
+When ON: editor shows inline red lines
+When OFF: only errors panel shows
+
+═══════════════════════════════
+LIMITATIONS
+═══════════════════════════════
+▸ LanguageTool free: 20 requests/minute
+▸ Wait 1-2 sec for results
+▸ Preview updates after each edit`
   },
   {
     id: "color-fix",
-    title: "🎨 How Selection-Only Color Works (New Fix)",
-    content: `The old version applied color to the ENTIRE document. Now FIXED.
+    title: "🎨 Selection-Only Color — Fixed",
+    content: `Previously color applied to entire document. Now it only applies to selected text.
 
 ═══════════════════════════════
 HOW TO USE
 ═══════════════════════════════
 1. Select text with mouse
 2. Click color box (A) or quick swatch
-3. ONLY selection changes
-4. Rest untouched
+3. ONLY selection changes color
+4. Rest of text untouched
 
 ═══════════════════════════════
 WHAT IF NOTHING SELECTED?
@@ -1541,11 +1583,26 @@ Nothing changes.
 ═══════════════════════════════
 TECHNICAL
 ═══════════════════════════════
-▸ Selection saved as character offsets {start, end}
-▸ Offsets survive DOM changes
-▸ On color click, fresh Range built from offsets
-▸ execCommand applies to verified non-collapsed selection
-▸ Same for highlight via "hiliteColor"`},
+▸ Checks LIVE selection first
+▸ Falls back to saved character offsets
+▸ Builds fresh Range → verifies non-collapsed
+▸ Only then applies execCommand("foreColor"/"hiliteColor")
+
+═══════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════
+Q: Color isn't applying?
+A: Make sure text is highlighted blue first.
+
+Q: Palette steals selection?
+A: Fixed — swatches use preventDefault.
+
+Q: Multi-paragraph?
+A: Yes, works across paragraphs.
+
+Q: Remove color?
+A: Select colored text → click "Tx" button.`
+  },
   {
     id: "faq-article",
     title: "❓ Complete FAQ — 15 Common Questions",
@@ -1559,7 +1616,7 @@ Q3: Chars (with) vs (without)?
 A: With = includes spaces (Twitter 280). Without = letters/numbers only.
 
 Q4: Undo/Redo?
-A: Browser native execCommand. Ctrl+Z / Ctrl+Y.
+A: Ctrl+Z / Ctrl+Y.
 
 Q5: Real Grammarly?
 A: Enterprise-only (paid). We use LanguageTool.
@@ -1592,7 +1649,8 @@ Q14: Export formats?
 A: TXT, HTML, MD, DOC, CSV, PDF.
 
 Q15: Max text length?
-A: Unlimited (tested 100k+ words).`},
+A: Unlimited (tested 100k+ words).`
+  },
 ];
 
 function Stat({ label, value, tip }: { label: string; value: any; tip?: string }) {
