@@ -70,6 +70,30 @@ const formatTime = (s: number) => {
   return `${sec}s`;
 };
 
+// ✅ NEW: character-offset helpers for reliable selection restore
+const getTextOffset = (node: Node, offset: number, root: Node): number => {
+  let count = 0;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let n: Node | null;
+  while ((n = walker.nextNode())) {
+    if (n === node) return count + offset;
+    count += (n.textContent?.length || 0);
+  }
+  return count;
+};
+
+const getNodeAtOffset = (offset: number, root: Node): { node: Text; offset: number } | null => {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let count = 0;
+  let n: Node | null;
+  while ((n = walker.nextNode())) {
+    const len = n.textContent?.length || 0;
+    if (count + len >= offset) return { node: n as Text, offset: offset - count };
+    count += len;
+  }
+  return null;
+};
+
 export default function WordCounterClient() {
   const [html, setHtml] = useState("");
   const [text, setText] = useState("");
@@ -118,7 +142,7 @@ export default function WordCounterClient() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pomodoroRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const savedRangeRef = useRef<Range | null>(null);
+  const savedSelRef = useRef<{ start: number; end: number } | null>(null);
   const hasSelectionRef = useRef<boolean>(false);
 
   // -------- LOAD --------
@@ -278,20 +302,23 @@ export default function WordCounterClient() {
     setText(newText);
   }, []);
 
-  // -------- FIXED: save selection only when real text is selected --------
+  // ✅ FIXED: save selection as character offsets (survives DOM changes)
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
     const range = sel.getRangeAt(0);
     if (!editorRef.current.contains(range.commonAncestorContainer)) return;
     const selText = range.toString();
-    if (selText.length > 0) {
-      savedRangeRef.current = range.cloneRange();
+    if (selText.length === 0) return;
+    const start = getTextOffset(range.startContainer, range.startOffset, editorRef.current);
+    const end = getTextOffset(range.endContainer, range.endOffset, editorRef.current);
+    if (start !== end) {
+      savedSelRef.current = { start, end };
       hasSelectionRef.current = true;
     }
   }, []);
 
-  // -------- FIXED: global listener keeps selection fresh --------
+  // ✅ FIXED: global listener saves offsets on every selection
   useEffect(() => {
     const handleSelChange = () => {
       const sel = window.getSelection();
@@ -299,8 +326,11 @@ export default function WordCounterClient() {
       const range = sel.getRangeAt(0);
       if (!editorRef.current.contains(range.commonAncestorContainer)) return;
       const selText = range.toString();
-      if (selText.length > 0) {
-        savedRangeRef.current = range.cloneRange();
+      if (selText.length === 0) return;
+      const start = getTextOffset(range.startContainer, range.startOffset, editorRef.current);
+      const end = getTextOffset(range.endContainer, range.endOffset, editorRef.current);
+      if (start !== end) {
+        savedSelRef.current = { start, end };
         hasSelectionRef.current = true;
       }
     };
@@ -427,39 +457,58 @@ export default function WordCounterClient() {
     return () => document.removeEventListener("selectionchange", updateActiveFormats);
   }, [updateActiveFormats]);
 
-  // -------- FIXED: apply color ONLY to selection --------
+  // ✅ FIXED v2: build FRESH range from offsets — bulletproof
   const applyColorToSelection = useCallback((newColor: string, isHighlight = false) => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    // Guard: no real selection → warn and return
-    if (!savedRangeRef.current || !hasSelectionRef.current) {
+    // Guard 1: no saved selection
+    if (!savedSelRef.current || !hasSelectionRef.current) {
       setToast("⚠ Pehle text select karo, phir color choose karo");
       setTimeout(() => setToast(null), 2200);
       return;
     }
 
-    // Focus editor first, then restore the saved range
+    const { start, end } = savedSelRef.current;
+    if (start === end) {
+      setToast("⚠ Pehle text select karo, phir color choose karo");
+      setTimeout(() => setToast(null), 2200);
+      return;
+    }
+
+    // Build brand-new range from offsets
+    const startPos = getNodeAtOffset(start, editor);
+    const endPos = getNodeAtOffset(end, editor);
+    if (!startPos || !endPos) {
+      setToast("⚠ Selection restore fail — dobara select karo");
+      setTimeout(() => setToast(null), 2200);
+      return;
+    }
+
     editor.focus();
+
     try {
+      const range = document.createRange();
+      range.setStart(startPos.node, startPos.offset);
+      range.setEnd(endPos.node, endPos.offset);
       const sel = window.getSelection();
       sel?.removeAllRanges();
-      sel?.addRange(savedRangeRef.current);
+      sel?.addRange(range);
     } catch {
       setToast("⚠ Selection restore fail — dobara select karo");
       setTimeout(() => setToast(null), 2200);
       return;
     }
 
-    // Verify actual text is selected before applying
+    // Guard 2: verify selection is REAL and NON-COLLAPSED
     const verify = window.getSelection();
-    const hasText = verify && verify.toString().length > 0;
-    if (!hasText) {
+    if (!verify || verify.toString().length === 0) {
       setToast("⚠ Pehle text select karo, phir color choose karo");
       setTimeout(() => setToast(null), 2200);
       return;
     }
 
+    // Apply color to the verified live selection
     try { document.execCommand("styleWithCSS", false, "true"); } catch {}
     document.execCommand(isHighlight ? "hiliteColor" : "foreColor", false, newColor);
 
@@ -813,7 +862,7 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* TOOLBAR ROW 2 - FORMATTING (Show/Hide with smooth transition) */}
+        {/* TOOLBAR ROW 2 - FORMATTING */}
         {showFormatBar && (
           <div className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20 transition-all duration-300">
             <button onClick={() => exec("bold")} className={`fmt-btn glass-btn ${activeFormats.bold ? "active" : ""}`} title="Bold (Ctrl+B)"><b>B</b></button>
@@ -854,7 +903,6 @@ export default function WordCounterClient() {
                 onChange={e => applyColorToSelection(e.target.value, false)}
                 className="w-8 h-8 rounded-lg glass-btn p-1 cursor-pointer" />
             </div>
-            {/* Quick color swatches - preventDefault keeps selection */}
             <div className="flex gap-0.5">
               {TEXT_COLORS.slice(1, 6).map(c => (
                 <button key={c}
@@ -1131,7 +1179,7 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* ARTICLES (ALL ACCORDION) */}
+        {/* ARTICLES */}
         <section className="mt-16 space-y-4">
           <h2 className="text-3xl font-black text-center gradient-text mb-6">📚 Guides, Documentation & FAQ</h2>
           {articlesData.map(a => (
@@ -1500,9 +1548,9 @@ PALETTE SWATCHES
 ═══════════════════════════════
 TECHNICAL EXPLANATION
 ═══════════════════════════════
-▸ Selection saved in savedRangeRef on mouseup/keyup/blur
-▸ Global selectionchange listener keeps it fresh
-▸ When color changes → selection restored automatically
+▸ Selection saved as character offsets (start, end)
+▸ Offsets survive DOM changes (unlike Range objects)
+▸ On color click, a fresh Range is built from offsets
 ▸ document.execCommand("foreColor", color) applied to range
 ▸ Same for highlight via "hiliteColor"
 
