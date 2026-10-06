@@ -118,8 +118,7 @@ export default function WordCounterClient() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pomodoroRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const savedRangeRef = useRef<Range | null>(null);
-  const hasSelectionRef = useRef<boolean>(false);
+  const savedRangeRef = useRef<Range | null>(null); // ✅ NEW: save user selection
 
   // -------- LOAD --------
   useEffect(() => {
@@ -278,34 +277,15 @@ export default function WordCounterClient() {
     setText(newText);
   }, []);
 
-  // -------- FIXED: save selection only when real text is selected --------
+  // ✅ NEW: save user selection continuously
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
-    const range = sel.getRangeAt(0);
-    if (!editorRef.current.contains(range.commonAncestorContainer)) return;
-    const selText = range.toString();
-    if (selText.length > 0) {
-      savedRangeRef.current = range.cloneRange();
-      hasSelectionRef.current = true;
-    }
-  }, []);
-
-  // -------- FIXED: global listener keeps selection fresh --------
-  useEffect(() => {
-    const handleSelChange = () => {
-      const sel = window.getSelection();
-      if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
+    if (sel && sel.rangeCount > 0 && editorRef.current) {
       const range = sel.getRangeAt(0);
-      if (!editorRef.current.contains(range.commonAncestorContainer)) return;
-      const selText = range.toString();
-      if (selText.length > 0) {
+      if (editorRef.current.contains(range.commonAncestorContainer)) {
         savedRangeRef.current = range.cloneRange();
-        hasSelectionRef.current = true;
       }
-    };
-    document.addEventListener("selectionchange", handleSelChange);
-    return () => document.removeEventListener("selectionchange", handleSelChange);
+    }
   }, []);
 
   const getCaretOffset = (): number => {
@@ -427,33 +407,23 @@ export default function WordCounterClient() {
     return () => document.removeEventListener("selectionchange", updateActiveFormats);
   }, [updateActiveFormats]);
 
-  // -------- FIXED: apply color ONLY to selection --------
+  // ✅ NEW: apply color ONLY to selection
   const applyColorToSelection = useCallback((newColor: string, isHighlight = false) => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    // Guard: no real selection → warn and return
-    if (!savedRangeRef.current || !hasSelectionRef.current) {
-      setToast("⚠ Pehle text select karo, phir color choose karo");
-      setTimeout(() => setToast(null), 2200);
-      return;
-    }
-
-    // Focus editor first, then restore the saved range
     editor.focus();
-    try {
-      const sel = window.getSelection();
-      sel?.removeAllRanges();
-      sel?.addRange(savedRangeRef.current);
-    } catch {
-      setToast("⚠ Selection restore fail — dobara select karo");
-      setTimeout(() => setToast(null), 2200);
-      return;
+    if (savedRangeRef.current) {
+      try {
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(savedRangeRef.current);
+      } catch {}
     }
 
-    // Verify actual text is selected before applying
-    const verify = window.getSelection();
-    const hasText = verify && verify.toString().length > 0;
+    const sel = window.getSelection();
+    const hasText = sel && sel.toString().length > 0;
+
     if (!hasText) {
       setToast("⚠ Pehle text select karo, phir color choose karo");
       setTimeout(() => setToast(null), 2200);
@@ -462,12 +432,12 @@ export default function WordCounterClient() {
 
     try { document.execCommand("styleWithCSS", false, "true"); } catch {}
     document.execCommand(isHighlight ? "hiliteColor" : "foreColor", false, newColor);
-
     if (isHighlight) setHighlight(newColor); else setColor(newColor);
     syncFromEditor();
+    setTimeout(saveSelection, 0);
     setToast(isHighlight ? "✨ Highlight applied to selection" : "🎨 Color applied to selection");
     setTimeout(() => setToast(null), 1500);
-  }, [syncFromEditor]);
+  }, [syncFromEditor, saveSelection]);
 
   // -------- GRAMMAR --------
   const checkGrammar = useCallback(async () => {
@@ -716,7 +686,7 @@ export default function WordCounterClient() {
           </div>
           <div className="glass rounded-3xl p-6">
             <div ref={editorRef} contentEditable suppressContentEditableWarning
-              onInput={handleInput} onMouseDown={saveSelection} onMouseUp={saveSelection} onKeyUp={saveSelection} onBlur={saveSelection}
+              onInput={handleInput} onMouseUp={saveSelection} onKeyUp={saveSelection} onBlur={saveSelection}
               className="w-full min-h-[75vh] outline-none"
               style={{ fontFamily: currentFont.css, fontSize: `${fontSize}px`, lineHeight, color: isDark ? "#fff" : color }} />
           </div>
@@ -752,7 +722,7 @@ export default function WordCounterClient() {
 
       <div className="max-w-6xl mx-auto p-4 md:p-8 relative">
         <div className="text-center mb-6">
-          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v5 · SELECTION-ONLY COLOR · FORMAT BAR TOGGLE</div>
+          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v4 · SELECTION-ONLY COLOR · FORMAT BAR TOGGLE · FULL GUIDE</div>
           <h1 className="text-5xl md:text-6xl font-black gradient-text">Word Counter Pro</h1>
           <p className="mt-2 opacity-70 text-sm">Full writing studio with rich text editor, grammar check, and 30+ tools</p>
           <div className="flex justify-center gap-2 mt-4 flex-wrap items-center">
@@ -794,11 +764,7 @@ export default function WordCounterClient() {
             <button onClick={handleDeleteKey} className="h-9 px-3 rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 text-xs font-bold border border-red-300/40">⌦</button>
             <button onClick={handleClear} className="h-9 px-3 rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 text-xs font-bold border border-red-300/40">🗑 Clear</button>
             <div className="w-px h-6 bg-white/30 mx-1" />
-            <button
-              onClick={() => setShowFormatBar(v => !v)}
-              className={`h-9 px-3 rounded-lg text-xs font-bold transition-all ${showFormatBar ? "glass-btn" : "bg-gradient-to-r from-violet-600 to-pink-600 text-white"}`}
-              title="Toggle formatting toolbar (show/hide)"
-            >
+            <button onClick={() => setShowFormatBar(v => !v)} className={`h-9 px-3 rounded-lg text-xs font-bold ${showFormatBar ? "glass-btn" : "bg-gradient-to-r from-violet-600 to-pink-600 text-white"}`}>
               {showFormatBar ? "▲ Hide Format Bar" : "▼ Show Format Bar"}
             </button>
           </div>
@@ -813,9 +779,9 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* TOOLBAR ROW 2 - FORMATTING (Show/Hide with smooth transition) */}
+        {/* TOOLBAR ROW 2 - FORMATTING (Show/Hide) */}
         {showFormatBar && (
-          <div className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20 transition-all duration-300">
+          <div className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20">
             <button onClick={() => exec("bold")} className={`fmt-btn glass-btn ${activeFormats.bold ? "active" : ""}`} title="Bold (Ctrl+B)"><b>B</b></button>
             <button onClick={() => exec("italic")} className={`fmt-btn glass-btn ${activeFormats.italic ? "active" : ""}`} title="Italic (Ctrl+I)"><i>I</i></button>
             <button onClick={() => exec("underline")} className={`fmt-btn glass-btn ${activeFormats.underline ? "active" : ""}`} title="Underline (Ctrl+U)"><u>U</u></button>
@@ -846,11 +812,10 @@ export default function WordCounterClient() {
             <button onClick={() => exec("justifyFull")} className={`fmt-btn glass-btn ${activeFormats.justifyFull ? "active" : ""}`}>≡</button>
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* FIXED TEXT COLOR — Only applies to selection */}
+            {/* ✅ FIXED TEXT COLOR - Only applies to selection */}
             <div className="flex items-center gap-1" title="Text color (applies to selected text only)">
               <span className="text-[10px] font-bold opacity-60">A</span>
               <input type="color" value={color}
-                onMouseDown={saveSelection}
                 onChange={e => applyColorToSelection(e.target.value, false)}
                 className="w-8 h-8 rounded-lg glass-btn p-1 cursor-pointer" />
             </div>
@@ -870,7 +835,6 @@ export default function WordCounterClient() {
             <div className="flex items-center gap-1 ml-1" title="Highlight color (applies to selected text only)">
               <span className="text-[10px] font-bold opacity-60">H</span>
               <input type="color" value={highlight}
-                onMouseDown={saveSelection}
                 onChange={e => applyColorToSelection(e.target.value, true)}
                 className="w-8 h-8 rounded-lg glass-btn p-1 cursor-pointer" />
             </div>
@@ -964,9 +928,9 @@ export default function WordCounterClient() {
                 <span>📄 {page.label} • {fontSize}px • LH {lineHeight} • {currentFont.name}</span>
                 <span>{currentFont.mono ? "🔤 Mono" : "🔡 Prop"}</span>
               </div>
+              {/* ✅ FIXED: added mouseup/keyup/blur selection saving */}
               <div ref={editorRef} contentEditable suppressContentEditableWarning
                 onInput={handleInput}
-                onMouseDown={saveSelection}
                 onMouseUp={saveSelection}
                 onKeyUp={saveSelection}
                 onBlur={saveSelection}
@@ -1131,7 +1095,7 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* ARTICLES (ALL ACCORDION) */}
+        {/* ============ ARTICLES (ALL ACCORDION) ============ */}
         <section className="mt-16 space-y-4">
           <h2 className="text-3xl font-black text-center gradient-text mb-6">📚 Guides, Documentation & FAQ</h2>
           {articlesData.map(a => (
@@ -1148,7 +1112,7 @@ export default function WordCounterClient() {
         </section>
 
         <footer className="mt-16 text-center text-xs opacity-60 pb-8">
-          <p>✨ Word Counter Pro v5 — 100% private, browser-only, no data sent to server</p>
+          <p>✨ Word Counter Pro v4 — 100% private, browser-only, no data sent to server</p>
           <p className="mt-1">Made with 💜 for writers, students, and SEO professionals</p>
         </footer>
       </div>
@@ -1170,7 +1134,6 @@ const otherTools = [
   { icon: "🔐", name: "Base64 Encoder", desc: "Encode and decode Base64 text or files", link: "#" },
   { icon: "🔗", name: "URL Encoder", desc: "Encode URLs and query strings safely", link: "#" },
 ];
-
 const articlesData = [
   {
     id: "what-is",
@@ -1250,34 +1213,34 @@ The second toolbar row has ALL formatting. Use "▼ Show Format Bar" toggle to h
 ▸ 1. (Numbered List) — Ctrl+Shift+7
 ▸ ⇤ Outdent / ⇥ Indent — Move lines left/right
 ▸ ⬅ Center ↔ Right ➡ Justify ≡ (Alignment) — Ctrl+L/E/R/J
-▸ Text Color (A) — APPLIES ONLY TO SELECTED TEXT
+▸ 🎨 Text Color — APPLIES ONLY TO SELECTED TEXT
 ▸ H Highlight Color — APPLIES ONLY TO SELECTED TEXT
 ▸ Tx (Clear Formatting) — Remove all formatting
-▸ Link (🔗) — Ctrl+K, wraps selection in link
-▸ Horizontal Rule (―) — Visual separator line
-▸ Emoji Picker (😊) — 20 common emojis
+▸ 🔗 Insert Link — Ctrl+K, wraps selection in link
+▸ ― Horizontal Rule — Visual separator line
+▸ 😊 Emoji Picker — 20 common emojis
 ▸ Aa Case — UPPER / lower / Title / Sentence
 
-HOW TO USE COLOR (FIXED):
+HOW TO USE COLOR (NEW FIX):
 1. Select text with mouse (or Ctrl+A for all)
-2. Click color box (A) or a palette swatch
+2. Click 🎨 color box or a palette swatch
 3. ONLY the selected text changes color
 4. If nothing is selected → warning toast appears
 
 ═══════════════════════════════
 STEP 3: UNDO / REDO
 ═══════════════════════════════
-Top toolbar: Undo (Ctrl+Z) and Redo (Ctrl+Y or Ctrl+Shift+Z). Works for every change: typing, formatting, deletion, color, alignment.
+Top toolbar: ↶ Undo (Ctrl+Z) and ↷ Redo (Ctrl+Y or Ctrl+Shift+Z). Works for every change: typing, formatting, deletion, color, alignment.
 
 ═══════════════════════════════
 STEP 4: CUT / COPY / PASTE / DELETE
 ═══════════════════════════════
-▸ Cut — Select text, click to remove to clipboard
-▸ Copy — Copies selection, or all text if nothing selected
-▸ Paste — Inserts clipboard at cursor position
-▸ Backspace — Delete character before cursor
-▸ Delete — Delete character after cursor
-▸ Clear — Wipe everything (asks confirmation)
+▸ ✂ Cut — Select text, click to remove to clipboard
+▸ 📋 Copy — Copies selection, or all text if nothing selected
+▸ 📥 Paste — Inserts clipboard at cursor position
+▸ ⌫ Backspace — Delete character before cursor
+▸ ⌦ Delete — Delete character after cursor
+▸ 🗑 Clear — Wipe everything (asks confirmation)
 
 ═══════════════════════════════
 STEP 5: SET WORD GOAL
@@ -1301,27 +1264,27 @@ Options:
 ═══════════════════════════════
 STEP 7: VOICE TYPING
 ═══════════════════════════════
-Click "VOICE". Speak naturally. Text inserts at your cursor. Chrome/Edge over HTTPS required. Supports 9 languages from dropdown.
+Click "🎤 VOICE". Speak naturally. Text inserts at your cursor. Chrome/Edge over HTTPS required. Supports 9 languages from dropdown.
 
 ═══════════════════════════════
 STEP 8: TEXT TO SPEECH
 ═══════════════════════════════
-Click speaker icon to hear your text read aloud. Great for proofreading.
+Click "🔊" to hear your text read aloud. Great for proofreading.
 
 ═══════════════════════════════
 STEP 9: FIND & REPLACE
 ═══════════════════════════════
-Ctrl+F or click "Find". Type search text, replace text, click Replace All.
+Ctrl+F or click "🔍 Find". Type search text, replace text, click Replace All.
 
 ═══════════════════════════════
 STEP 10: POMODORO TIMER
 ═══════════════════════════════
-Click "25:00" in header. Timer counts down 25 minutes. On completion: toast notification and auto-reset.
+Click "🍅 25:00" in header. Timer counts down 25 minutes. On completion: toast notification and auto-reset.
 
 ═══════════════════════════════
 STEP 11: FONT & PAGE CUSTOMIZATION
 ═══════════════════════════════
-Click "Settings" to open:
+Click "⚙ Settings" to open:
 ▸ Page Size — A4 (210×297mm), Letter, Legal
 ▸ Font Family — 14 options (Poppins, Merriweather, JetBrains Mono, etc.)
 ▸ Font Size — 10-32px slider
@@ -1349,12 +1312,12 @@ STEP 13: EXPORT YOUR WORK
 ═══════════════════════════════
 STEP 14: FOCUS MODE
 ═══════════════════════════════
-Click fullscreen icon for distraction-free writing. Pomodoro timer available in focus mode too.
+Click "⛶" for full-screen distraction-free writing. Pomodoro timer available in focus mode too.
 
 ═══════════════════════════════
 STEP 15: DARK MODE
 ═══════════════════════════════
-Click moon icon to switch to dark theme. All glass cards adapt.
+Click "🌙" to switch to dark theme. All glass cards adapt.
 
 ═══════════════════════════════
 STEP 16: KEYBOARD SHORTCUTS
@@ -1471,14 +1434,14 @@ LanguageTool covers 95% of common errors for free. Perfect for students, writers
 HOW TO USE (CORRECT WAY)
 ═══════════════════════════════
 1. Select some text with mouse (drag to highlight)
-2. Click the color box (opens picker) OR click a quick swatch
+2. Click the 🎨 color box (opens picker) OR click a quick swatch
 3. ONLY the selected text changes color
 4. Rest of text stays unchanged
 
 ═══════════════════════════════
 WHAT IF NOTHING IS SELECTED?
 ═══════════════════════════════
-You will see a warning toast: "Pehle text select karo, phir color choose karo"
+You will see a warning toast: "⚠ Pehle text select karo, phir color choose karo"
 Color will NOT be applied. This prevents accidental full-document changes.
 
 ═══════════════════════════════
@@ -1501,7 +1464,6 @@ PALETTE SWATCHES
 TECHNICAL EXPLANATION
 ═══════════════════════════════
 ▸ Selection saved in savedRangeRef on mouseup/keyup/blur
-▸ Global selectionchange listener keeps it fresh
 ▸ When color changes → selection restored automatically
 ▸ document.execCommand("foreColor", color) applied to range
 ▸ Same for highlight via "hiliteColor"
@@ -1558,7 +1520,7 @@ Q11: What is duplicate detection?
 A: Finds words/sentences repeating 2+ times. Enable in Settings.
 
 Q12: How does the Pomodoro timer work?
-A: Click tomato icon to start 25-minute focus session. Toast when complete. Auto-resets.
+A: Click 🍅 to start 25-minute focus session. Toast when complete. Auto-resets.
 
 Q13: What fonts are available?
 A: 14 fonts: Sans-serif (Inter, Poppins, Roboto, Arial, Verdana), Serif (Merriweather, Playfair Display, Lora, Georgia, Times New Roman), Monospace (JetBrains Mono, Fira Code, Roboto Mono, Courier New).
