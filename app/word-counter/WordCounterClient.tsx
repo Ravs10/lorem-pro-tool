@@ -390,7 +390,7 @@ export default function WordCounterClient() {
     setText(newText);
   }, []);
 
-  // -------- SAVE SELECTION (offsets) --------
+  // -------- SAVE SELECTION --------
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
@@ -472,11 +472,12 @@ export default function WordCounterClient() {
     } catch { return false; }
   };
 
+  // ✅ FIXED: 'Range.isCollapsed' → 'Range.collapsed'
   const hasLiveSelection = (): boolean => {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !editorRef.current) return false;
     const r = sel.getRangeAt(0);
-    return editorRef.current.contains(r.commonAncestorContainer) && !r.isCollapsed && r.toString().length > 0;
+    return editorRef.current.contains(r.commonAncestorContainer) && !r.collapsed && r.toString().length > 0;
   };
 
   // -------- FORMATTING --------
@@ -514,12 +515,10 @@ export default function WordCounterClient() {
     updateActiveFormats();
   }, [syncFromEditor, updateActiveFormats]);
 
-  // ✅ FIXED v11: color only applies when there is a live or saved selection
   const applyColorToSelection = useCallback((newColor: string, isHighlight = false) => {
     const editor = editorRef.current;
     if (!editor) return;
 
-    // Try live selection first
     if (hasLiveSelection()) {
       editor.focus();
       try { document.execCommand("styleWithCSS", false, "true"); } catch {}
@@ -531,7 +530,6 @@ export default function WordCounterClient() {
       return;
     }
 
-    // Fallback: try to restore saved selection
     if (restoreSelection() && hasLiveSelection()) {
       try { document.execCommand("styleWithCSS", false, "true"); } catch {}
       document.execCommand(isHighlight ? "hiliteColor" : "foreColor", false, newColor);
@@ -542,7 +540,6 @@ export default function WordCounterClient() {
       return;
     }
 
-    // No valid selection
     setToast("⚠ Select text first, then pick a color");
     setTimeout(() => setToast(null), 2200);
   }, [syncFromEditor]);
@@ -599,7 +596,7 @@ export default function WordCounterClient() {
   const shareViaTelegram = () => openShare(`https://t.me/share/url?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}&text=${encodeURIComponent(text.slice(0, 250))}`);
   const shareViaEmail = () => { if (typeof window !== "undefined") window.location.href = `mailto:?subject=${encodeURIComponent("Shared")}&body=${encodeURIComponent(text.slice(0, 1500))}`; setShowShareMenu(false); };
   const copyForShare = async () => { try { await navigator.clipboard.writeText(text); setToast("✓ Copied"); setTimeout(() => setToast(null), 1500); } catch {} setShowShareMenu(false); };
-  const nativeShare = async () => { if (navigator.share) { try { await navigator.share({ title: "Word Counter Pro", text: text.slice(0, 200) }); } catch {} } else copyForShare(); setShowShareMenu(false); };
+  const nativeShare = async () => { if (typeof navigator !== "undefined" && navigator.share) { try { await navigator.share({ title: "Word Counter Pro", text: text.slice(0, 200) }); } catch {} } else copyForShare(); setShowShareMenu(false); };
 
   // -------- INPUT --------
   const handleInput = () => {
@@ -708,7 +705,7 @@ export default function WordCounterClient() {
       rec.onerror = () => setIsListening(false);
       rec.onend = () => setIsListening(false);
       rec.start();
-    } catch (err: any) { setIsListening(false); }
+    } catch { setIsListening(false); }
   };
   const toggleSpeak = () => {
     if (isSpeaking) { speechSynthesis.cancel(); setIsSpeaking(false); return; }
@@ -933,9 +930,6 @@ export default function WordCounterClient() {
         .anim-drop{animation:dropIn 0.2s ease-out forwards}
         .progress-bar{background-size:200% 100%;animation:barShine 2s linear infinite}
         .celebrate{animation:glowPulse 1.5s ease-in-out infinite}
-        .tooltip-parent{position:relative}
-        .tooltip-parent:hover .tooltip-box{opacity:1;visibility:visible;transform:translateX(-50%) translateY(-6px)}
-        .tooltip-box{opacity:0;visibility:hidden;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:rgba(17,24,39,0.95);color:#fff;padding:5px 9px;border-radius:8px;font-size:10px;white-space:nowrap;z-index:200;transition:all 0.2s;pointer-events:none}
         .confetti-piece{position:fixed;width:10px;height:10px;top:-20px;animation:confettiFall 3s linear forwards;z-index:100;pointer-events:none}
         .accordion-content{overflow:hidden;transition:max-height 0.4s ease-out;max-height:0}
         .accordion-content.open{max-height:8000px}
@@ -955,7 +949,7 @@ export default function WordCounterClient() {
 
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-8 relative">
         <div className="text-center mb-6">
-          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v11 · RICH TEXT · 40+ TOOLS · SOCIAL SHARE</div>
+          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ RICH TEXT · 40+ TOOLS · SOCIAL SHARE</div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black gradient-text">Word Counter Pro</h1>
           <p className="mt-2 opacity-70 text-xs sm:text-sm">Rich text editor, 40+ tools, grammar check, social share</p>
           <div className="flex justify-center gap-2 mt-4 flex-wrap items-center">
@@ -1026,7 +1020,6 @@ export default function WordCounterClient() {
               <option value="p">Paragraph</option>
             </select>
 
-            {/* TEXT COLOR picker */}
             <div className="relative" ref={colorMenuRef}>
               <button
                 onMouseDown={e => e.preventDefault()}
@@ -1049,7 +1042,6 @@ export default function WordCounterClient() {
               )}
             </div>
 
-            {/* BACKGROUND picker */}
             <div className="relative" ref={bgMenuRef}>
               <button
                 onMouseDown={e => e.preventDefault()}
@@ -1286,7 +1278,6 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* TOOLS HUB */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">🧰 Writing Tools Hub</h2>
           <p className="text-center opacity-70 text-sm mb-6">40+ tools for writers, students, and SEO professionals</p>
@@ -1374,7 +1365,6 @@ export default function WordCounterClient() {
           )}
         </section>
 
-        {/* CONTENT TYPE TABLE */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">📊 Word Count by Content Type</h2>
           <p className="text-center opacity-70 text-sm mb-6">Recommended word ranges</p>
@@ -1388,7 +1378,6 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* SOCIAL COUNTERS */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">📱 Social Media Counters</h2>
           <p className="text-center opacity-70 text-sm mb-6">Dedicated counters for each platform</p>
@@ -1408,7 +1397,6 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* WHAT IS */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">📖 What Is a Word Counter?</h2>
           <p className="text-center opacity-70 text-sm mb-6">Complete explanation</p>
@@ -1425,7 +1413,6 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* OTHER TOOLS */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">🧰 Other Useful Tools</h2>
           <p className="text-center opacity-70 text-sm mb-6">Complete toolkit</p>
@@ -1440,7 +1427,6 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* ARTICLES */}
         <section className="mt-12 space-y-4">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-6">📚 Guides & Documentation</h2>
           {articlesData.map(a => (
@@ -1456,7 +1442,6 @@ export default function WordCounterClient() {
           ))}
         </section>
 
-        {/* FAQ */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">❓ FAQ</h2>
           <p className="text-center opacity-70 text-sm mb-6">Common questions</p>
@@ -1476,7 +1461,7 @@ export default function WordCounterClient() {
         </section>
 
         <footer className="mt-16 text-center text-xs opacity-60 pb-8">
-          <p>✨ Word Counter Pro v11 — 100% private, browser-only</p>
+          <p>✨ Word Counter Pro — 100% private, browser-only</p>
           <p className="mt-1">Made with 💜 for writers, students, and SEO professionals</p>
         </footer>
       </div>
