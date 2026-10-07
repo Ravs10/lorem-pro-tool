@@ -502,7 +502,7 @@ export default function WordCounterClient() {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !editorRef.current) return false;
     const r = sel.getRangeAt(0);
-    return editorRef.current.contains(r.commonAncestorContainer) && !r.rCollapsed && r.toString().length > 0;
+    return editorRef.current.contains(r.commonAncestorContainer) && !r.Collapsed && r.toString().length > 0;
   };
 
   // -------- FORMATTING --------
