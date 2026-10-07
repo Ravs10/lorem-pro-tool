@@ -205,7 +205,6 @@ export default function WordCounterClient() {
   const [academicType, setAcademicType] = useState("Essay");
   const [activeSocial, setActiveSocial] = useState("Instagram Caption");
   const [socialText, setSocialText] = useState("");
-  // NEW v9 states
   const [showFormatBar, setShowFormatBar] = useState(true);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showBgPicker, setShowBgPicker] = useState(false);
@@ -218,6 +217,7 @@ export default function WordCounterClient() {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedSelRef = useRef<{ start: number; end: number } | null>(null);
+  const savedSelTimeRef = useRef<number>(0); // ✅ NEW: track freshness
   const shareMenuRef = useRef<HTMLDivElement>(null);
   const colorMenuRef = useRef<HTMLDivElement>(null);
   const bgMenuRef = useRef<HTMLDivElement>(null);
@@ -394,28 +394,49 @@ export default function WordCounterClient() {
     setText(newText);
   }, []);
 
-  // -------- SELECTION SAVE --------
+  // ✅ FIXED v10: saveSelection clears when there's no valid selection
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
+    if (!sel || sel.rangeCount === 0 || !editorRef.current) {
+      savedSelRef.current = null;
+      return;
+    }
     const range = sel.getRangeAt(0);
-    if (!editorRef.current.contains(range.commonAncestorContainer)) return;
-    if (range.toString().length === 0) return;
+    if (!editorRef.current.contains(range.commonAncestorContainer) || range.toString().length === 0) {
+      savedSelRef.current = null;
+      return;
+    }
     const start = getTextOffset(range.startContainer, range.startOffset, editorRef.current);
     const end = getTextOffset(range.endContainer, range.endOffset, editorRef.current);
-    if (start !== end) savedSelRef.current = { start, end };
+    if (start !== end) {
+      savedSelRef.current = { start, end };
+      savedSelTimeRef.current = Date.now();
+    } else {
+      savedSelRef.current = null;
+    }
   }, []);
 
+  // ✅ FIXED v10: selectionchange listener also clears stale data
   useEffect(() => {
     const handler = () => {
       const sel = window.getSelection();
-      if (!sel || sel.rangeCount === 0 || !editorRef.current) return;
+      if (!sel || sel.rangeCount === 0 || !editorRef.current) {
+        savedSelRef.current = null;
+        return;
+      }
       const range = sel.getRangeAt(0);
-      if (!editorRef.current.contains(range.commonAncestorContainer)) return;
-      if (range.toString().length === 0) return;
+      if (!editorRef.current.contains(range.commonAncestorContainer) || range.toString().length === 0) {
+        savedSelRef.current = null;
+        return;
+      }
       const start = getTextOffset(range.startContainer, range.startOffset, editorRef.current);
       const end = getTextOffset(range.endContainer, range.endOffset, editorRef.current);
-      if (start !== end) savedSelRef.current = { start, end };
+      if (start !== end) {
+        savedSelRef.current = { start, end };
+        savedSelTimeRef.current = Date.now();
+      } else {
+        savedSelRef.current = null;
+      }
     };
     document.addEventListener("selectionchange", handler);
     return () => document.removeEventListener("selectionchange", handler);
@@ -481,7 +502,7 @@ export default function WordCounterClient() {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0 || !editorRef.current) return false;
     const r = sel.getRangeAt(0);
-    return editorRef.current.contains(r.commonAncestorContainer) && !r.collapsed && r.toString().length > 0;
+    return editorRef.current.contains(r.commonAncestorContainer) && !r.isCollapsed && r.toString().length > 0;
   };
 
   // -------- FORMATTING --------
@@ -519,21 +540,50 @@ export default function WordCounterClient() {
     updateActiveFormats();
   }, [syncFromEditor, updateActiveFormats]);
 
+  // ✅ FIXED v10: Color applied ONLY to live or freshly-saved selection
   const applyColorToSelection = useCallback((newColor: string, isHighlight = false) => {
     const editor = editorRef.current;
     if (!editor) return;
-    if (!hasSelection()) {
-      if (!restoreSelection() || !hasSelection()) {
-        setToast("⚠ Select text first to apply color");
-        setTimeout(() => setToast(null), 2200);
-        return;
+
+    // 1. Try live selection first
+    let sel = window.getSelection();
+    let valid = !!(
+      sel && sel.rangeCount > 0 && !sel.isCollapsed &&
+      sel.toString().length > 0 &&
+      editor.contains(sel.getRangeAt(0).commonAncestorContainer)
+    );
+
+    // 2. Fallback: only use saved selection if VERY FRESH (< 1500ms)
+    if (!valid && savedSelRef.current && (Date.now() - savedSelTimeRef.current) < 1500) {
+      const saved = savedSelRef.current;
+      const startPos = getNodeAtOffset(saved.start, editor);
+      const endPos = getNodeAtOffset(saved.end, editor);
+      if (startPos && endPos) {
+        editor.focus();
+        try {
+          const range = document.createRange();
+          range.setStart(startPos.node, startPos.offset);
+          range.setEnd(endPos.node, endPos.offset);
+          const s2 = window.getSelection();
+          s2?.removeAllRanges();
+          s2?.addRange(range);
+          sel = window.getSelection();
+          valid = !!(sel && !sel.isCollapsed && sel.toString().length > 0);
+        } catch {}
       }
     }
+
+    if (!valid) {
+      setToast("⚠ Pehle text select karo, phir color choose karo");
+      setTimeout(() => setToast(null), 2200);
+      return;
+    }
+
     try { document.execCommand("styleWithCSS", false, "true"); } catch {}
     document.execCommand(isHighlight ? "hiliteColor" : "foreColor", false, newColor);
     if (isHighlight) setHighlight(newColor); else setColor(newColor);
     syncFromEditor();
-    setToast(isHighlight ? "✨ Highlight applied" : "🎨 Text color applied");
+    setToast(isHighlight ? "✨ Highlight applied to selection" : "🎨 Color applied to selection");
     setTimeout(() => setToast(null), 1500);
   }, [syncFromEditor]);
 
@@ -983,8 +1033,6 @@ export default function WordCounterClient() {
         .accordion-content.open{max-height:8000px}
         .tab-btn{transition:all 0.25s}
         .tab-btn.active{background:linear-gradient(135deg,#a855f7,#ec4899) !important;color:#fff !important;box-shadow:0 8px 20px rgba(168,85,247,0.35);border-color:transparent !important}
-        .hide-when-active{transition:all 0.3s}
-        .tooltip-arrow::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:rgba(17,24,39,0.95)}
         @media (max-width:640px){.hide-mobile{display:none}}
       `}</style>
 
@@ -1007,7 +1055,7 @@ export default function WordCounterClient() {
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-8 relative">
         {/* HEADER */}
         <div className="text-center mb-6">
-          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v9 · RICH TEXT TOOLBAR · SOCIAL SHARE · FULL GUIDE</div>
+          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v10 · SELECTION-ONLY COLOR FIXED · RICH TEXT · SOCIAL SHARE</div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black gradient-text">Word Counter Pro</h1>
           <p className="mt-2 opacity-70 text-xs sm:text-sm">Rich text editor, 40+ tools, grammar check, social share</p>
           <div className="flex justify-center gap-2 mt-4 flex-wrap items-center">
@@ -1026,7 +1074,7 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* TOOLBAR ROW 1 — EDIT + SHARE */}
+        {/* TOOLBAR ROW 1 */}
         <div className="glass rounded-2xl p-2 sm:p-3 mb-2 flex flex-wrap gap-1.5 items-center justify-between sticky top-2 z-30">
           <div className="flex gap-1 flex-wrap items-center">
             <div className="tooltip-parent"><button onClick={handleCut} className="h-9 px-3 rounded-lg glass-btn text-xs font-bold btn-shine">✂ Cut</button><span className="tooltip-box">Cut selected</span></div>
@@ -1040,7 +1088,6 @@ export default function WordCounterClient() {
             <button onClick={handleClear} className="h-9 px-3 rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 text-xs font-bold border border-red-300/40 btn-shine">🗑 Clear</button>
           </div>
           <div className="flex gap-1.5 flex-wrap items-center">
-            {/* SHARE MENU */}
             <div className="relative" ref={shareMenuRef}>
               <button onClick={() => setShowShareMenu(v => !v)} className={`h-9 px-3 rounded-xl text-xs font-bold btn-shine transition-all ${showShareMenu ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white" : "glass-btn"}`}>
                 🔗 Share ▾
@@ -1070,7 +1117,6 @@ export default function WordCounterClient() {
         {/* TOOLBAR ROW 2 — RICH TEXT FORMATTING */}
         {showFormatBar && (
           <div className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20 anim-slide">
-            {/* Basic formatting */}
             <div className="tooltip-parent"><button onClick={() => exec("bold")} className={`fmt-btn glass-btn ${activeFormats.bold ? "active-fmt" : ""}`}><b>B</b></button><span className="tooltip-box">Bold (Ctrl+B)</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("italic")} className={`fmt-btn glass-btn ${activeFormats.italic ? "active-fmt" : ""}`}><i>I</i></button><span className="tooltip-box">Italic (Ctrl+I)</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("underline")} className={`fmt-btn glass-btn ${activeFormats.underline ? "active-fmt" : ""}`}><u>U</u></button><span className="tooltip-box">Underline (Ctrl+U)</span></div>
@@ -1080,16 +1126,19 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Headings */}
             <select onChange={e => { if (e.target.value) formatHeading(e.target.value); e.target.value = ""; }} className="h-9 rounded-lg glass-btn px-2 text-xs font-bold" title="Heading level">
               <option value="">Heading ▾</option>
               {HEADING_LEVELS.map(h => <option key={h.tag} value={h.tag}>{h.label} — {h.size}</option>)}
               <option value="p">Paragraph</option>
             </select>
 
-            {/* Text color picker */}
+            {/* ✅ FIXED: Text color picker button with preventDefault */}
             <div className="relative tooltip-parent" ref={colorMenuRef}>
-              <button onClick={() => { saveSelection(); setShowColorPicker(v => !v); setShowBgPicker(false); }} className={`h-9 px-2.5 rounded-lg text-xs font-bold glass-btn btn-shine transition-all ${showColorPicker ? "active-fmt" : ""}`}>
+              <button 
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => { setShowColorPicker(v => !v); setShowBgPicker(false); }} 
+                className={`h-9 px-2.5 rounded-lg text-xs font-bold glass-btn btn-shine transition-all ${showColorPicker ? "active-fmt" : ""}`}
+              >
                 <span className="flex items-center gap-1">
                   <span className="font-black" style={{ color }}>A</span>
                   <span className="inline-block w-3 h-3 rounded border" style={{ background: color }} />
@@ -1111,9 +1160,13 @@ export default function WordCounterClient() {
               )}
             </div>
 
-            {/* Background/highlight picker */}
+            {/* ✅ FIXED: Background picker button with preventDefault */}
             <div className="relative tooltip-parent" ref={bgMenuRef}>
-              <button onClick={() => { saveSelection(); setShowBgPicker(v => !v); setShowColorPicker(false); }} className={`h-9 px-2.5 rounded-lg text-xs font-bold glass-btn btn-shine transition-all ${showBgPicker ? "active-fmt" : ""}`}>
+              <button 
+                onMouseDown={e => e.preventDefault()}
+                onClick={() => { setShowBgPicker(v => !v); setShowColorPicker(false); }} 
+                className={`h-9 px-2.5 rounded-lg text-xs font-bold glass-btn btn-shine transition-all ${showBgPicker ? "active-fmt" : ""}`}
+              >
                 <span className="flex items-center gap-1">
                   <span className="px-1 rounded" style={{ background: highlight }}>H</span>
                   <span className="inline-block w-3 h-3 rounded border" style={{ background: highlight }} />
@@ -1130,13 +1183,16 @@ export default function WordCounterClient() {
                       <button key={c} onMouseDown={e => e.preventDefault()} onClick={() => applyColorToSelection(c, true)} className="w-7 h-7 rounded-lg border border-white/60 hover:scale-110 transition-transform" style={{ background: c }} title={c} />
                     ))}
                   </div>
-                  <button onClick={() => { restoreSelection(); exec("hiliteColor", "transparent"); }} className="w-full mt-2 text-[10px] py-1 rounded-lg glass-btn font-bold">Remove Highlight</button>
+                  <button 
+                    onMouseDown={e => e.preventDefault()}
+                    onClick={() => applyColorToSelection("transparent", true)} 
+                    className="w-full mt-2 text-[10px] py-1 rounded-lg glass-btn font-bold"
+                  >Remove Highlight</button>
                   <div className="text-[9px] opacity-50 mt-2">Select text first, then pick background</div>
                 </div>
               )}
             </div>
 
-            {/* Font family — applies to selection */}
             <div className="tooltip-parent">
               <select onChange={e => { applyFontToSelection(e.target.value); e.target.value = ""; }} className="h-9 rounded-lg glass-btn px-2 text-xs font-bold">
                 <option value="">Font ▾</option>
@@ -1147,7 +1203,6 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Lists & indent */}
             <div className="tooltip-parent"><button onClick={() => exec("insertUnorderedList")} className={`fmt-btn glass-btn ${activeFormats.insertUnorderedList ? "active-fmt" : ""}`}>•</button><span className="tooltip-box">Bullet list</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("insertOrderedList")} className={`fmt-btn glass-btn ${activeFormats.insertOrderedList ? "active-fmt" : ""}`}>1.</button><span className="tooltip-box">Numbered list</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("outdent")} className="fmt-btn glass-btn">⇤</button><span className="tooltip-box">Outdent</span></div>
@@ -1155,7 +1210,6 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Alignment */}
             <div className="tooltip-parent"><button onClick={() => exec("justifyLeft")} className={`fmt-btn glass-btn ${activeFormats.justifyLeft ? "active-fmt" : ""}`}>⬅</button><span className="tooltip-box">Left</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("justifyCenter")} className={`fmt-btn glass-btn ${activeFormats.justifyCenter ? "active-fmt" : ""}`}>↔</button><span className="tooltip-box">Center</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("justifyRight")} className={`fmt-btn glass-btn ${activeFormats.justifyRight ? "active-fmt" : ""}`}>➡</button><span className="tooltip-box">Right</span></div>
@@ -1163,7 +1217,6 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Insert items */}
             <div className="tooltip-parent"><button onClick={insertLink} className="h-9 px-2.5 rounded-lg glass-btn text-xs font-bold btn-shine">🔗</button><span className="tooltip-box">Insert Link (Ctrl+K)</span></div>
             <div className="tooltip-parent"><button onClick={insertHR} className="h-9 px-2.5 rounded-lg glass-btn text-xs font-bold btn-shine">―</button><span className="tooltip-box">Horizontal Rule</span></div>
             <div className="tooltip-parent"><button onClick={insertVR} className="h-9 px-2.5 rounded-lg glass-btn text-xs font-bold btn-shine">│</button><span className="tooltip-box">Vertical Rule</span></div>
@@ -1193,22 +1246,10 @@ export default function WordCounterClient() {
         {/* SETTINGS PANEL */}
         {showSettings && (
           <div className="glass rounded-2xl p-4 mb-3 grid md:grid-cols-4 gap-3 anim-slide">
-            <div>
-              <label className="text-[10px] uppercase opacity-60 font-bold">Page Size</label>
-              <select value={pageSize} onChange={e => setPageSize(e.target.value)} className="w-full h-9 rounded-lg glass-btn px-2 text-sm border mt-1">{Object.entries(PAGE_SIZES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select>
-            </div>
-            <div>
-              <label className="text-[10px] uppercase opacity-60 font-bold">Editor Font</label>
-              <select value={font} onChange={e => setFont(e.target.value)} className="w-full h-9 rounded-lg glass-btn px-2 text-sm border mt-1">{FONTS.map(f => <option key={f.name} value={f.name}>{f.name}{f.mono ? " (mono)" : ""}</option>)}</select>
-            </div>
-            <div>
-              <label className="text-[10px] uppercase opacity-60 font-bold">Font Size: {fontSize}px</label>
-              <input type="range" min={10} max={32} value={fontSize} onChange={e => setFontSize(parseInt(e.target.value))} className="w-full mt-2" />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase opacity-60 font-bold">Line Height: {lineHeight}</label>
-              <input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(parseFloat(e.target.value))} className="w-full mt-2" />
-            </div>
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Page Size</label><select value={pageSize} onChange={e => setPageSize(e.target.value)} className="w-full h-9 rounded-lg glass-btn px-2 text-sm border mt-1">{Object.entries(PAGE_SIZES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></div>
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Editor Font</label><select value={font} onChange={e => setFont(e.target.value)} className="w-full h-9 rounded-lg glass-btn px-2 text-sm border mt-1">{FONTS.map(f => <option key={f.name} value={f.name}>{f.name}{f.mono ? " (mono)" : ""}</option>)}</select></div>
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Font Size: {fontSize}px</label><input type="range" min={10} max={32} value={fontSize} onChange={e => setFontSize(parseInt(e.target.value))} className="w-full mt-2" /></div>
+            <div><label className="text-[10px] uppercase opacity-60 font-bold">Line Height: {lineHeight}</label><input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(parseFloat(e.target.value))} className="w-full mt-2" /></div>
             <div className="md:col-span-4 flex flex-wrap gap-4 pt-2 border-t border-white/30">
               <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoCorrect} onChange={e => setAutoCorrect(e.target.checked)} /> Auto Correct</label>
               <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={autoComplete} onChange={e => setAutoComplete(e.target.checked)} /> Auto Complete (Tab)</label>
@@ -1216,14 +1257,7 @@ export default function WordCounterClient() {
               <label className="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" checked={duplicateHighlight} onChange={e => setDuplicateHighlight(e.target.checked)} /> Duplicate Highlight</label>
             </div>
             <div className="md:col-span-4 flex flex-wrap gap-4 pt-2 border-t border-white/30">
-              <div>
-                <label className="text-[10px] uppercase opacity-60 font-bold block mb-1">Reading Speed</label>
-                <div className="flex gap-1">
-                  {["slow","average","fast","custom"].map(s => (
-                    <button key={s} onClick={() => setReadingSpeed(s as any)} className={`text-xs px-3 py-1.5 rounded-lg ${readingSpeed === s ? "bg-gradient-to-r from-violet-600 to-pink-600 text-white" : "glass-btn"} font-bold capitalize`}>{s}</button>
-                  ))}
-                </div>
-              </div>
+              <div><label className="text-[10px] uppercase opacity-60 font-bold block mb-1">Reading Speed</label><div className="flex gap-1">{["slow","average","fast","custom"].map(s => (<button key={s} onClick={() => setReadingSpeed(s as any)} className={`text-xs px-3 py-1.5 rounded-lg ${readingSpeed === s ? "bg-gradient-to-r from-violet-600 to-pink-600 text-white" : "glass-btn"} font-bold capitalize`}>{s}</button>))}</div></div>
               {readingSpeed === "custom" && (<div><label className="text-[10px] uppercase opacity-60 font-bold block mb-1">Custom WPM</label><input type="number" min={50} max={1000} value={customReadingWPM} onChange={e => setCustomReadingWPM(Math.max(50, parseInt(e.target.value) || 200))} className="w-24 h-8 text-xs px-2 rounded-lg glass-btn" /></div>)}
               <div><label className="text-[10px] uppercase opacity-60 font-bold block mb-1">Speaking WPM</label><input type="number" min={50} max={300} value={speakingWPM} onChange={e => setSpeakingWPM(Math.max(50, parseInt(e.target.value) || 130))} className="w-24 h-8 text-xs px-2 rounded-lg glass-btn" /></div>
               <span className="text-xs opacity-60 ml-auto">Reading: {effectiveReadingWPM} wpm • Speaking: {speakingWPM} wpm</span>
@@ -1539,7 +1573,7 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* OTHER TOOLS GRID */}
+        {/* OTHER TOOLS */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">🧰 Other Useful Tools</h2>
           <p className="text-center opacity-70 text-sm mb-6">Complete toolkit for writers, students, and SEO professionals</p>
@@ -1554,7 +1588,7 @@ export default function WordCounterClient() {
           </div>
         </section>
 
-        {/* ARTICLES (ACCORDION) */}
+        {/* ARTICLES */}
         <section className="mt-12 space-y-4">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-6">📚 Guides & Documentation</h2>
           {articlesData.map(a => (
@@ -1590,7 +1624,7 @@ export default function WordCounterClient() {
         </section>
 
         <footer className="mt-16 text-center text-xs opacity-60 pb-8">
-          <p>✨ Word Counter Pro v9 — 100% private, browser-only, no data sent to server</p>
+          <p>✨ Word Counter Pro v10 — 100% private, browser-only, no data sent to server</p>
           <p className="mt-1">Made with 💜 for writers, students, and SEO professionals</p>
         </footer>
       </div>
@@ -1680,7 +1714,7 @@ Everything runs in-browser. Auto-save uses localStorage. Only "Grammar Check" se
   },
   {
     id: "user-guide",
-    title: "📘 Complete User Guide — Every Feature Step-by-Step (v9)",
+    title: "📘 Complete User Guide — Every Feature Step-by-Step (v10)",
     content: `═══════════════════════════════
 STEP 1 — START WRITING
 ═══════════════════════════════
@@ -1696,8 +1730,8 @@ Available buttons (second toolbar row):
 ▸ I (Italic) — Ctrl+I
 ▸ U (Underline) — Ctrl+U
 ▸ S (Strikethrough) — Ctrl+Shift+S
-▸ X² (Superscript) — small raised text
-▸ X₂ (Subscript) — small lowered text
+▸ X² (Superscript)
+▸ X₂ (Subscript)
 ▸ Heading ▾ — H1, H2, H3, H4, H5, H6, Paragraph
 ▸ A (Text Color) — custom picker + 10 preset swatches
 ▸ H (Background Highlight) — custom picker + 8 preset swatches + Remove
@@ -1706,48 +1740,78 @@ Available buttons (second toolbar row):
 ▸ ⇤ ⇥ — Outdent / Indent
 ▸ ⬅ ↔ ➡ ≡ — Left / Center / Right / Justify
 ▸ 🔗 — Insert Link (Ctrl+K) with URL prompt
-▸ ― — Horizontal Rule (full-width separator)
-▸ │ — Vertical Rule (inline separator)
-▸ </> — Code Block (monospace pre-formatted)
+▸ ― — Horizontal Rule
+▸ │ — Vertical Rule
+▸ </> — Code Block
 ▸ ❝ — Blockquote
-▸ Tx — Clear formatting on selection
+▸ Tx — Clear formatting
 ▸ ↶ ↷ — Undo / Redo
-▸ Aa Case ▾ — UPPER / lower / Title / Sentence / Capitalize Each Word / Toggle Case
-
-EXAMPLE — Apply red color to a word:
-1. Type "Hello World Test"
-2. Select "World" with mouse
-3. Click the A ▾ button in formatting toolbar
-4. Choose red (#ef4444)
-5. ONLY "World" turns red — rest untouched ✅
-
-EXAMPLE — Add background highlight:
-1. Select some text
-2. Click H ▾ button
-3. Choose yellow
-4. Only selection gets yellow background
-
-EXAMPLE — Add link:
-1. Select text OR place cursor
-2. Press Ctrl+K or click 🔗
-3. Paste URL, press OK
-4. Link wraps selection
+▸ Aa Case ▾ — 6 case conversion options
 
 ═══════════════════════════════
-STEP 3 — EDIT OPERATIONS (Toolbar Row 1)
+⭐ HOW TO USE TEXT COLOR (v10 FIXED)
+═══════════════════════════════
+The color ONLY applies to the text you SELECT. Follow exactly:
+
+1. Use mouse to SELECT the text (drag over it, or double-click a word)
+2. Selected text turns BLUE — this confirms selection
+3. Click the A ▾ (text color) button
+4. Choose a color from the picker OR a preset swatch
+5. ONLY the selected text changes color ✅
+
+If you don't select anything first:
+• You'll see a warning toast "⚠ Pehle text select karo"
+• NO text will change color
+
+IMPORTANT RULES:
+✓ Always select text FIRST, then click color
+✗ Do NOT click color button first and then select text (won't work)
+✗ Do NOT expect to color whole document without selecting (use Ctrl+A to select all)
+✓ To remove color: select colored text → click Tx (clear formatting)
+
+Example flow:
+1. Type "Hello World Test"
+2. Select only "World" (drag over it)
+3. Click A ▾ → pick red
+4. Result: "Hello World Test" with only "World" in red ✅
+
+═══════════════════════════════
+⭐ HOW TO USE BACKGROUND HIGHLIGHT (v10)
+═══════════════════════════════
+Same workflow as text color:
+
+1. SELECT text
+2. Click H ▾ button
+3. Choose highlight color from picker or preset swatch
+4. Only the selection gets a colored background
+
+To remove highlight:
+1. Select the highlighted text
+2. Click H ▾ button
+3. Click "Remove Highlight"
+
+═══════════════════════════════
+⭐ HOW TO APPLY FONT TO SELECTION
+═══════════════════════════════
+1. Select text
+2. In the Font ▾ dropdown, choose a font
+3. Only selection changes font
+
+If nothing selected → whole editor font changes (this is by design)
+
+═══════════════════════════════
+STEP 3 — EDIT OPERATIONS
 ═══════════════════════════════
 ▸ ✂ Cut — Remove selection to clipboard
-▸ 📋 Copy — Copies selection, or all text if none selected
+▸ 📋 Copy — Copies selection, or all text if none
 ▸ 📥 Paste — Insert clipboard at cursor
-▸ ⌫ Backspace — Delete char before cursor
-▸ ⌦ Delete — Delete char after cursor
+▸ ⌫ Backspace / ⌦ Delete
 ▸ 🗑 Clear — Wipe everything (with confirmation)
-▸ ↶ ↷ Undo / Redo available in format bar
 
 ═══════════════════════════════
 STEP 4 — SOCIAL SHARE
 ═══════════════════════════════
-Click "🔗 Share ▾" button in toolbar row 1. Menu shows:
+Click "🔗 Share ▾" button. Menu shows:
 ▸ 🐦 Twitter / X
 ▸ 👥 Facebook
 ▸ 💬 WhatsApp
@@ -1762,110 +1826,77 @@ Each opens the platform's share dialog with your text pre-filled.
 ═══════════════════════════════
 STEP 5 — SETTINGS PANEL
 ═══════════════════════════════
-Click ⚙ Settings:
-▸ Page Size — A4 (210×297mm), Letter, Legal
+▸ Page Size — A4 / Letter / Legal
 ▸ Editor Font — 14 options (whole-editor default)
 ▸ Font Size — 10-32 px slider
-▸ Line Height — 1.0 - 2.5 slider
+▸ Line Height — 1.0-2.5 slider
 ▸ Auto Correct — toggle
 ▸ Auto Complete (Tab) — toggle
-▸ Show Red Wavy — toggle for grammar preview
+▸ Show Red Wavy — toggle
 ▸ Duplicate Highlight — toggle
-▸ Reading Speed — slow (100 wpm), average (200), fast (300), custom
+▸ Reading Speed — slow / average / fast / custom
 ▸ Custom WPM — 50-1000
 ▸ Speaking WPM — 50-300 (default 130)
 
 ═══════════════════════════════
 STEP 6 — WORD GOAL
 ═══════════════════════════════
-Change the number in header to any target. Progress bar fills. On reaching goal:
+Change number in header to any target. Progress bar fills. On reaching goal:
 ▸ Green toast notification
-▸ Celebration sound (Web Audio)
+▸ Celebration sound
 ▸ Confetti animation
-▸ "🎉 Goal Achieved!" in sidebar
+▸ "🎉 Goal Achieved!"
 
 ═══════════════════════════════
 STEP 7 — GRAMMAR CHECK
 ═══════════════════════════════
 Auto-checks 1.5s after you stop typing. Or click "✓ Grammar Check".
-Red wavy lines show errors in the preview panel (under editor).
-Errors panel lists all issues with Fix / Fix All buttons.
+Red wavy lines show errors in preview panel.
+Errors panel lists issues with Fix / Fix All buttons.
 
 ═══════════════════════════════
-STEP 8 — VOICE TYPING
+STEP 8 — VOICE / TEXT-TO-SPEECH
 ═══════════════════════════════
-Click 🎤 VOICE. Chrome/Edge + HTTPS required. Speak naturally — text inserts at cursor position. Click ■ STOP to end.
+🎤 VOICE — Chrome/Edge + HTTPS required
+🔊 — Hear text read aloud (browser TTS)
 
 ═══════════════════════════════
-STEP 9 — TEXT TO SPEECH
+STEP 9 — FIND & REPLACE
 ═══════════════════════════════
-Click 🔊 to hear text read aloud. Uses browser TTS.
+Ctrl+F or click 🔍 Find. Options: case-sensitive (Aa) and whole-word toggles.
 
 ═══════════════════════════════
-STEP 10 — FIND & REPLACE
+STEP 10 — WRITING TOOLS HUB (40+ tools)
 ═══════════════════════════════
-Ctrl+F or click 🔍 Find. Options: case-sensitive (Aa) and whole-word toggles. Click "Replace All".
+4 animated tabs:
 
-═══════════════════════════════
-STEP 11 — WRITING TOOLS HUB (40+ tools)
-═══════════════════════════════
-Four animated tabs:
+📌 SUGGESTED — 9 mini tools:
+Character Counter, Sentence Counter, Paragraph Counter, Readability Checker, Keyword Density, Text Case Converter, Text Cleaner, Find & Replace, Duplicate Line Remover
 
-📌 SUGGESTED TOOLS — 9 mini tools:
-▸ Character Counter
-▸ Sentence Counter
-▸ Paragraph Counter
-▸ Readability Checker
-▸ Keyword Density Checker
-▸ Text Case Converter
-▸ Text Cleaner
-▸ Find & Replace
-▸ Duplicate Line Remover
+✍️ WRITING — 6 cards:
+Text Formatter, Text Cleaner, Text Converter, Sorting Tools, Text Reversal, Space Tools
 
-✍️ WRITING TOOLS — 6 cards:
-▸ Text Formatter (6 case options)
-▸ Text Cleaner (8 options)
-▸ Text Converter (Slug, URL, Comma, Line, JSON, Plain)
-▸ Sorting Tools (A-Z, Z-A, Length, Word Count)
-▸ Text Reversal (Chars, Words, Lines)
-▸ Space Tools (Trim, Collapse, Tabs)
-
-🎓 ACADEMIC TOOLS:
-▸ Word limit tracker — set required count, see remaining
-▸ Paragraph analyzer
-▸ Citation-friendly stats
+🎓 ACADEMIC:
+Word limit tracker, Paragraph analyzer, Citation stats
 
 📊 QUALITY ANALYZER:
-Checks 9 dimensions with "Good" / "Needs Attention" / "Improve" labels:
-repeated words, repeated sentences, long sentences, long paragraphs, filler words, weak phrases, excessive punctuation, multiple spaces, ALL CAPS words.
+9 rule-based checks with Good / Needs Attention / Improve labels
 
 ═══════════════════════════════
-STEP 12 — SOCIAL MEDIA COUNTERS
+STEP 11 — SOCIAL MEDIA COUNTERS
 ═══════════════════════════════
-Dedicated counters for 6 platforms:
-▸ Instagram Caption (2200 chars, recommended 125)
-▸ Facebook Post (63206, recommended 80)
-▸ X / Twitter Post (280, recommended 240)
-▸ LinkedIn Post (3000, recommended 1300)
-▸ YouTube Title (100, recommended 60)
-▸ YouTube Description (5000, recommended 300)
-
-Each shows: Chars, Words, Remaining, and two progress bars (platform limit + recommended).
+Dedicated counters for 6 platforms with char/word/remaining counts and dual progress bars.
 
 ═══════════════════════════════
-STEP 13 — EXPORT
+STEP 12 — EXPORT
 ═══════════════════════════════
-▸ TXT — plain text
-▸ HTML — full styled web page (preserves formatting)
-▸ DOC — Word-compatible
-▸ CSV — stats spreadsheet
-▸ PDF — print dialog
+▸ TXT, HTML (styled), DOC, CSV, PDF
 
 ═══════════════════════════════
-STEP 14 — FOCUS MODE / DARK MODE
+STEP 13 — FOCUS MODE / DARK MODE
 ═══════════════════════════════
-▸ ⛶ Focus — fullscreen distraction-free writing
-▸ 🌙 Dark — toggle dark theme
+▸ ⛶ Focus — distraction-free writing
+▸ 🌙 Dark — toggle theme
 
 ═══════════════════════════════
 KEYBOARD SHORTCUTS
@@ -1882,153 +1913,194 @@ Tab — Accept autocomplete
 Esc — Close popups`
   },
   {
+    id: "color-guide",
+    title: "🎨 Text Color — Complete Guide (v10 Fixed)",
+    content: `═══════════════════════════════
+THE #1 RULE: SELECT FIRST
+═══════════════════════════════
+ALWAYS select the text with your mouse BEFORE clicking any color button.
+
+❌ Wrong order:
+1. Click A ▾ button
+2. Pick a color
+3. Try to select text
+Result: Nothing changes (or warning toast)
+
+✅ Right order:
+1. Select text with mouse (drag across it)
+2. Selected text turns blue/highlighted
+3. Click A ▾ button
+4. Pick a color
+5. ONLY selection changes color
+
+═══════════════════════════════
+HOW SELECTION WORKS
+═══════════════════════════════
+To select text:
+▸ Double-click a word to select just that word
+▸ Triple-click to select a whole paragraph
+▸ Click and drag to select multiple words
+▸ Ctrl+A to select ALL text in editor
+
+Once selected, the text appears BLUE. That blue highlight is your confirmation.
+
+═══════════════════════════════
+STEP-BY-STEP EXAMPLE
+═══════════════════════════════
+Say your text is: "The quick brown fox jumps over the lazy dog"
+
+To color only "brown":
+1. Double-click "brown" (it becomes highlighted blue)
+2. Click A ▾ button
+3. Click red swatch (or use the picker)
+4. Result: "The quick brown fox jumps over the lazy dog"
+   (only "brown" is now red)
+
+═══════════════════════════════
+WHY SOMETIMES IT DIDN'T WORK (OLD BUG)
+═══════════════════════════════
+In previous versions, there was a bug:
+- If you had selected text earlier, then cleared it
+- The old selection was remembered
+- Clicking color would apply to the OLD position (wrong text)
+
+This is now FIXED in v10:
+✓ Only LIVE (current) selection is used
+✓ If no live selection → warning toast
+✓ No more stale application to wrong text
+
+═══════════════════════════════
+WARNING SIGNS
+═══════════════════════════════
+You'll see "⚠ Pehle text select karo" toast when:
+▸ You clicked A ▾ or H ▾ without selecting text
+▸ Your previous selection got cleared (e.g., you clicked elsewhere)
+▸ Cursor is inside text but nothing is highlighted blue
+
+When you see this warning:
+1. Select the text again with mouse
+2. Then click the color button
+
+═══════════════════════════════
+REMOVING COLOR
+═══════════════════════════════
+To remove color from text:
+1. Select the colored text
+2. Click Tx button (clear formatting)
+This removes bold, italic, underline, color, and highlight all at once.
+
+For highlight only:
+1. Select the highlighted text
+2. Click H ▾ button
+3. Click "Remove Highlight"
+
+═══════════════════════════════
+TECHNICAL DETAILS (for developers)
+═══════════════════════════════
+▸ Uses document.execCommand("foreColor") for text color
+▸ Uses document.execCommand("hiliteColor") for background
+▸ Selection must be non-collapsed (start ≠ end)
+▸ Picker buttons use onMouseDown preventDefault to preserve focus
+▸ Selection change listener tracks current range
+▸ Stale saved selections are cleared automatically`
+  },
+  {
     id: "features",
-    title: "⚙️ Every Feature Explained (v9)",
+    title: "⚙️ Every Feature Explained (v10)",
     content: `📊 REAL-TIME STATISTICS
-10 metrics update every keystroke. Uses React useMemo for optimal performance even with 50,000+ words.
+10 metrics update every keystroke. React useMemo for performance even with 50,000+ words.
 
-💾 AUTO-SAVE
-Every 400ms saves to localStorage. Close tab, come back — everything restored.
+💾 AUTO-SAVE — Every 400ms to localStorage.
 
-✍️ AUTO-CORRECT
-Silently fixes 20+ common typos (teh→the, adn→and, recieve→receive). Toggle in Settings.
+✍️ AUTO-CORRECT — Fixes 20+ common typos silently.
 
-💡 AUTO-COMPLETE
-300-word dictionary. As you type 2+ chars, suggestions pop up. Press Tab to accept.
+💡 AUTO-COMPLETE — 300-word dictionary, Tab to accept.
 
-🔴 GRAMMAR CHECK (LanguageTool)
-- 30+ languages
-- Red wavy underlines in preview
-- Errors panel with Fix / Fix All
-- Auto-checks 1.5s after you stop typing
+🔴 GRAMMAR CHECK — LanguageTool API, 30+ languages, red wavy preview.
 
-🎨 TEXT COLOR (NEW v9 — selection only)
-- Click "A ▾" in formatting toolbar
-- Custom picker OR 10 preset swatches
-- Applies ONLY to selected text — never whole document
-- If nothing selected, warning toast appears
+🎨 TEXT COLOR (v10 FIXED)
+- Selection-only application
+- 10 preset swatches + custom picker
+- Warning toast if no selection
+- No stale application
 
-🖍️ BACKGROUND HIGHLIGHT (NEW v9)
-- Click "H ▾" in formatting toolbar
+🖍️ BACKGROUND HIGHLIGHT
+- Selection-only
 - 8 pastel presets + custom picker
-- "Remove Highlight" button to clear
-- Applies ONLY to selected text
+- Remove button
 
-🔤 FONT FAMILY ON SELECTION (NEW v9)
-- Font dropdown in formatting toolbar
-- Applies to selection only (or whole editor if nothing selected)
-- 14 fonts: Inter, Poppins, Roboto, Merriweather, Playfair Display, Lora, Georgia, Times New Roman, Arial, Verdana, JetBrains Mono, Fira Code, Roboto Mono, Courier New
+🔤 FONT FAMILY — 14 fonts, applies to selection or whole editor.
 
-📐 HEADINGS H1-H6 (NEW v9)
-- Heading ▾ dropdown in toolbar
-- H1 through H6 + Paragraph
-- Sizes: 2em, 1.6em, 1.35em, 1.15em, 1em, 0.9em
+📐 HEADINGS H1-H6 — 6 heading sizes + paragraph.
 
-🔗 INSERT LINK (NEW v9)
-- Ctrl+K OR click 🔗 button
-- Prompts for URL
-- Wraps selection in link
-- Works with restored selection
+🔗 INSERT LINK — Ctrl+K, URL prompt, wraps selection.
 
-➖ HORIZONTAL RULE (NEW v9)
-- Click ― button
-- Inserts full-width separator line
+➖ HORIZONTAL RULE — Full-width separator.
 
-│ VERTICAL RULE (NEW v9)
-- Click │ button
-- Inserts inline vertical separator (great for dual-column layouts)
+│ VERTICAL RULE — Inline divider (great for dual-column).
 
-</> CODE BLOCK (NEW v9)
-- Monospace pre-formatted block
-- Perfect for displaying code snippets
+</> CODE BLOCK — Monospace pre-formatted.
 
-❝ BLOCKQUOTE (NEW v9)
-- Indented quote with left border
+❝ BLOCKQUOTE — Indented quote with purple left border.
 
-X² / X₂ SUPERSCRIPT / SUBSCRIPT (NEW v9)
-- Toggle on selection
-- Perfect for math, footnotes, chemical formulas
+X² / X₂ SUPERSCRIPT / SUBSCRIPT — For math, footnotes.
 
-🔗 SOCIAL SHARE MENU (NEW v9)
-Click "🔗 Share ▾" for:
-- Twitter / X
-- Facebook
-- WhatsApp
-- LinkedIn
-- Telegram
-- Email
-- Copy text
-- Native share (mobile)
+🔗 SOCIAL SHARE MENU — 8 platforms:
+Twitter, Facebook, WhatsApp, LinkedIn, Telegram, Email, Copy, Native.
 
-🔁 DUPLICATE DETECTION
-Finds repeated words (chips), sentences (list), and lines (list).
+🔁 DUPLICATE DETECTION — Words, sentences, lines.
 
-🎯 WORD TARGET
-Set any goal. Progress bar fills. Celebration: toast + confetti + sound.
+🎯 WORD TARGET — Progress + confetti + sound.
 
-📄 PAGE SIZE
-A4 / Letter / Legal with displayed mm dimensions.
+📄 PAGE SIZE — A4 / Letter / Legal.
 
-⏱ WRITING TIME
-Tracks ACTIVE typing only (pauses after 5s idle).
+⏱ WRITING TIME — Active only (pauses after 5s idle).
 
-📈 READABILITY
-Flesch Reading Ease 0-100. Level: Easy / Standard / Hard / Very Hard.
+📈 READABILITY — Flesch Reading Ease 0-100.
 
-📊 KEYWORD DENSITY
-Top 10 words + percentage. Green (<3%) healthy, Red (>3%) stuffing risk.
+📊 KEYWORD DENSITY — Top 10 words.
 
-📱 SOCIAL MEDIA LIMITS (Live in sidebar)
-Twitter 280, Instagram 2200, LinkedIn 3000 — real-time left/over count.
+📱 SOCIAL LIMITS — Twitter 280, Instagram 2200, LinkedIn 3000 (live).
 
-📱 SOCIAL WRITING COUNTERS (Dedicated section)
-6 platforms with their own input box, char/word counts, remaining, and dual progress bars.
+📱 SOCIAL WRITING COUNTERS — 6 platforms dedicated.
 
-🎤 VOICE TYPING
-Web Speech API. Chrome/Edge + HTTPS. 9 languages supported.
+🎤 VOICE TYPING — Web Speech API (Chrome/Edge).
 
-🔊 TEXT TO SPEECH
-Browser's native TTS. Great for proofreading.
+🔊 TEXT TO SPEECH — Browser TTS.
 
-🔍 FIND & REPLACE
-Case-sensitive + whole-word toggles.
+🔍 FIND & REPLACE — Case-sensitive + whole-word.
 
-📤 EXPORT — TXT, HTML (styled), DOC, CSV, PDF
+📤 EXPORT — TXT, HTML, DOC, CSV, PDF.
 
-🌙 DARK MODE — Full theme switch
+🌙 DARK MODE — Full theme.
 
-⛶ FOCUS MODE — Distraction-free fullscreen
+⛶ FOCUS MODE — Fullscreen.
 
-🎓 ACADEMIC TOOLS
-- Word limit tracker (set required, shows remaining)
-- Paragraph analyzer
-- Citation-friendly stats
+🎓 ACADEMIC TOOLS — Word limit tracker, paragraph analyzer.
 
-📊 QUALITY ANALYZER
-9 rule-based checks with Good / Needs Attention / Improve labels.
+📊 QUALITY ANALYZER — 9 rule-based checks.
 
-🧰 40+ WRITING TOOLS
-Formatter, Cleaner, Converter, Sort, Reverse, Space tools.
+🧰 40+ WRITING TOOLS — Formatter, Cleaner, Converter, Sort, Reverse, Space.
 
 ✨ ANIMATIONS
-- Hover: lift + glow on all buttons
+- Button hover: lift + glow
 - Counter: smooth number transitions
-- Progress bars: shimmer effect
+- Progress: shimmer effect
 - Copy: green flash
-- Goal: confetti + glow pulse
-- Accordion: smooth max-height transitions
-- Tabs: active state with gradient
-- Show/hide: drop-in animations
-
-📖 DETAILED GUIDES + FAQ
-Every feature documented with examples.`
+- Goal: confetti
+- Accordion: smooth transitions
+- Tabs: gradient active state
+- Show/hide: drop-in animations`
   },
 ];
 
 const faqData = [
   { q: "Is this Word Counter free to use?", a: "Yes! 100% free forever. No sign-up, no ads, no limits. All features available without payment." },
   { q: "Is my text saved on your servers?", a: "No. Everything runs in your browser. Only Grammar Check sends text to LanguageTool API. Auto-save uses localStorage (stays on your device)." },
-  { q: "How do I apply color to only SOME text?", a: "Select the text with your mouse, then click the A ▾ (text color) or H ▾ (highlight) button in the formatting toolbar. Only the selection changes color. If nothing is selected, a warning toast appears." },
+  { q: "⭐ How do I apply color to only SOME text?", a: "SELECT the text first with your mouse (drag over it), THEN click the A ▾ color button and pick a color. Only the selected text changes. If nothing is selected, you'll see a '⚠ Pehle text select karo' warning." },
+  { q: "⭐ Why didn't color work sometimes in old version?", a: "Old bug: it remembered your previous selection and applied color to the old (wrong) text. FIXED in v10 — only the current live selection is used. If nothing is selected, you get a warning and nothing changes." },
+  { q: "How do I remove color from text?", a: "Select the colored text, then click the Tx button (clear formatting). This removes bold, italic, color, and highlight all at once." },
+  { q: "How do I remove only background highlight?", a: "Select the highlighted text, click H ▾ button, then click 'Remove Highlight'." },
   { q: "Difference between Chars (with) and Chars (without)?", a: "Chars (with) includes spaces — used for Twitter 280 and SMS limits. Chars (without) is letters/numbers only — used when universities ask for 'minimum 1000 characters without spaces'." },
   { q: "How accurate is reading time?", a: "Based on configurable words-per-minute. Default is 200 wpm (average adult). You can choose Slow (100), Average (200), Fast (300), or Custom (50-1000)." },
   { q: "What is a good Flesch Score?", a: "Web content: 60-70 (Standard). Social media: 70-80 (Fairly Easy). Academic: 30-50. Higher = easier to read. Aim for whatever fits your audience." },
@@ -2036,16 +2108,13 @@ const faqData = [
   { q: "What is ideal keyword density?", a: "1-2% for SEO. If your target keyword appears 15 times in a 1000-word article = 1.5% density. Above 3% looks like keyword stuffing." },
   { q: "Does grammar check work in Hindi?", a: "Yes! Select Hindi from the language dropdown. LanguageTool supports 30+ languages." },
   { q: "Can I use this offline?", a: "Mostly yes. Word counting, stats, exports, and auto-save work offline. Grammar check needs internet (LanguageTool API)." },
-  { q: "What is duplicate detection?", a: "Finds repeated words (chips), sentences (list), and lines (list). Useful for editing out redundancy." },
-  { q: "How does auto-correct work?", a: "Watches 20+ common typos. When you press space after a misspelled word, it silently fixes it. Examples: teh→the, adn→and, recieve→receive. Toggle off in Settings." },
+  { q: "How does auto-correct work?", a: "Watches 20+ common typos. When you press space after a misspelled word, it silently fixes it. Examples: teh→the, adn→and. Toggle off in Settings." },
+  { q: "How does the academic word limit tracker work?", a: "Set your required word count (e.g. 1500 for essay). Tracker shows: Required, Current, Remaining (or Over by X). Progress bar fills as you write." },
+  { q: "What is the Text Quality Analyzer?", a: "Basic rule-based check for repeated words/sentences, long sentences, filler words, weak phrases, excessive punctuation, multiple spaces, and ALL CAPS words. Uses Good / Needs Attention / Improve labels." },
+  { q: "How do I insert a link on selected text?", a: "Select the text, press Ctrl+K (or click 🔗 button), paste your URL, click OK. The selection becomes a clickable link." },
+  { q: "What is a vertical rule used for?", a: "The │ button inserts an inline vertical separator. Useful for dual-column layouts or visual dividers between two text sections." },
+  { q: "How does social share work?", a: "Click '🔗 Share ▾' in the toolbar. Choose platform from menu. Each opens that platform's share page in a new tab with your text pre-filled (first ~250-500 chars due to URL limits)." },
+  { q: "Can I customize reading and speaking speed?", a: "Yes. Open ⚙ Settings → Reading Speed section. Choose Slow (100 wpm), Average (200), Fast (300), or Custom (50-1000). Speaking WPM is separate (default 130)." },
   { q: "What's the maximum text length?", a: "Practically unlimited. Tested with 100,000+ words without performance issues." },
-  { q: "How does the academic word limit tracker work?", a: "Set your required word count (e.g. 1500 for an essay). Tracker shows: Required, Current, Remaining (or Over by X). Progress bar fills as you write. Alerts when limit reached." },
-  { q: "What is the Text Quality Analyzer?", a: "Basic rule-based check for repeated words/sentences, long sentences, long paragraphs, filler words (very, really, just...), weak phrases (is being, has been...), excessive punctuation, multiple spaces, and ALL CAPS words. Shows Good / Needs Attention / Improve labels. It's not a replacement for professional AI grammar tools." },
-  { q: "How do I insert a link on selected text?", a: "Select the text, press Ctrl+K (or click the 🔗 button), paste your URL in the prompt, click OK. The selection becomes a clickable link." },
-  { q: "What is a vertical rule used for?", a: "The │ button inserts an inline vertical separator. Useful for dual-column layouts, side-by-side comparisons, or visual dividers between two text sections." },
-  { q: "How do I remove text color or highlight?", a: "For highlight: select the text, click H ▾, then choose 'Remove Highlight'. For text color: select the text, then click Tx (clear formatting) — this resets all formatting to default." },
-  { q: "How does social share work?", a: "Click '🔗 Share ▾' in the toolbar. Menu shows Twitter, Facebook, WhatsApp, LinkedIn, Telegram, Email, Copy, and Native Share. Each opens the platform's share page in a new tab with your text pre-filled. Only the first ~250-500 chars are included due to URL length limits." },
-  { q: "Can I customize reading and speaking speed?", a: "Yes. Open ⚙ Settings → Reading Speed section. Choose Slow (100 wpm), Average (200), Fast (300), or Custom (set your own 50-1000). Speaking WPM is also configurable (default 130)." },
-  { q: "Are the animations performance-heavy?", a: "No. Uses CSS transforms and requestAnimationFrame — smooth on all devices including mobile and low-end phones." },
-  { q: "Is the design responsive?", a: "Yes — fully responsive across mobile (320px+), tablet, laptop, desktop, and large monitors (up to 4K). All toolbars wrap, tooltips work on touch, and the editor scales smoothly." },
+  { q: "Is the design responsive?", a: "Yes — fully responsive across mobile (320px+), tablet, laptop, desktop, and large monitors (up to 4K)." },
 ];
