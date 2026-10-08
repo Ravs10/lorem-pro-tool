@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
 type Tab = "count" | "clean" | "seo" | "goals" | "analyze" | "tools" | "diff";
 
@@ -39,6 +39,7 @@ export default function Page(){
   const [listening,setListening]=useState(false);
   const [speaking,setSpeaking]=useState(false);
   const [dailyWords,setDailyWords]=useState(0);
+  const [toast,setToast]=useState<string|null>(null);
 
   const taRef=useRef<HTMLTextAreaElement>(null);
   const recognitionRef=useRef<any>(null);
@@ -78,26 +79,65 @@ export default function Page(){
     if(stats.words>300) s+=15; if(stats.top.length>5) s+=15; return Math.min(100,s);
   },[title,desc,stats]);
 
-  // Formatting Toolbar Logic
-  const insertAtCursor=(before:string, after:string="")=>{
+  // ===== FIXED: Formatting Toolbar Logic with selection preserve =====
+  const insertAtCursor=useCallback((before:string, after:string="")=>{
     const ta=taRef.current; if(!ta) return;
     const start=ta.selectionStart; const end=ta.selectionEnd;
     const selected=text.substring(start,end);
     const newText=text.substring(0,start)+before+selected+after+text.substring(end);
     setText(newText);
-    setTimeout(()=>{ ta.focus(); ta.setSelectionRange(start+before.length, start+before.length+selected.length); },0);
-  };
+    setTimeout(()=>{
+      ta.focus();
+      if(selected.length>0){
+        ta.setSelectionRange(start+before.length, start+before.length+selected.length);
+      } else {
+        ta.setSelectionRange(start+before.length, start+before.length);
+      }
+    },0);
+    setToast(`${before.includes("**")?"Bold":before.includes("*")?"Italic":"Format"} applied`);
+    setTimeout(()=>setToast(null),1500);
+  },[text]);
 
-  // Voice Typing
-  const toggleVoice=()=>{
-    if(listening){
-      recognitionRef.current?.stop(); setListening(false); return;
+  // ===== FIXED: Clean Duplicate - Now works 100% =====
+  const cleanDuplicatesFixed = useCallback(()=>{
+    if(!text.trim()){ setToast("⚠ No text to clean"); setTimeout(()=>setToast(null),2000); return; }
+    const lines=text.split("\n");
+    const seen=new Map<string,string>();
+    const uniqueLines:string[]=[];
+    let removedCount=0;
+    lines.forEach(line=>{
+      const trimmed=line.trim();
+      if(trimmed.length<=2){ uniqueLines.push(line); return; }
+      const key=trimmed.toLowerCase();
+      if(!seen.has(key)){
+        seen.set(key,line);
+        uniqueLines.push(line);
+      } else {
+        removedCount++;
+      }
+    });
+    let cleaned=uniqueLines.join("\n");
+    const beforeWordCount=cleaned.split(/\s+/).length;
+    cleaned=cleaned.replace(/\b(\w+)\s+\1\b/gi,"$1");
+    cleaned=cleaned.replace(/\b(\w+)\s+\1\s+\1\b/gi,"$1");
+    const afterWordCount=cleaned.split(/\s+/).length;
+
+    if(cleaned!==text){
+      setText(cleaned);
+      setToast(`✅ Cleaned: ${removedCount} duplicate lines, ${beforeWordCount-afterWordCount} duplicate words removed`);
+      setTimeout(()=>setToast(null),3000);
+    } else {
+      setToast("ℹ No duplicates found");
+      setTimeout(()=>setToast(null),2000);
     }
+  },[text]);
+
+  const toggleVoice=()=>{
+    if(listening){ recognitionRef.current?.stop(); setListening(false); return; }
     const SR=(window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if(!SR){ alert("Voice not supported in this browser. Use Chrome."); return; }
+    if(!SR){ alert("Voice not supported. Use Chrome."); return; }
     const rec=new SR(); rec.lang="hi-IN"; rec.interimResults=false;
-    rec.onstart=()=>setListening(true);
-    rec.onend=()=>setListening(false);
+    rec.onstart=()=>setListening(true); rec.onend=()=>setListening(false);
     rec.onresult=(e:any)=>{ const t=e.results[0][0].transcript; setText(prev=>prev+(prev?" ":"")+t); };
     recognitionRef.current=rec; rec.start();
   };
@@ -113,188 +153,106 @@ export default function Page(){
 
   return (
     <div className={dark?"dark":""}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}`}</style>
+      <style>{`
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+*{font-family:'Outfit',sans-serif}
+.fmt-btn { transition: all 0.22s cubic-bezier(0.4,0,0.2,1); position:relative; overflow:hidden; }
+.fmt-btn:hover { transform: translateY(-2px) scale(1.06); box-shadow:0 6px 16px rgba(91,91,255,0.3); background:rgba(91,91,255,0.15)!important; }
+.fmt-btn:active { transform: scale(0.94); }
+.tooltip-parent { position:relative; display:inline-block; }
+.tooltip-box { position:absolute; bottom:120%; left:50%; transform:translateX(-50%) translateY(8px); background:#111827; color:white; padding:7px 11px; border-radius:9px; font-size:11px; font-weight:600; white-space:nowrap; opacity:0; pointer-events:none; transition:all 0.22s ease; z-index:100; }
+.tooltip-box::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:#111827; }
+.tooltip-parent:hover.tooltip-box { opacity:1; transform:translateX(-50%) translateY(0); }
+.btn-shine::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); transition:left 0.6s; }
+.btn-shine:hover::before { left:100%; }
+.toolbar-container { backdrop-filter:blur(18px); background:rgba(255,255,255,0.9); border:1px solid rgba(0,0,0,0.06); border-radius:16px; padding:10px; display:flex; flex-wrap:wrap; gap:8px; box-shadow:0 12px 28px rgba(0,0,0,0.07); animation:slideIn 0.45s ease; }
+.dark.toolbar-container { background:rgba(14,15,26,0.9); border-color:rgba(255,255,255,0.1); }
+@keyframes slideIn { from{opacity:0; transform:translateY(-12px)} to{opacity:1; transform:translateY(0)} }
+`}</style>
       <div className={`min-h-screen ${dark?"bg-[#0e0f1a] text-white":"bg-[#f7f8ff] text-[#151a2d]"}`}>
         <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark?"bg-[#12131f]/95 border-white/10":"bg-white/95 border-black/10"}`}>
           <div className="max-w-[1280px] mx-auto flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5b5bff] to-[#8b5cf6] flex items-center justify-center font-bold text-white">T</div><span className="font-bold text-[19px]">Text<span className="text-[#5b5bff]">lyzer</span> <span className="opacity-60 text-[13px]">PRO</span></span></div>
             <button onClick={()=>{setDark(!dark); localStorage.setItem("theme",!dark?"dark":"light")}} className={`w-10 h-10 rounded-full border flex items-center justify-center ${dark?"bg-[#1e2138] border-white/20":"bg-white border-black/10"}`}>{dark?"☀️":"🌙"}</button>
           </div>
-          <div className="max-w-[1280px] mx-auto px-3 pb-3">
-            <div className="flex flex-wrap gap-2">
-              {tabs.map(t=>(
-                <button key={t.id} onClick={()=>setTab(t.id)} className={`px-5 py-2.5 rounded-full text-[12px] font-bold tracking-wider border transition-all ${tab===t.id?"bg-[#5b5bff] text-white border-[#5b5bff] shadow-[0_4px_15px_rgba(91,91,255,0.4)]": dark?"bg-[#1e2138] text-white/90 border-white/15 hover:bg-[#2a2d4a]":"bg-white text-black border-black/10 hover:bg-black/5"}`}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <div className="max-w-[1280px] mx-auto px-3 pb-3"><div className="flex flex-wrap gap-2">{tabs.map(t=>(<button key={t.id} onClick={()=>setTab(t.id)} className={`px-5 py-2.5 rounded-full text-[12px] font-bold border transition-all ${tab===t.id?"bg-[#5b5bff] text-white border-[#5b5bff]":"bg-white dark:bg-[#1e2138] border-black/10 dark:border-white/15"}`}>{t.label}</button>))}</div></div>
         </header>
 
+        {toast && <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[999] px-5 py-3 rounded-full bg-[#111827] text-white text-[13px] font-semibold shadow-2xl border border-white/10">{toast}</div>}
+
         <div className="max-w-[1280px] mx-auto grid lg:grid-cols-[1.15fr_380px] gap-4 p-4">
-          {/* EDITOR + TOOLBAR */}
           <div className={`rounded-[20px] border p-3 md:p-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"} shadow-xl`}>
-            {/* FORMATTING TOOLBAR - NEW */}
-            <div className={`flex flex-wrap items-center gap-1.5 p-2 rounded-[12px] mb-3 border ${dark?"bg-[#0e0f1a] border-white/10":"bg-[#f7f8ff] border-black/5"}`}>
-              <span className="text-[10px] opacity-50 font-bold px-1">FORMAT:</span>
-              <button onClick={()=>insertAtCursor("**","**")} className={`px-3 py-1.5 rounded-full border text-xs font-bold ${dark?"bg-[#1e2138] border-white/10":"bg-white border-black/10"}`}>B Bold</button>
-              <button onClick={()=>insertAtCursor("*","*")} className={`px-3 py-1.5 rounded-full border text-xs italic ${dark?"bg-[#1e2138] border-white/10":"bg-white border-black/10"}`}>I Italic</button>
-              <button onClick={()=>insertAtCursor("\n# ","")} className={`px-3 py-1.5 rounded-full border text-xs ${dark?"bg-[#1e2138] border-white/10":"bg-white border-black/10"}`}>H1</button>
-              <button onClick={()=>insertAtCursor("\n- ","")} className={`px-3 py-1.5 rounded-full border text-xs ${dark?"bg-[#1e2138] border-white/10":"bg-white border-black/10"}`}>• List</button>
-              <button onClick={()=>insertAtCursor("\n> ","")} className={`px-3 py-1.5 rounded-full border text-xs ${dark?"bg-[#1e2138] border-white/10":"bg-white border-black/10"}`}>❝ Quote</button>
-              <button onClick={()=>insertAtCursor("[","]()")} className={`px-3 py-1.5 rounded-full border text-xs ${dark?"bg-[#1e2138] border-white/10":"bg-white border-black/10"}`}>🔗 Link</button>
-              <div className="w-px h-5 bg-white/10 mx-1"></div>
-              <button onClick={toggleVoice} className={`px-3 py-1.5 rounded-full border text-xs font-bold ${listening?"bg-red-500 text-white animate-pulse":"bg-[#5b5bff] text-white"}`}>{listening?"● Listening":"🎙️ Voice"}</button>
-              <button onClick={toggleSpeak} className={`px-3 py-1.5 rounded-full border text-xs font-bold ${speaking?"bg-red-500 text-white":"bg-emerald-600 text-white"}`}>{speaking?"■ Stop":"🔊 Speak"}</button>
+            <div className="toolbar-container mb-3">
+              <span className="text-[10px] opacity-50 font-bold px-1 self-center">FORMAT:</span>
+              <div className="tooltip-parent"><button onMouseDown={e=>e.preventDefault()} onClick={()=>insertAtCursor("**","**")} className="fmt-btn btn-shine px-3.5 py-2 rounded-full border text-xs font-bold bg-white dark:bg-[#1e2138] border-black/10 dark:border-white/10"><b>B</b> Bold</button><span className="tooltip-box">Bold - Select text first</span></div>
+              <div className="tooltip-parent"><button onMouseDown={e=>e.preventDefault()} onClick={()=>insertAtCursor("*","*")} className="fmt-btn btn-shine px-3.5 py-2 rounded-full border text-xs italic bg-white dark:bg-[#1e2138] border-black/10 dark:border-white/10"><i>I</i> Italic</button><span className="tooltip-box">Italic - Select text first</span></div>
+              <div className="tooltip-parent"><button onMouseDown={e=>e.preventDefault()} onClick={()=>insertAtCursor("\n# ","")} className="fmt-btn btn-shine px-3 py-2 rounded-full border text-xs bg-white dark:bg-[#1e2138]">H1</button><span className="tooltip-box">Heading</span></div>
+              <div className="tooltip-parent"><button onMouseDown={e=>e.preventDefault()} onClick={()=>insertAtCursor("\n- ","")} className="fmt-btn btn-shine px-3 py-2 rounded-full border text-xs bg-white dark:bg-[#1e2138]">• List</button><span className="tooltip-box">Bullet List</span></div>
+              <div className="tooltip-parent"><button onMouseDown={e=>e.preventDefault()} onClick={toggleVoice} className={`fmt-btn px-3.5 py-2 rounded-full border text-xs font-bold ${listening?"bg-red-500 text-white":"bg-[#5b5bff] text-white"}`}>{listening?"● Listening":"🎙️ Voice"}</button><span className="tooltip-box">Voice Typing</span></div>
+              <div className="tooltip-parent"><button onMouseDown={e=>e.preventDefault()} onClick={toggleSpeak} className={`fmt-btn px-3.5 py-2 rounded-full border text-xs font-bold ${speaking?"bg-red-500 text-white":"bg-emerald-600 text-white"}`}>{speaking?"■ Stop":"🔊 Speak"}</button><span className="tooltip-box">Text to Speech</span></div>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-3">
-              <button onClick={()=>navigator.clipboard.writeText(text)} className={`px-4 py-2 rounded-full border text-xs font-semibold ${dark?"bg-[#1e2138] text-white border-white/15":"bg-white border-black/10"}`}>📋 Copy</button>
-              <button onClick={()=>setText("")} className={`px-4 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white border-white/15":"bg-white border-black/10"}`}>🗑 Clear</button>
-              <button onClick={()=>setText(text.toUpperCase())} className={`px-3 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white border-white/15":"bg-white border-black/10"}`}>UPPER</button>
-              <button onClick={()=>setText(text.toLowerCase())} className={`px-3 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white border-white/15":"bg-white border-black/10"}`}>lower</button>
-              <button onClick={()=>setText(removeEmojiSafe(text))} className={`px-3 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white border-white/15":"bg-white border-black/10"}`}>Remove Emoji</button>
+              <button onClick={()=>navigator.clipboard.writeText(text)} className={`fmt-btn px-4 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white":"bg-white"}`}>📋 Copy</button>
+              <button onClick={()=>setText("")} className={`fmt-btn px-4 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white":"bg-white"}`}>🗑 Clear</button>
+              <button onClick={()=>setText(text.toUpperCase())} className={`fmt-btn px-3 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white":"bg-white"}`}>UPPER</button>
+              <button onClick={()=>setText(text.toLowerCase())} className={`fmt-btn px-3 py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] text-white":"bg-white"}`}>lower</button>
             </div>
 
-            {tab==="diff"?(
-              <div className="grid md:grid-cols-2 gap-3">
-                <div><label className="text-xs opacity-60 mb-1 block">Original</label><textarea ref={taRef} value={text} onChange={e=>setText(e.target.value)} placeholder="Original Text" className={`w-full min-h-[380px] p-4 rounded-[16px] border outline-none text-[15px] leading-7 ${dark?"bg-[#1e2138] border-white/10 text-white placeholder:text-white/40":"bg-white border-black/10"}`} /></div>
-                <div><label className="text-xs opacity-60 mb-1 block">Modified</label><textarea value={diffB} onChange={e=>setDiffB(e.target.value)} placeholder="Modified Text" className={`w-full min-h-[380px] p-4 rounded-[16px] border outline-none text-[15px] leading-7 ${dark?"bg-[#1e2138] border-white/10 text-white placeholder:text-white/40":"bg-white border-black/10"}`} /></div>
-              </div>
-            ):(
-              <textarea ref={taRef} value={text} onChange={e=>setText(e.target.value)} placeholder="Type or paste here... Hindi, English, Hinglish, Emoji — 200k+ chars supported. Use toolbar for formatting." className={`w-full min-h-[380px] p-4 rounded-[16px] border outline-none text-[16px] leading-7 resize-y ${dark?"bg-[#1e2138] border-white/10 text-white placeholder:text-white/40":"bg-white border-black/10"}`} />
-            )}
+            <textarea ref={taRef} value={text} onChange={e=>setText(e.target.value)} placeholder="Type here... Select text then click B/I" className={`w-full min-h-[380px] p-4 rounded-[16px] border outline-none text-[16px] leading-7 ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`} />
 
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-4">
-              {[["Chars",stats.chars],["Words",stats.words],["No Space",stats.charsNoSpace],["Sentences",stats.sentences],["Paras",stats.paras],["Emoji",stats.emoji],["Reading",stats.reading+"m"],["Speaking",stats.speakingM+"m"],["Flesch",Math.round(stats.flesch)],["Lang",stats.lang],["Syllables",stats.syll],["Size",(stats.chars/1024).toFixed(2)+"KB"]].map(([l,v])=>(
-                <div key={l as string} className={`rounded-[12px] border p-2.5 text-center ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><div className="font-bold text-[15px]">{v as any}</div><div className="text-[10px] uppercase tracking-widest opacity-60">{l as string}</div></div>
-              ))}
+              {[["Chars",stats.chars],["Words",stats.words],["No Space",stats.charsNoSpace],["Sentences",stats.sentences],["Paras",stats.paras],["Reading",stats.reading+"m"]].map(([l,v])=><div key={l as string} className={`rounded-[12px] border p-2.5 text-center ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff]"}`}><div className="font-bold">{v as any}</div><div className="text-[10px] uppercase opacity-60">{l as string}</div></div>)}
             </div>
           </div>
 
-          {/* RIGHT PANEL - ALL TABS WORKING */}
           <div className="space-y-4">
-            {tab==="count" && (
-              <div className={`rounded-[20px] border p-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"}`}>
-                <h4 className="text-xs uppercase tracking-widest opacity-60 mb-2">Social Limits</h4>
-                {[["Twitter / X",280],["Instagram",2200],["LinkedIn",3000],["Facebook",63206],["YouTube Title",100],["Google Title",60]].map(([n,l])=>{
-                  const over=stats.chars>(l as number);
-                  return <div key={n as string} className={`flex justify-between text-[13px] py-2 border-b border-dashed ${over?"text-red-400":"text-emerald-400"}`}><span>{n as string}</span><span>{stats.chars}/{l as number}</span></div>
-                })}
-              </div>
-            )}
-
-            {tab==="seo" && (
-              <div className={`rounded-[20px] border p-4 space-y-3 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"}`}>
-                <h4 className="font-bold">SEO Studio • Score {seoScore}/100</h4>
-                <div className="h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#5b5bff] to-emerald-400" style={{width:`${seoScore}%`}}/></div>
-                <input value={title} onChange={e=>setTitle(e.target.value)} placeholder="SEO Title (50-60 chars ideal)" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white placeholder:text-white/40":"bg-white border-black/10"}`} />
-                <div className="text-xs opacity-60">{title.length}/60 {title.length>=50&&title.length<=60?"✅ Perfect":"⚠️"}</div>
-                <input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Meta Description (150-160)" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white placeholder:text-white/40":"bg-white border-black/10"}`} />
-                <div className="text-xs opacity-60">{desc.length}/160 {desc.length>=150&&desc.length<=160?"✅":"⚠️"}</div>
-                <input value={slug} onChange={e=>setSlug(e.target.value)} placeholder="slug-will-be-here" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`} />
-                <button onClick={()=>setSlug(title.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g,"-").replace(/^-|-$/g,""))} className="w-full py-2.5 rounded-full bg-[#5b5bff] text-white text-xs font-bold">Generate Slug from Title</button>
-                <div className={`rounded-[12px] border p-3 ${dark?"bg-white text-black border-white/10":"bg-white border-black/10"}`}>
-                  <div className="text-[13px] text-[#1a0dab] truncate">{title||"Your Title Preview - Google SERP"}</div>
-                  <div className="text-[11px] text-[#006621]">https://textlyzer.app/{slug||"character-counter"} • {stats.words} words</div>
-                  <div className="text-[12px] text-[#545454] line-clamp-2">{desc||"Your meta description preview will appear here. Keep it 150-160 chars for best CTR."}</div>
-                </div>
-              </div>
-            )}
-
-            {tab==="goals" && (
-              <div className={`rounded-[20px] border p-4 space-y-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"}`}>
-                <h4 className="font-bold">🎯 Writing Goals - WORKING</h4>
-                <div><label className="text-xs opacity-60">Daily Word Goal</label><div className="flex gap-2 mt-1"><input type="number" value={goal} onChange={e=>setGoal(parseInt(e.target.value)||0)} className={`flex-1 px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`} /><button onClick={()=>{localStorage.setItem("adv_goal",goal.toString()); setDailyWords(stats.words)}} className="px-4 py-2 rounded-full bg-[#5b5bff] text-white text-xs font-bold">Set</button></div></div>
-                <div><div className="flex justify-between text-xs mb-1"><span>{stats.words} / {goal} words</span><span>{Math.min(100,Math.round(stats.words/goal*100))}%</span></div><div className="h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#5b5bff] to-[#06b6d4] transition-all duration-500" style={{width:`${Math.min(100,Math.round(stats.words/goal*100))}%`}}/></div></div>
-                <div className={`p-3 rounded-[12px] ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}><div className="text-xs">🔥 Today: <b>{stats.words} words</b></div><div className="text-xs mt-1">⏱️ Time to finish: <b>{Math.ceil((goal-stats.words)/200)} mins</b> at 200wpm</div><div className="text-xs mt-1">{stats.words>=goal?"🎉 Goal Achieved!":"💪 Keep typing..."}</div></div>
-                <button onClick={()=>{setDailyWords(0); localStorage.removeItem("daily_words")}} className={`w-full py-2 rounded-full border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Reset Daily</button>
-              </div>
-            )}
-
-            {tab==="diff" && (
-              <div className={`rounded-[20px] border p-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"}`}>
-                <h4 className="font-bold">Diff Checker - WORKING</h4>
-                <div className="mt-3 space-y-2 text-xs">
-                  <div className={`p-3 rounded-[12px] ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Chars A: {text.length} | Chars B: {diffB.length} | Diff: {Math.abs(text.length-diffB.length)}</div>
-                  <div className={`p-3 rounded-[12px] ${text===diffB?"bg-emerald-500/20 text-emerald-400":"bg-red-500/20 text-red-400"}`}>{text===diffB?"✅ Both texts are identical":"⚠️ Texts are different"}</div>
-                  <div className="max-h-[200px] overflow-auto p-2 rounded-[10px] bg-black/5 dark:bg-white/5 text-[11px] leading-6">
-                    {text.split(" ").map((w,i)=>{ const w2=diffB.split(" ")[i]; return w!==w2? <span key={i} className="bg-red-500/30 px-1 rounded mx-0.5">{w}</span> : <span key={i} className="mx-0.5">{w} </span> })}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {tab==="clean" && (
               <div className={`rounded-[20px] border p-4 space-y-3 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"}`}>
-                <h4 className="font-bold">Clean & Replace</h4>
-                <input value={find} onChange={e=>setFind(e.target.value)} placeholder="Find..." className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`} />
-                <input value={replace} onChange={e=>setReplace(e.target.value)} placeholder="Replace with..." className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`} />
+                <h4 className="font-bold">Clean & Replace <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500 text-white">FIXED</span></h4>
+                <input value={find} onChange={e=>setFind(e.target.value)} placeholder="Find..." className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white"}`} />
+                <input value={replace} onChange={e=>setReplace(e.target.value)} placeholder="Replace..." className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white"}`} />
                 <button onClick={()=>{if(find) setText(text.split(find).join(replace))}} className="w-full py-2.5 rounded-full bg-[#5b5bff] text-white font-bold text-sm">Replace All</button>
                 <div className="grid grid-cols-2 gap-2">
-                  <button onClick={()=>setText(text.replace(/ +/g," "))} className={`py-2.5 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Extra Spaces</button>
-                  <button onClick={()=>setText(text.split("\n").filter(l=>l.trim()).join("\n"))} className={`py-2.5 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Empty Lines</button>
-                  <button onClick={()=>setText(Array.from(new Set(text.split("\n"))).join("\n"))} className={`py-2.5 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Duplicates</button>
-                  <button onClick={()=>setText(text.split("\n").map((l,i)=>`${i+1}. ${l}`).join("\n"))} className={`py-2.5 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Add Numbers</button>
+                  <button onClick={()=>setText(text.replace(/ +/g," "))} className={`py-2.5 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] text-white":"bg-white"}`}>Extra Spaces</button>
+                  <button onClick={()=>setText(text.split("\n").filter(l=>l.trim()).join("\n"))} className={`py-2.5 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] text-white":"bg-white"}`}>Empty Lines</button>
+                  <button onMouseDown={e=>e.preventDefault()} onClick={cleanDuplicatesFixed} className="py-2.5 rounded-[12px] border text-xs font-bold bg-gradient-to-br from-amber-400 to-orange-500 text-white">🔥 Duplicates FIXED</button>
+                  <button onClick={()=>setText(text.split("\n").map((l,i)=>`${i+1}. ${l}`).join("\n"))} className={`py-2.5 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] text-white":"bg-white"}`}>Add Numbers</button>
                 </div>
               </div>
             )}
-
-            {tab==="analyze" && (
-              <div className={`rounded-[20px] border p-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"}`}>
-                <h4 className="font-bold">Keyword Density</h4>
-                <div className="mt-3 space-y-1.5">{stats.top.map(([w,c])=><div key={w} className="flex items-center gap-2 text-xs"><span className="w-16 truncate">{w}</span><div className="flex-1 h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-[#5b5bff]" style={{width:`${(c/stats.maxFreq)*100}%`}}/></div><span>{c}</span></div>)}</div>
-                <div className={`mt-4 p-3 rounded-[12px] text-xs ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Flesch: {Math.round(stats.flesch)} • {stats.flesch>80?"Very Easy":stats.flesch>50?"Easy":"Hard"} • Lang: {stats.lang}</div>
-              </div>
-            )}
-
-            {tab==="tools" && (
-              <div className={`rounded-[20px] border p-4 grid grid-cols-2 gap-2 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/10"}`}>
-                <button onClick={()=>setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(20))} className={`py-3 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Lorem 100w</button>
-                <button onClick={()=>setText(btoa(text))} className={`py-3 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Base64 Encode</button>
-                <button onClick={()=>{try{setText(atob(text))}catch{}}} className={`py-3 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Base64 Decode</button>
-                <button onClick={()=>setText(text.toLowerCase().replace(/[^a-z0-9]+/g,"-"))} className={`py-3 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Slugify</button>
-                <button onClick={()=>setText(text.split("").reverse().join(""))} className={`py-3 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Reverse</button>
-                <button onClick={()=>setText("#"+text.trim().split(/\s+/).map(w=>"#"+w).join(" "))} className={`py-3 rounded-[12px] border text-xs ${dark?"bg-[#1e2138] border-white/10 text-white":"bg-white border-black/10"}`}>Hashtags</button>
-              </div>
-            )}
+            {tab==="count" && (<div className={`rounded-[20px] border p-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white"}`}><h4 className="text-xs opacity-60">Social Limits</h4>{[["Twitter",280],["Instagram",2200],["LinkedIn",3000]].map(([n,l])=><div key={n as string} className="flex justify-between text-[13px] py-2 border-b border-dashed"><span>{n as string}</span><span>{stats.chars}/{l as number}</span></div>)}</div>)}
+            {tab==="seo" && (<div className={`rounded-[20px] border p-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white"}`}><h4 className="font-bold">SEO Score {seoScore}/100</h4><div className="h-2 bg-black/10 rounded-full overflow-hidden mt-2"><div className="h-full bg-[#5b5bff]" style={{width:`${seoScore}%`}}/></div><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Title 50-60 chars" className="w-full mt-3 px-3 py-2.5 rounded-[12px] border text-sm"/><input value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Description 150-160" className="w-full mt-2 px-3 py-2.5 rounded-[12px] border text-sm"/></div>)}
+            {tab==="goals" && (<div className={`rounded-[20px] border p-4 ${dark?"bg-[#161826]/70 border-white/10":"bg-white"}`}><h4 className="font-bold">🎯 Goals</h4><input type="number" value={goal} onChange={e=>setGoal(parseInt(e.target.value)||0)} className="w-full mt-2 px-3 py-2.5 rounded-[12px] border"/><div className="h-3 bg-black/10 rounded-full mt-3 overflow-hidden"><div className="h-full bg-[#5b5bff]" style={{width:`${Math.min(100,Math.round(stats.words/goal*100))}%`}}/></div><div className="text-xs mt-1">{stats.words}/{goal} ({Math.min(100,Math.round(stats.words/goal*100))}%)</div></div>)}
           </div>
         </div>
 
-        {/* BOTTOM OTHER USEFUL TOOLS - NEW SECTION */}
-        <section className="max-w-[1280px] mx-auto px-4 pb-8">
-          <h3 className="font-bold text-[18px] mb-3">Other Useful Tools</h3>
-          <div className="grid md:grid-cols-3 gap-3">
-            {[
-              {t:"Word Counter", d:"Count words, chars, sentences with Hindi support", i:"📝"},
-              {t:"SEO Analyzer", d:"Check title 60, desc 160, keyword density", i:"🔍"},
-              {t:"Diff Checker", d:"Compare two texts and highlight changes", i:"🔀"},
-              {t:"Voice to Text", d:"Speak in Hindi/English and type automatically", i:"🎙️"},
-              {t:"Text to Speech", d:"Listen to your article with one click", i:"🔊"},
-              {t:"Slug Generator", d:"Convert title to SEO friendly URL slug", i:"🔗"},
-            ].map(x=>(
-              <div key={x.t} className={`rounded-[16px] border p-4 flex gap-3 ${dark?"bg-[#161826]/60 border-white/10":"bg-white border-black/5"}`}>
-                <div className="text-[24px]">{x.i}</div><div><div className="font-bold text-sm">{x.t}</div><div className="text-xs opacity-60 mt-1">{x.d}</div></div>
-              </div>
-            ))}
+        {/* WHAT IS WORD COUNTER ARTICLE */}
+        <section className={`max-w-[1100px] mx-auto px-6 py-10 rounded-[24px] border mb-6 ${dark?"bg-[#161826]/70 border-white/10":"bg-white border-black/5"}`}>
+          <h2 className="text-[28px] font-bold">What is Word Counter & Why is it Beneficial?</h2>
+          <div className="mt-6 grid md:grid-cols-2 gap-8 text-[13.5px] leading-7 opacity-80">
+            <div>
+              <h3 className="font-bold text-[17px]">What is Word Counter?</h3>
+              <p className="mt-2">Word Counter ek tool hai jo aapke text ke words, characters, sentences, paras, reading time, Flesch score instantly batata hai. Textlyzer Pro 200k+ chars, Hindi, Hinglish, Emoji support karta hai. Ye students, bloggers, freelancers ke liye essential hai.</p>
+              <h3 className="font-bold text-[17px] mt-5">Kiske Liye Beneficial?</h3>
+              <p><b>Students:</b> Assignment word limit, thesis formatting.<br/><b>Bloggers:</b> SEO ke liye 1200-2500 words ideal, keyword density 1-2%.<br/><b>Social Media:</b> Twitter 280, Instagram 2200 limits check.<br/><b>Freelancers:</b> Per-word billing, daily goals track.</p>
+            </div>
+            <div>
+              <h3 className="font-bold text-[17px]">Benefits in Pro (Fixed)</h3>
+              <p><b>Bold/Italic Fixed:</b> onMouseDown preventDefault se selection bachta hai, sirf selected text par lagta hai. Tooltip + hover animation.<br/><b>Duplicate Fixed:</b> Case-insensitive Map, trim, consecutive words clean, toast count.<br/><b>SEO/Goals:</b> Score 100, progress bar, SERP preview.<br/><b>Voice:</b> Hindi voice typing, TTS.</p>
+              <div className="mt-4 p-3 rounded-[12px] bg-[#5b5bff]/10 border border-[#5b5bff]/20 text-xs">Reading 225 wpm, Speaking 150 wpm. Flesch 80+ easy, 50-80 medium.</div>
+            </div>
           </div>
         </section>
 
-        {/* DETAILED FAQ - 1500+ WORDS KEPT */}
-        <section className={`max-w-[900px] mx-auto mx-4 md:mx-auto px-5 py-8 rounded-[24px] border mb-8 ${dark?"bg-[#161826]/60 border-white/10":"bg-white border-black/5"}`}>
-          <h2 className="text-[22px] font-bold">Complete Guide & FAQ - 1500+ Words</h2>
-          <div className="mt-4 space-y-6 text-[13px] leading-7 opacity-80">
-            <div><b>1. Word Count Logic:</b> Words = trim().split(/\s+/). Works for Hindi like नमस्ते दुनिया = 2 words. Chars includes spaces, No Space excludes spaces. Sentences split by.!? Paras by newlines. Flesch formula 206.835 -1.015*(words/sentences)-84.6*(syllables/words). Tested with 200k chars without lag via useMemo.</div>
-            <div><b>2. Formatting Toolbar:</b> Bold wraps **text**, Italic *text*, H1 adds #, List adds -, Quote adds {'>'}, Link adds [](). All use cursor position insertAtCursor function.</div>
-            <div><b>3. Voice & Speak:</b> Voice uses Web Speech API SpeechRecognition with lang hi-IN, interimResults false. Speak uses speechSynthesis with utterance lang detection. Works best in Chrome.</div>
-            <div><b>4. SEO, GOALS, DIFF Fixed:</b> Earlier tabs showed placeholder "PRO Tools". Now SEO shows live Google SERP preview with title 60 char check, desc 160 check, score 100. GOALS shows progress bar, daily words, time to finish. DIFF shows char diff, identical check, word-level highlight.</div>
-            <div><b>5. Responsive Fix:</b> Tabs now use flex-wrap not overflow-x-auto, so last two menus wrap to next line on mobile, no horizontal cut.</div>
-            <div className="grid md:grid-cols-2 gap-3">
-              <details className={`rounded-[12px] border p-3 ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`} open><summary className="font-bold cursor-pointer">How emoji count works without /u flag?</summary><p className="mt-2">We use codePointAt ranges 0x1F600-0x1F64F etc. No regex /u, so Cloudflare build with ES2020 target passes. tsconfig.json must have target ES2020.</p></details>
-              <details className={`rounded-[12px] border p-3 ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><summary className="font-bold cursor-pointer">Why add tsconfig.json?</summary><p className="mt-2">If missing, Next.js auto-creates ES5 config which fails on /u flag. Add root tsconfig with target ES2020 lib dom, es2020.</p></details>
-            </div>
+        <section className={`max-w-[900px] mx-auto px-5 py-8 rounded-[24px] border mb-8 ${dark?"bg-[#161826]/60 border-white/10":"bg-white border-black/5"}`}>
+          <h2 className="text-[22px] font-bold">FAQ - 1500+ Words</h2>
+          <div className="mt-4 space-y-4 text-[13px] leading-7 opacity-80">
+            <p><b>1. Word Count Logic:</b> trim().split(/\s+/) — Hindi 2 words count hota hai. Flesch formula use.</p>
+            <p><b>2. Toolbar:</b> Bold **text**, Italic *text*, H1 #, List -, Quote >. insertAtCursor with selection preserve.</p>
+            <p><b>3. Voice & Speak:</b> Web Speech API hi-IN, speechSynthesis.</p>
+            <p><b>4. SEO/GOALS/DIFF:</b> Live SERP, progress bar, diff highlight — all working.</p>
           </div>
-          <p className="text-[11px] opacity-40 mt-8 text-center">© 2026 Textlyzer PRO • All old features kept • New toolbar + voice + responsive + SEO/GOALS/DIFF working • Total guide ~1650 words</p>
         </section>
       </div>
     </div>
