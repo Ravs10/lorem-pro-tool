@@ -3,6 +3,16 @@ import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 
 type ErrorItem = { message: string; offset: number; length: number; replacement: string; };
 type Suggestion = { word: string; at: number; replaceLen: number };
+type DocItem = { id: string; name: string; text: string; html: string; saved: number };
+type InsightResult = {
+  tone: { label: string; score: number; hint: string };
+  sentiment: { label: string; score: number; positive: number; negative: number };
+  passive: { count: number; percent: number; examples: string[] };
+  adverbs: { count: number; percent: number; top: [string, number][] };
+  cliches: { count: number; items: string[] };
+  vocabulary: { ttr: number; uniqueWords: number; totalWords: number; label: string };
+  variety: { score: number; label: string; distribution: { short: number; medium: number; long: number } };
+};
 
 const LANGUAGES = [
   { code: "en-US", label: "English (US)", flag: "🇺🇸" },
@@ -61,6 +71,35 @@ const FILLER_WORDS = ["very","really","actually","basically","literally","just",
 const WEAK_PHRASES = ["is being","was being","has been","have been","had been","would have","could have","should have","might have","may have"];
 
 const DICTIONARY = ["about","above","across","action","actually","added","after","again","against","almost","along","already","although","always","among","amount","another","answer","anyone","anything","appear","around","available","back","became","because","become","before","begin","behind","believe","below","better","between","beyond","bring","business","called","cannot","carry","center","certain","change","children","choose","class","clear","close","color","coming","common","company","complete","consider","continue","could","country","course","create","current","decide","describe","develop","different","difficult","direct","during","early","education","effect","either","enough","every","example","experience","family","father","feeling","figure","follow","friend","future","general","given","government","great","ground","group","growth","happen","having","heard","heavy","history","however","hundred","important","include","inside","issue","itself","knowledge","language","large","later","learn","leave","letter","level","light","little","local","machine","major","material","matter","maybe","mean","measure","medical","member","memory","message","method","middle","might","minute","modern","moment","money","month","morning","mother","mountain","music","nation","natural","nature","nearly","necessary","need","never","night","nothing","notice","number","object","occur","offer","often","order","other","paper","particular","people","perhaps","person","picture","place","plan","point","police","policy","possible","power","practice","prepare","present","president","press","pretty","prevent","private","probably","problem","process","produce","product","program","project","property","provide","public","purpose","question","quickly","quiet","rather","reach","ready","really","reason","receive","recent","recognize","record","reduce","reflect","region","relate","remain","remember","remove","report","require","research","resource","respond","result","return","right","roughly","school","science","season","second","section","seem","sense","series","serious","serve","service","several","shall","share","short","should","similar","simple","simply","since","single","situation","small","social","society","some","someone","something","sometimes","space","speak","special","spend","stand","start","state","statement","station","stay","still","story","street","strong","structure","student","study","subject","success","suddenly","suggest","summer","support","system","table","taken","teach","thing","though","thought","thousand","through","throughout","together","tomorrow","tonight","total","toward","town","trade","training","travel","treatment","trouble","truth","understand","until","usually","value","various","victim","video","village","visit","voice","watch","water","weapon","weather","week","weight","welcome","western","whatever","whenever","wherever","whether","which","while","white","whole","whose","window","within","without","woman","wonder","world","worry","would","write","writer","wrong","year","young","yourself"];
+
+const POSITIVE_WORDS = new Set(["good","great","excellent","amazing","wonderful","fantastic","love","happy","joy","success","best","awesome","beautiful","perfect","brilliant","outstanding","superb","delight","excited","pleased","positive","strong","benefit","improve","enhance","win","triumph","achieve","accomplish","proud","inspired","creative","innovative","bright","fresh"]);
+const NEGATIVE_WORDS = new Set(["bad","terrible","awful","horrible","hate","sad","angry","fail","failure","worst","ugly","broken","poor","weak","wrong","problem","issue","difficult","hard","struggle","pain","hurt","loss","lose","fear","worry","anxious","stress","tired","exhausted","confused","frustrated","disappointed","negative","damage","harm","threat","risk","danger","crisis","disaster"]);
+const FORMAL_MARKERS = new Set(["therefore","however","furthermore","moreover","consequently","nevertheless","accordingly","thus","hence","subsequently","regarding","concerning","pursuant","hereby","therein","whereas","whereby"]);
+const INFORMAL_MARKERS = new Set(["gonna","wanna","gotta","yeah","yep","nope","cool","dude","ok","okay","stuff","totally","super","pretty","kinda","sorta"]);
+const COMMON_ADVERBS = new Set(["very","really","quite","rather","somewhat","extremely","absolutely","definitely","certainly","clearly","obviously","simply","totally","basically","literally","actually","quickly","slowly","carefully","easily","hardly","barely","almost","nearly","always","never","often","sometimes","usually","rarely","frequently"]);
+const CLICHES = ["at the end of the day","think outside the box","low-hanging fruit","back to the drawing board","piece of cake","break a leg","hit the nail on the head","when pigs fly","let the cat out of the bag","once in a blue moon","the ball is in your court","cut to the chase","bite the bullet","under the weather","spill the beans","burn the midnight oil","the tip of the iceberg","a blessing in disguise","better late than never","actions speak louder than words"];
+
+const TRANSITIONS: Record<string, string[]> = {
+  addition: ["Additionally","Furthermore","Moreover","Also","In addition","Besides","What's more"],
+  contrast: ["However","Nevertheless","On the other hand","In contrast","Conversely","Yet","Still"],
+  cause: ["Therefore","Thus","Hence","Consequently","As a result","Accordingly","Because of this"],
+  example: ["For example","For instance","To illustrate","Such as","Namely","Specifically","In particular"],
+  sequence: ["First","Second","Then","Next","Afterward","Finally","Meanwhile","Subsequently"],
+  summary: ["In conclusion","To summarize","In short","Overall","In essence","All in all","Ultimately"],
+  emphasis: ["Indeed","In fact","Certainly","Undoubtedly","Of course","Truly","Especially","Notably"],
+  time: ["Meanwhile","Previously","Afterwards","Simultaneously","Eventually","Soon","Later","Currently"],
+};
+
+const EMOJI_CATEGORIES: Record<string, string[]> = {
+  smileys: ["😀","😃","😄","😁","😆","😅","🤣","😂","🙂","🙃","😉","😊","😇","🥰","😍","🤩","😘","😋","😜","🤪","🤗","🤔","🤨","😐","😏","😒","🙄","😬","😌","😔","😴","😷","🤒","🤢","🥵","🥶","😵","🤯","🤠","🥳","😎","🤓","🧐","😕","🙁","😮","😲","😳","🥺","😨","😰","😥","😢","😭","😱","😖","😞","😩","😫","😤","😡","😠","🤬"],
+  gestures: ["👍","👎","👌","✌️","🤞","🤟","🤘","🤙","👈","👉","👆","👇","☝️","✋","🤚","🖐️","🖖","👋","🤝","🙏","✍️","💪","👏","🙌","👐","🤲","🤜","🤛"],
+  hearts: ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","💌"],
+  nature: ["🌱","🌿","🍀","🌾","🌵","🌴","🌳","🌲","🌸","🌼","🌻","🌺","🌷","🌹","🥀","🍁","🍂","🍃","🌍","🌎","🌏","⭐","🌟","✨","💫","☀️","🌤️","⛅","🌥️","☁️","🌦️","🌧️","⛈️","🌩️","🌨️","❄️","☃️","⛄","🌬️","💨","🌪️","🌈","☔","💧","🌊","🔥"],
+  food: ["🍎","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🥑","🥦","🥬","🥒","🌶️","🌽","🥕","🧄","🧅","🥔","🍠","🥐","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🌭","🍔","🍟","🍕","🥪","🥙","🌮","🌯","🥗","🍝","🍜","🍲","🍛","🍣","🍱","🍤","🍙","🍚","🍘","🍥","🍢","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪"],
+  activities: ["⚽","🏀","🏈","⚾","🥎","🎾","🏐","🏉","🎱","🏓","🏸","🏒","🏑","⛳","🏹","🎣","🥊","🥋","🎽","🛹","🎿","⛷️","🏂","🏋️","🤼","🤸","⛹️","🤺","🏌️","🏇","🧘","🏄","🏊","🚴","🏆","🥇","🥈","🥉","🏅","🎖️","🎫","🎪","🎭","🎨","🎬","🎤","🎧","🎼","🎹","🥁","🎷","🎺","🎸","🎻","🎲","🎯","🎮","🎰","🧩"],
+  travel: ["✈️","🛫","🛬","💺","🛰️","🚀","🛸","🚁","🛶","⛵","🚤","🛥️","🛳️","🚢","⚓","🚂","🚄","🚆","🚇","🚈","🚊","🚌","🚍","🚐","🚑","🚒","🚓","🚕","🚖","🚗","🚘","🚙","🛻","🚚","🚛","🚜","🏎️","🏍️","🛵","🚲","🛴","🚏","🛣️","⛽","🚨","🚥","🚦","🛑","🚧"],
+  symbols: ["❤️","🧡","💛","💚","💙","💜","☮️","✝️","☪️","🕉️","☸️","✡️","🕎","☯️","🛐","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","🆔","⚛️","🉑","☢️","☣️","📴","📳","✴️","💮","🉐","㊙️","㊗️","❌","⭕","🛑","⛔","📛","🚫","💯","💢","♨️","🚷","🚯","🚳","🚱","🔞","📵","🚭","❗","❕","❓","❔","‼️","⁉️","⚠️","🚸","🔱","⚜️","🔰","♻️","✅","🈯","💹","❇️","✳️","❎","🌐","💠","Ⓜ️","🌀","💤","🏧","🚾","♿","🅿️"],
+};
 
 const SAMPLE = `Word Counter Pro is a powerful tool. Select some text, then use the toolbar to format it — Bold, Italic, colors, headings, and more. Only your selection will change!`;
 
@@ -205,12 +244,21 @@ export default function WordCounterClient() {
   const [academicType, setAcademicType] = useState("Essay");
   const [activeSocial, setActiveSocial] = useState("Instagram Caption");
   const [socialText, setSocialText] = useState("");
-  // NEW v9 states
   const [showFormatBar, setShowFormatBar] = useState(true);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [activeFormats, setActiveFormats] = useState<Record<string, boolean>>({});
+  // v10 state
+  const [insightTab, setInsightTab] = useState<"insights" | "session" | "visuals" | "cloud" | "emoji" | "docs">("insights");
+  const [sessionActive, setSessionActive] = useState(false);
+  const [sessionElapsed, setSessionElapsed] = useState(0);
+  const [sessionWordsBaseline, setSessionWordsBaseline] = useState(0);
+  const [documents, setDocuments] = useState<DocItem[]>([]);
+  const [docName, setDocName] = useState("");
+  const [selectedEmojiCat, setSelectedEmojiCat] = useState("smileys");
+  const [cloudPalette, setCloudPalette] = useState<"violet" | "ocean" | "sunset" | "forest">("violet");
+  const [transitionCat, setTransitionCat] = useState("addition");
 
   const editorRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -301,6 +349,24 @@ export default function WordCounterClient() {
     return () => document.removeEventListener("mousedown", handle);
   }, []);
 
+  // v10 — session timer
+  useEffect(() => {
+    if (!sessionActive) return;
+    const t = setInterval(() => setSessionElapsed(e => e + 1), 1000);
+    return () => clearInterval(t);
+  }, [sessionActive]);
+
+  // v10 — load documents
+  useEffect(() => {
+    const saved = safeGet("lorem_documents");
+    if (saved) { try { setDocuments(JSON.parse(saved)); } catch {} }
+  }, []);
+
+  // v10 — save documents
+  useEffect(() => {
+    safeSet("lorem_documents", JSON.stringify(documents));
+  }, [documents]);
+
   const effectiveReadingWPM = readingSpeed === "slow" ? 100 : readingSpeed === "fast" ? 300 : readingSpeed === "custom" ? customReadingWPM : 200;
 
   // -------- STATS --------
@@ -337,7 +403,7 @@ export default function WordCounterClient() {
     const short = sentLens.filter(l => l <= 10).length;
     const medium = sentLens.filter(l => l > 10 && l <= 20).length;
     const long = sentLens.filter(l => l > 20).length;
-    return { words, chars, charsNoSpace, sentences, paras, lines, readingSeconds, speakingSeconds, flesch, level, top10, density, short, medium, long, totalSent: sentArr.length };
+    return { words, chars, charsNoSpace, sentences, paras, lines, readingSeconds, speakingSeconds, flesch, level, top10, density, short, medium, long, totalSent: sentArr.length, letters: (text.match(/[a-zA-Z]/g) || []).length, digits: (text.match(/\d/g) || []).length, punct: (text.match(/[.,!?;:'"\-()]/g) || []).length };
   }, [text, effectiveReadingWPM, speakingWPM]);
 
   const duplicates = useMemo(() => {
@@ -357,6 +423,79 @@ export default function WordCounterClient() {
     const dupLines = Object.entries(lc).filter(([, c]) => c > 1).map(([l, c]) => ({ text: l.slice(0, 80), count: c }));
     return { words: dupWords, sentences: dupSentences, lines: dupLines };
   }, [text]);
+
+  // v10 — AI Insights
+  const insights: InsightResult = useMemo(() => {
+    const trimmed = text.trim();
+    const words = trimmed ? trimmed.split(/\s+/).filter(Boolean) : [];
+    const lowerWords = words.map(w => w.toLowerCase().replace(/[^a-z]/g, "")).filter(Boolean);
+
+    let pos = 0, neg = 0;
+    lowerWords.forEach(w => { if (POSITIVE_WORDS.has(w)) pos++; if (NEGATIVE_WORDS.has(w)) neg++; });
+    const sentTotal = pos + neg;
+    const sentScore = sentTotal === 0 ? 0 : Math.round(((pos - neg) / sentTotal) * 100);
+    const sentimentLabel = sentTotal === 0 ? "Neutral" : sentScore > 20 ? "Positive 😊" : sentScore < -20 ? "Negative 😟" : "Mixed 😐";
+
+    let formal = 0, informal = 0;
+    lowerWords.forEach(w => { if (FORMAL_MARKERS.has(w)) formal++; if (INFORMAL_MARKERS.has(w)) informal++; });
+    const toneScore = (formal + informal) === 0 ? 50 : Math.round((formal / (formal + informal)) * 100);
+    const toneLabel = toneScore >= 65 ? "Formal 🎩" : toneScore <= 35 ? "Informal 💬" : "Neutral ⚖️";
+
+    const passiveRegex = /\b(is|are|was|were|be|been|being|am)\s+(\w+ed|born|made|done|given|taken|seen|known|shown|written|spoken|broken|chosen|driven|eaten|fallen|forgotten|frozen|gotten|hidden|ridden|risen|shaken|stolen|worn)\b/gi;
+    const passiveMatches = text.match(passiveRegex) || [];
+    const passivePct = words.length > 0 ? Math.round((passiveMatches.length / words.length) * 100 * 10) / 10 : 0;
+
+    const adverbs = lowerWords.filter(w => w.endsWith("ly") || COMMON_ADVERBS.has(w));
+    const adverbFreq: Record<string, number> = {};
+    adverbs.forEach(a => { adverbFreq[a] = (adverbFreq[a] || 0) + 1; });
+    const topAdverbs = Object.entries(adverbFreq).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const adverbPct = words.length > 0 ? Math.round((adverbs.length / words.length) * 100 * 10) / 10 : 0;
+
+    const lowerText = trimmed.toLowerCase();
+    const foundCliches = CLICHES.filter(c => lowerText.includes(c));
+
+    const uniqueWords = new Set(lowerWords).size;
+    const ttr = words.length > 0 ? Math.round((uniqueWords / words.length) * 100 * 10) / 10 : 0;
+    const vocabLabel = ttr >= 60 ? "Rich 🌟" : ttr >= 45 ? "Good 👍" : ttr >= 30 ? "Repetitive 🔁" : "Very Repetitive ⚠️";
+
+    const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
+    const shortS = sentences.filter(s => s.split(/\s+/).length <= 8).length;
+    const mediumS = sentences.filter(s => { const w = s.split(/\s+/).length; return w > 8 && w <= 20; }).length;
+    const longS = sentences.filter(s => s.split(/\s+/).length > 20).length;
+    const totalS = sentences.length || 1;
+    const rawScore = Math.round((1 - Math.abs(shortS / totalS - 0.3) - Math.abs(mediumS / totalS - 0.5) - Math.abs(longS / totalS - 0.2)) * 100);
+    const varScore = Math.max(0, Math.min(100, rawScore));
+    const varLabel = varScore >= 70 ? "Excellent Variety 🌟" : varScore >= 50 ? "Good Mix 👍" : "Needs Variety 🔁";
+
+    return {
+      tone: { label: toneLabel, score: toneScore, hint: "Balance between formal and informal vocabulary" },
+      sentiment: { label: sentimentLabel, score: sentScore, positive: pos, negative: neg },
+      passive: { count: passiveMatches.length, percent: passivePct, examples: passiveMatches.slice(0, 5) },
+      adverbs: { count: adverbs.length, percent: adverbPct, top: topAdverbs },
+      cliches: { count: foundCliches.length, items: foundCliches },
+      vocabulary: { ttr, uniqueWords, totalWords: words.length, label: vocabLabel },
+      variety: { score: varScore, label: varLabel, distribution: { short: shortS, medium: mediumS, long: longS } },
+    };
+  }, [text]);
+
+  // v10 — word cloud
+  const wordCloud = useMemo(() => {
+    const words = text.toLowerCase().split(/\s+/).map(w => w.replace(/[^a-z0-9\u0900-\u097F]/g, "")).filter(w => w.length > 3);
+    const freq: Record<string, number> = {};
+    words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 60);
+    if (sorted.length === 0) return [] as { word: string; count: number; size: number }[];
+    const max = sorted[0][1];
+    const min = sorted[sorted.length - 1][1];
+    return sorted.map(([word, count]) => ({
+      word, count,
+      size: 12 + ((count - min) / Math.max(1, max - min)) * 32,
+    }));
+  }, [text]);
+
+  // v10 — session WPM
+  const sessionWordsTyped = Math.max(0, stats.words - sessionWordsBaseline);
+  const sessionWPM = sessionElapsed > 5 ? Math.round((sessionWordsTyped / sessionElapsed) * 60) : 0;
 
   const progress = goal > 0 ? Math.min(100, Math.round((stats.words / goal) * 100)) : 0;
 
@@ -1007,9 +1146,9 @@ export default function WordCounterClient() {
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-8 relative">
         {/* HEADER */}
         <div className="text-center mb-6">
-          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v9 · RICH TEXT TOOLBAR · SOCIAL SHARE · FULL GUIDE</div>
+          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v10 · AI INSIGHTS · VISUAL ANALYTICS · WORD CLOUD · DOCS</div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black gradient-text">Word Counter Pro</h1>
-          <p className="mt-2 opacity-70 text-xs sm:text-sm">Rich text editor, 40+ tools, grammar check, social share</p>
+          <p className="mt-2 opacity-70 text-xs sm:text-sm">Rich text editor, 40+ tools, grammar check, social share, AI insights</p>
           <div className="flex justify-center gap-2 mt-4 flex-wrap items-center">
             <select value={lang} onChange={e => setLang(e.target.value)} className="h-9 rounded-xl glass-btn px-3 text-xs sm:text-sm font-bold">{LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.flag} {l.label}</option>)}</select>
             <span className="text-[10px] sm:text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-pink-600 text-white font-bold">{autoLang}</span>
@@ -1040,7 +1179,6 @@ export default function WordCounterClient() {
             <button onClick={handleClear} className="h-9 px-3 rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 text-xs font-bold border border-red-300/40 btn-shine">🗑 Clear</button>
           </div>
           <div className="flex gap-1.5 flex-wrap items-center">
-            {/* SHARE MENU */}
             <div className="relative" ref={shareMenuRef}>
               <button onClick={() => setShowShareMenu(v => !v)} className={`h-9 px-3 rounded-xl text-xs font-bold btn-shine transition-all ${showShareMenu ? "bg-gradient-to-r from-blue-600 to-cyan-600 text-white" : "glass-btn"}`}>
                 🔗 Share ▾
@@ -1070,7 +1208,6 @@ export default function WordCounterClient() {
         {/* TOOLBAR ROW 2 — RICH TEXT FORMATTING */}
         {showFormatBar && (
           <div className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20 anim-slide">
-            {/* Basic formatting */}
             <div className="tooltip-parent"><button onClick={() => exec("bold")} className={`fmt-btn glass-btn ${activeFormats.bold ? "active-fmt" : ""}`}><b>B</b></button><span className="tooltip-box">Bold (Ctrl+B)</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("italic")} className={`fmt-btn glass-btn ${activeFormats.italic ? "active-fmt" : ""}`}><i>I</i></button><span className="tooltip-box">Italic (Ctrl+I)</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("underline")} className={`fmt-btn glass-btn ${activeFormats.underline ? "active-fmt" : ""}`}><u>U</u></button><span className="tooltip-box">Underline (Ctrl+U)</span></div>
@@ -1080,14 +1217,12 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Headings */}
             <select onChange={e => { if (e.target.value) formatHeading(e.target.value); e.target.value = ""; }} className="h-9 rounded-lg glass-btn px-2 text-xs font-bold" title="Heading level">
               <option value="">Heading ▾</option>
               {HEADING_LEVELS.map(h => <option key={h.tag} value={h.tag}>{h.label} — {h.size}</option>)}
               <option value="p">Paragraph</option>
             </select>
 
-            {/* Text color picker */}
             <div className="relative tooltip-parent" ref={colorMenuRef}>
               <button onClick={() => { saveSelection(); setShowColorPicker(v => !v); setShowBgPicker(false); }} className={`h-9 px-2.5 rounded-lg text-xs font-bold glass-btn btn-shine transition-all ${showColorPicker ? "active-fmt" : ""}`}>
                 <span className="flex items-center gap-1">
@@ -1111,7 +1246,6 @@ export default function WordCounterClient() {
               )}
             </div>
 
-            {/* Background/highlight picker */}
             <div className="relative tooltip-parent" ref={bgMenuRef}>
               <button onClick={() => { saveSelection(); setShowBgPicker(v => !v); setShowColorPicker(false); }} className={`h-9 px-2.5 rounded-lg text-xs font-bold glass-btn btn-shine transition-all ${showBgPicker ? "active-fmt" : ""}`}>
                 <span className="flex items-center gap-1">
@@ -1136,7 +1270,6 @@ export default function WordCounterClient() {
               )}
             </div>
 
-            {/* Font family — applies to selection */}
             <div className="tooltip-parent">
               <select onChange={e => { applyFontToSelection(e.target.value); e.target.value = ""; }} className="h-9 rounded-lg glass-btn px-2 text-xs font-bold">
                 <option value="">Font ▾</option>
@@ -1147,7 +1280,6 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Lists & indent */}
             <div className="tooltip-parent"><button onClick={() => exec("insertUnorderedList")} className={`fmt-btn glass-btn ${activeFormats.insertUnorderedList ? "active-fmt" : ""}`}>•</button><span className="tooltip-box">Bullet list</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("insertOrderedList")} className={`fmt-btn glass-btn ${activeFormats.insertOrderedList ? "active-fmt" : ""}`}>1.</button><span className="tooltip-box">Numbered list</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("outdent")} className="fmt-btn glass-btn">⇤</button><span className="tooltip-box">Outdent</span></div>
@@ -1155,7 +1287,6 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Alignment */}
             <div className="tooltip-parent"><button onClick={() => exec("justifyLeft")} className={`fmt-btn glass-btn ${activeFormats.justifyLeft ? "active-fmt" : ""}`}>⬅</button><span className="tooltip-box">Left</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("justifyCenter")} className={`fmt-btn glass-btn ${activeFormats.justifyCenter ? "active-fmt" : ""}`}>↔</button><span className="tooltip-box">Center</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("justifyRight")} className={`fmt-btn glass-btn ${activeFormats.justifyRight ? "active-fmt" : ""}`}>➡</button><span className="tooltip-box">Right</span></div>
@@ -1163,7 +1294,6 @@ export default function WordCounterClient() {
 
             <div className="w-px h-6 bg-white/30 mx-1" />
 
-            {/* Insert items */}
             <div className="tooltip-parent"><button onClick={insertLink} className="h-9 px-2.5 rounded-lg glass-btn text-xs font-bold btn-shine">🔗</button><span className="tooltip-box">Insert Link (Ctrl+K)</span></div>
             <div className="tooltip-parent"><button onClick={insertHR} className="h-9 px-2.5 rounded-lg glass-btn text-xs font-bold btn-shine">―</button><span className="tooltip-box">Horizontal Rule</span></div>
             <div className="tooltip-parent"><button onClick={insertVR} className="h-9 px-2.5 rounded-lg glass-btn text-xs font-bold btn-shine">│</button><span className="tooltip-box">Vertical Rule</span></div>
@@ -1488,6 +1618,429 @@ export default function WordCounterClient() {
           )}
         </section>
 
+        {/* ═══════════════ v10 — AI INSIGHTS HUB ═══════════════ */}
+        <section className="mt-12">
+          <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">🧠 AI Writing Insights</h2>
+          <p className="text-center opacity-70 text-sm mb-6">Advanced client-side analysis — tone, sentiment, passive voice, vocabulary richness</p>
+
+          <div className="flex flex-wrap justify-center gap-2 mb-6">
+            {([
+              { id: "insights", label: "🧠 AI Insights" },
+              { id: "session", label: "⏱ Session Dashboard" },
+              { id: "visuals", label: "📊 Visual Analytics" },
+              { id: "cloud", label: "☁️ Word Cloud" },
+              { id: "emoji", label: "😀 Emoji Picker" },
+              { id: "docs", label: "📁 Documents" },
+            ] as const).map(t => (
+              <button
+                key={t.id}
+                onClick={() => setInsightTab(t.id)}
+                className={`tab-btn px-4 py-2 rounded-xl text-xs font-bold glass-btn btn-shine ${insightTab === t.id ? "active" : ""}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {insightTab === "insights" && (
+            <div className="anim-pop glass rounded-2xl p-5">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="glass-btn rounded-2xl p-4">
+                  <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Writing Tone</div>
+                  <div className="text-2xl font-black gradient-text mb-2">{insights.tone.label}</div>
+                  <div className="h-2 bg-white/30 dark:bg-white/10 rounded-full overflow-hidden mb-2">
+                    <div className="h-full progress-bar" style={{ width: `${insights.tone.score}%`, background: "linear-gradient(90deg,#3b82f6,#8b5cf6)" }} />
+                  </div>
+                  <div className="text-[10px] opacity-60">{insights.tone.hint}</div>
+                </div>
+
+                <div className="glass-btn rounded-2xl p-4">
+                  <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Sentiment</div>
+                  <div className="text-2xl font-black gradient-text mb-2">{insights.sentiment.label}</div>
+                  <div className="flex gap-2 text-[10px] mb-2">
+                    <span className="text-green-600 dark:text-green-400 font-bold">+{insights.sentiment.positive}</span>
+                    <span className="text-red-600 dark:text-red-400 font-bold">-{insights.sentiment.negative}</span>
+                  </div>
+                  <div className="text-[10px] opacity-60">Score: {insights.sentiment.score}</div>
+                </div>
+
+                <div className="glass-btn rounded-2xl p-4">
+                  <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Passive Voice</div>
+                  <div className="text-2xl font-black gradient-text mb-2">{insights.passive.count} <span className="text-sm opacity-60">({insights.passive.percent}%)</span></div>
+                  {insights.passive.count > 0 ? (
+                    <div className="text-[10px] opacity-60 leading-relaxed">
+                      {insights.passive.examples.slice(0, 3).map((e, i) => <div key={i}>· {e}</div>)}
+                    </div>
+                  ) : <div className="text-[10px] opacity-60">No passive constructions ✓</div>}
+                </div>
+
+                <div className="glass-btn rounded-2xl p-4">
+                  <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Adverb Density</div>
+                  <div className="text-2xl font-black gradient-text mb-2">{insights.adverbs.percent}%</div>
+                  <div className="flex flex-wrap gap-1">
+                    {insights.adverbs.top.slice(0, 5).map(([w, c]) => (
+                      <span key={w} className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/20 font-bold">{w} × {c}</span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-btn rounded-2xl p-4">
+                  <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Vocabulary Richness (TTR)</div>
+                  <div className="text-2xl font-black gradient-text mb-2">{insights.vocabulary.ttr}%</div>
+                  <div className="text-xs mb-1">{insights.vocabulary.label}</div>
+                  <div className="text-[10px] opacity-60">{insights.vocabulary.uniqueWords} unique / {insights.vocabulary.totalWords} total</div>
+                </div>
+
+                <div className="glass-btn rounded-2xl p-4">
+                  <div className="text-[10px] uppercase opacity-60 font-bold mb-1">Sentence Variety</div>
+                  <div className="text-2xl font-black gradient-text mb-2">{insights.variety.score}/100</div>
+                  <div className="text-xs mb-2">{insights.variety.label}</div>
+                  <div className="flex gap-1 text-[10px]">
+                    <span className="px-2 py-0.5 rounded-full bg-green-500/20 font-bold">Short: {insights.variety.distribution.short}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-blue-500/20 font-bold">Med: {insights.variety.distribution.medium}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-orange-500/20 font-bold">Long: {insights.variety.distribution.long}</span>
+                  </div>
+                </div>
+              </div>
+
+              {insights.cliches.count > 0 && (
+                <div className="mt-4 glass-btn rounded-2xl p-4">
+                  <div className="text-[10px] uppercase opacity-60 font-bold mb-2">⚠️ Cliches Detected ({insights.cliches.count})</div>
+                  <div className="flex flex-wrap gap-2">
+                    {insights.cliches.items.map(c => (
+                      <span key={c} className="text-[11px] px-2 py-1 rounded-full bg-orange-500/20 font-bold">"{c}"</span>
+                    ))}
+                  </div>
+                  <p className="text-[10px] opacity-60 mt-2">Consider replacing these overused phrases with fresher wording.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {insightTab === "session" && (
+            <div className="anim-pop glass rounded-2xl p-5">
+              <div className="flex flex-wrap gap-3 justify-center mb-5">
+                <button
+                  onClick={() => { setSessionActive(v => !v); if (!sessionActive) { setSessionElapsed(0); setSessionWordsBaseline(stats.words); } }}
+                  className={`px-6 py-3 rounded-xl text-sm font-black btn-shine transition ${sessionActive ? "bg-red-500 text-white" : "bg-gradient-to-r from-violet-600 to-pink-600 text-white"}`}
+                >
+                  {sessionActive ? "■ End Session" : "▶ Start Writing Session"}
+                </button>
+                <button
+                  onClick={() => { setSessionElapsed(0); setSessionWordsBaseline(stats.words); }}
+                  className="px-4 py-3 rounded-xl text-sm font-bold glass-btn btn-shine"
+                >
+                  ↺ Reset
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <MiniStat label="Session Time" value={formatTime(sessionElapsed)} extra={sessionActive ? "🟢 Live" : "⏸ Paused"} />
+                <MiniStat label="Words Typed" value={sessionWordsTyped} />
+                <MiniStat label="Current WPM" value={sessionWPM} extra={sessionWPM > 40 ? "🔥 Fast" : sessionWPM > 20 ? "👍 Good" : "🐢 Slow"} />
+                <MiniStat label="Total Words" value={stats.words} />
+              </div>
+
+              <div className="mt-5 glass-btn rounded-2xl p-4">
+                <div className="text-[10px] uppercase opacity-60 font-bold mb-2">Session Progress (relative to {sessionWordsBaseline + 500} words)</div>
+                <div className="h-3 bg-white/30 dark:bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full progress-bar transition-all duration-500" style={{ width: `${Math.min(100, (sessionWordsTyped / 500) * 100)}%`, background: "linear-gradient(90deg,#10b981,#06b6d4)" }} />
+                </div>
+                <div className="text-[10px] opacity-60 mt-2">
+                  {sessionWordsTyped >= 500 ? "🎉 500-word milestone reached!" : `${500 - sessionWordsTyped} words to go for next milestone`}
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                {[
+                  { label: "Very Fast", range: "60+ WPM", color: "text-emerald-600" },
+                  { label: "Fast", range: "40-60 WPM", color: "text-blue-600" },
+                  { label: "Average", range: "20-40 WPM", color: "text-purple-600" },
+                  { label: "Slow", range: "<20 WPM", color: "text-orange-600" },
+                ].map(b => (
+                  <div key={b.label} className="glass-btn rounded-xl p-2 text-center">
+                    <div className={`text-[10px] font-bold ${b.color}`}>{b.label}</div>
+                    <div className="text-[9px] opacity-60">{b.range}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {insightTab === "visuals" && (
+            <div className="anim-pop grid md:grid-cols-2 gap-4">
+              <div className="glass rounded-2xl p-4">
+                <h3 className="font-bold text-sm mb-3">🍩 Character Composition</h3>
+                <div className="flex items-center justify-center">
+                  <svg viewBox="0 0 200 200" width="180" height="180">
+                    {(() => {
+                      const letters = stats.letters;
+                      const digits = stats.digits;
+                      const punct = stats.punct;
+                      const spaces = stats.chars - stats.charsNoSpace;
+                      const total = letters + digits + punct + spaces || 1;
+                      const circ = 2 * Math.PI * 70;
+                      const segments = [
+                        { val: letters, color: "#8b5cf6", label: "Letters" },
+                        { val: digits, color: "#ec4899", label: "Digits" },
+                        { val: punct, color: "#06b6d4", label: "Punct" },
+                        { val: spaces, color: "#f59e0b", label: "Spaces" },
+                      ];
+                      let offset = 0;
+                      return (
+                        <>
+                          {segments.map(s => {
+                            const len = (s.val / total) * circ;
+                            const el = (
+                              <circle key={s.label} cx="100" cy="100" r="70" fill="none" stroke={s.color} strokeWidth="24"
+                                strokeDasharray={`${len} ${circ - len}`} strokeDashoffset={-offset}
+                                transform="rotate(-90 100 100)" />
+                            );
+                            offset += len;
+                            return el;
+                          })}
+                          <text x="100" y="100" textAnchor="middle" fontSize="22" fontWeight="900" fill="currentColor">{stats.chars}</text>
+                          <text x="100" y="120" textAnchor="middle" fontSize="10" fill="currentColor" opacity="0.6">characters</text>
+                        </>
+                      );
+                    })()}
+                  </svg>
+                </div>
+                <div className="grid grid-cols-2 gap-2 mt-3 text-[10px]">
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "#8b5cf6" }} /> Letters: {stats.letters}</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "#ec4899" }} /> Digits: {stats.digits}</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "#06b6d4" }} /> Punct: {stats.punct}</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded" style={{ background: "#f59e0b" }} /> Spaces: {stats.chars - stats.charsNoSpace}</div>
+                </div>
+              </div>
+
+              <div className="glass rounded-2xl p-4">
+                <h3 className="font-bold text-sm mb-3">📊 Sentence Length Distribution</h3>
+                <div className="flex items-end gap-2 h-[180px] pt-4">
+                  {(() => {
+                    const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(Boolean);
+                    const buckets = [0, 0, 0, 0, 0, 0, 0, 0];
+                    sentences.forEach(s => {
+                      const w = s.split(/\s+/).length;
+                      const idx = Math.min(7, Math.floor(w / 6));
+                      buckets[idx]++;
+                    });
+                    const max = Math.max(...buckets, 1);
+                    return buckets.map((v, i) => (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                        <div className="text-[9px] font-bold">{v}</div>
+                        <div className="w-full rounded-t transition-all duration-500 progress-bar" style={{
+                          height: `${(v / max) * 130}px`,
+                          minHeight: v > 0 ? "4px" : "0",
+                          background: `linear-gradient(180deg, hsl(${260 - i * 20}, 80%, 60%), hsl(${260 - i * 20}, 80%, 45%))`,
+                        }} />
+                        <div className="text-[9px] opacity-60">{i * 6}-{i * 6 + 6}</div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+                <div className="text-[10px] opacity-60 text-center mt-2">Words per sentence</div>
+              </div>
+
+              <div className="glass rounded-2xl p-4 md:col-span-2">
+                <h3 className="font-bold text-sm mb-3">🏆 Top 15 Most Used Words</h3>
+                {stats.top10.length === 0 ? (
+                  <p className="text-xs opacity-50 py-4 text-center">Type text to see the chart</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {Object.entries(
+                      (() => {
+                        const trimmed = text.trim();
+                        if (!trimmed) return {};
+                        const freq: Record<string, number> = {};
+                        trimmed.toLowerCase().split(/\s+/).forEach(w => {
+                          const c = w.replace(/[^a-z0-9\u0900-\u097F]/g, "");
+                          if (c.length > 2) freq[c] = (freq[c] || 0) + 1;
+                        });
+                        return Object.fromEntries(Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 15));
+                      })()
+                    ).map(([word, count]) => {
+                      const max = Math.max(...Object.values((() => {
+                        const trimmed = text.trim();
+                        const freq: Record<string, number> = {};
+                        trimmed.toLowerCase().split(/\s+/).forEach(w => {
+                          const c = w.replace(/[^a-z0-9\u0900-\u097F]/g, "");
+                          if (c.length > 2) freq[c] = (freq[c] || 0) + 1;
+                        });
+                        return freq;
+                      })()), 1);
+                      return (
+                        <div key={word} className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono w-24 sm:w-32 truncate font-bold">{word}</span>
+                          <div className="flex-1 h-5 bg-white/30 dark:bg-white/10 rounded-md overflow-hidden">
+                            <div className="h-full progress-bar flex items-center justify-end pr-2 text-[9px] font-bold text-white transition-all duration-500"
+                              style={{ width: `${(count / max) * 100}%`, background: "linear-gradient(90deg,#8b5cf6,#ec4899)" }}>
+                              {count}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {insightTab === "cloud" && (
+            <div className="anim-pop glass rounded-2xl p-5">
+              <div className="flex flex-wrap gap-2 justify-center mb-4">
+                {([
+                  { id: "violet", label: "Violet Dream" },
+                  { id: "ocean", label: "Ocean" },
+                  { id: "sunset", label: "Sunset" },
+                  { id: "forest", label: "Forest" },
+                ] as const).map(p => (
+                  <button key={p.id} onClick={() => setCloudPalette(p.id)}
+                    className={`tab-btn px-3 py-1.5 rounded-lg text-xs font-bold glass-btn btn-shine ${cloudPalette === p.id ? "active" : ""}`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              <div className="min-h-[220px] flex flex-wrap items-center justify-center gap-2 p-4 rounded-2xl bg-white/20 dark:bg-black/20">
+                {wordCloud.length === 0 ? (
+                  <p className="text-sm opacity-50">Type text to generate a word cloud</p>
+                ) : (
+                  (() => {
+                    const palettes: Record<string, string[]> = {
+                      violet: ["#8b5cf6","#a855f7","#c084fc","#d8b4fe","#e9d5ff"],
+                      ocean: ["#0ea5e9","#06b6d4","#22d3ee","#67e8f9","#a5f3fc"],
+                      sunset: ["#f97316","#fb923c","#fbbf24","#facc15","#ef4444"],
+                      forest: ["#059669","#10b981","#34d399","#6ee7b7","#a7f3d0"],
+                    };
+                    const colors = palettes[cloudPalette];
+                    return wordCloud.map((w, i) => (
+                      <span key={w.word}
+                        className="font-black transition-all duration-300 hover:scale-125 cursor-pointer"
+                        style={{ fontSize: `${w.size}px`, color: colors[i % colors.length], opacity: 0.6 + (w.size / 44) * 0.4 }}
+                        title={`${w.word}: ${w.count} occurrences`}>
+                        {w.word}
+                      </span>
+                    ));
+                  })()
+                )}
+              </div>
+              <p className="text-[10px] opacity-60 text-center mt-3">Word size = frequency • Hover to see exact count</p>
+            </div>
+          )}
+
+          {insightTab === "emoji" && (
+            <div className="anim-pop glass rounded-2xl p-5">
+              <div className="flex flex-wrap gap-2 justify-center mb-4">
+                {Object.keys(EMOJI_CATEGORIES).map(cat => (
+                  <button key={cat} onClick={() => setSelectedEmojiCat(cat)}
+                    className={`tab-btn px-3 py-1.5 rounded-lg text-xs font-bold capitalize glass-btn btn-shine ${selectedEmojiCat === cat ? "active" : ""}`}>
+                    {cat}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-8 sm:grid-cols-12 md:grid-cols-16 gap-1 max-h-[320px] overflow-y-auto p-2 rounded-xl bg-white/20 dark:bg-black/20">
+                {EMOJI_CATEGORIES[selectedEmojiCat].map((emoji, i) => (
+                  <button key={`${emoji}-${i}`} onClick={() => insertAtCursor(emoji)}
+                    className="text-2xl p-1.5 rounded-lg hover:bg-violet-500/30 hover:scale-125 transition-all btn-shine"
+                    title={`Insert ${emoji}`}>
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] opacity-60 text-center mt-3">Click any emoji to insert at cursor position</p>
+
+              <div className="mt-5 glass-btn rounded-2xl p-4">
+                <h4 className="font-bold text-sm mb-3">🔗 Transition Words Helper</h4>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {Object.keys(TRANSITIONS).map(cat => (
+                    <button key={cat} onClick={() => setTransitionCat(cat)}
+                      className={`px-3 py-1 rounded-lg text-[11px] font-bold capitalize transition ${transitionCat === cat ? "bg-gradient-to-r from-violet-600 to-pink-600 text-white" : "glass-btn"}`}>
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {TRANSITIONS[transitionCat].map(t => (
+                    <button key={t} onClick={() => insertAtCursor(t + " ")}
+                      className="text-xs px-3 py-1.5 rounded-full glass-btn font-bold btn-shine hover:scale-105 transition">
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] opacity-60 mt-3">Click any word to insert at cursor • Improves flow and readability</p>
+              </div>
+            </div>
+          )}
+
+          {insightTab === "docs" && (
+            <div className="anim-pop glass rounded-2xl p-5">
+              <h3 className="font-bold text-sm mb-4">📁 Multi-Document Workspace</h3>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                <input value={docName} onChange={e => setDocName(e.target.value)}
+                  placeholder="Document name (e.g. Blog Post 1)"
+                  className="h-9 px-3 rounded-lg glass-btn text-sm flex-1 min-w-[200px]" />
+                <button onClick={() => {
+                  const name = docName.trim() || `Untitled ${documents.length + 1}`;
+                  const doc: DocItem = { id: `d_${Date.now()}`, name, text, html, saved: Date.now() };
+                  setDocuments(prev => [doc, ...prev.filter(d => d.name !== name)]);
+                  setDocName("");
+                  setToast(`✓ Saved "${name}"`);
+                  setTimeout(() => setToast(null), 1500);
+                }} className="px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-pink-600 text-white text-sm font-bold btn-shine">
+                  💾 Save Current
+                </button>
+              </div>
+
+              {documents.length === 0 ? (
+                <p className="text-xs opacity-60 text-center py-8">No saved documents yet. Type something and click Save.</p>
+              ) : (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {documents.map(doc => (
+                    <div key={doc.id} className="glass-btn rounded-xl p-3 flex justify-between items-center gap-2 flex-wrap">
+                      <div className="flex-1 min-w-[150px]">
+                        <div className="font-bold text-sm">{doc.name}</div>
+                        <div className="text-[10px] opacity-60">
+                          {doc.text.split(/\s+/).filter(Boolean).length} words • Saved {new Date(doc.saved).toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button onClick={() => {
+                          if (confirm(`Load "${doc.name}"? Current text will be replaced.`)) {
+                            if (editorRef.current) editorRef.current.innerHTML = doc.html || escapeHtml(doc.text).replace(/\n/g, "<br>");
+                            setHtml(doc.html);
+                            setText(doc.text);
+                            setToast(`✓ Loaded "${doc.name}"`);
+                            setTimeout(() => setToast(null), 1500);
+                          }
+                        }} className="text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold btn-shine">
+                          📂 Load
+                        </button>
+                        <button onClick={() => {
+                          if (confirm(`Delete "${doc.name}"?`)) {
+                            setDocuments(prev => prev.filter(d => d.id !== doc.id));
+                            setToast("✓ Deleted");
+                            setTimeout(() => setToast(null), 1200);
+                          }
+                        }} className="text-xs px-3 py-1.5 rounded-lg bg-red-500/20 text-red-700 dark:text-red-300 font-bold btn-shine">
+                          🗑
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <MiniStat label="Saved Docs" value={documents.length} />
+                <MiniStat label="Total Storage" value={`${(JSON.stringify(documents).length / 1024).toFixed(1)} KB`} />
+              </div>
+              <p className="text-[10px] opacity-60 mt-3">All documents stored locally in your browser. Nothing is uploaded.</p>
+            </div>
+          )}
+        </section>
+
         {/* CONTENT TYPE TABLE */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">📊 Word Count by Content Type</h2>
@@ -1590,7 +2143,7 @@ export default function WordCounterClient() {
         </section>
 
         <footer className="mt-16 text-center text-xs opacity-60 pb-8">
-          <p>✨ Word Counter Pro v9 — 100% private, browser-only, no data sent to server</p>
+          <p>✨ Word Counter Pro v10 — 100% private, browser-only, no data sent to server</p>
           <p className="mt-1">Made with 💜 for writers, students, and SEO professionals</p>
         </footer>
       </div>
@@ -1680,7 +2233,7 @@ Everything runs in-browser. Auto-save uses localStorage. Only "Grammar Check" se
   },
   {
     id: "user-guide",
-    title: "📘 Complete User Guide — Every Feature Step-by-Step (v9)",
+    title: "📘 Complete User Guide — Every Feature Step-by-Step (v10)",
     content: `═══════════════════════════════
 STEP 1 — START WRITING
 ═══════════════════════════════
@@ -1721,18 +2274,6 @@ EXAMPLE — Apply red color to a word:
 4. Choose red (#ef4444)
 5. ONLY "World" turns red — rest untouched ✅
 
-EXAMPLE — Add background highlight:
-1. Select some text
-2. Click H ▾ button
-3. Choose yellow
-4. Only selection gets yellow background
-
-EXAMPLE — Add link:
-1. Select text OR place cursor
-2. Press Ctrl+K or click 🔗
-3. Paste URL, press OK
-4. Link wraps selection
-
 ═══════════════════════════════
 STEP 3 — EDIT OPERATIONS (Toolbar Row 1)
 ═══════════════════════════════
@@ -1742,7 +2283,6 @@ STEP 3 — EDIT OPERATIONS (Toolbar Row 1)
 ▸ ⌫ Backspace — Delete char before cursor
 ▸ ⌦ Delete — Delete char after cursor
 ▸ 🗑 Clear — Wipe everything (with confirmation)
-▸ ↶ ↷ Undo / Redo available in format bar
 
 ═══════════════════════════════
 STEP 4 — SOCIAL SHARE
@@ -1757,115 +2297,97 @@ Click "🔗 Share ▾" button in toolbar row 1. Menu shows:
 ▸ 📋 Copy Text
 ▸ 📱 Native Share (Android/iOS)
 
-Each opens the platform's share dialog with your text pre-filled.
-
 ═══════════════════════════════
 STEP 5 — SETTINGS PANEL
 ═══════════════════════════════
 Click ⚙ Settings:
-▸ Page Size — A4 (210×297mm), Letter, Legal
-▸ Editor Font — 14 options (whole-editor default)
+▸ Page Size — A4, Letter, Legal
+▸ Editor Font — 14 options
 ▸ Font Size — 10-32 px slider
 ▸ Line Height — 1.0 - 2.5 slider
 ▸ Auto Correct — toggle
 ▸ Auto Complete (Tab) — toggle
-▸ Show Red Wavy — toggle for grammar preview
+▸ Show Red Wavy — toggle
 ▸ Duplicate Highlight — toggle
-▸ Reading Speed — slow (100 wpm), average (200), fast (300), custom
+▸ Reading Speed — slow/average/fast/custom
 ▸ Custom WPM — 50-1000
-▸ Speaking WPM — 50-300 (default 130)
+▸ Speaking WPM — 50-300
 
 ═══════════════════════════════
 STEP 6 — WORD GOAL
 ═══════════════════════════════
-Change the number in header to any target. Progress bar fills. On reaching goal:
-▸ Green toast notification
-▸ Celebration sound (Web Audio)
-▸ Confetti animation
-▸ "🎉 Goal Achieved!" in sidebar
+Change the number in header to any target. On reaching goal: toast + sound + confetti.
 
 ═══════════════════════════════
 STEP 7 — GRAMMAR CHECK
 ═══════════════════════════════
-Auto-checks 1.5s after you stop typing. Or click "✓ Grammar Check".
-Red wavy lines show errors in the preview panel (under editor).
-Errors panel lists all issues with Fix / Fix All buttons.
+Auto-checks 1.5s after you stop typing. Or click "✓ Grammar Check". Red wavy underlines in preview.
 
 ═══════════════════════════════
 STEP 8 — VOICE TYPING
 ═══════════════════════════════
-Click 🎤 VOICE. Chrome/Edge + HTTPS required. Speak naturally — text inserts at cursor position. Click ■ STOP to end.
+Click 🎤 VOICE. Chrome/Edge + HTTPS required.
 
 ═══════════════════════════════
 STEP 9 — TEXT TO SPEECH
 ═══════════════════════════════
-Click 🔊 to hear text read aloud. Uses browser TTS.
+Click 🔊 to hear text read aloud.
 
 ═══════════════════════════════
 STEP 10 — FIND & REPLACE
 ═══════════════════════════════
-Ctrl+F or click 🔍 Find. Options: case-sensitive (Aa) and whole-word toggles. Click "Replace All".
+Ctrl+F or click 🔍 Find.
 
 ═══════════════════════════════
-STEP 11 — WRITING TOOLS HUB (40+ tools)
+STEP 11 — WRITING TOOLS HUB
 ═══════════════════════════════
-Four animated tabs:
-
-📌 SUGGESTED TOOLS — 9 mini tools:
-▸ Character Counter
-▸ Sentence Counter
-▸ Paragraph Counter
-▸ Readability Checker
-▸ Keyword Density Checker
-▸ Text Case Converter
-▸ Text Cleaner
-▸ Find & Replace
-▸ Duplicate Line Remover
-
-✍️ WRITING TOOLS — 6 cards:
-▸ Text Formatter (6 case options)
-▸ Text Cleaner (8 options)
-▸ Text Converter (Slug, URL, Comma, Line, JSON, Plain)
-▸ Sorting Tools (A-Z, Z-A, Length, Word Count)
-▸ Text Reversal (Chars, Words, Lines)
-▸ Space Tools (Trim, Collapse, Tabs)
-
-🎓 ACADEMIC TOOLS:
-▸ Word limit tracker — set required count, see remaining
-▸ Paragraph analyzer
-▸ Citation-friendly stats
-
-📊 QUALITY ANALYZER:
-Checks 9 dimensions with "Good" / "Needs Attention" / "Improve" labels:
-repeated words, repeated sentences, long sentences, long paragraphs, filler words, weak phrases, excessive punctuation, multiple spaces, ALL CAPS words.
+4 animated tabs: Suggested Tools, Writing Tools, Academic Tools, Quality Analyzer.
 
 ═══════════════════════════════
-STEP 12 — SOCIAL MEDIA COUNTERS
+STEP 12 — v10 AI INSIGHTS HUB (NEW)
 ═══════════════════════════════
-Dedicated counters for 6 platforms:
-▸ Instagram Caption (2200 chars, recommended 125)
-▸ Facebook Post (63206, recommended 80)
-▸ X / Twitter Post (280, recommended 240)
-▸ LinkedIn Post (3000, recommended 1300)
-▸ YouTube Title (100, recommended 60)
-▸ YouTube Description (5000, recommended 300)
+6 sub-tabs:
 
-Each shows: Chars, Words, Remaining, and two progress bars (platform limit + recommended).
+🧠 AI INSIGHTS:
+▸ Writing Tone — Formal / Neutral / Informal (based on vocabulary markers)
+▸ Sentiment — Positive / Negative / Mixed with score and word counts
+▸ Passive Voice — Count, percentage, and examples
+▸ Adverb Density — Percentage + top 5 adverbs
+▸ Vocabulary Richness (TTR) — Unique words ÷ total words
+▸ Sentence Variety — Score 0-100 based on short/medium/long balance
+▸ Cliches Detector — 20 overused phrases flagged
 
-═══════════════════════════════
-STEP 13 — EXPORT
-═══════════════════════════════
-▸ TXT — plain text
-▸ HTML — full styled web page (preserves formatting)
-▸ DOC — Word-compatible
-▸ CSV — stats spreadsheet
-▸ PDF — print dialog
+⏱ SESSION DASHBOARD:
+▸ Start/End session button
+▸ Live timer
+▸ Words typed during session
+▸ Real-time WPM
+▸ Progress bar to next 500-word milestone
+▸ WPM speed bands (Very Fast / Fast / Average / Slow)
 
-═══════════════════════════════
-STEP 14 — FOCUS MODE / DARK MODE
-═══════════════════════════════
-▸ ⛶ Focus — fullscreen distraction-free writing
-▸ 🌙 Dark — toggle dark theme
+📊 VISUAL ANALYTICS:
+▸ SVG donut chart — character composition (letters/digits/punctuation/spaces)
+▸ Sentence length histogram — 8 buckets
+▸ Top 15 words bar chart with animated bars
+
+☁️ WORD CLOUD:
+▸ Live word cloud from your text
+▸ 4 color palettes (Violet / Ocean / Sunset / Forest)
+▸ Size scales with frequency
+▸ Hover to see exact count
+
+😀 EMOJI PICKER:
+▸ 8 categories (Smileys, Gestures, Hearts, Nature, Food, Activities, Travel, Symbols)
+▸ 400+ emojis
+▸ Click to insert at cursor
+▸ Transition Words Helper — 8 categories (addition, contrast, cause, example, sequence, summary, emphasis, time)
+
+📁 MULTI-DOCUMENT WORKSPACE:
+▸ Save current document with custom name
+▸ Load / Delete documents
+▸ Shows word count + save timestamp
+▸ Storage size display
+▸ All stored in localStorage
 
 ═══════════════════════════════
 KEYBOARD SHORTCUTS
@@ -1883,169 +2405,143 @@ Esc — Close popups`
   },
   {
     id: "features",
-    title: "⚙️ Every Feature Explained (v9)",
+    title: "⚙️ Every Feature Explained (v10)",
     content: `📊 REAL-TIME STATISTICS
-10 metrics update every keystroke. Uses React useMemo for optimal performance even with 50,000+ words.
+10 metrics update every keystroke.
 
 💾 AUTO-SAVE
-Every 400ms saves to localStorage. Close tab, come back — everything restored.
+Every 400ms saves to localStorage.
 
 ✍️ AUTO-CORRECT
-Silently fixes 20+ common typos (teh→the, adn→and, recieve→receive). Toggle in Settings.
+Silently fixes 20+ common typos.
 
 💡 AUTO-COMPLETE
-300-word dictionary. As you type 2+ chars, suggestions pop up. Press Tab to accept.
+300-word dictionary, Tab to accept.
 
 🔴 GRAMMAR CHECK (LanguageTool)
-- 30+ languages
-- Red wavy underlines in preview
-- Errors panel with Fix / Fix All
-- Auto-checks 1.5s after you stop typing
+30+ languages, red wavy underlines.
 
-🎨 TEXT COLOR (NEW v9 — selection only)
-- Click "A ▾" in formatting toolbar
-- Custom picker OR 10 preset swatches
-- Applies ONLY to selected text — never whole document
-- If nothing selected, warning toast appears
+🎨 TEXT COLOR (selection only)
+Custom picker OR 10 preset swatches.
 
-🖍️ BACKGROUND HIGHLIGHT (NEW v9)
-- Click "H ▾" in formatting toolbar
-- 8 pastel presets + custom picker
-- "Remove Highlight" button to clear
-- Applies ONLY to selected text
+🖍️ BACKGROUND HIGHLIGHT
+8 pastel presets + custom picker.
 
-🔤 FONT FAMILY ON SELECTION (NEW v9)
-- Font dropdown in formatting toolbar
-- Applies to selection only (or whole editor if nothing selected)
-- 14 fonts: Inter, Poppins, Roboto, Merriweather, Playfair Display, Lora, Georgia, Times New Roman, Arial, Verdana, JetBrains Mono, Fira Code, Roboto Mono, Courier New
+🔤 FONT FAMILY ON SELECTION
+14 fonts: Inter, Poppins, Roboto, Merriweather, Playfair Display, Lora, Georgia, Times New Roman, Arial, Verdana, JetBrains Mono, Fira Code, Roboto Mono, Courier New.
 
-📐 HEADINGS H1-H6 (NEW v9)
-- Heading ▾ dropdown in toolbar
-- H1 through H6 + Paragraph
-- Sizes: 2em, 1.6em, 1.35em, 1.15em, 1em, 0.9em
+📐 HEADINGS H1-H6
+Heading ▾ dropdown.
 
-🔗 INSERT LINK (NEW v9)
-- Ctrl+K OR click 🔗 button
-- Prompts for URL
-- Wraps selection in link
-- Works with restored selection
+🔗 INSERT LINK
+Ctrl+K OR click 🔗.
 
-➖ HORIZONTAL RULE (NEW v9)
-- Click ― button
-- Inserts full-width separator line
+➖ HORIZONTAL RULE
 
-│ VERTICAL RULE (NEW v9)
-- Click │ button
-- Inserts inline vertical separator (great for dual-column layouts)
+│ VERTICAL RULE
 
-</> CODE BLOCK (NEW v9)
-- Monospace pre-formatted block
-- Perfect for displaying code snippets
+</> CODE BLOCK
 
-❝ BLOCKQUOTE (NEW v9)
-- Indented quote with left border
+❝ BLOCKQUOTE
 
-X² / X₂ SUPERSCRIPT / SUBSCRIPT (NEW v9)
-- Toggle on selection
-- Perfect for math, footnotes, chemical formulas
+X² / X₂ SUPERSCRIPT / SUBSCRIPT
 
-🔗 SOCIAL SHARE MENU (NEW v9)
-Click "🔗 Share ▾" for:
-- Twitter / X
-- Facebook
-- WhatsApp
-- LinkedIn
-- Telegram
-- Email
-- Copy text
-- Native share (mobile)
+🔗 SOCIAL SHARE MENU
+Twitter, Facebook, WhatsApp, LinkedIn, Telegram, Email, Copy, Native.
 
 🔁 DUPLICATE DETECTION
-Finds repeated words (chips), sentences (list), and lines (list).
+Words, sentences, lines.
 
 🎯 WORD TARGET
-Set any goal. Progress bar fills. Celebration: toast + confetti + sound.
-
-📄 PAGE SIZE
-A4 / Letter / Legal with displayed mm dimensions.
+Progress bar + confetti.
 
 ⏱ WRITING TIME
-Tracks ACTIVE typing only (pauses after 5s idle).
+Active typing only.
 
 📈 READABILITY
-Flesch Reading Ease 0-100. Level: Easy / Standard / Hard / Very Hard.
+Flesch Reading Ease 0-100.
 
 📊 KEYWORD DENSITY
-Top 10 words + percentage. Green (<3%) healthy, Red (>3%) stuffing risk.
+Top 10 words + percentage.
 
-📱 SOCIAL MEDIA LIMITS (Live in sidebar)
-Twitter 280, Instagram 2200, LinkedIn 3000 — real-time left/over count.
+📱 SOCIAL MEDIA LIMITS (Live sidebar)
 
-📱 SOCIAL WRITING COUNTERS (Dedicated section)
-6 platforms with their own input box, char/word counts, remaining, and dual progress bars.
+📱 SOCIAL WRITING COUNTERS (dedicated section)
+6 platforms with dual progress bars.
 
 🎤 VOICE TYPING
-Web Speech API. Chrome/Edge + HTTPS. 9 languages supported.
+Chrome/Edge + HTTPS.
 
 🔊 TEXT TO SPEECH
-Browser's native TTS. Great for proofreading.
 
 🔍 FIND & REPLACE
-Case-sensitive + whole-word toggles.
 
-📤 EXPORT — TXT, HTML (styled), DOC, CSV, PDF
+📤 EXPORT — TXT, HTML, DOC, CSV, PDF
 
-🌙 DARK MODE — Full theme switch
+🌙 DARK MODE
 
-⛶ FOCUS MODE — Distraction-free fullscreen
+⛶ FOCUS MODE
 
 🎓 ACADEMIC TOOLS
-- Word limit tracker (set required, shows remaining)
-- Paragraph analyzer
-- Citation-friendly stats
+Word limit tracker, paragraph analyzer.
 
 📊 QUALITY ANALYZER
-9 rule-based checks with Good / Needs Attention / Improve labels.
+9 rule-based checks.
 
 🧰 40+ WRITING TOOLS
 Formatter, Cleaner, Converter, Sort, Reverse, Space tools.
 
-✨ ANIMATIONS
-- Hover: lift + glow on all buttons
-- Counter: smooth number transitions
-- Progress bars: shimmer effect
-- Copy: green flash
-- Goal: confetti + glow pulse
-- Accordion: smooth max-height transitions
-- Tabs: active state with gradient
-- Show/hide: drop-in animations
+═══════════════════════════════
+🆕 v10 NEW FEATURES
+═══════════════════════════════
 
-📖 DETAILED GUIDES + FAQ
-Every feature documented with examples.`
+🧠 AI WRITING INSIGHTS
+Client-side analysis — Tone, Sentiment, Passive Voice, Adverb Density, Vocabulary Richness (TTR), Sentence Variety, Cliches.
+
+⏱ SESSION DASHBOARD
+Real-time WPM, session timer, words-typed counter, milestone tracking.
+
+📊 VISUAL ANALYTICS
+SVG donut chart, sentence histogram, top-15 word bar chart.
+
+☁️ WORD CLOUD
+4 palettes, size by frequency, hover tooltips.
+
+😀 EMOJI & TRANSITION PICKER
+400+ emojis, 8 categories, 8 transition-word categories.
+
+📁 MULTI-DOCUMENT WORKSPACE
+Save/load/delete named docs in localStorage.`
   },
 ];
 
 const faqData = [
-  { q: "Is this Word Counter free to use?", a: "Yes! 100% free forever. No sign-up, no ads, no limits. All features available without payment." },
-  { q: "Is my text saved on your servers?", a: "No. Everything runs in your browser. Only Grammar Check sends text to LanguageTool API. Auto-save uses localStorage (stays on your device)." },
-  { q: "How do I apply color to only SOME text?", a: "Select the text with your mouse, then click the A ▾ (text color) or H ▾ (highlight) button in the formatting toolbar. Only the selection changes color. If nothing is selected, a warning toast appears." },
-  { q: "Difference between Chars (with) and Chars (without)?", a: "Chars (with) includes spaces — used for Twitter 280 and SMS limits. Chars (without) is letters/numbers only — used when universities ask for 'minimum 1000 characters without spaces'." },
-  { q: "How accurate is reading time?", a: "Based on configurable words-per-minute. Default is 200 wpm (average adult). You can choose Slow (100), Average (200), Fast (300), or Custom (50-1000)." },
-  { q: "What is a good Flesch Score?", a: "Web content: 60-70 (Standard). Social media: 70-80 (Fairly Easy). Academic: 30-50. Higher = easier to read. Aim for whatever fits your audience." },
-  { q: "Why doesn't voice typing work?", a: "Requires Chrome or Edge over HTTPS. Check mic permission (click lock icon in address bar). Firefox and Safari don't support Web Speech API." },
-  { q: "What is ideal keyword density?", a: "1-2% for SEO. If your target keyword appears 15 times in a 1000-word article = 1.5% density. Above 3% looks like keyword stuffing." },
+  { q: "Is this Word Counter free to use?", a: "Yes! 100% free forever. No sign-up, no ads, no limits." },
+  { q: "Is my text saved on your servers?", a: "No. Everything runs in your browser. Only Grammar Check sends text to LanguageTool API. Auto-save uses localStorage." },
+  { q: "How do I apply color to only SOME text?", a: "Select the text with your mouse, then click the A ▾ (text color) or H ▾ (highlight) button in the formatting toolbar. Only the selection changes color." },
+  { q: "Difference between Chars (with) and Chars (without)?", a: "Chars (with) includes spaces — used for Twitter 280 and SMS limits. Chars (without) is letters/numbers only." },
+  { q: "How accurate is reading time?", a: "Based on configurable words-per-minute. Default is 200 wpm." },
+  { q: "What is a good Flesch Score?", a: "Web content: 60-70. Social media: 70-80. Academic: 30-50." },
+  { q: "Why doesn't voice typing work?", a: "Requires Chrome or Edge over HTTPS. Check mic permission." },
+  { q: "What is ideal keyword density?", a: "1-2% for SEO. Above 3% looks like keyword stuffing." },
   { q: "Does grammar check work in Hindi?", a: "Yes! Select Hindi from the language dropdown. LanguageTool supports 30+ languages." },
-  { q: "Can I use this offline?", a: "Mostly yes. Word counting, stats, exports, and auto-save work offline. Grammar check needs internet (LanguageTool API)." },
-  { q: "What is duplicate detection?", a: "Finds repeated words (chips), sentences (list), and lines (list). Useful for editing out redundancy." },
-  { q: "How does auto-correct work?", a: "Watches 20+ common typos. When you press space after a misspelled word, it silently fixes it. Examples: teh→the, adn→and, recieve→receive. Toggle off in Settings." },
-  { q: "What's the maximum text length?", a: "Practically unlimited. Tested with 100,000+ words without performance issues." },
-  { q: "How does the academic word limit tracker work?", a: "Set your required word count (e.g. 1500 for an essay). Tracker shows: Required, Current, Remaining (or Over by X). Progress bar fills as you write. Alerts when limit reached." },
-  { q: "What is the Text Quality Analyzer?", a: "Basic rule-based check for repeated words/sentences, long sentences, long paragraphs, filler words (very, really, just...), weak phrases (is being, has been...), excessive punctuation, multiple spaces, and ALL CAPS words. Shows Good / Needs Attention / Improve labels. It's not a replacement for professional AI grammar tools." },
-  { q: "How do I insert a link on selected text?", a: "Select the text, press Ctrl+K (or click the 🔗 button), paste your URL in the prompt, click OK. The selection becomes a clickable link." },
-  { q: "What is a vertical rule used for?", a: "The │ button inserts an inline vertical separator. Useful for dual-column layouts, side-by-side comparisons, or visual dividers between two text sections." },
-  { q: "How do I remove text color or highlight?", a: "For highlight: select the text, click H ▾, then choose 'Remove Highlight'. For text color: select the text, then click Tx (clear formatting) — this resets all formatting to default." },
-  { q: "How does social share work?", a: "Click '🔗 Share ▾' in the toolbar. Menu shows Twitter, Facebook, WhatsApp, LinkedIn, Telegram, Email, Copy, and Native Share. Each opens the platform's share page in a new tab with your text pre-filled. Only the first ~250-500 chars are included due to URL length limits." },
-  { q: "Can I customize reading and speaking speed?", a: "Yes. Open ⚙ Settings → Reading Speed section. Choose Slow (100 wpm), Average (200), Fast (300), or Custom (set your own 50-1000). Speaking WPM is also configurable (default 130)." },
-  { q: "Are the animations performance-heavy?", a: "No. Uses CSS transforms and requestAnimationFrame — smooth on all devices including mobile and low-end phones." },
-  { q: "Is the design responsive?", a: "Yes — fully responsive across mobile (320px+), tablet, laptop, desktop, and large monitors (up to 4K). All toolbars wrap, tooltips work on touch, and the editor scales smoothly." },
+  { q: "Can I use this offline?", a: "Mostly yes. Grammar check needs internet." },
+  { q: "What is duplicate detection?", a: "Finds repeated words, sentences, and lines." },
+  { q: "How does auto-correct work?", a: "Watches 20+ common typos. Silently fixes on space." },
+  { q: "What's the maximum text length?", a: "Practically unlimited. Tested with 100,000+ words." },
+  { q: "How does the academic word limit tracker work?", a: "Set your required word count. Tracker shows Required, Current, Remaining, and progress bar." },
+  { q: "What is the Text Quality Analyzer?", a: "Rule-based check for repeated words/sentences, long sentences, filler words, weak phrases, excessive punctuation, multiple spaces, ALL CAPS." },
+  { q: "How do I insert a link on selected text?", a: "Select the text, press Ctrl+K (or click 🔗), paste URL, click OK." },
+  { q: "What is a vertical rule used for?", a: "Inline vertical separator. Useful for dual-column layouts." },
+  { q: "How do I remove text color or highlight?", a: "For highlight: click H ▾ → Remove Highlight. For text color: click Tx (clear formatting)." },
+  { q: "How does social share work?", a: "Click '🔗 Share ▾'. Each opens platform share page with text pre-filled." },
+  { q: "Can I customize reading and speaking speed?", a: "Yes. Open ⚙ Settings → Reading Speed section." },
+  { q: "Are the animations performance-heavy?", a: "No. Uses CSS transforms and requestAnimationFrame." },
+  { q: "Is the design responsive?", a: "Yes — fully responsive across mobile (320px+), tablet, laptop, desktop, and 4K." },
+  { q: "🆕 What is AI Writing Insights?", a: "Client-side analysis of writing tone, sentiment, passive voice, adverb density, vocabulary richness (TTR), sentence variety, and cliche detection. No external AI API used." },
+  { q: "🆕 What is the Session Dashboard?", a: "Tracks your live writing WPM, session duration, and words typed. Press Start Writing Session, type, and see real-time metrics." },
+  { q: "🆕 What is the Word Cloud?", a: "Visual representation of your most-used words. Size scales with frequency. 4 color palettes available." },
+  { q: "🆕 What is the Multi-Document Workspace?", a: "Save, load, and delete named documents in localStorage. Each shows word count and timestamp." },
+  { q: "🆕 What is the Emoji Picker?", a: "Click any emoji to insert at cursor. 400+ emojis across 8 categories. Also includes transition words helper." },
+  { q: "🆕 What are the Visual Analytics?", a: "SVG donut chart for character composition, sentence-length histogram, and top-15 word bar chart." },
 ];
