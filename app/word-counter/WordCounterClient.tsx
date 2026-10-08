@@ -249,7 +249,6 @@ export default function WordCounterClient() {
   const [showBgPicker, setShowBgPicker] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [activeFormats, setActiveFormats] = useState<Record<string, boolean>>({});
-  // v10 state
   const [insightTab, setInsightTab] = useState<"insights" | "session" | "visuals" | "cloud" | "emoji" | "docs">("insights");
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionElapsed, setSessionElapsed] = useState(0);
@@ -604,7 +603,7 @@ export default function WordCounterClient() {
     const startPos = getNodeAtOffset(saved.start, editorRef.current);
     const endPos = getNodeAtOffset(saved.end, editorRef.current);
     if (!startPos || !endPos) return false;
-    editorRef.current.focus();
+    try { editorRef.current.focus({ preventScroll: true }); } catch { editorRef.current.focus(); }
     try {
       const range = document.createRange();
       range.setStart(startPos.node, startPos.offset);
@@ -648,12 +647,17 @@ export default function WordCounterClient() {
     return () => document.removeEventListener("selectionchange", updateActiveFormats);
   }, [updateActiveFormats]);
 
+  // ✅ FIXED: exec() now reliably restores selection before applying command
   const exec = useCallback((cmd: string, val?: string) => {
     if (!editorRef.current) return;
-    editorRef.current.focus();
-    if (savedSelRef.current) restoreSelection();
+    // If there is no current live selection but we have a saved one, restore it first
+    if (!hasSelection() && savedSelRef.current) {
+      restoreSelection();
+    } else {
+      try { editorRef.current.focus({ preventScroll: true }); } catch { editorRef.current.focus(); }
+    }
     try { document.execCommand("styleWithCSS", false, "true"); } catch {}
-    document.execCommand(cmd, false, val);
+    try { document.execCommand(cmd, false, val); } catch {}
     syncFromEditor();
     updateActiveFormats();
   }, [syncFromEditor, updateActiveFormats]);
@@ -932,28 +936,49 @@ export default function WordCounterClient() {
   };
 
   // -------- SUGGESTED TOOLS --------
-  const cleanExtraSpaces = () => { const t = text.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim(); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
-  const removeBlankLines = () => { const t = text.split(/\n/).filter(l => l.trim().length > 0).join("\n"); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
-  const removeDupLines = () => { const seen = new Set<string>(); const t = text.split(/\n/).filter(l => { const k = l.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; }).join("\n"); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
-  const removeDupSentences = () => { const seen = new Set<string>(); const t = text.split(/(?<=[.!?])\s+/).filter(s => { const k = s.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; }).join(" "); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
-  const normalizePunctuation = () => { const t = text.replace(/\s+([,.!?;:])/g, "$1").replace(/([,.!?;:])(?=\S)/g, "$1 ").replace(/\s+/g, " ").trim(); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
-  const removeSpecialChars = () => { const t = text.replace(/[^\w\s.,!?'"\-()]/g, ""); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
-  const removeNumbers = () => { const t = text.replace(/\d+/g, ""); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
-  const removeHtmlTags = () => { const t = text.replace(/<[^>]*>/g, ""); if (editorRef.current) editorRef.current.innerText = t; setText(t); setHtml(editorRef.current?.innerHTML || ""); };
+  const cleanExtraSpaces = () => { const t = text.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim(); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); setText(t); setHtml(editorRef.current?.innerHTML || ""); };
+  const removeBlankLines = () => { const t = text.split(/\n/).filter(l => l.trim().length > 0).join("\n"); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); setText(t); setHtml(editorRef.current?.innerHTML || ""); };
+
+  // ✅ FIXED: removeDupLines now reliably updates editor using innerHTML
+  const removeDupLines = () => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const rawLine of text.split(/\r?\n/)) {
+      const k = rawLine.trim().toLowerCase();
+      if (!k) { result.push(rawLine); continue; } // keep blank lines
+      if (seen.has(k)) continue; // skip duplicates
+      seen.add(k);
+      result.push(rawLine);
+    }
+    const t = result.join("\n");
+    if (editorRef.current) {
+      editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>");
+    }
+    setText(t);
+    setHtml(editorRef.current?.innerHTML || "");
+    setToast("✓ Duplicate lines removed");
+    setTimeout(() => setToast(null), 1500);
+  };
+
+  const removeDupSentences = () => { const seen = new Set<string>(); const t = text.split(/(?<=[.!?])\s+/).filter(s => { const k = s.trim().toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; }).join(" "); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); setText(t); setHtml(editorRef.current?.innerHTML || ""); };
+  const normalizePunctuation = () => { const t = text.replace(/\s+([,.!?;:])/g, "$1").replace(/([,.!?;:])(?=\S)/g, "$1 ").replace(/\s+/g, " ").trim(); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); setText(t); setHtml(editorRef.current?.innerHTML || ""); };
+  const removeSpecialChars = () => { const t = text.replace(/[^\w\s.,!?'"\-()]/g, ""); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); setText(t); setHtml(editorRef.current?.innerHTML || ""); };
+  const removeNumbers = () => { const t = text.replace(/\d+/g, ""); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); setText(t); setHtml(editorRef.current?.innerHTML || ""); };
+  const removeHtmlTags = () => { const t = text.replace(/<[^>]*>/g, ""); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); setText(t); setHtml(editorRef.current?.innerHTML || ""); };
   const toSlug = () => { const t = text.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
   const toCommaSeparated = () => { const t = text.split(/[\n,]+/).map(x => x.trim()).filter(Boolean).join(", "); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const toLineSeparated = () => { const t = text.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
+  const toLineSeparated = () => { const t = text.split(/[,\n]+/).map(x => x.trim()).filter(Boolean).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
   const toPlainText = () => { const t = text.replace(/\s+/g, " ").trim(); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
   const toJsonSafe = () => { const t = JSON.stringify(text).slice(1, -1); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const sortAZ = () => { const t = text.split(/\n/).sort((a, b) => a.localeCompare(b)).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const sortZA = () => { const t = text.split(/\n/).sort((a, b) => b.localeCompare(a)).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const sortByLength = () => { const t = text.split(/\n/).sort((a, b) => a.length - b.length).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const sortByWordCount = () => { const t = text.split(/\n/).sort((a, b) => a.split(/\s+/).length - b.split(/\s+/).length).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
+  const sortAZ = () => { const t = text.split(/\n/).sort((a, b) => a.localeCompare(b)).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
+  const sortZA = () => { const t = text.split(/\n/).sort((a, b) => b.localeCompare(a)).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
+  const sortByLength = () => { const t = text.split(/\n/).sort((a, b) => a.length - b.length).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
+  const sortByWordCount = () => { const t = text.split(/\n/).sort((a, b) => a.split(/\s+/).length - b.split(/\s+/).length).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
   const reverseChars = () => { const t = text.split("").reverse().join(""); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
   const reverseWords = () => { const t = text.split(/\s+/).reverse().join(" "); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const reverseLines = () => { const t = text.split(/\n/).reverse().join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const trimLeading = () => { const t = text.split(/\n/).map(l => l.replace(/^\s+/, "")).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
-  const trimTrailing = () => { const t = text.split(/\n/).map(l => l.replace(/\s+$/, "")).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
+  const reverseLines = () => { const t = text.split(/\n/).reverse().join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
+  const trimLeading = () => { const t = text.split(/\n/).map(l => l.replace(/^\s+/, "")).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
+  const trimTrailing = () => { const t = text.split(/\n/).map(l => l.replace(/\s+$/, "")).join("\n"); setText(t); if (editorRef.current) editorRef.current.innerHTML = escapeHtml(t).replace(/\n/g, "<br>"); };
   const collapseSpaces = () => { const t = text.replace(/[ \t]+/g, " "); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
   const tabsToSpaces = () => { const t = text.replace(/\t/g, "    "); setText(t); if (editorRef.current) editorRef.current.innerText = t; };
 
@@ -1146,7 +1171,7 @@ export default function WordCounterClient() {
       <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-8 relative">
         {/* HEADER */}
         <div className="text-center mb-6">
-          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v10 · AI INSIGHTS · VISUAL ANALYTICS · WORD CLOUD · DOCS</div>
+          <div className="inline-flex px-4 py-1.5 rounded-full glass-btn text-[11px] tracking-widest mb-3 font-bold">✨ v10.1 · FIXED BOLD/ITALIC · FIXED DUPLICATE CLEANER · DEEP ARTICLE</div>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black gradient-text">Word Counter Pro</h1>
           <p className="mt-2 opacity-70 text-xs sm:text-sm">Rich text editor, 40+ tools, grammar check, social share, AI insights</p>
           <div className="flex justify-center gap-2 mt-4 flex-wrap items-center">
@@ -1165,8 +1190,14 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* TOOLBAR ROW 1 — EDIT + SHARE */}
-        <div className="glass rounded-2xl p-2 sm:p-3 mb-2 flex flex-wrap gap-1.5 items-center justify-between sticky top-2 z-30">
+        {/* ✅ FIXED TOOLBAR ROW 1 — onMouseDown prevents focus loss */}
+        <div
+          className="glass rounded-2xl p-2 sm:p-3 mb-2 flex flex-wrap gap-1.5 items-center justify-between sticky top-2 z-30"
+          onMouseDown={(e) => {
+            const t = e.target as HTMLElement;
+            if (!t.closest('select, input, textarea')) e.preventDefault();
+          }}
+        >
           <div className="flex gap-1 flex-wrap items-center">
             <div className="tooltip-parent"><button onClick={handleCut} className="h-9 px-3 rounded-lg glass-btn text-xs font-bold btn-shine">✂ Cut</button><span className="tooltip-box">Cut selected</span></div>
             <div className="tooltip-parent"><button onClick={handleCopy} className={`h-9 px-3 rounded-lg glass-btn text-xs font-bold btn-shine ${copied ? "bg-green-500 text-white" : ""}`}>{copied ? "✓ Copied!" : "📋 Copy"}</button><span className="tooltip-box">Copy</span></div>
@@ -1205,9 +1236,15 @@ export default function WordCounterClient() {
           </div>
         </div>
 
-        {/* TOOLBAR ROW 2 — RICH TEXT FORMATTING */}
+        {/* ✅ FIXED TOOLBAR ROW 2 — onMouseDown prevents focus loss → B/I/U now work */}
         {showFormatBar && (
-          <div className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20 anim-slide">
+          <div
+            className="glass rounded-2xl p-2 mb-3 flex flex-wrap gap-1 items-center sticky top-16 z-20 anim-slide"
+            onMouseDown={(e) => {
+              const t = e.target as HTMLElement;
+              if (!t.closest('select, input, textarea')) e.preventDefault();
+            }}
+          >
             <div className="tooltip-parent"><button onClick={() => exec("bold")} className={`fmt-btn glass-btn ${activeFormats.bold ? "active-fmt" : ""}`}><b>B</b></button><span className="tooltip-box">Bold (Ctrl+B)</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("italic")} className={`fmt-btn glass-btn ${activeFormats.italic ? "active-fmt" : ""}`}><i>I</i></button><span className="tooltip-box">Italic (Ctrl+I)</span></div>
             <div className="tooltip-parent"><button onClick={() => exec("underline")} className={`fmt-btn glass-btn ${activeFormats.underline ? "active-fmt" : ""}`}><u>U</u></button><span className="tooltip-box">Underline (Ctrl+U)</span></div>
@@ -1618,7 +1655,7 @@ export default function WordCounterClient() {
           )}
         </section>
 
-        {/* ═══════════════ v10 — AI INSIGHTS HUB ═══════════════ */}
+        {/* v10 — AI INSIGHTS HUB */}
         <section className="mt-12">
           <h2 className="text-2xl sm:text-3xl font-black text-center gradient-text mb-2">🧠 AI Writing Insights</h2>
           <p className="text-center opacity-70 text-sm mb-6">Advanced client-side analysis — tone, sentiment, passive voice, vocabulary richness</p>
@@ -2143,7 +2180,7 @@ export default function WordCounterClient() {
         </section>
 
         <footer className="mt-16 text-center text-xs opacity-60 pb-8">
-          <p>✨ Word Counter Pro v10 — 100% private, browser-only, no data sent to server</p>
+          <p>✨ Word Counter Pro v10.1 — 100% private, browser-only, no data sent to server</p>
           <p className="mt-1">Made with 💜 for writers, students, and SEO professionals</p>
         </footer>
       </div>
@@ -2232,8 +2269,250 @@ PRIVACY
 Everything runs in-browser. Auto-save uses localStorage. Only "Grammar Check" sends to LanguageTool API.`
   },
   {
+    id: "what-is-detail",
+    title: "📖 What Is a Word Counter? — Complete In-Depth Guide (History, Uses, Benefits, SEO, Academic, Business)",
+    content: `A complete guide to understanding word counters, their history, purpose, benefits, and every profession that relies on them.
+
+═══════════════════════════════════════════════════
+1. WHAT IS A WORD COUNTER — DEFINITION
+═══════════════════════════════════════════════════
+A word counter is a text-analysis tool that instantly measures how many
+words, characters, sentences, paragraphs, and lines are present in a
+given piece of writing. It runs as you type or after you paste text,
+and typically produces additional statistics such as:
+  • Characters with spaces / without spaces
+  • Reading time (in minutes and seconds)
+  • Speaking time
+  • Readability scores (Flesch, Flesch-Kincaid, Gunning Fog)
+  • Keyword density and top keywords
+  • Passive voice, filler words, adverb frequency
+
+Modern word counters run entirely in your browser, meaning no text is
+uploaded anywhere and privacy is fully preserved.
+
+═══════════════════════════════════════════════════
+2. BRIEF HISTORY
+═══════════════════════════════════════════════════
+Before computers, word counts were done manually — copy editors would
+literally count words on a page using a ruler, a technique still called
+"casting off." It was slow, expensive, and error-prone.
+
+When word processors arrived in the 1980s (WordPerfect, Microsoft Word),
+word count became a single command. In the 2000s, web-based counters
+appeared (WordCountTool, WordCounter.net). Today, modern tools like this
+one add readability scoring, keyword density, grammar checking, AI
+insights, tone detection, and per-platform character tracking — all
+client-side.
+
+═══════════════════════════════════════════════════
+3. WHY WORD COUNT MATTERS — THE CORE USE CASES
+═══════════════════════════════════════════════════
+
+▸ Publishers and editors
+  Every magazine, newspaper, and online publication has strict column
+  inches and word budgets. A 700-word feature is not a 750-word feature
+  — the layout physically cannot fit it. Editors rely on exact counts.
+
+▸ Search Engine Optimization (SEO)
+  Google rewards comprehensive content. Studies show pages ranking on
+  page one average 1,400-2,500 words. Bloggers use word counters to
+  reach this range without bloat. Under 300 words often looks thin to
+  Google. Over 3,000 words is fine if the topic genuinely requires it.
+
+▸ Academic writing
+  Assignments carry word limits — usually ±10% tolerance. A 1,500-word
+  essay that comes in at 1,900 words gets penalised. A 500-word essay
+  that comes in at 380 words looks underdeveloped. Counter + progress
+  bar keeps students accurate without last-minute panic.
+
+▸ Social media
+  Platform character limits are hard ceilings:
+    • X / Twitter post .......... 280 chars
+    • Instagram caption ......... 2,200 chars
+    • LinkedIn post ............. 3,000 chars
+    • YouTube title ............. 100 chars
+  Going over a limit truncates the post or blocks publishing. A live
+  per-platform counter removes the guesswork.
+
+▸ Advertising and copywriting
+  Google Ads headlines are 30 characters each. Meta descriptions are
+  ~155. Product titles on Amazon cap at 200. PPC managers live inside
+  character counters.
+
+▸ Freelance and translation work
+  Many freelancers bill by the word. Translators price per 1,000 words.
+  A reliable counter is directly tied to income.
+
+▸ Voice-over and video
+  Script length determines video duration. At a typical speaking rate
+  of 130-150 words per minute, a 3-minute video needs ~400 words.
+
+═══════════════════════════════════════════════════
+4. WHO BENEFITS MOST — IN DETAIL
+═══════════════════════════════════════════════════
+
+🎓 STUDENTS
+  • Meet exact word limits on essays, dissertations, abstracts
+  • Check that assignments hit minimum word requirements
+  • Track daily writing progress for long projects
+  • Verify citations fit within allowed character budgets
+
+✍️ AUTHORS & NOVELISTS
+  • Track daily word targets (e.g., NaNoWriMo's 1,667 words/day)
+  • Monitor writing time and words-per-minute
+  • Estimate page count from word count for submissions
+  • Check chapter balance across a manuscript
+
+📝 BLOGGERS & CONTENT WRITERS
+  • Hit SEO-recommended 1,500-2,500 word range
+  • Check keyword density (1-2% ideal, above 3% looks like stuffing)
+  • Verify readability (Flesch 60-70 for general web)
+  • Prevent overly long paragraphs that hurt mobile UX
+
+🔍 SEO PROFESSIONALS
+  • Compare content length against top-ranking competitors
+  • Match title tags (50-60 chars) and meta descriptions (150-160)
+  • Audit existing pages for thin content
+  • Estimate pixel width of titles before publishing
+
+📱 SOCIAL MEDIA MANAGERS
+  • Stay inside platform character limits
+  • Optimise the visible "hook" to first 125 chars (Instagram)
+  • Prepare multi-platform variants of the same message
+  • Track emoji usage across campaigns
+
+📰 JOURNALISTS & EDITORS
+  • Enforce strict editorial word limits per section
+  • Fit articles to pre-planned column inches
+  • Meet wire-service word budgets
+  • Cut copy quickly using find/replace and duplicate detection
+
+💼 BUSINESS & MARKETING
+  • Write concise emails (studies show shorter emails get more replies)
+  • Structure product descriptions for conversion
+  • Prepare landing-page copy to prescribed length
+  • Meet pitch-deck slide word limits
+
+🎬 VIDEO CREATORS & PODCASTERS
+  • Script a video to precise duration using WPM estimates
+  • Read time check for teleprompter sessions
+  • Ensure YouTube titles fit mobile display (~60 chars)
+
+🌐 TRANSLATORS & LOCALISATION
+  • Bill accurately by source word count
+  • Estimate turnaround time
+  • Ensure UI strings fit character budgets in translated apps
+
+═══════════════════════════════════════════════════
+5. HOW THIS TOOL IS DIFFERENT — WHAT YOU GET HERE
+═══════════════════════════════════════════════════
+▸ Real-time statistics (updates every keystroke)
+▸ Unicode-correct counting — Hindi, Arabic, Japanese, emoji all counted right
+▸ Reading AND speaking time — both configurable
+▸ Readability scores — Flesch, Flesch-Kincaid, Gunning Fog
+▸ Keyword density — one-word, two-word, three-word phrases
+▸ Social media counters — 6 platforms, dual progress bars
+▸ Grammar check — LanguageTool API, 30+ languages
+▸ AI Insights — tone, sentiment, passive voice, adverb density, TTR
+▸ Visual Analytics — donut chart, histogram, top-words bar chart
+▸ Word Cloud — 4 palettes
+▸ Emoji Picker — 400+ emojis, 8 categories
+▸ Multi-document workspace — save/load/delete
+▸ Rich-text formatting — bold, italic, headings, colors, lists
+▸ Duplicate detection — words, sentences, lines
+▸ Full import/export — TXT, HTML, DOC, CSV, PDF
+▸ 100% private — nothing leaves your browser except grammar check
+
+═══════════════════════════════════════════════════
+6. HOW WORD COUNT IS CALCULATED — THE TECHNICAL SIDE
+═══════════════════════════════════════════════════
+A "word" is technically a contiguous run of characters separated by
+whitespace (space, tab, newline). But different tools interpret this
+differently:
+
+  • Some split on spaces only → "well-known" counts as one word
+  • Some strip punctuation → "hello!" counts as "hello"
+  • Some handle CJK scripts specially → 日本語 splits by character
+  • Some count hyphenated words as one; others as two
+
+This tool uses a Unicode-aware regular expression that:
+  • Groups letters, numbers, and combining marks
+  • Allows internal hyphens and apostrophes ("mother-in-law", "don't")
+  • Correctly segments Devanagari (Hindi) and other Indic scripts
+  • Counts emojis as grapheme clusters (1 emoji = 1 unit)
+
+That's why our counts can differ slightly from other tools — and why
+ours are more accurate for non-English and emoji-heavy text.
+
+═══════════════════════════════════════════════════
+7. PRACTICAL WORKFLOWS — HOW TO USE THIS TOOL
+═══════════════════════════════════════════════════
+
+📄 ESSAY WRITING
+  1. Set academic target in Academic Tools (e.g., 1,500 words)
+  2. Write freely — watch the progress bar fill
+  3. Check Flesch score stays in 40-60 range (academic standard)
+  4. Use Text Quality Analyzer to catch filler words
+  5. Export as DOC or PDF for submission
+
+📱 SOCIAL POST
+  1. Open Social Media Writing Counters
+  2. Pick platform (X / Instagram / LinkedIn)
+  3. Type — see remaining characters update live
+  4. Check the "recommended" bar too (not just the limit)
+  5. Copy and paste directly into the platform
+
+🔍 BLOG POST
+  1. Set goal to 2,000 words
+  2. Write with AI Insights open — check Tone stays "Neutral" or "Formal"
+  3. Monitor readability (aim for Flesch 60-70)
+  4. Check keyword density in sidebar — keep top keyword at 1-2%
+  5. Save draft in Multi-Document Workspace for later
+
+📝 EDITING PASS
+  1. Use Duplicate Detection to catch repeated sentences
+  2. Use Find & Replace to fix consistent typos
+  3. Use Text Cleaner to remove extra spaces and blank lines
+  4. Check passive voice in AI Insights — aim below 10%
+
+═══════════════════════════════════════════════════
+8. COMMON MISCONCEPTIONS
+═══════════════════════════════════════════════════
+✗ "Longer is always better for SEO" — quality + intent match matters more
+✗ "Spaces don't count as characters" — they do on most platforms
+✗ "Word count = reading time" — depends on WPM (150-300 varies widely)
+✗ "All word counters show the same number" — they use different rules
+✗ "Hindi characters count as many" — grapheme segmentation counts them right
+
+═══════════════════════════════════════════════════
+9. QUICK REFERENCE — AVERAGE STATISTICS
+═══════════════════════════════════════════════════
+• Average word length (English) ......... 4.7 characters
+• Average sentence length (web) ......... 14-20 words
+• Average sentence length (academic) .... 22-28 words
+• Average paragraph length (web) ........ 40-80 words
+• Reading speed (silent, adult) .......... 200-250 WPM
+• Speaking speed (presentation) .......... 100-150 WPM
+• Blog post ideal length ................. 1,500-2,500 words
+• Homepage ideal length .................. 400-800 words
+• Product page ideal length .............. 200-500 words
+• Meta title max ......................... 50-60 chars / ~600px
+• Meta description max ................... 150-160 chars
+
+═══════════════════════════════════════════════════
+10. BOTTOM LINE
+═══════════════════════════════════════════════════
+A word counter is not just a counter — it's a writing coach, an SEO
+assistant, a social media safeguard, an academic referee, and a
+productivity tracker all rolled into one. Whether you're a student
+trying to hit 1,500 words, a marketer squeezing a message into 280
+characters, or a novelist tracking daily output, the right tool saves
+time, prevents mistakes, and improves the quality of everything you
+write.`
+  },
+  {
     id: "user-guide",
-    title: "📘 Complete User Guide — Every Feature Step-by-Step (v10)",
+    title: "📘 Complete User Guide — Every Feature Step-by-Step (v10.1)",
     content: `═══════════════════════════════
 STEP 1 — START WRITING
 ═══════════════════════════════
@@ -2344,50 +2623,9 @@ STEP 11 — WRITING TOOLS HUB
 4 animated tabs: Suggested Tools, Writing Tools, Academic Tools, Quality Analyzer.
 
 ═══════════════════════════════
-STEP 12 — v10 AI INSIGHTS HUB (NEW)
+STEP 12 — v10 AI INSIGHTS HUB
 ═══════════════════════════════
-6 sub-tabs:
-
-🧠 AI INSIGHTS:
-▸ Writing Tone — Formal / Neutral / Informal (based on vocabulary markers)
-▸ Sentiment — Positive / Negative / Mixed with score and word counts
-▸ Passive Voice — Count, percentage, and examples
-▸ Adverb Density — Percentage + top 5 adverbs
-▸ Vocabulary Richness (TTR) — Unique words ÷ total words
-▸ Sentence Variety — Score 0-100 based on short/medium/long balance
-▸ Cliches Detector — 20 overused phrases flagged
-
-⏱ SESSION DASHBOARD:
-▸ Start/End session button
-▸ Live timer
-▸ Words typed during session
-▸ Real-time WPM
-▸ Progress bar to next 500-word milestone
-▸ WPM speed bands (Very Fast / Fast / Average / Slow)
-
-📊 VISUAL ANALYTICS:
-▸ SVG donut chart — character composition (letters/digits/punctuation/spaces)
-▸ Sentence length histogram — 8 buckets
-▸ Top 15 words bar chart with animated bars
-
-☁️ WORD CLOUD:
-▸ Live word cloud from your text
-▸ 4 color palettes (Violet / Ocean / Sunset / Forest)
-▸ Size scales with frequency
-▸ Hover to see exact count
-
-😀 EMOJI PICKER:
-▸ 8 categories (Smileys, Gestures, Hearts, Nature, Food, Activities, Travel, Symbols)
-▸ 400+ emojis
-▸ Click to insert at cursor
-▸ Transition Words Helper — 8 categories (addition, contrast, cause, example, sequence, summary, emphasis, time)
-
-📁 MULTI-DOCUMENT WORKSPACE:
-▸ Save current document with custom name
-▸ Load / Delete documents
-▸ Shows word count + save timestamp
-▸ Storage size display
-▸ All stored in localStorage
+6 sub-tabs: AI Insights, Session Dashboard, Visual Analytics, Word Cloud, Emoji Picker, Documents.
 
 ═══════════════════════════════
 KEYBOARD SHORTCUTS
@@ -2405,7 +2643,7 @@ Esc — Close popups`
   },
   {
     id: "features",
-    title: "⚙️ Every Feature Explained (v10)",
+    title: "⚙️ Every Feature Explained (v10.1)",
     content: `📊 REAL-TIME STATISTICS
 10 metrics update every keystroke.
 
@@ -2431,14 +2669,11 @@ Custom picker OR 10 preset swatches.
 14 fonts: Inter, Poppins, Roboto, Merriweather, Playfair Display, Lora, Georgia, Times New Roman, Arial, Verdana, JetBrains Mono, Fira Code, Roboto Mono, Courier New.
 
 📐 HEADINGS H1-H6
-Heading ▾ dropdown.
 
 🔗 INSERT LINK
 Ctrl+K OR click 🔗.
 
-➖ HORIZONTAL RULE
-
-│ VERTICAL RULE
+➖ HORIZONTAL RULE / │ VERTICAL RULE
 
 </> CODE BLOCK
 
@@ -2470,7 +2705,6 @@ Top 10 words + percentage.
 6 platforms with dual progress bars.
 
 🎤 VOICE TYPING
-Chrome/Edge + HTTPS.
 
 🔊 TEXT TO SPEECH
 
@@ -2478,9 +2712,7 @@ Chrome/Edge + HTTPS.
 
 📤 EXPORT — TXT, HTML, DOC, CSV, PDF
 
-🌙 DARK MODE
-
-⛶ FOCUS MODE
+🌙 DARK MODE / ⛶ FOCUS MODE
 
 🎓 ACADEMIC TOOLS
 Word limit tracker, paragraph analyzer.
@@ -2489,14 +2721,13 @@ Word limit tracker, paragraph analyzer.
 9 rule-based checks.
 
 🧰 40+ WRITING TOOLS
-Formatter, Cleaner, Converter, Sort, Reverse, Space tools.
 
 ═══════════════════════════════
-🆕 v10 NEW FEATURES
+v10 NEW FEATURES
 ═══════════════════════════════
 
 🧠 AI WRITING INSIGHTS
-Client-side analysis — Tone, Sentiment, Passive Voice, Adverb Density, Vocabulary Richness (TTR), Sentence Variety, Cliches.
+Tone, Sentiment, Passive Voice, Adverb Density, Vocabulary Richness (TTR), Sentence Variety, Cliches.
 
 ⏱ SESSION DASHBOARD
 Real-time WPM, session timer, words-typed counter, milestone tracking.
@@ -2511,7 +2742,14 @@ SVG donut chart, sentence histogram, top-15 word bar chart.
 400+ emojis, 8 categories, 8 transition-word categories.
 
 📁 MULTI-DOCUMENT WORKSPACE
-Save/load/delete named docs in localStorage.`
+Save/load/delete named docs in localStorage.
+
+═══════════════════════════════
+v10.1 FIXES
+═══════════════════════════════
+✅ Bold / Italic / Underline / Strikethrough now work properly
+✅ Duplicate line removal now reliably updates the editor
+✅ New deep-dive article added to Guides section`
   },
 ];
 
@@ -2538,10 +2776,12 @@ const faqData = [
   { q: "Can I customize reading and speaking speed?", a: "Yes. Open ⚙ Settings → Reading Speed section." },
   { q: "Are the animations performance-heavy?", a: "No. Uses CSS transforms and requestAnimationFrame." },
   { q: "Is the design responsive?", a: "Yes — fully responsive across mobile (320px+), tablet, laptop, desktop, and 4K." },
-  { q: "🆕 What is AI Writing Insights?", a: "Client-side analysis of writing tone, sentiment, passive voice, adverb density, vocabulary richness (TTR), sentence variety, and cliche detection. No external AI API used." },
-  { q: "🆕 What is the Session Dashboard?", a: "Tracks your live writing WPM, session duration, and words typed. Press Start Writing Session, type, and see real-time metrics." },
-  { q: "🆕 What is the Word Cloud?", a: "Visual representation of your most-used words. Size scales with frequency. 4 color palettes available." },
-  { q: "🆕 What is the Multi-Document Workspace?", a: "Save, load, and delete named documents in localStorage. Each shows word count and timestamp." },
-  { q: "🆕 What is the Emoji Picker?", a: "Click any emoji to insert at cursor. 400+ emojis across 8 categories. Also includes transition words helper." },
-  { q: "🆕 What are the Visual Analytics?", a: "SVG donut chart for character composition, sentence-length histogram, and top-15 word bar chart." },
+  { q: "What is AI Writing Insights?", a: "Client-side analysis of writing tone, sentiment, passive voice, adverb density, vocabulary richness (TTR), sentence variety, and cliche detection." },
+  { q: "What is the Session Dashboard?", a: "Tracks your live writing WPM, session duration, and words typed." },
+  { q: "What is the Word Cloud?", a: "Visual representation of your most-used words. Size scales with frequency." },
+  { q: "What is the Multi-Document Workspace?", a: "Save, load, and delete named documents in localStorage." },
+  { q: "What is the Emoji Picker?", a: "Click any emoji to insert at cursor. 400+ emojis across 8 categories." },
+  { q: "What are the Visual Analytics?", a: "SVG donut chart, sentence-length histogram, and top-15 word bar chart." },
+  { q: "Why weren't Bold / Italic working before?", a: "The toolbar button was stealing editor focus on mousedown, so the selection was lost. Now fixed — the selection is preserved and formatting applies correctly." },
+  { q: "Why weren't duplicate lines being removed?", a: "The old code used innerText setter which sometimes fails on multi-line text in certain browsers. Now the editor uses direct HTML injection, so duplicate removal works reliably." },
 ];
