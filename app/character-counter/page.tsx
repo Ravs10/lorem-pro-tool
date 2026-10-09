@@ -196,43 +196,11 @@ export default function Page() {
     return true;
   };
 
-  // FIX: Multi-format - selection preserve
-  const wrapSelectionModern = (tagName: string) => {
-    const editor = editorRef.current;
-    const sel = window.getSelection();
-    if (!editor ||!sel || sel.rangeCount === 0) return false;
-    const range = sel.getRangeAt(0);
-    if (range.collapsed ||!editor.contains(range.commonAncestorContainer)) return false;
-
-    const wrapper = document.createElement(tagName);
-    try {
-      range.surroundContents(wrapper);
-    } catch {
-      const content = range.extractContents();
-      wrapper.appendChild(content);
-      range.insertNode(wrapper);
-    }
-
-    // Selection ko collapse mat karo, select rakho taaki next format turant lage
-    const newRange = document.createRange();
-    newRange.selectNodeContents(wrapper);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-    savedSelectionRef.current = newRange.cloneRange();
-
-    localStorage.setItem("adv_html", editor.innerHTML);
-    setText(readEditor());
-    return true;
-  };
-
   const format = (command: string, value?: string) => {
     const editor = editorRef.current;
     if (!editor) return;
     editor.focus();
     if (["bold","italic","underline"].includes(command)) {
-      const tagMap: any = { bold: "b", italic: "i", underline: "u" };
-      const done = wrapSelectionModern(tagMap[command]);
-      if (done) return;
       restoreSelection();
     }
     const isListCommand = command === "insertUnorderedList" || command === "insertOrderedList";
@@ -407,14 +375,6 @@ export default function Page() {
     }
   };
 
-  const safeBase64Encode = () => {
-    try {
-      const raw = btoa(unescape(encodeURIComponent(text)));
-      const chunked = raw.match(/.{1,64}/g)?.join("\n") || raw;
-      syncEditor(chunked);
-    } catch { alert("Encode failed"); }
-  };
-
   const toggleVoice = () => {
     if (listening) {
       recognitionRef.current?.stop();
@@ -492,23 +452,23 @@ export default function Page() {
   return (
     <div className={dark? "dark" : ""}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
-  .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
-  .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
-  .rich-editor p{margin:.45em 0}
-  .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
-  .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-  .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-  .rich-editor li{display:list-item!important; margin:.25em 0!important}
-  .rich-editor{overflow-wrap:anywhere!important; word-break:break-word!important; white-space:pre-wrap!important; overflow-x:hidden!important; max-width:100%!important; min-width:0}
-  .rich-editor *{overflow-wrap:anywhere!important; word-break:break-word!important; max-width:100%!important}
-  .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all!important}
-  .rich-editor b,.rich-editor strong{font-weight:800}
-  .rich-editor i,.rich-editor em{font-style:italic!important}
-  .rich-editor u{text-decoration:underline}
-  .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
-  .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
-  .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
-  .editor-wrap{overflow-x:hidden;max-width:100%}
+ .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
+ .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
+ .rich-editor p{margin:.45em 0}
+ .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
+ .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+ .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+ .rich-editor li{display:list-item!important; margin:.25em 0!important}
+ .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
+ .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+ .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
+ .rich-editor b,.rich-editor strong{font-weight:800}
+ .rich-editor i,.rich-editor em{font-style:italic!important}
+ .rich-editor u{text-decoration:underline}
+ .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
+ .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
+ .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
+ .editor-wrap{overflow-x:hidden;max-width:100%}
       `}</style>
       <div className={`min-h-screen ${dark? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
         <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
@@ -602,7 +562,7 @@ export default function Page() {
 
             {tab === "tools" && <div className={`rounded-[20px] border p-4 grid grid-cols-2 gap-2 ${surface}`}>
               <button className={button} onClick={()=>syncEditor("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(20))}>Lorem 100w</button>
-              <button className={button} onClick={safeBase64Encode}>Base64 Encode</button>
+              <button className={button} onClick={()=>syncEditor(btoa(unescape(encodeURIComponent(text))))}>Base64 Encode</button>
               <button className={button} onClick={()=>{try{syncEditor(decodeURIComponent(escape(atob(text))))}catch{alert("Invalid Base64")}}}>Base64 Decode</button>
               <button className={button} onClick={()=>syncEditor(text.toLowerCase().replace(/[^a-z0-9]+/g,"-"))}>Slugify</button>
               <button className={button} onClick={()=>syncEditor(Array.from(text).reverse().join(""))}>Reverse</button>
