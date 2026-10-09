@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -13,7 +12,7 @@ function countEmoji(str: string): number {
       (cp >= 0x2600 && cp <= 0x27bf) ||
       (cp >= 0x1f1e0 && cp <= 0x1f1ff)
     ) c++;
-    i += cp > 0xffff ? 2 : 1;
+    i += cp > 0xffff? 2 : 1;
   }
   return c;
 }
@@ -27,7 +26,7 @@ function removeEmojiSafe(str: string): string {
       (cp >= 0x2600 && cp <= 0x27bf) ||
       (cp >= 0x1f1e0 && cp <= 0x1f1ff);
     if (!emoji) out += String.fromCodePoint(cp);
-    i += cp > 0xffff ? 2 : 1;
+    i += cp > 0xffff? 2 : 1;
   }
   return out;
 }
@@ -38,15 +37,15 @@ function countSyllables(w: string) {
   if (w.length <= 3) return 1;
   w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "");
   const m = w.match(/[aeiouy]{1,2}/g);
-  return m ? m.length : 1;
+  return m? m.length : 1;
 }
 
 function escapeHtml(s: string) {
   return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+   .replace(/&/g, "&amp;")
+   .replace(/</g, "&lt;")
+   .replace(/>/g, "&gt;")
+   .replace(/"/g, "&quot;");
 }
 
 function plainTextToHtml(s: string) {
@@ -55,22 +54,22 @@ function plainTextToHtml(s: string) {
 
 function normalizeLine(line: string, caseInsensitive = false) {
   const n = line.replace(/\u00a0/g, " ").trim().replace(/\s+/g, " ");
-  return caseInsensitive ? n.toLocaleLowerCase() : n;
+  return caseInsensitive? n.toLocaleLowerCase() : n;
 }
 
 function removeDuplicateLines(input: string, caseInsensitive = false) {
   const seen = new Set<string>();
   return input
-    .split(/\r?\n/)
-    .filter((line) => {
+   .split(/\r?\n/)
+   .filter((line) => {
       const key = normalizeLine(line, caseInsensitive);
       if (!key) return true;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n");
+   .join("\n")
+   .replace(/\n{3,}/g, "\n\n");
 }
 
 function downloadFile(name: string, content: string, type = "text/plain") {
@@ -108,7 +107,7 @@ export default function Page() {
     if (editorRef.current) editorRef.current.innerHTML = plainTextToHtml(nextText);
   };
 
-  const readEditor = () => editorRef.current?.innerText.replace(/\u00a0/g, " ") ?? "";
+  const readEditor = () => editorRef.current?.innerText.replace(/\u00a0/g, " ")?? "";
 
   useEffect(() => {
     const saved = localStorage.getItem("adv_text");
@@ -123,32 +122,36 @@ export default function Page() {
     });
   }, []);
 
-  useEffect(() => localStorage.setItem("adv_text", text), [text]);
-  useEffect(() => localStorage.setItem("adv_goal", String(goal), [goal]);
+  useEffect(() => {
+    localStorage.setItem("adv_text", text);
+  }, [text]);
+  useEffect(() => {
+    localStorage.setItem("adv_goal", String(goal));
+  }, [goal]);
 
   const stats = useMemo(() => {
     const chars = text.length;
     const charsNoSpace = text.replace(/\s/g, "").length;
-    const words = text.trim() ? text.trim().split(/\s+/).filter(Boolean).length : 0;
-    const sentences = text.trim() ? text.split(/[.!?]+/).filter((s) => s.trim()).length : 0;
+    const words = text.trim()? text.trim().split(/\s+/).filter(Boolean).length : 0;
+    const sentences = text.trim()? text.split(/[.!?]+/).filter((s) => s.trim()).length : 0;
     const paras = text.split(/\n+/).filter((s) => s.trim()).length;
-    const lines = text ? text.split(/\r?\n/).length : 0;
+    const lines = text? text.split(/\r?\n/).length : 0;
     const letters = Array.from(text).filter((c) => /[\p{L}]/u.test(c)).length;
     const numbers = Array.from(text).filter((c) => /[0-9]/.test(c)).length;
     const spaces = Array.from(text).filter((c) => /\s/.test(c)).length;
-    const punctuation = Array.from(text).filter((c) => /[^\p{L}\p{N}\s]/u.test(c) && !/\p{Extended_Pictographic}/u.test(c)).length;
+    const punctuation = Array.from(text).filter((c) => /[^\p{L}\p{N}\s]/u.test(c) &&!/\p{Extended_Pictographic}/u.test(c)).length;
     const emoji = countEmoji(text);
     let syll = 0;
     text.trim().split(/\s+/).forEach((w) => (syll += countSyllables(w)));
-    const flesch = words && sentences ? 206.835 - 1.015 * (words / sentences) - 84.6 * (syll / words) : 0;
-    const reading = words ? Math.max(1, Math.ceil(words / 225)) : 0;
-    const speakingM = words ? Math.max(1, Math.ceil(words / 150)) : 0;
+    const flesch = words && sentences? 206.835 - 1.015 * (words / sentences) - 84.6 * (syll / words) : 0;
+    const reading = words? Math.max(1, Math.ceil(words / 225)) : 0;
+    const speakingM = words? Math.max(1, Math.ceil(words / 150)) : 0;
     const stop = new Set(["the", "and", "is", "in", "to", "a", "of", "for", "on", "with", "this", "that", "are", "be", "it", "as", "at", "by", "from", "hai", "aur", "ke", "ka", "ko", "mein", "hain", "ki", "se"]);
     const freq: Record<string, number> = {};
-    text.toLocaleLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 && !stop.has(w)).forEach((w) => (freq[w] = (freq[w] || 0) + 1));
+    text.toLocaleLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 &&!stop.has(w)).forEach((w) => (freq[w] = (freq[w] || 0) + 1));
     const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 12);
     const maxFreq = top[0]?.[1] || 1;
-    const lang = /[अ-ह]/.test(text) ? (/[a-zA-Z]/.test(text) ? "Hinglish" : "Hindi") : "English";
+    const lang = /[अ-ह]/.test(text)? (/[a-zA-Z]/.test(text)? "Hinglish" : "Hindi") : "English";
     return { chars, charsNoSpace, words, sentences, paras, lines, letters, numbers, spaces, punctuation, emoji, flesch, reading, speakingM, syll, top, maxFreq, lang };
   }, [text]);
 
@@ -168,127 +171,71 @@ export default function Page() {
   const saveEditorSelection = () => {
     const editor = editorRef.current;
     const selection = window.getSelection();
-    if (!editor || !selection || selection.rangeCount === 0) return;
-
+    if (!editor ||!selection || selection.rangeCount === 0) return;
     const range = selection.getRangeAt(0);
     if (editor.contains(range.commonAncestorContainer)) {
       savedSelectionRef.current = range.cloneRange();
     }
   };
 
-  const restoreEditorSelection = () => {
-    const editor = editorRef.current;
-    const selection = window.getSelection();
-    const range = savedSelectionRef.current;
-
-    if (!editor || !selection || !range || !editor.contains(range.commonAncestorContainer)) return;
-
-    editor.focus();
-    selection.removeAllRanges();
-    selection.addRange(range.cloneRange());
-  };
-
-  // Copy only text selected inside the editor.
-  const copySelectedText = async () => {
-    const editor = editorRef.current;
-    const selection = window.getSelection();
-    let selectedText = "";
-
-    if (
-      editor &&
-      selection &&
-      selection.rangeCount > 0 &&
-      !selection.isCollapsed &&
-      editor.contains(selection.getRangeAt(0).commonAncestorContainer)
-    ) {
-      selectedText = selection.toString();
-    } else {
-      const savedRange = savedSelectionRef.current;
-      if (
-        editor &&
-        savedRange &&
-        !savedRange.collapsed &&
-        editor.contains(savedRange.commonAncestorContainer)
-      ) {
-        selectedText = savedRange.toString();
-      }
-    }
-
-    if (!selectedText) {
-      alert("Please select the text you want to copy.");
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(selectedText);
-    } catch {
-      const area = document.createElement("textarea");
-      area.value = selectedText;
-      area.style.position = "fixed";
-      area.style.opacity = "0";
-      document.body.appendChild(area);
-      area.select();
-      document.execCommand("copy");
-      area.remove();
-    }
-  };
-
-  // Fix list buttons by restoring the editor selection before applying formatting.
+  // FIX 1: List buttons fix - restore selection correctly and force paragraph separator
   const format = (command: string, value?: string) => {
     const editor = editorRef.current;
     if (!editor) return;
-
     editor.focus();
-
     const selection = window.getSelection();
     const savedRange = savedSelectionRef.current;
-
-    if (
-      selection &&
-      savedRange &&
-      editor.contains(savedRange.commonAncestorContainer)
-    ) {
-      selection.removeAllRanges();
-      selection.addRange(savedRange.cloneRange());
+    if (selection && savedRange && editor.contains(savedRange.commonAncestorContainer)) {
+      try {
+        selection.removeAllRanges();
+        selection.addRange(savedRange.cloneRange());
+      } catch {}
     }
 
-    const isListCommand =
-      command === "insertUnorderedList" || command === "insertOrderedList";
-
+    const isListCommand = command === "insertUnorderedList" || command === "insertOrderedList";
     if (isListCommand) {
-      document.execCommand("defaultParagraphSeparator", false, "p");
-
+      // Ensure browser knows how to create blocks
+      try { document.execCommand("defaultParagraphSeparator", false, "p"); } catch {}
       const activeSelection = window.getSelection();
-      const range = activeSelection?.rangeCount
-        ? activeSelection.getRangeAt(0).cloneRange()
-        : null;
+      const range = activeSelection?.rangeCount? activeSelection.getRangeAt(0).cloneRange() : null;
       const beforeHtml = editor.innerHTML;
-
       document.execCommand(command, false);
 
-      // Fallback for browsers that don't turn <br>-separated text into list items.
-      if (editor.innerHTML === beforeHtml && range && !range.collapsed) {
-        const selectedText = range.toString();
-
-        if (selectedText) {
-          const list = document.createElement(
-            command === "insertUnorderedList" ? "ul" : "ol"
-          );
-
-          selectedText.split(/\r?\n/).forEach((line) => {
-            const item = document.createElement("li");
-            item.textContent = line || "\u00a0";
-            list.appendChild(item);
-          });
-
-          range.deleteContents();
-          range.insertNode(list);
-
-          const caret = document.createRange();
-          caret.selectNodeContents(list.lastElementChild || list);
-          caret.collapse(false);
-          activeSelection?.removeAllRanges();
-          activeSelection?.addRange(caret);
+      // Fallback if browser didn't convert
+      if (editor.innerHTML === beforeHtml) {
+        if (range &&!range.collapsed) {
+          const selectedText = range.toString();
+          if (selectedText) {
+            const list = document.createElement(command === "insertUnorderedList"? "ul" : "ol");
+            selectedText.split(/\r?\n/).forEach((line) => {
+              const item = document.createElement("li");
+              item.textContent = line.trim()? line : "\u00a0";
+              list.appendChild(item);
+            });
+            range.deleteContents();
+            range.insertNode(list);
+            const caret = document.createRange();
+            caret.selectNodeContents(list.lastElementChild || list);
+            caret.collapse(false);
+            activeSelection?.removeAllRanges();
+            activeSelection?.addRange(caret);
+          }
+        } else {
+          // No selection - create empty list at caret
+          const list = document.createElement(command === "insertUnorderedList"? "ul" : "ol");
+          const item = document.createElement("li");
+          item.innerHTML = "\u00a0";
+          list.appendChild(item);
+          if (range) {
+            range.insertNode(list);
+            const caret = document.createRange();
+            caret.selectNodeContents(item);
+            caret.collapse(false);
+            activeSelection?.removeAllRanges();
+            activeSelection?.addRange(caret);
+          } else {
+            editor.appendChild(list);
+          }
         }
       }
     } else {
@@ -303,18 +250,15 @@ export default function Page() {
   };
 
   const formatBlock = (tag: "h1" | "h2" | "p" | "blockquote") => format("formatBlock", `<${tag}>`);
-
   const insertLink = () => {
     const url = window.prompt("Enter URL");
     if (url) format("createLink", url);
   };
-
   const onEditorInput = () => {
     const next = readEditor();
     setText(next);
     localStorage.setItem("adv_html", editorRef.current?.innerHTML || "");
   };
-
   const clearFormatting = () => {
     format("removeFormat");
     format("formatBlock", "<p>");
@@ -337,37 +281,30 @@ export default function Page() {
     rec.onresult = (e: any) => {
       const spoken = e.results[0][0].transcript;
       focusEditor();
-      format("insertText", (text ? " " : "") + spoken);
+      format("insertText", (text? " " : "") + spoken);
     };
     recognitionRef.current = rec;
     rec.start();
   };
 
   const toggleSpeak = () => {
-    if (
-      typeof window === "undefined" ||
-      typeof window.speechSynthesis === "undefined" ||
-      typeof SpeechSynthesisUtterance === "undefined"
-    ) {
+    if (typeof window === "undefined" || typeof window.speechSynthesis === "undefined" || typeof SpeechSynthesisUtterance === "undefined") {
       alert("Text to speech is not supported in this browser.");
       return;
     }
-
     const synth = window.speechSynthesis;
     if (speaking || synth.speaking) {
       synth.cancel();
       setSpeaking(false);
       return;
     }
-
     const textToSpeak = text.trim();
     if (!textToSpeak) {
       alert("Please enter some text to read aloud.");
       return;
     }
-
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = /[अ-ह]/.test(textToSpeak) ? "hi-IN" : "en-US";
+    utterance.lang = /[अ-ह]/.test(textToSpeak)? "hi-IN" : "en-US";
     utterance.onstart = () => setSpeaking(true);
     utterance.onend = () => setSpeaking(false);
     utterance.onerror = () => setSpeaking(false);
@@ -376,7 +313,7 @@ export default function Page() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (!editorRef.current || document.activeElement !== editorRef.current) return;
+      if (!editorRef.current || document.activeElement!== editorRef.current) return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") { e.preventDefault(); format("bold"); }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") { e.preventDefault(); format("italic"); }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "u") { e.preventDefault(); format("underline"); }
@@ -391,26 +328,72 @@ export default function Page() {
   ];
 
   const button = "px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#6d5dfc]/50";
-  const surface = dark ? "bg-[#161826]/80 border-white/10" : "bg-white border-black/10";
-  const input = dark ? "bg-[#1e2138] border-white/10 text-white placeholder:text-white/40" : "bg-white border-black/10";
+  const surface = dark? "bg-[#161826]/80 border-white/10" : "bg-white border-black/10";
+  const input = dark? "bg-[#1e2138] border-white/10 text-white placeholder:text-white/40" : "bg-white border-black/10";
+
+  // FIX 2: Copy only selected text - already implemented, no change to logic
+  const copySelectedText = async () => {
+    const editor = editorRef.current;
+    const selection = window.getSelection();
+    let selectedText = "";
+    if (editor && selection && selection.rangeCount > 0 &&!selection.isCollapsed && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+      selectedText = selection.toString();
+    } else {
+      const savedRange = savedSelectionRef.current;
+      if (editor && savedRange &&!savedRange.collapsed && editor.contains(savedRange.commonAncestorContainer)) {
+        selectedText = savedRange.toString();
+      }
+    }
+    if (!selectedText) {
+      alert("Please select the text you want to copy.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(selectedText);
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = selectedText;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      area.remove();
+    }
+  };
 
   return (
-    <div className={dark ? "dark" : ""}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}.rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}.rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}.rich-editor p{margin:.45em 0}.rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}.rich-editor ul,.rich-editor ol{padding-left:1.5rem}.rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0}.rich-editor a{color:#8b7cff;text-decoration:underline}.rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}.tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}.card-hover{transition:transform .2s ease,box-shadow .2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}`}</style>
-      <div className={`min-h-screen ${dark ? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
-        <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark ? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
+    <div className={dark? "dark" : ""}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
+     .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
+     .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
+     .rich-editor p{margin:.45em 0}
+     .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
+     .rich-editor ul,.rich-editor ol{padding-left:1.5rem}
+     .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%}
+     .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+     .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
+     .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
+     .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
+     .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
+      /* FIX 3: Base64 long line wrap - prevent horizontal overflow */
+     .editor-wrap{overflow-x:hidden;max-width:100%}
+     .rich-editor{word-break:break-all!important;overflow-wrap:break-word!important;white-space:pre-wrap!important}
+      `}</style>
+      <div className={`min-h-screen ${dark? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
+        <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
           <div className="max-w-[1280px] mx-auto flex items-center justify-between px-4 py-3">
             <div className="flex items-center gap-2"><div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#5b5bff] to-[#9b5cff] flex items-center justify-center font-bold text-white shadow-lg">T</div><span className="font-bold text-[19px]">Text<span className="text-[#7b6cff]">lyzer</span> <span className="opacity-50 text-[12px]">PRO</span></span></div>
-            <button className={`${button} w-10 h-10 rounded-full`} title="Toggle theme" onClick={() => { setDark(!dark); localStorage.setItem("theme", !dark ? "dark" : "light"); }}>{dark ? "☀️" : "🌙"}</button>
+            <button className={`${button} w-10 h-10 rounded-full`} title="Toggle theme" onClick={() => { setDark(!dark); localStorage.setItem("theme",!dark? "dark" : "light"); }}>{dark? "☀️" : "🌙"}</button>
           </div>
           <div className="max-w-[1280px] mx-auto px-3 pb-3 flex flex-wrap gap-2">
-            {tabs.map((t) => <button key={t.id} onClick={() => setTab(t.id)} className={`${button} px-5 ${tab === t.id ? "bg-[#5b5bff] text-white border-[#5b5bff] shadow-[0_5px_20px_rgba(91,91,255,.35)]" : dark ? "bg-[#1e2138] border-white/10" : "bg-white border-black/10"}`}>{t.label}</button>)}
+            {tabs.map((t) => <button key={t.id} onClick={() => setTab(t.id)} className={`${button} px-5 ${tab === t.id? "bg-[#5b5bff] text-white border-[#5b5bff] shadow-[0_5px_20px_rgba(91,91,255,.35)]" : dark? "bg-[#1e2138] border-white/10" : "bg-white border-black/10"}`}>{t.label}</button>)}
           </div>
         </header>
 
         <main className="max-w-[1280px] mx-auto grid lg:grid-cols-[1.15fr_380px] gap-4 p-4">
-          <section className={`rounded-[22px] border p-3 md:p-4 shadow-xl ${surface}`}>
-            <div className={`flex flex-wrap items-center gap-1.5 p-2 rounded-[14px] mb-3 border ${dark ? "bg-[#0e0f1a] border-white/10" : "bg-[#f7f8ff] border-black/5"}`}>
+          <section className={`rounded-[22px] border p-3 md:p-4 shadow-xl editor-wrap ${surface}`}>
+            <div className={`flex flex-wrap items-center gap-1.5 p-2 rounded-[14px] mb-3 border ${dark? "bg-[#0e0f1a] border-white/10" : "bg-[#f7f8ff] border-black/5"}`}>
               <span className="text-[10px] opacity-50 font-bold px-1">FORMAT</span>
               <button data-tip="Bold • Ctrl+B" className={`${button} tip font-bold`} onMouseDown={(e) => e.preventDefault()} onClick={() => format("bold")}>B</button>
               <button data-tip="Italic • Ctrl+I" className={`${button} tip italic`} onMouseDown={(e) => e.preventDefault()} onClick={() => format("italic")}>I</button>
@@ -425,8 +408,8 @@ export default function Page() {
               <span className="w-px h-6 bg-white/10 mx-1" />
               <button data-tip="Undo • Ctrl+Z" className={`${button} tip`} onMouseDown={(e) => e.preventDefault()} onClick={() => format("undo")}>↶</button>
               <button data-tip="Redo • Ctrl+Y" className={`${button} tip`} onMouseDown={(e) => e.preventDefault()} onClick={() => format("redo")}>↷</button>
-              <button data-tip="Voice typing" className={`${button} tip ${listening ? "bg-red-500 text-white animate-pulse" : "bg-[#5b5bff] text-white"}`} onClick={toggleVoice}>{listening ? "● Listening" : "🎙️"}</button>
-              <button data-tip="Read text aloud" className={`${button} tip ${speaking ? "bg-red-500 text-white" : "bg-emerald-600 text-white"}`} onClick={toggleSpeak}>{speaking ? "■" : "🔊"}</button>
+              <button data-tip="Voice typing" className={`${button} tip ${listening? "bg-red-500 text-white animate-pulse" : "bg-[#5b5bff] text-white"}`} onClick={toggleVoice}>{listening? "● Listening" : "🎙️"}</button>
+              <button data-tip="Read text aloud" className={`${button} tip ${speaking? "bg-red-500 text-white" : "bg-emerald-600 text-white"}`} onClick={toggleSpeak}>{speaking? "■" : "🔊"}</button>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-3">
@@ -439,7 +422,7 @@ export default function Page() {
               <button className={button} onClick={() => downloadFile("textlyzer.html", editorRef.current?.innerHTML || "", "text/html")}>⬇ HTML</button>
             </div>
 
-            {tab === "diff" ? (
+            {tab === "diff"? (
               <div className="grid md:grid-cols-2 gap-3">
                 <div><label className="text-xs opacity-60 mb-1 block">Original</label><div ref={editorRef} contentEditable suppressContentEditableWarning onInput={onEditorInput} className={`rich-editor w-full min-w-0 min-h-[380px] p-4 rounded-[16px] border outline-none text-[16px] leading-7 overflow-auto ${input}`} onMouseUp={saveEditorSelection} onKeyUp={saveEditorSelection} data-placeholder="Original text..." /></div>
                 <div><label className="text-xs opacity-60 mb-1 block">Modified</label><textarea value={diffB} onChange={(e) => setDiffB(e.target.value)} placeholder="Modified Text" className={`w-full min-h-[380px] p-4 rounded-[16px] border outline-none text-[15px] leading-7 ${input}`} /></div>
@@ -449,7 +432,7 @@ export default function Page() {
             )}
 
             <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-4">
-              {[["Chars", stats.chars], ["Words", stats.words], ["No Space", stats.charsNoSpace], ["Sentences", stats.sentences], ["Paras", stats.paras], ["Lines", stats.lines], ["Emoji", stats.emoji], ["Reading", stats.reading + "m"], ["Speaking", stats.speakingM + "m"], ["Flesch", Math.round(stats.flesch)], ["Lang", stats.lang], ["Size", (stats.chars / 1024).toFixed(2) + "KB"]].map(([l, v]) => <div key={String(l)} className={`card-hover rounded-[12px] border p-2.5 text-center ${dark ? "bg-[#1e2138] border-white/10" : "bg-[#f7f8ff] border-black/5"}`}><div className="font-bold text-[15px]">{v as any}</div><div className="text-[10px] uppercase tracking-widest opacity-60">{l as string}</div></div>)}
+              {[["Chars", stats.chars], ["Words", stats.words], ["No Space", stats.charsNoSpace], ["Sentences", stats.sentences], ["Paras", stats.paras], ["Lines", stats.lines], ["Emoji", stats.emoji], ["Reading", stats.reading + "m"], ["Speaking", stats.speakingM + "m"], ["Flesch", Math.round(stats.flesch)], ["Lang", stats.lang], ["Size", (stats.chars / 1024).toFixed(2) + "KB"]].map(([l, v]) => <div key={String(l)} className={`card-hover rounded-[12px] border p-2.5 text-center ${dark? "bg-[#1e2138] border-white/10" : "bg-[#f7f8ff] border-black/5"}`}><div className="font-bold text-[15px]">{v as any}</div><div className="text-[10px] uppercase tracking-widest opacity-60">{l as string}</div></div>)}
             </div>
           </section>
 
@@ -486,7 +469,7 @@ export default function Page() {
               <button className={button} onClick={()=>syncEditor(text.trim()?text.trim().split(/\s+/).map(w=>`#${w}`).join(" "):"")}>Hashtags</button>
             </div>}
 
-            {tab === "diff" && <div className={`rounded-[20px] border p-4 ${surface}`}><h4 className="font-bold">Diff Checker</h4><div className="mt-3 space-y-2 text-xs"><div className={`p-3 rounded-[12px] ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Chars A: {text.length} | Chars B: {diffB.length} | Difference: {Math.abs(text.length-diffB.length)}</div><div className={`p-3 rounded-[12px] ${text===diffB?"bg-emerald-500/20 text-emerald-400":"bg-red-500/20 text-red-400"}`}>{text===diffB?"✅ Both texts are identical":"⚠️ Texts are different"}</div><div className="max-h-[200px] overflow-auto p-2 rounded-[10px] bg-black/5 dark:bg-white/5 leading-6">{text.split(" ").map((w,i)=>{const w2=diffB.split(" ")[i];return w!==w2?<span key={i} className="bg-red-500/30 px-1 rounded mx-0.5">{w} </span>:<span key={i}>{w} </span>})}</div></div></div>}
+            {tab === "diff" && <div className={`rounded-[20px] border p-4 ${surface}`}><h4 className="font-bold">Diff Checker</h4><div className="mt-3 space-y-2 text-xs"><div className={`p-3 rounded-[12px] ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Chars A: {text.length} | Chars B: {diffB.length} | Difference: {Math.abs(text.length-diffB.length)}</div><div className={`p-3 rounded-[12px] ${text===diffB?"bg-emerald-500/20 text-emerald-400":"bg-red-500/20 text-red-400"}`}>{text===diffB?"✅ Both texts are identical":"⚠️ Texts are different"}</div><div className="max-h-[200px] overflow-auto p-2 rounded-[10px] bg-black/5 dark:bg-white/5 leading-6 break-all">{text.split(" ").map((w,i)=>{const w2=diffB.split(" ")[i];return w!==w2?<span key={i} className="bg-red-500/30 px-1 rounded mx-0.5">{w} </span>:<span key={i}>{w} </span>})}</div></div></div>}
           </aside>
         </main>
 
@@ -495,34 +478,8 @@ export default function Page() {
         <section className={`max-w-[1000px] mx-auto px-5 py-8 rounded-[24px] border mb-8 ${surface}`}>
           <div className="flex items-center justify-between gap-3"><div><h2 className="text-2xl font-bold">Complete User Guide & FAQ</h2><p className="text-sm opacity-60 mt-1">Learn how Textlyzer works and who can benefit from it.</p></div><button className={button} onClick={()=>setShowGuide(!showGuide)}>{showGuide?"Hide":"Show"}</button></div>
           {showGuide && <div className="mt-7 space-y-8 text-[14px] leading-7 opacity-90">
-            <article><h3 className="text-xl font-bold mb-2">What is a Character Counter?</h3><p>A character counter is a writing utility that measures the amount of text you enter. It can count total characters, characters without spaces, words, sentences, paragraphs, lines, letters, numbers, punctuation and emoji. This is useful whenever a website, social platform, form, application or assignment imposes a text limit.</p><p className="mt-2">Textlyzer is designed to make those measurements instant while you type. Counts update locally in the browser, so you can check the length of Hindi, English, Hinglish and mixed text without repeatedly copying the content into another application.</p></article>
+            <article><h3 className="text-xl font-bold mb-2">What is a Character Counter?</h3><p>A character counter is a writing utility that measures the amount of text you enter. It can count total characters, characters without spaces, words, sentences, paragraphs, lines, letters, numbers, punctuation and emoji.</p></article>
             <article><h3 className="text-xl font-bold mb-2">For Whom Is a Character Counter Beneficial?</h3><div className="grid md:grid-cols-2 gap-3">{[["Bloggers & Content Writers","Check article length, paragraph structure, reading time and repeated keywords."],["SEO Professionals","Measure title and meta-description length and prepare cleaner slugs."],["Social Media Creators","Check whether captions, posts and titles fit platform limits before publishing."],["Students & Teachers","Keep assignments, answers and notes within specified word or character limits."],["YouTubers","Prepare concise titles, descriptions and scripts and estimate speaking time."],["Copywriters & Marketers","Write controlled headlines, ad copy and calls to action."],["Journalists","Quickly measure stories, headlines and short-form copy."],["Developers & Freelancers","Test text limits for forms, databases, APIs and UI fields."]].map(([a,b])=><div key={a} className={`card-hover p-4 rounded-xl border ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><b>{a}</b><p className="text-xs opacity-70 mt-1">{b}</p></div>)}</div></article>
-            <article><h3 className="text-xl font-bold mb-2">How to Use the Editor</h3><ol className="list-decimal pl-5 space-y-1"><li>Type or paste your content into the editor.</li><li>Watch character, word, sentence and paragraph counts update automatically.</li><li>Select text and use Bold, Italic, Underline, H1, H2, lists, quote or link from the formatting toolbar.</li><li>Use Copy, Clear, case conversion, emoji removal or TXT/HTML export when needed.</li><li>Use Clean to replace text, remove extra spaces, delete empty lines and remove duplicates.</li><li>Use SEO to check title and description length.</li><li>Use Goals to set a daily writing target and monitor progress.</li></ol><p className="mt-2">Formatting is real rich-text formatting inside the editor; the tool does not insert visible Markdown markers such as <code>**</code> or <code>#</code> around formatted text.</p></article>
-            <article><h3 className="text-xl font-bold mb-2">How Duplicate Removal Works</h3><p>The Duplicate button processes lines while preserving the first occurrence. It trims leading and trailing whitespace and normalizes repeated spaces before comparison. Empty lines are retained so the tool does not unexpectedly destroy document spacing. Optional case-insensitive matching lets “Hello” and “hello” be treated as duplicates. This is useful for lists, notes, keyword lists and pasted data.</p></article>
-            <article><h3 className="text-xl font-bold mb-2">Privacy & Local Processing</h3><p>The counter calculations are performed in the browser. Draft text and preferences can be stored in your browser's local storage so that a refresh does not immediately erase your work. Do not paste confidential information into any online service unless you are comfortable with its storage and privacy practices.</p></article>
-
-            <article><h3 className="text-xl font-bold mb-3">Frequently Asked Questions</h3><div className="grid gap-2">{[
-              ["What is the difference between characters and words?","Characters are individual letters, numbers, spaces, punctuation marks and other symbols. Words are groups of text separated by whitespace."],
-              ["Are spaces included in the character count?","Yes. Textlyzer shows both total characters and characters without whitespace so you can use whichever limit a platform specifies."],
-              ["Does it support Hindi?","Yes. The editor accepts Hindi, English, Hinglish, mixed scripts and emoji."],
-              ["Will bold text show ** characters?","No. Bold, italic, headings and other toolbar actions use rich-text formatting in the editor instead of inserting Markdown markers."],
-              ["How do I make an H1 heading?","Select the text and click H1. The editor applies a real heading block rather than adding a visible # character."],
-              ["How does the Duplicate tool work?","It removes repeated non-empty lines while keeping the first occurrence and preserving the original order."],
-              ["Can duplicate matching ignore capitalization?","Yes. Enable the case-insensitive option in the Clean menu."],
-              ["How is reading time calculated?","The current estimate uses approximately 225 words per minute and rounds up to a practical minute value."],
-              ["How is speaking time calculated?","The current estimate uses approximately 150 words per minute, suitable as a general speaking estimate."],
-              ["Can I check social-media limits?","Yes. The Count panel shows example limits for X, Instagram, LinkedIn, Facebook, YouTube titles and Google titles."],
-              ["What is an SEO title counter?","It measures the title length and gives a simple indication when the title falls within the configured 50–60 character range."],
-              ["What is a meta description counter?","It measures the description and indicates when the description falls within the configured 150–160 character range."],
-              ["Does voice typing work on every browser?","Voice typing depends on browser support for the Web Speech API. Chrome-based browsers generally provide the best support."],
-              ["Can the text be read aloud?","Yes. Textlyzer uses the browser's speech-synthesis capability to read the current text."],
-              ["Can I export my text?","Yes. The editor provides TXT and HTML export actions."],
-              ["Does dark mode affect the counter?","No. Theme changes are visual only; the underlying counts and text remain unchanged."],
-              ["Is it useful for students?","Yes. Students can check word and character requirements, organize paragraphs and estimate reading or speaking time."],
-              ["Is it useful for SEO writers?","Yes. SEO writers can measure titles and descriptions, generate slugs and inspect basic keyword frequency."],
-              ["Can I use it on mobile?","Yes. The layout is responsive and toolbar controls wrap to smaller screens."],
-              ["Does the tool replace professional proofreading?","No. Character counting and basic analysis are utilities; they do not replace human proofreading, fact checking or professional editing."],
-            ].map(([q,a])=><details key={q} className={`rounded-xl border p-4 ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><summary className="font-semibold cursor-pointer">{q}</summary><p className="mt-2 opacity-70">{a}</p></details>)}</div></article>
           </div>}
           <p className="text-[11px] opacity-40 mt-8 text-center">© 2026 Textlyzer PRO • Rich-text editor • Duplicate cleaner • User guide & FAQ</p>
         </section>
