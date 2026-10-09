@@ -42,10 +42,10 @@ function countSyllables(w: string) {
 
 function escapeHtml(s: string) {
   return s
-  .replace(/&/g, "&amp;")
-  .replace(/</g, "&lt;")
-  .replace(/>/g, "&gt;")
-  .replace(/"/g, "&quot;");
+ .replace(/&/g, "&amp;")
+ .replace(/</g, "&lt;")
+ .replace(/>/g, "&gt;")
+ .replace(/"/g, "&quot;");
 }
 
 function plainTextToHtml(s: string) {
@@ -60,16 +60,16 @@ function normalizeLine(line: string, caseInsensitive = false) {
 function removeDuplicateLines(input: string, caseInsensitive = false) {
   const seen = new Set<string>();
   return input
-  .split(/\r?\n/)
-  .filter((line) => {
+ .split(/\r?\n/)
+ .filter((line) => {
       const key = normalizeLine(line, caseInsensitive);
       if (!key) return true;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
-  .join("\n")
-  .replace(/\n{3,}/g, "\n\n");
+ .join("\n")
+ .replace(/\n{3,}/g, "\n\n");
 }
 
 function downloadFile(name: string, content: string, type = "text/plain") {
@@ -97,6 +97,7 @@ export default function Page() {
   const [speaking, setSpeaking] = useState(false);
   const [duplicateCaseInsensitive, setDuplicateCaseInsensitive] = useState(false);
   const [showGuide, setShowGuide] = useState(true);
+  const [voiceLang, setVoiceLang] = useState("en-IN");
 
   const editorRef = useRef<HTMLDivElement>(null);
   const savedSelectionRef = useRef<Range | null>(null);
@@ -114,9 +115,11 @@ export default function Page() {
     const savedHtml = localStorage.getItem("adv_html");
     const g = localStorage.getItem("adv_goal");
     const th = localStorage.getItem("theme");
+    const vLang = localStorage.getItem("adv_voice_lang");
     if (saved) setText(saved);
     if (g) setGoal(Number(g) || 1000);
     if (th === "light") setDark(false);
+    if (vLang) setVoiceLang(vLang);
     requestAnimationFrame(() => {
       if (editorRef.current) editorRef.current.innerHTML = savedHtml || plainTextToHtml(saved || "");
     });
@@ -128,6 +131,9 @@ export default function Page() {
   useEffect(() => {
     localStorage.setItem("adv_goal", String(goal));
   }, [goal]);
+  useEffect(() => {
+    localStorage.setItem("adv_voice_lang", voiceLang);
+  }, [voiceLang]);
 
   const stats = useMemo(() => {
     const chars = text.length;
@@ -194,7 +200,6 @@ export default function Page() {
     const editor = editorRef.current;
     if (!editor) return;
     editor.focus();
-    // FIX: Bold/Italic/Underline ke liye hamesha restore
     if (["bold","italic","underline"].includes(command)) {
       restoreSelection();
     }
@@ -262,14 +267,12 @@ export default function Page() {
     format("formatBlock", "<p>");
   };
 
-  // FIX: Preserve H1/H2 while changing case
   const transformCasePreserve = (toUpper: boolean) => {
     const editor = editorRef.current;
     if (!editor) return;
     editor.focus();
     restoreSelection();
     const sel = window.getSelection();
-    // If something selected, only transform selected part
     if (sel && sel.rangeCount > 0 &&!sel.isCollapsed && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
       const range = sel.getRangeAt(0);
       const walker = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_TEXT, {
@@ -281,7 +284,6 @@ export default function Page() {
       if (nodes.length === 0 && range.commonAncestorContainer.nodeType === 3) nodes.push(range.commonAncestorContainer as Text);
       nodes.forEach(t => { if(t.textContent) t.textContent = toUpper? t.textContent.toUpperCase() : t.textContent.toLowerCase(); });
     } else {
-      // No selection - transform all text nodes but keep tags
       const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
       const nodes: Text[] = [];
       let n: any;
@@ -382,7 +384,7 @@ export default function Page() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return alert("Voice typing is not supported in this browser. Try Chrome.");
     const rec = new SR();
-    rec.lang = "hi-IN";
+    rec.lang = voiceLang;
     rec.interimResults = false;
     rec.continuous = false;
     rec.onstart = () => setListening(true);
@@ -390,8 +392,15 @@ export default function Page() {
     rec.onresult = (e: any) => {
       const spoken = e.results[0][0].transcript;
       focusEditor();
-      format("insertText", (text? " " : "") + spoken);
+      restoreSelection();
+      document.execCommand("insertText", false, (text? " " : "") + spoken);
+      const editor = editorRef.current;
+      if (editor) {
+        localStorage.setItem("adv_html", editor.innerHTML);
+        setText(readEditor());
+      }
     };
+    rec.onerror = () => setListening(false);
     recognitionRef.current = rec;
     rec.start();
   };
@@ -443,23 +452,23 @@ export default function Page() {
   return (
     <div className={dark? "dark" : ""}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
-    .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
-    .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
-    .rich-editor p{margin:.45em 0}
-    .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
-    .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-    .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-    .rich-editor li{display:list-item!important; margin:.25em 0!important}
-    .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
-    .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
-    .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
-    .rich-editor b,.rich-editor strong{font-weight:800}
-    .rich-editor i,.rich-editor em{font-style:italic}
-    .rich-editor u{text-decoration:underline}
-    .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
-    .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
-    .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
-    .editor-wrap{overflow-x:hidden;max-width:100%}
+   .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
+   .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
+   .rich-editor p{margin:.45em 0}
+   .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
+   .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+   .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+   .rich-editor li{display:list-item!important; margin:.25em 0!important}
+   .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
+   .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+   .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
+   .rich-editor b,.rich-editor strong{font-weight:800}
+   .rich-editor i,.rich-editor em{font-style:italic}
+   .rich-editor u{text-decoration:underline}
+   .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
+   .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
+   .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
+   .editor-wrap{overflow-x:hidden;max-width:100%}
       `}</style>
       <div className={`min-h-screen ${dark? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
         <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
@@ -489,7 +498,15 @@ export default function Page() {
               <span className="w-px h-6 bg-white/10 mx-1" />
               <button data-tip="Undo • Ctrl+Z" className={`${button} tip`} onMouseDown={(e) => e.preventDefault()} onClick={() => format("undo")}>↶</button>
               <button data-tip="Redo • Ctrl+Y" className={`${button} tip`} onMouseDown={(e) => e.preventDefault()} onClick={() => format("redo")}>↷</button>
-              <button data-tip="Voice typing" className={`${button} tip ${listening? "bg-red-500 text-white animate-pulse" : "bg-[#5b5bff] text-white"}`} onClick={toggleVoice}>{listening? "● Listening" : "🎙️"}</button>
+              <div className="flex items-center gap-1 ml-1">
+                <select value={voiceLang} onChange={(e)=>setVoiceLang(e.target.value)} className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold ${input}`} title="Voice language">
+                  <option value="en-IN">EN-IN Hinglish</option>
+                  <option value="hi-IN">हिंदी</option>
+                  <option value="en-US">English US</option>
+                  <option value="en-GB">English UK</option>
+                </select>
+                <button data-tip="Voice typing - multilingual" className={`${button} tip ${listening? "bg-red-500 text-white animate-pulse" : "bg-[#5b5bff] text-white"}`} onClick={toggleVoice}>{listening? "● "+voiceLang+" Listening" : "🎙️ Voice"}</button>
+              </div>
               <button data-tip="Read text aloud" className={`${button} tip ${speaking? "bg-red-500 text-white" : "bg-emerald-600 text-white"}`} onClick={toggleSpeak}>{speaking? "■" : "🔊"}</button>
             </div>
 
@@ -579,7 +596,7 @@ export default function Page() {
               ["Can I check social-media limits?","Yes. The Count panel shows example limits for X, Instagram, LinkedIn, Facebook, YouTube titles and Google titles."],
               ["What is an SEO title counter?","It measures the title length and gives a simple indication when the title falls within the configured 50–60 character range."],
               ["What is a meta description counter?","It measures the description and indicates when the description falls within the configured 150–160 character range."],
-              ["Does voice typing work on every browser?","Voice typing depends on browser support for the Web Speech API. Chrome-based browsers generally provide the best support."],
+              ["Does voice typing work on every browser?","Voice typing depends on browser support for the Web Speech API. Chrome-based browsers generally provide the best support. Multilingual voice now supports Hindi, Hinglish (en-IN), English US and UK."],
               ["Can the text be read aloud?","Yes. Textlyzer uses the browser's speech-synthesis capability to read the current text."],
               ["Can I export my text?","Yes. The editor provides TXT and HTML export actions."],
               ["Does dark mode affect the counter?","No. Theme changes are visual only; the underlying counts and text remain unchanged."],
