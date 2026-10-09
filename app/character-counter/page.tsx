@@ -42,10 +42,10 @@ function countSyllables(w: string) {
 
 function escapeHtml(s: string) {
   return s
- .replace(/&/g, "&amp;")
- .replace(/</g, "&lt;")
- .replace(/>/g, "&gt;")
- .replace(/"/g, "&quot;");
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;");
 }
 
 function plainTextToHtml(s: string) {
@@ -60,16 +60,16 @@ function normalizeLine(line: string, caseInsensitive = false) {
 function removeDuplicateLines(input: string, caseInsensitive = false) {
   const seen = new Set<string>();
   return input
- .split(/\r?\n/)
- .filter((line) => {
+.split(/\r?\n/)
+.filter((line) => {
       const key = normalizeLine(line, caseInsensitive);
       if (!key) return true;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
- .join("\n")
- .replace(/\n{3,}/g, "\n\n");
+.join("\n")
+.replace(/\n{3,}/g, "\n\n");
 }
 
 function downloadFile(name: string, content: string, type = "text/plain") {
@@ -451,24 +451,24 @@ export default function Page() {
 
   return (
     <div className={dark? "dark" : ""}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
-   .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
-   .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
-   .rich-editor p{margin:.45em 0}
-   .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
-   .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-   .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-   .rich-editor li{display:list-item!important; margin:.25em 0!important}
-   .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
-   .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
-   .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
-   .rich-editor b,.rich-editor strong{font-weight:800}
-   .rich-editor i,.rich-editor em{font-style:italic}
-   .rich-editor u{text-decoration:underline}
-   .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
-   .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
-   .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
-   .editor-wrap{overflow-x:hidden;max-width:100%}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
+ .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
+ .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
+ .rich-editor p{margin:.45em 0}
+ .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
+ .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+ .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+ .rich-editor li{display:list-item!important; margin:.25em 0!important}
+ .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
+ .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+ .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
+ .rich-editor b,.rich-editor strong{font-weight:800}
+ .rich-editor i,.rich-editor em{font-style:italic!important}
+ .rich-editor u{text-decoration:underline}
+ .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
+ .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
+ .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
+ .editor-wrap{overflow-x:hidden;max-width:100%}
       `}</style>
       <div className={`min-h-screen ${dark? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
         <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
