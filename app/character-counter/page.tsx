@@ -42,10 +42,10 @@ function countSyllables(w: string) {
 
 function escapeHtml(s: string) {
   return s
-   .replace(/&/g, "&amp;")
-   .replace(/</g, "&lt;")
-   .replace(/>/g, "&gt;")
-   .replace(/"/g, "&quot;");
+  .replace(/&/g, "&amp;")
+  .replace(/</g, "&lt;")
+  .replace(/>/g, "&gt;")
+  .replace(/"/g, "&quot;");
 }
 
 function plainTextToHtml(s: string) {
@@ -60,16 +60,16 @@ function normalizeLine(line: string, caseInsensitive = false) {
 function removeDuplicateLines(input: string, caseInsensitive = false) {
   const seen = new Set<string>();
   return input
-   .split(/\r?\n/)
-   .filter((line) => {
+  .split(/\r?\n/)
+  .filter((line) => {
       const key = normalizeLine(line, caseInsensitive);
       if (!key) return true;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     })
-   .join("\n")
-   .replace(/\n{3,}/g, "\n\n");
+  .join("\n")
+  .replace(/\n{3,}/g, "\n\n");
 }
 
 function downloadFile(name: string, content: string, type = "text/plain") {
@@ -194,8 +194,8 @@ export default function Page() {
     const editor = editorRef.current;
     if (!editor) return;
     editor.focus();
-    const isInline = ["bold","italic","underline"].includes(command);
-    if (isInline) {
+    // FIX: Bold/Italic/Underline ke liye hamesha restore
+    if (["bold","italic","underline"].includes(command)) {
       restoreSelection();
     }
     const isListCommand = command === "insertUnorderedList" || command === "insertOrderedList";
@@ -262,6 +262,37 @@ export default function Page() {
     format("formatBlock", "<p>");
   };
 
+  // FIX: Preserve H1/H2 while changing case
+  const transformCasePreserve = (toUpper: boolean) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+    restoreSelection();
+    const sel = window.getSelection();
+    // If something selected, only transform selected part
+    if (sel && sel.rangeCount > 0 &&!sel.isCollapsed && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      const range = sel.getRangeAt(0);
+      const walker = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_TEXT, {
+        acceptNode: (node) => range.intersectsNode(node)? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+      } as any);
+      const nodes: Text[] = [];
+      let n: any;
+      while ((n = walker.nextNode())) nodes.push(n);
+      if (nodes.length === 0 && range.commonAncestorContainer.nodeType === 3) nodes.push(range.commonAncestorContainer as Text);
+      nodes.forEach(t => { if(t.textContent) t.textContent = toUpper? t.textContent.toUpperCase() : t.textContent.toLowerCase(); });
+    } else {
+      // No selection - transform all text nodes but keep tags
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+      const nodes: Text[] = [];
+      let n: any;
+      while ((n = walker.nextNode())) nodes.push(n);
+      nodes.forEach(t => { if(t.textContent) t.textContent = toUpper? t.textContent.toUpperCase() : t.textContent.toLowerCase(); });
+    }
+    localStorage.setItem("adv_html", editor.innerHTML);
+    setText(readEditor());
+    setTimeout(saveEditorSelection, 0);
+  };
+
   const copySelectedText = async () => {
     const editor = editorRef.current;
     const selection = window.getSelection();
@@ -289,6 +320,56 @@ export default function Page() {
       area.select();
       document.execCommand("copy");
       area.remove();
+    }
+  };
+
+  const cutSelectedText = async () => {
+    const editor = editorRef.current;
+    const selection = window.getSelection();
+    let selectedText = "";
+    let rangeToDelete: Range | null = null;
+    if (editor && selection && selection.rangeCount > 0 &&!selection.isCollapsed && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) {
+      selectedText = selection.toString();
+      rangeToDelete = selection.getRangeAt(0).cloneRange();
+    } else {
+      const savedRange = savedSelectionRef.current;
+      if (editor && savedRange &&!savedRange.collapsed && editor.contains(savedRange.commonAncestorContainer)) {
+        selectedText = savedRange.toString();
+        rangeToDelete = savedRange.cloneRange();
+      }
+    }
+    if (!selectedText) {
+      alert("Please select the text you want to cut.");
+      return;
+    }
+    try { await navigator.clipboard.writeText(selectedText); } catch {}
+    if (rangeToDelete) {
+      rangeToDelete.deleteContents();
+      editor?.focus();
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(rangeToDelete);
+      }
+      localStorage.setItem("adv_html", editor!.innerHTML);
+      setText(readEditor());
+    }
+  };
+
+  const pasteFromClipboard = async () => {
+    try {
+      const clip = await navigator.clipboard.readText();
+      if (!clip) { alert("Clipboard empty"); return; }
+      focusEditor();
+      restoreSelection();
+      document.execCommand("insertText", false, clip);
+      const editor = editorRef.current;
+      if (editor) {
+        localStorage.setItem("adv_html", editor.innerHTML);
+        setText(readEditor());
+      }
+    } catch {
+      alert("Paste blocked by browser. Use Ctrl+V");
     }
   };
 
@@ -362,23 +443,23 @@ export default function Page() {
   return (
     <div className={dark? "dark" : ""}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
-     .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
-     .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
-     .rich-editor p{margin:.45em 0}
-     .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
-     .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-     .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
-     .rich-editor li{display:list-item!important; margin:.25em 0!important}
-     .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
-     .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
-     .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
-     .rich-editor b,.rich-editor strong{font-weight:800}
-     .rich-editor i,.rich-editor em{font-style:italic}
-     .rich-editor u{text-decoration:underline}
-     .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
-     .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
-     .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
-     .editor-wrap{overflow-x:hidden;max-width:100%}
+    .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
+    .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
+    .rich-editor p{margin:.45em 0}
+    .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
+    .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+    .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+    .rich-editor li{display:list-item!important; margin:.25em 0!important}
+    .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
+    .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+    .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
+    .rich-editor b,.rich-editor strong{font-weight:800}
+    .rich-editor i,.rich-editor em{font-style:italic}
+    .rich-editor u{text-decoration:underline}
+    .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
+    .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
+    .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
+    .editor-wrap{overflow-x:hidden;max-width:100%}
       `}</style>
       <div className={`min-h-screen ${dark? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
         <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
@@ -414,9 +495,11 @@ export default function Page() {
 
             <div className="flex flex-wrap gap-2 mb-3">
               <button data-tip="Copy selected text" className={`${button} tip`} onMouseDown={(e) => e.preventDefault()} onClick={copySelectedText}>📋 Copy</button>
+              <button data-tip="Cut selected text" className={`${button} tip`} onMouseDown={(e) => e.preventDefault()} onClick={cutSelectedText}>✂️ Cut</button>
+              <button data-tip="Paste from clipboard" className={`${button} tip`} onMouseDown={(e) => e.preventDefault()} onClick={pasteFromClipboard}>📥 Paste</button>
               <button data-tip="Clear editor" className={`${button} tip`} onClick={() => syncEditor("")}>🗑 Clear</button>
-              <button className={button} onClick={() => syncEditor(text.toUpperCase())}>UPPER</button>
-              <button className={button} onClick={() => syncEditor(text.toLowerCase())}>lower</button>
+              <button className={button} onClick={() => transformCasePreserve(true)}>UPPER</button>
+              <button className={button} onClick={() => transformCasePreserve(false)}>lower</button>
               <button className={button} onClick={() => syncEditor(removeEmojiSafe(text))}>Remove Emoji</button>
               <button className={button} onClick={() => downloadFile("textlyzer.txt", text)}>⬇ TXT</button>
               <button className={button} onClick={() => downloadFile("textlyzer.html", editorRef.current?.innerHTML || "", "text/html")}>⬇ HTML</button>
