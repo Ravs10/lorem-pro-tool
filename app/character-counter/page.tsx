@@ -7,30 +7,21 @@ function countEmoji(str: string): number {
   let c = 0;
   for (let i = 0; i < str.length; ) {
     const cp = str.codePointAt(i) || 0;
-    if (
-      (cp >= 0x1f300 && cp <= 0x1faff) ||
-      (cp >= 0x2600 && cp <= 0x27bf) ||
-      (cp >= 0x1f1e0 && cp <= 0x1f1ff)
-    ) c++;
+    if ((cp >= 0x1f300 && cp <= 0x1faff) || (cp >= 0x2600 && cp <= 0x27bf) || (cp >= 0x1f1e0 && cp <= 0x1f1ff)) c++;
     i += cp > 0xffff? 2 : 1;
   }
   return c;
 }
-
 function removeEmojiSafe(str: string): string {
   let out = "";
   for (let i = 0; i < str.length; ) {
     const cp = str.codePointAt(i) || 0;
-    const emoji =
-      (cp >= 0x1f300 && cp <= 0x1faff) ||
-      (cp >= 0x2600 && cp <= 0x27bf) ||
-      (cp >= 0x1f1e0 && cp <= 0x1f1ff);
+    const emoji = (cp >= 0x1f300 && cp <= 0x1faff) || (cp >= 0x2600 && cp <= 0x27bf) || (cp >= 0x1f1e0 && cp <= 0x1f1ff);
     if (!emoji) out += String.fromCodePoint(cp);
     i += cp > 0xffff? 2 : 1;
   }
   return out;
 }
-
 function countSyllables(w: string) {
   w = w.toLowerCase().replace(/[^a-z]/g, "");
   if (!w) return 0;
@@ -39,47 +30,29 @@ function countSyllables(w: string) {
   const m = w.match(/[aeiouy]{1,2}/g);
   return m? m.length : 1;
 }
-
 function escapeHtml(s: string) {
-  return s
-.replace(/&/g, "&amp;")
-.replace(/</g, "&lt;")
-.replace(/>/g, "&gt;")
-.replace(/"/g, "&quot;");
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-
-function plainTextToHtml(s: string) {
-  return escapeHtml(s).replace(/\n/g, "<br>");
-}
-
+function plainTextToHtml(s: string) { return escapeHtml(s).replace(/\n/g, "<br>"); }
 function normalizeLine(line: string, caseInsensitive = false) {
   const n = line.replace(/\u00a0/g, " ").trim().replace(/\s+/g, " ");
   return caseInsensitive? n.toLocaleLowerCase() : n;
 }
-
 function removeDuplicateLines(input: string, caseInsensitive = false) {
   const seen = new Set<string>();
-  return input
-.split(/\r?\n/)
-.filter((line) => {
-      const key = normalizeLine(line, caseInsensitive);
-      if (!key) return true;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-.join("\n")
-.replace(/\n{3,}/g, "\n\n");
+  return input.split(/\r?\n/).filter((line) => {
+    const key = normalizeLine(line, caseInsensitive);
+    if (!key) return true;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).join("\n").replace(/\n{3,}/g, "\n\n");
 }
-
 function downloadFile(name: string, content: string, type = "text/plain") {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(url);
+  a.href = url; a.download = name; a.click(); URL.revokeObjectURL(url);
 }
 
 export default function Page() {
@@ -107,7 +80,6 @@ export default function Page() {
     setText(nextText);
     if (editorRef.current) editorRef.current.innerHTML = plainTextToHtml(nextText);
   };
-
   const readEditor = () => editorRef.current?.innerText.replace(/\u00a0/g, " ")?? "";
 
   useEffect(() => {
@@ -124,16 +96,9 @@ export default function Page() {
       if (editorRef.current) editorRef.current.innerHTML = savedHtml || plainTextToHtml(saved || "");
     });
   }, []);
-
-  useEffect(() => {
-    localStorage.setItem("adv_text", text);
-  }, [text]);
-  useEffect(() => {
-    localStorage.setItem("adv_goal", String(goal));
-  }, [goal]);
-  useEffect(() => {
-    localStorage.setItem("adv_voice_lang", voiceLang);
-  }, [voiceLang]);
+  useEffect(() => { localStorage.setItem("adv_text", text); }, [text]);
+  useEffect(() => { localStorage.setItem("adv_goal", String(goal)); }, [goal]);
+  useEffect(() => { localStorage.setItem("adv_voice_lang", voiceLang); }, [voiceLang]);
 
   const stats = useMemo(() => {
     const chars = text.length;
@@ -147,15 +112,14 @@ export default function Page() {
     const spaces = Array.from(text).filter((c) => /\s/.test(c)).length;
     const punctuation = Array.from(text).filter((c) => /[^\p{L}\p{N}\s]/u.test(c) &&!/\p{Extended_Pictographic}/u.test(c)).length;
     const emoji = countEmoji(text);
-    let syll = 0;
-    text.trim().split(/\s+/).forEach((w) => (syll += countSyllables(w)));
+    let syll = 0; text.trim().split(/\s+/).forEach((w) => (syll += countSyllables(w)));
     const flesch = words && sentences? 206.835 - 1.015 * (words / sentences) - 84.6 * (syll / words) : 0;
     const reading = words? Math.max(1, Math.ceil(words / 225)) : 0;
     const speakingM = words? Math.max(1, Math.ceil(words / 150)) : 0;
-    const stop = new Set(["the", "and", "is", "in", "to", "a", "of", "for", "on", "with", "this", "that", "are", "be", "it", "as", "at", "by", "from", "hai", "aur", "ke", "ka", "ko", "mein", "hain", "ki", "se"]);
+    const stop = new Set(["the","and","is","in","to","a","of","for","on","with","this","that","are","be","it","as","at","by","from","hai","aur","ke","ka","ko","mein","hain","ki","se"]);
     const freq: Record<string, number> = {};
     text.toLocaleLowerCase().split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 &&!stop.has(w)).forEach((w) => (freq[w] = (freq[w] || 0) + 1));
-    const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    const top = Object.entries(freq).sort((a,b) => b[1]-a[1]).slice(0,12);
     const maxFreq = top[0]?.[1] || 1;
     const lang = /[अ-ह]/.test(text)? (/[a-zA-Z]/.test(text)? "Hinglish" : "Hindi") : "English";
     return { chars, charsNoSpace, words, sentences, paras, lines, letters, numbers, spaces, punctuation, emoji, flesch, reading, speakingM, syll, top, maxFreq, lang };
@@ -163,36 +127,62 @@ export default function Page() {
 
   const seoScore = useMemo(() => {
     let s = 0;
-    if (title.length >= 50 && title.length <= 60) s += 35;
-    else if (title.length) s += 15;
-    if (desc.length >= 150 && desc.length <= 160) s += 35;
-    else if (desc.length) s += 15;
+    if (title.length >= 50 && title.length <= 60) s += 35; else if (title.length) s += 15;
+    if (desc.length >= 150 && desc.length <= 160) s += 35; else if (desc.length) s += 15;
     if (stats.words > 300) s += 15;
     if (stats.top.length > 5) s += 15;
-    return Math.min(100, s);
+    return Math.min(100,s);
   }, [title, desc, stats]);
 
   const focusEditor = () => editorRef.current?.focus();
-
   const saveEditorSelection = () => {
     const editor = editorRef.current;
     const selection = window.getSelection();
     if (!editor ||!selection || selection.rangeCount === 0) return;
     const range = selection.getRangeAt(0);
-    if (editor.contains(range.commonAncestorContainer)) {
-      savedSelectionRef.current = range.cloneRange();
-    }
+    if (editor.contains(range.commonAncestorContainer)) savedSelectionRef.current = range.cloneRange();
   };
-
   const restoreSelection = () => {
     const editor = editorRef.current;
     const selection = window.getSelection();
     const saved = savedSelectionRef.current;
     if (!editor ||!selection ||!saved) return false;
     if (!editor.contains(saved.commonAncestorContainer)) return false;
-    editor.focus();
-    selection.removeAllRanges();
-    selection.addRange(saved.cloneRange());
+    editor.focus(); selection.removeAllRanges(); selection.addRange(saved.cloneRange());
+    return true;
+  };
+
+  // FIX 1: Modern API for Bold/Italic/Underline (no execCommand)
+  const wrapSelectionModern = (tagName: string) => {
+    const editor = editorRef.current;
+    const sel = window.getSelection();
+    if (!editor ||!sel || sel.rangeCount === 0) return false;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed ||!editor.contains(range.commonAncestorContainer)) return false;
+    // If already inside same tag, unwrap
+    const parent = range.commonAncestorContainer.parentElement?.closest(tagName);
+    if (parent && editor.contains(parent)) {
+      const frag = document.createDocumentFragment();
+      while (parent.firstChild) frag.appendChild(parent.firstChild);
+      parent.parentNode?.replaceChild(frag, parent);
+    } else {
+      const wrapper = document.createElement(tagName);
+      try {
+        range.surroundContents(wrapper);
+      } catch {
+        const content = range.extractContents();
+        wrapper.appendChild(content);
+        range.insertNode(wrapper);
+      }
+      sel.removeAllRanges();
+      const newRange = document.createRange();
+      newRange.selectNodeContents(wrapper);
+      newRange.collapse(false);
+      sel.addRange(newRange);
+    }
+    localStorage.setItem("adv_html", editor.innerHTML);
+    setText(readEditor());
+    setTimeout(saveEditorSelection, 0);
     return true;
   };
 
@@ -201,6 +191,10 @@ export default function Page() {
     if (!editor) return;
     editor.focus();
     if (["bold","italic","underline"].includes(command)) {
+      const tagMap: any = { bold: "b", italic: "i", underline: "u" };
+      const done = wrapSelectionModern(tagMap[command]);
+      if (done) return;
+      // fallback to execCommand if surroundContents fails
       restoreSelection();
     }
     const isListCommand = command === "insertUnorderedList" || command === "insertOrderedList";
@@ -226,8 +220,7 @@ export default function Page() {
             const caret = document.createRange();
             caret.selectNodeContents(list.lastElementChild || list);
             caret.collapse(false);
-            sel?.removeAllRanges();
-            sel?.addRange(caret);
+            sel?.removeAllRanges(); sel?.addRange(caret);
           }
         } else {
           const list = document.createElement(command === "insertUnorderedList"? "ul" : "ol");
@@ -236,197 +229,100 @@ export default function Page() {
           list.appendChild(li);
           rangeBefore.insertNode(list);
           const caret = document.createRange();
-          caret.setStart(li, 0);
-          caret.collapse(true);
-          sel?.removeAllRanges();
-          sel?.addRange(caret);
+          caret.setStart(li, 0); caret.collapse(true);
+          sel?.removeAllRanges(); sel?.addRange(caret);
         }
       }
     } else {
+      restoreSelection();
       document.execCommand(command, false, value);
-    }
-    const html = editor.innerHTML;
-    const next = readEditor();
-    localStorage.setItem("adv_html", html);
-    setText(next);
-    setTimeout(saveEditorSelection, 0);
-  };
-
-  const formatBlock = (tag: "h1" | "h2" | "p" | "blockquote") => format("formatBlock", `<${tag}>`);
-  const insertLink = () => {
-    const url = window.prompt("Enter URL");
-    if (url) format("createLink", url);
-  };
-  const onEditorInput = () => {
-    const next = readEditor();
-    setText(next);
-    localStorage.setItem("adv_html", editorRef.current?.innerHTML || "");
-  };
-  const clearFormatting = () => {
-    format("removeFormat");
-    format("formatBlock", "<p>");
-  };
-
-  const transformCasePreserve = (toUpper: boolean) => {
-    const editor = editorRef.current;
-    if (!editor) return;
-    editor.focus();
-    restoreSelection();
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0 &&!sel.isCollapsed && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
-      const range = sel.getRangeAt(0);
-      const walker = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_TEXT, {
-        acceptNode: (node) => range.intersectsNode(node)? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
-      } as any);
-      const nodes: Text[] = [];
-      let n: any;
-      while ((n = walker.nextNode())) nodes.push(n);
-      if (nodes.length === 0 && range.commonAncestorContainer.nodeType === 3) nodes.push(range.commonAncestorContainer as Text);
-      nodes.forEach(t => { if(t.textContent) t.textContent = toUpper? t.textContent.toUpperCase() : t.textContent.toLowerCase(); });
-    } else {
-      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
-      const nodes: Text[] = [];
-      let n: any;
-      while ((n = walker.nextNode())) nodes.push(n);
-      nodes.forEach(t => { if(t.textContent) t.textContent = toUpper? t.textContent.toUpperCase() : t.textContent.toLowerCase(); });
     }
     localStorage.setItem("adv_html", editor.innerHTML);
     setText(readEditor());
     setTimeout(saveEditorSelection, 0);
   };
 
+  const formatBlock = (tag: "h1" | "h2" | "p" | "blockquote") => format("formatBlock", `<${tag}>`);
+  const insertLink = () => { const url = window.prompt("Enter URL"); if (url) format("createLink", url); };
+  const onEditorInput = () => { setText(readEditor()); localStorage.setItem("adv_html", editorRef.current?.innerHTML || ""); };
+  const clearFormatting = () => { format("removeFormat"); format("formatBlock", "<p>"); };
+
+  const transformCasePreserve = (toUpper: boolean) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus(); restoreSelection();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 &&!sel.isCollapsed && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      const range = sel.getRangeAt(0);
+      const walker = document.createTreeWalker(range.commonAncestorContainer, NodeFilter.SHOW_TEXT, { acceptNode: (node) => range.intersectsNode(node)? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT } as any);
+      const nodes: Text[] = []; let n: any; while ((n = walker.nextNode())) nodes.push(n);
+      if (nodes.length === 0 && range.commonAncestorContainer.nodeType === 3) nodes.push(range.commonAncestorContainer as Text);
+      nodes.forEach(t => { if(t.textContent) t.textContent = toUpper? t.textContent.toUpperCase() : t.textContent.toLowerCase(); });
+    } else {
+      const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
+      const nodes: Text[] = []; let n: any; while ((n = walker.nextNode())) nodes.push(n);
+      nodes.forEach(t => { if(t.textContent) t.textContent = toUpper? t.textContent.toUpperCase() : t.textContent.toLowerCase(); });
+    }
+    localStorage.setItem("adv_html", editor.innerHTML);
+    setText(readEditor());
+  };
+
   const copySelectedText = async () => {
     const editor = editorRef.current;
     const selection = window.getSelection();
     let selectedText = "";
-    if (editor && selection && selection.rangeCount > 0 &&!selection.isCollapsed && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) {
-      selectedText = selection.toString();
-    } else {
-      const savedRange = savedSelectionRef.current;
-      if (editor && savedRange &&!savedRange.collapsed && editor.contains(savedRange.commonAncestorContainer)) {
-        selectedText = savedRange.toString();
-      }
-    }
-    if (!selectedText) {
-      alert("Please select the text you want to copy.");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(selectedText);
-    } catch {
-      const area = document.createElement("textarea");
-      area.value = selectedText;
-      area.style.position = "fixed";
-      area.style.opacity = "0";
-      document.body.appendChild(area);
-      area.select();
-      document.execCommand("copy");
-      area.remove();
-    }
+    if (editor && selection && selection.rangeCount > 0 &&!selection.isCollapsed && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) selectedText = selection.toString();
+    else { const savedRange = savedSelectionRef.current; if (editor && savedRange &&!savedRange.collapsed && editor.contains(savedRange.commonAncestorContainer)) selectedText = savedRange.toString(); }
+    if (!selectedText) { alert("Please select the text you want to copy."); return; }
+    try { await navigator.clipboard.writeText(selectedText); } catch { const area = document.createElement("textarea"); area.value = selectedText; area.style.position = "fixed"; area.style.opacity = "0"; document.body.appendChild(area); area.select(); document.execCommand("copy"); area.remove(); }
   };
-
   const cutSelectedText = async () => {
     const editor = editorRef.current;
     const selection = window.getSelection();
-    let selectedText = "";
-    let rangeToDelete: Range | null = null;
-    if (editor && selection && selection.rangeCount > 0 &&!selection.isCollapsed && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) {
-      selectedText = selection.toString();
-      rangeToDelete = selection.getRangeAt(0).cloneRange();
-    } else {
-      const savedRange = savedSelectionRef.current;
-      if (editor && savedRange &&!savedRange.collapsed && editor.contains(savedRange.commonAncestorContainer)) {
-        selectedText = savedRange.toString();
-        rangeToDelete = savedRange.cloneRange();
-      }
-    }
-    if (!selectedText) {
-      alert("Please select the text you want to cut.");
-      return;
-    }
+    let selectedText = ""; let rangeToDelete: Range | null = null;
+    if (editor && selection && selection.rangeCount > 0 &&!selection.isCollapsed && editor.contains(selection.getRangeAt(0).commonAncestorContainer)) { selectedText = selection.toString(); rangeToDelete = selection.getRangeAt(0).cloneRange(); }
+    else { const savedRange = savedSelectionRef.current; if (editor && savedRange &&!savedRange.collapsed && editor.contains(savedRange.commonAncestorContainer)) { selectedText = savedRange.toString(); rangeToDelete = savedRange.cloneRange(); } }
+    if (!selectedText) { alert("Please select the text you want to cut."); return; }
     try { await navigator.clipboard.writeText(selectedText); } catch {}
-    if (rangeToDelete) {
-      rangeToDelete.deleteContents();
-      editor?.focus();
-      const sel = window.getSelection();
-      if (sel) {
-        sel.removeAllRanges();
-        sel.addRange(rangeToDelete);
-      }
-      localStorage.setItem("adv_html", editor!.innerHTML);
-      setText(readEditor());
-    }
+    if (rangeToDelete) { rangeToDelete.deleteContents(); editor?.focus(); const sel = window.getSelection(); if (sel) { sel.removeAllRanges(); sel.addRange(rangeToDelete); } localStorage.setItem("adv_html", editor!.innerHTML); setText(readEditor()); }
+  };
+  const pasteFromClipboard = async () => {
+    try { const clip = await navigator.clipboard.readText(); if (!clip) { alert("Clipboard empty"); return; } focusEditor(); restoreSelection(); document.execCommand("insertText", false, clip); const editor = editorRef.current; if (editor) { localStorage.setItem("adv_html", editor.innerHTML); setText(readEditor()); } } catch { alert("Paste blocked by browser. Use Ctrl+V"); }
   };
 
-  const pasteFromClipboard = async () => {
+  // FIX 2: Base64 chunk to avoid horizontal overflow
+  const safeBase64Encode = () => {
     try {
-      const clip = await navigator.clipboard.readText();
-      if (!clip) { alert("Clipboard empty"); return; }
-      focusEditor();
-      restoreSelection();
-      document.execCommand("insertText", false, clip);
-      const editor = editorRef.current;
-      if (editor) {
-        localStorage.setItem("adv_html", editor.innerHTML);
-        setText(readEditor());
-      }
-    } catch {
-      alert("Paste blocked by browser. Use Ctrl+V");
-    }
+      const raw = btoa(unescape(encodeURIComponent(text)));
+      const chunked = raw.match(/.{1,64}/g)?.join("\n") || raw;
+      syncEditor(chunked);
+    } catch { alert("Encode failed"); }
   };
 
   const toggleVoice = () => {
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
+    if (listening) { recognitionRef.current?.stop(); setListening(false); return; }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return alert("Voice typing is not supported in this browser. Try Chrome.");
-    const rec = new SR();
-    rec.lang = voiceLang;
-    rec.interimResults = false;
-    rec.continuous = false;
-    rec.onstart = () => setListening(true);
-    rec.onend = () => setListening(false);
+    const rec = new SR(); rec.lang = voiceLang; rec.interimResults = false; rec.continuous = false;
+    rec.onstart = () => setListening(true); rec.onend = () => setListening(false);
     rec.onresult = (e: any) => {
       const spoken = e.results[0][0].transcript;
-      focusEditor();
-      restoreSelection();
+      focusEditor(); restoreSelection();
       document.execCommand("insertText", false, (text? " " : "") + spoken);
-      const editor = editorRef.current;
-      if (editor) {
-        localStorage.setItem("adv_html", editor.innerHTML);
-        setText(readEditor());
-      }
+      const editor = editorRef.current; if (editor) { localStorage.setItem("adv_html", editor.innerHTML); setText(readEditor()); }
     };
     rec.onerror = () => setListening(false);
-    recognitionRef.current = rec;
-    rec.start();
+    recognitionRef.current = rec; rec.start();
   };
-
   const toggleSpeak = () => {
-    if (typeof window === "undefined" || typeof window.speechSynthesis === "undefined" || typeof SpeechSynthesisUtterance === "undefined") {
-      alert("Text to speech is not supported in this browser.");
-      return;
-    }
+    if (typeof window === "undefined" || typeof window.speechSynthesis === "undefined") return alert("TTS not supported");
     const synth = window.speechSynthesis;
-    if (speaking || synth.speaking) {
-      synth.cancel();
-      setSpeaking(false);
-      return;
-    }
-    const textToSpeak = text.trim();
-    if (!textToSpeak) {
-      alert("Please enter some text to read aloud.");
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = /[अ-ह]/.test(textToSpeak)? "hi-IN" : "en-US";
-    utterance.onstart = () => setSpeaking(true);
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    synth.speak(utterance);
+    if (speaking || synth.speaking) { synth.cancel(); setSpeaking(false); return; }
+    if (!text.trim()) return alert("Enter text to speak");
+    const ut = new SpeechSynthesisUtterance(text.trim());
+    ut.lang = /[अ-ह]/.test(text)? "hi-IN" : "en-US";
+    ut.onstart = () => setSpeaking(true); ut.onend = () => setSpeaking(false); ut.onerror = () => setSpeaking(false);
+    synth.speak(ut);
   };
 
   useEffect(() => {
@@ -444,31 +340,31 @@ export default function Page() {
     { id: "count", label: "COUNT" }, { id: "clean", label: "CLEAN" }, { id: "seo", label: "SEO" },
     { id: "goals", label: "GOALS" }, { id: "analyze", label: "ANALYZE" }, { id: "tools", label: "TOOLS" }, { id: "diff", label: "DIFF" },
   ];
-
   const button = "px-3 py-2 rounded-xl border text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#6d5dfc]/50";
   const surface = dark? "bg-[#161826]/80 border-white/10" : "bg-white border-black/10";
   const input = dark? "bg-[#1e2138] border-white/10 text-white placeholder:text-white/40" : "bg-white border-black/10";
 
   return (
     <div className={dark? "dark" : ""}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
- .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
- .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
- .rich-editor p{margin:.45em 0}
- .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
- .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
- .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
- .rich-editor li{display:list-item!important; margin:.25em 0!important}
- .rich-editor{overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap;min-width:0;max-width:100%; overflow-x:hidden}
- .rich-editor *{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
- .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all}
- .rich-editor b,.rich-editor strong{font-weight:800}
- .rich-editor i,.rich-editor em{font-style:italic!important}
- .rich-editor u{text-decoration:underline}
- .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
- .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
- .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
- .editor-wrap{overflow-x:hidden;max-width:100%}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&display=swap');*{font-family:'Outfit',sans-serif}
+.rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
+.rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
+.rich-editor p{margin:.45em 0}
+.rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
+.rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+.rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+.rich-editor li{display:list-item!important; margin:.25em 0!important}
+/* FIX 2: Base64 / long string wrap - no horizontal overflow */
+.rich-editor{overflow-wrap:anywhere!important; word-break:break-word!important; word-wrap:break-word!important; white-space:pre-wrap!important; overflow-x:hidden!important; min-width:0; max-width:100%}
+.rich-editor *{overflow-wrap:anywhere!important; word-break:break-word!important; max-width:100%!important; overflow-wrap:anywhere!important}
+.rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all!important}
+.rich-editor b,.rich-editor strong{font-weight:800}
+.rich-editor i,.rich-editor em{font-style:italic!important}
+.rich-editor u{text-decoration:underline}
+.rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
+.tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
+.card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
+.editor-wrap{overflow-x:hidden;max-width:100%; width:100%}
       `}</style>
       <div className={`min-h-screen ${dark? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
         <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
@@ -562,7 +458,7 @@ export default function Page() {
 
             {tab === "tools" && <div className={`rounded-[20px] border p-4 grid grid-cols-2 gap-2 ${surface}`}>
               <button className={button} onClick={()=>syncEditor("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(20))}>Lorem 100w</button>
-              <button className={button} onClick={()=>syncEditor(btoa(unescape(encodeURIComponent(text))))}>Base64 Encode</button>
+              <button className={button} onClick={safeBase64Encode}>Base64 Encode</button>
               <button className={button} onClick={()=>{try{syncEditor(decodeURIComponent(escape(atob(text))))}catch{alert("Invalid Base64")}}}>Base64 Decode</button>
               <button className={button} onClick={()=>syncEditor(text.toLowerCase().replace(/[^a-z0-9]+/g,"-"))}>Slugify</button>
               <button className={button} onClick={()=>syncEditor(Array.from(text).reverse().join(""))}>Reverse</button>
