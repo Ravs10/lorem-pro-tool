@@ -250,7 +250,6 @@ export default function Page() {
   };
   const clearFormatting = () => { format("removeFormat"); format("formatBlock", "<p>"); };
 
-  // FIX 2: Sirf selected text ka case change
   const transformCasePreserve = (toUpper: boolean) => {
     const editor = editorRef.current;
     if (!editor) return;
@@ -265,11 +264,6 @@ export default function Page() {
       while ((node = walker.nextNode() as Text)) nodes.push(node);
       nodes.forEach(n => { if(n.textContent) n.textContent = toUpper? n.textContent.toUpperCase() : n.textContent.toLowerCase(); });
       range.insertNode(fragment);
-      // selection wapas set karo
-      const newRange = document.createRange();
-      newRange.setStart(range.startContainer, range.startOffset);
-      newRange.collapse(true);
-      // thoda delay ke baad selection save
     } else {
       const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT);
       const nodes: Text[] = [];
@@ -310,7 +304,6 @@ export default function Page() {
     } catch { alert("Paste blocked by browser. Use Ctrl+V"); }
   };
 
-  // FIX 3: Base64 - encode chunked + decode cleaned
   const safeBase64Encode = () => {
     try {
       const raw = btoa(unescape(encodeURIComponent(text)));
@@ -320,7 +313,7 @@ export default function Page() {
   };
   const safeBase64Decode = () => {
     try {
-      const cleaned = text.replace(/\s+/g, ""); // \n aur space hatao
+      const cleaned = text.replace(/\s+/g, "");
       if (!cleaned) { alert("Nothing to decode"); return; }
       const decoded = decodeURIComponent(escape(atob(cleaned)));
       syncEditor(decoded);
@@ -375,23 +368,23 @@ export default function Page() {
   return (
     <div className={dark? "dark" : ""}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&display=swap');*{font-family:'Outfit',sans-serif}.glass{backdrop-filter:blur(16px)}
- .rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
- .rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
- .rich-editor p{margin:.45em 0}
- .rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
- .rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
- .rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
- .rich-editor li{display:list-item!important; margin:.25em 0!important}
- .rich-editor{overflow-wrap:anywhere!important; word-break:break-word!important; white-space:pre-wrap!important; overflow-x:hidden!important; max-width:100%!important; min-width:0}
- .rich-editor *{overflow-wrap:anywhere!important; word-break:break-word!important; max-width:100%!important}
- .rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all!important}
- .rich-editor b,.rich-editor strong{font-weight:800}
- .rich-editor i,.rich-editor em{font-style:italic!important}
- .rich-editor u{text-decoration:underline}
- .rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
- .tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
- .card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
- .editor-wrap{overflow-x:hidden;max-width:100%}
+.rich-editor h1{font-size:2rem;font-weight:800;line-height:1.2;margin:.7em 0}
+.rich-editor h2{font-size:1.5rem;font-weight:800;line-height:1.25;margin:.65em 0}
+.rich-editor p{margin:.45em 0}
+.rich-editor blockquote{border-left:4px solid #6d5dfc;padding-left:1rem;opacity:.8;font-style:italic}
+.rich-editor ul{list-style-type:disc!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+.rich-editor ol{list-style-type:decimal!important; list-style-position:outside!important; padding-left:1.8rem!important; margin:.6em 0!important}
+.rich-editor li{display:list-item!important; margin:.25em 0!important}
+.rich-editor{overflow-wrap:anywhere!important; word-break:break-word!important; white-space:pre-wrap!important; overflow-x:hidden!important; max-width:100%!important; min-width:0}
+.rich-editor *{overflow-wrap:anywhere!important; word-break:break-word!important; max-width:100%!important}
+.rich-editor a{color:#8b7cff;text-decoration:underline;word-break:break-all!important}
+.rich-editor b,.rich-editor strong{font-weight:800}
+.rich-editor i,.rich-editor em{font-style:italic!important}
+.rich-editor u{text-decoration:underline}
+.rich-editor:empty:before{content:attr(data-placeholder);opacity:.4}
+.tip{position:relative}.tip:hover:after{content:attr(data-tip);position:absolute;z-index:100;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;padding:6px 9px;border-radius:8px;background:#10111b;color:white;font-size:11px;box-shadow:0 8px 25px rgba(0,0,0,.3);pointer-events:none}
+.card-hover{transition:transform.2s ease,box-shadow.2s ease}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 35px rgba(0,0,0,.14)}
+.editor-wrap{overflow-x:hidden;max-width:100%}
       `}</style>
       <div className={`min-h-screen ${dark? "bg-[#0e0f1a] text-white" : "bg-[#f7f8ff] text-[#151a2d]"}`}>
         <header className={`sticky top-0 z-50 w-full border-b backdrop-blur-xl ${dark? "bg-[#12131f]/95 border-white/10" : "bg-white/95 border-black/10"}`}>
@@ -447,7 +440,7 @@ export default function Page() {
 
             {tab === "diff"? (
               <div className="grid md:grid-cols-2 gap-3">
-                <div><label className="text-xs opacity-60 mb-1 block">Original</label><div ref={editorRef} contentEditable suppressContentEditableWarning onInput={onEditorInput} className={`rich-editor w-full min-w-0 min-h-[380px] p-4 rounded-[16px] border outline-none text-[16px] leading-7 overflow-auto ${input}`} onMouseUp={saveEditorSelection} onKeyUp={saveEditorSelection} data-placeholder="Original text..." /></div>
+                <div><label className="text-xs opacity-60 mb-1 block">Original (Main Editor)</label><div ref={editorRef} contentEditable suppressContentEditableWarning onInput={onEditorInput} className={`rich-editor w-full min-w-0 min-h-[380px] p-4 rounded-[16px] border outline-none text-[16px] leading-7 overflow-auto ${input}`} onMouseUp={saveEditorSelection} onKeyUp={saveEditorSelection} data-placeholder="Original text..." /></div>
                 <div><label className="text-xs opacity-60 mb-1 block">Modified</label><textarea value={diffB} onChange={(e) => setDiffB(e.target.value)} placeholder="Modified Text" className={`w-full min-h-[380px] p-4 rounded-[16px] border outline-none text-[15px] leading-7 ${input}`} /></div>
               </div>
             ) : (
@@ -474,13 +467,29 @@ export default function Page() {
                 <button className={button} onClick={() => syncEditor(text.split("\n").map((l,i) => `${i+1}. ${l}`).join("\n"))}>Add Numbers</button>
               </div>
               <label className="flex items-center gap-2 text-xs opacity-75 cursor-pointer"><input type="checkbox" checked={duplicateCaseInsensitive} onChange={(e) => setDuplicateCaseInsensitive(e.target.checked)} /> Case-insensitive duplicate matching</label>
+              <div className={`p-3 rounded-xl text-xs ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Duplicate removal preserves the first occurrence, ignores leading/trailing spaces, normalizes repeated spaces, and keeps non-empty lines in their original order.</div>
             </div>}
 
-            {tab === "seo" && <div className={`rounded-[20px] border p-4 space-y-3 ${surface}`}><h4 className="font-bold">SEO Studio • Score {seoScore}/100</h4><div className="h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#5b5bff] to-emerald-400 transition-all duration-700" style={{width:`${seoScore}%`}}/></div><input value={title} onChange={(e)=>setTitle(e.target.value)} placeholder="SEO Title (50-60 chars ideal)" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${input}`} /><input value={desc} onChange={(e)=>setDesc(e.target.value)} placeholder="Meta Description (150-160)" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${input}`} /><input value={slug} onChange={(e)=>setSlug(e.target.value)} placeholder="slug-will-be-here" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${input}`} /><button onClick={()=>setSlug(title.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g,"-").replace(/^-|-$/g,""))} className="w-full py-2.5 rounded-full bg-[#5b5bff] hover:bg-[#6d6dff] text-white text-xs font-bold transition-all">Generate Slug from Title</button></div>}
+            {/* FIXED SEO - RESTORED PREVIEW */}
+            {tab === "seo" && <div className={`rounded-[20px] border p-4 space-y-3 ${surface}`}>
+              <h4 className="font-bold">SEO Studio • Score {seoScore}/100</h4>
+              <div className="h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#5b5bff] to-emerald-400 transition-all duration-700" style={{width:`${seoScore}%`}}/></div>
+              <input value={title} onChange={(e)=>setTitle(e.target.value)} placeholder="SEO Title (50-60 chars ideal)" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${input}`} />
+              <div className="text-xs opacity-60">{title.length}/60 {title.length>=50&&title.length<=60?"✅ Ideal":"⚠️ Check length"}</div>
+              <input value={desc} onChange={(e)=>setDesc(e.target.value)} placeholder="Meta Description (150-160)" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${input}`} />
+              <div className="text-xs opacity-60">{desc.length}/160 {desc.length>=150&&desc.length<=160?"✅ Ideal":"⚠️ Check length"}</div>
+              <input value={slug} onChange={(e)=>setSlug(e.target.value)} placeholder="slug-will-be-here" className={`w-full px-3 py-2.5 rounded-[12px] border text-sm ${input}`} />
+              <button onClick={()=>setSlug(title.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g,"-").replace(/^-|-$/g,""))} className="w-full py-2.5 rounded-full bg-[#5b5bff] hover:bg-[#6d6dff] text-white text-xs font-bold transition-all">Generate Slug from Title</button>
+              <div className="rounded-[12px] border p-3 bg-white text-black shadow-inner">
+                <div className="text-[13px] text-[#1a0dab] truncate">{title||"Your Title Preview - Google SERP"}</div>
+                <div className="text-[11px] text-[#006621]">https://textlyzer.app/{slug||"character-counter"}</div>
+                <div className="text-[12px] text-[#545454] line-clamp-2">{desc||"Your meta description preview will appear here."}</div>
+              </div>
+            </div>}
 
-            {tab === "goals" && <div className={`rounded-[20px] border p-4 space-y-4 ${surface}`}><h4 className="font-bold">🎯 Writing Goals</h4><div><label className="text-xs opacity-60">Daily Word Goal</label><div className="flex gap-2 mt-1"><input type="number" min="1" value={goal} onChange={(e)=>setGoal(Number(e.target.value)||1)} className={`flex-1 px-3 py-2.5 rounded-[12px] border text-sm ${input}`} /></div></div><div><div className="flex justify-between text-xs mb-1"><span>{stats.words} / {goal} words</span><span>{Math.min(100,Math.round(stats.words/goal*100))}%</span></div><div className="h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#5b5bff] to-[#06b6d4] transition-all duration-700" style={{width:`${Math.min(100,Math.round(stats.words/goal*100))}%`}}/></div></div></div>}
+            {tab === "goals" && <div className={`rounded-[20px] border p-4 space-y-4 ${surface}`}><h4 className="font-bold">🎯 Writing Goals</h4><div><label className="text-xs opacity-60">Daily Word Goal</label><div className="flex gap-2 mt-1"><input type="number" min="1" value={goal} onChange={(e)=>setGoal(Number(e.target.value)||1)} className={`flex-1 px-3 py-2.5 rounded-[12px] border text-sm ${input}`} /></div></div><div><div className="flex justify-between text-xs mb-1"><span>{stats.words} / {goal} words</span><span>{Math.min(100,Math.round(stats.words/goal*100))}%</span></div><div className="h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-[#5b5bff] to-[#06b6d4] transition-all duration-700" style={{width:`${Math.min(100,Math.round(stats.words/goal*100))}%`}}/></div></div><div className={`mt-3 p-3 rounded-[12px] text-xs ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}><div>🔥 Current: <b>{stats.words} words</b></div><div className="mt-1">⏱️ Remaining: <b>{Math.max(0,Math.ceil((goal-stats.words)/200))} mins</b></div><div className="mt-1">{stats.words>=goal?"🎉 Goal achieved!":"💪 Keep typing..."}</div></div></div></div>}
 
-            {tab === "analyze" && <div className={`rounded-[20px] border p-4 ${surface}`}><h4 className="font-bold">Keyword Frequency & Readability</h4><div className="mt-3 space-y-1.5">{stats.top.map(([w,c])=><div key={w} className="flex items-center gap-2 text-xs"><span className="w-20 truncate">{w}</span><div className="flex-1 h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-[#5b5bff] transition-all duration-500" style={{width:`${(c/stats.maxFreq)*100}%`}}/></div><span>{c}</span></div>)}</div></div>}
+            {tab === "analyze" && <div className={`rounded-[20px] border p-4 ${surface}`}><h4 className="font-bold">Keyword Frequency & Readability</h4><div className="mt-3 space-y-1.5">{stats.top.map(([w,c])=><div key={w} className="flex items-center gap-2 text-xs"><span className="w-20 truncate">{w}</span><div className="flex-1 h-2 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-[#5b5bff] transition-all duration-500" style={{width:`${(c/stats.maxFreq)*100}%`}}/></div><span>{c}</span></div>)}</div><div className={`mt-4 p-3 rounded-[12px] text-xs ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Flesch: {Math.round(stats.flesch)} • {stats.flesch>80?"Very Easy":stats.flesch>50?"Easy":"Hard"} • Language: {stats.lang}</div></div>}
 
             {tab === "tools" && <div className={`rounded-[20px] border p-4 grid grid-cols-2 gap-2 ${surface}`}>
               <button className={button} onClick={()=>syncEditor("Lorem ipsum dolor sit amet, consectetur adipiscing elit. ".repeat(20))}>Lorem 100w</button>
@@ -491,9 +500,64 @@ export default function Page() {
               <button className={button} onClick={()=>syncEditor(text.trim()?text.trim().split(/\s+/).map(w=>`#${w}`).join(" "):"")}>Hashtags</button>
             </div>}
 
-            {tab === "diff" && <div className={`rounded-[20px] border p-4 ${surface}`}><h4 className="font-bold">Diff Checker</h4><div className="mt-3 space-y-2 text-xs"><div className={`p-3 rounded-[12px] ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Chars A: {text.length} | Chars B: {diffB.length}</div><div className={`p-3 rounded-[12px] ${text===diffB?"bg-emerald-500/20 text-emerald-400":"bg-red-500/20 text-red-400"}`}>{text===diffB?"✅ Identical":"⚠️ Different"}</div></div></div>}
+            {/* FIXED DIFF - RESTORED HIGHLIGHT */}
+            {tab === "diff" && <div className={`rounded-[20px] border p-4 ${surface}`}>
+              <h4 className="font-bold">Diff Checker</h4>
+              <div className="mt-3 space-y-2 text-xs">
+                <div className={`p-3 rounded-[12px] ${dark?"bg-[#1e2138]":"bg-[#f7f8ff]"}`}>Chars A: {text.length} | Chars B: {diffB.length} | Difference: {Math.abs(text.length-diffB.length)}</div>
+                <div className={`p-3 rounded-[12px] ${text===diffB?"bg-emerald-500/20 text-emerald-400":"bg-red-500/20 text-red-400"}`}>{text===diffB?"✅ Both texts are identical":"⚠️ Texts are different"}</div>
+                <div className={`max-h-[240px] overflow-auto p-2 rounded-[10px] ${dark?"bg-black/20":"bg-black/5"} leading-6 break-all`}>
+                  {text.split(" ").map((w,i)=>{
+                    const w2=diffB.split(" ")[i];
+                    return w!==w2?<span key={i} className="bg-red-500/30 px-1 rounded mx-0.5">{w} </span>:<span key={i}>{w} </span>
+                  })}
+                </div>
+                <div className="text-[10px] opacity-50">Red = Different word, Normal = Same</div>
+              </div>
+            </div>}
           </aside>
         </main>
+
+        {/* RESTORED - Other Useful Tools */}
+        <section className="max-w-[1280px] mx-auto px-4 pb-8">
+          <h3 className="font-bold text-[20px] mb-3">Other Useful Tools</h3>
+          <div className="grid md:grid-cols-3 gap-3">
+            {[
+              ["📝","Word Counter","Count words, characters, sentences and paragraphs."],
+              ["🔍","SEO Analyzer","Check title and meta description length."],
+              ["🔀","Duplicate Cleaner","Remove repeated lines without changing order."],
+              ["🎙️","Voice to Text","Speak in Hindi or English and insert text."],
+              ["🔊","Text to Speech","Listen to your writing naturally."],
+              ["🔗","Slug Generator","Create cleaner SEO-friendly URL slugs."]
+            ].map(([i,t,d])=><div key={t as string} className={`card-hover rounded-[16px] border p-4 flex gap-3 ${surface}`}><div className="text-[24px]">{i as string}</div><div><div className="font-bold text-sm">{t as string}</div><div className="text-xs opacity-60 mt-1">{d as string}</div></div></div>)}
+          </div>
+        </section>
+
+        {/* RESTORED - User Guide & FAQ */}
+        <section className={`max-w-[1000px] mx-auto px-5 py-8 rounded-[24px] border mb-8 ${surface}`}>
+          <div className="flex items-center justify-between gap-3"><div><h2 className="text-2xl font-bold">Complete User Guide & FAQ</h2><p className="text-sm opacity-60 mt-1">Learn how Textlyzer works and who can benefit from it.</p></div><button className={button} onClick={()=>setShowGuide(!showGuide)}>{showGuide?"Hide":"Show"}</button></div>
+          {showGuide && <div className="mt-7 space-y-8 text-[14px] leading-7 opacity-90">
+            <article><h3 className="text-xl font-bold mb-2">What is a Character Counter?</h3><p>A character counter is a writing utility that measures the amount of text you enter. It can count total characters, characters without spaces, words, sentences, paragraphs, lines, letters, numbers, punctuation and emoji. This is useful whenever a website, social platform, form, application or assignment imposes a text limit.</p></article>
+            <article><h3 className="text-xl font-bold mb-2">For Whom Is a Character Counter Beneficial?</h3><div className="grid md:grid-cols-2 gap-3">{[["Bloggers & Content Writers","Check article length, paragraph structure, reading time and repeated keywords."],["SEO Professionals","Measure title and meta-description length and prepare cleaner slugs."],["Social Media Creators","Check whether captions, posts and titles fit platform limits before publishing."],["Students & Teachers","Keep assignments, answers and notes within specified word or character limits."],["YouTubers","Prepare concise titles, descriptions and scripts and estimate speaking time."],["Copywriters & Marketers","Write controlled headlines, ad copy and calls to action."],["Journalists","Quickly measure stories, headlines and short-form copy."],["Developers & Freelancers","Test text limits for forms, databases, APIs and UI fields."]].map(([a,b])=><div key={a} className={`card-hover p-4 rounded-xl border ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><b>{a}</b><p className="text-xs opacity-70 mt-1">{b}</p></div>)}</div></article>
+            <article><h3 className="text-xl font-bold mb-2">How Duplicate Removal Works</h3><p>The Duplicate button processes lines while preserving the first occurrence. It trims leading and trailing whitespace and normalizes repeated spaces before comparison. Empty lines are retained so the tool does not unexpectedly destroy document spacing. Optional case-insensitive matching lets “Hello” and “hello” be treated as duplicates.</p></article>
+            <article><h3 className="text-xl font-bold mb-3">Frequently Asked Questions</h3><div className="grid gap-2">{[
+              ["What is the difference between characters and words?","Characters are individual letters, numbers, spaces, punctuation marks and other symbols. Words are groups of text separated by whitespace."],
+              ["Are spaces included in the character count?","Yes. Textlyzer shows both total characters and characters without whitespace so you can use whichever limit a platform specifies."],
+              ["Does it support Hindi?","Yes. The editor accepts Hindi, English, Hinglish, mixed scripts and emoji."],
+              ["Will bold text show ** characters?","No. Bold, italic, headings and other toolbar actions use rich-text formatting in the editor instead of inserting Markdown markers."],
+              ["How do I make an H1 heading?","Select the text and click H1. The editor applies a real heading block rather than adding a visible # character."],
+              ["How does the Duplicate tool work?","It removes repeated non-empty lines while keeping the first occurrence and preserving the original order."],
+              ["Can duplicate matching ignore capitalization?","Yes. Enable the case-insensitive option in the Clean menu."],
+              ["How is reading time calculated?","The current estimate uses approximately 225 words per minute and rounds up to a practical minute value."],
+              ["How is speaking time calculated?","The current estimate uses approximately 150 words per minute, suitable as a general speaking estimate."],
+              ["Can I check social-media limits?","Yes. The Count panel shows example limits for X, Instagram, LinkedIn, Facebook, YouTube titles and Google titles."],
+              ["Does voice typing work on every browser?","Voice typing depends on browser support for the Web Speech API. Chrome-based browsers generally provide the best support."],
+              ["Can the text be read aloud?","Yes. Textlyzer uses the browser's speech-synthesis capability to read the current text."],
+              ["Does dark mode affect the counter?","No. Theme changes are visual only; the underlying counts and text remain unchanged."],
+            ].map(([q,a])=><details key={q} className={`rounded-xl border p-4 ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><summary className="font-semibold cursor-pointer">{q}</summary><p className="mt-2 opacity-70">{a}</p></details>)}</div></article>
+          </div>}
+          <p className="text-[11px] opacity-40 mt-8 text-center">© 2026 Textlyzer PRO • Rich-text editor • Duplicate cleaner • User guide & FAQ</p>
+        </section>
       </div>
     </div>
   );
