@@ -533,43 +533,83 @@ export default function Page() {
           </div>
         </section>
 
-                <section className={`max-w-[1000px] mx-auto px-5 py-8 rounded-[24px] border mb-8 ${surface}`}>
-          <div className="flex items-center justify-between gap-3"><div><h2 className="text-2xl font-bold">Complete User Guide & FAQ</h2><p className="text-sm opacity-60 mt-1">Learn how Textlyzer works and who can benefit from it.</p></div><button className={button} onClick={()=>setShowGuide(!showGuide)}>{showGuide?"Hide":"Show"}</button></div>
-          {showGuide && <div className="mt-7 space-y-8 text-[14px] leading-7 opacity-90">
-            <article><h3 className="text-xl font-bold mb-2">What is a Character Counter?</h3><p>A character counter is a writing utility that measures the amount of text you enter. It can count total characters, characters without spaces, words, sentences, paragraphs, lines, letters, numbers, punctuation and emoji. This is useful whenever a website, social platform, form, application or assignment imposes a text limit.</p><p className="mt-2">Textlyzer is designed to make those measurements instant while you type. Counts update locally in the browser, so you can check the length of Hindi, English, Hinglish and mixed text without repeatedly copying the content into another application.</p></article>
+                        <section id="user-guide" className={`max-w-[1000px] mx-auto px-5 py-8 rounded-[24px] border mb-8 ${surface}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold">Complete User Guide & FAQ - Best Online Character Counter & Word Counter</h2>
+              <p className="text-sm opacity-60 mt-1">Learn how Textlyzer's free character counter, word counter, SEO title checker, duplicate remover, and text tools work for Hindi, English & Hinglish.</p>
+            </div>
+            <button className={button} onClick={()=>setShowGuide(!showGuide)}>{showGuide?"Hide Guide":"Show Guide"}</button>
+          </div>
 
-            <article><h3 className="text-xl font-bold mb-2">For Whom Is a Character Counter Beneficial?</h3><div className="grid md:grid-cols-2 gap-3">{[["Bloggers & Content Writers","Check article length, paragraph structure, reading time and repeated keywords."],["SEO Professionals","Measure title and meta-description length and prepare cleaner slugs."],["Social Media Creators","Check whether captions, posts and titles fit platform limits before publishing."],["Students & Teachers","Keep assignments, answers and notes within specified word or character limits."],["YouTubers","Prepare concise titles, descriptions and scripts and estimate speaking time."],["Copywriters & Marketers","Write controlled headlines, ad copy and calls to action."],["Journalists","Quickly measure stories, headlines and short-form copy."],["Developers & Freelancers","Test text limits for forms, databases, APIs and UI fields."]].map(([a,b])=><div key={a} className={`card-hover p-4 rounded-xl border ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><b>{a}</b><p className="text-xs opacity-70 mt-1">{b}</p></div>)}</div></article>
+          {/* FAQ Schema for Google Rich Results */}
+          <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
+            "@context":"https://schema.org",
+            "@type":"FAQPage",
+            "mainEntity":[
+              {"@type":"Question","name":"What is a character counter?","acceptedAnswer":{"@type":"Answer","text":"A character counter counts total characters, characters without spaces, words, sentences, paragraphs, lines and emoji. Textlyzer does it instantly."}},
+              {"@type":"Question","name":"Does it support Hindi and Hinglish?","acceptedAnswer":{"@type":"Answer","text":"Yes, Textlyzer supports Hindi, English, Hinglish, mixed scripts and emoji with accurate Unicode counting."}},
+              {"@type":"Question","name":"How to count words and characters?","acceptedAnswer":{"@type":"Answer","text":"Just type or paste in the editor. Counts update live for chars, words, sentences, reading time and speaking time."}},
+              {"@type":"Question","name":"How does duplicate line remover work?","acceptedAnswer":{"@type":"Answer","text":"It removes repeated lines, keeps first occurrence, normalizes spaces and preserves order. Optional case-insensitive mode."}},
+              {"@type":"Question","name":"Is it free?","acceptedAnswer":{"@type":"Answer","text":"Yes, Textlyzer PRO character counter is 100% free, no login, works in browser with local storage."}}
+            ]
+          })}} />
 
-            <article><h3 className="text-xl font-bold mb-2">How to Use the Editor</h3><ol className="list-decimal pl-5 space-y-1"><li>Type or paste your content into the editor.</li><li>Watch character, word, sentence and paragraph counts update automatically.</li><li>Select text and use Bold, Italic, Underline, H1, H2, lists, quote or link from the formatting toolbar.</li><li>Use Copy, Clear, case conversion, emoji removal or TXT/HTML export when needed.</li><li>Use Clean to replace text, remove extra spaces, delete empty lines and remove duplicates.</li><li>Use SEO to check title and description length and generate slugs.</li><li>Use Goals to set a daily writing target and monitor progress.</li><li>Use Diff to compare Original vs Modified text with word-level highlights.</li></ol><p className="mt-2">Formatting is real rich-text formatting inside the editor; the tool does not insert visible Markdown markers such as <code>**</code> or <code>#</code> around formatted text.</p></article>
+          {showGuide && <div className="mt-7 space-y-10 text-[14px] leading-7 opacity-90">
+            <article id="what-is-character-counter">
+              <h3 className="text-xl font-bold mb-2">What is a Character Counter & Word Counter?</h3>
+              <p>A <strong>character counter</strong> is a free online writing tool that measures text length instantly. Textlyzer counts <strong>total characters, characters without spaces, words, sentences, paragraphs, lines, letters, numbers, punctuation and emoji</strong>. If you search for <em>character counter online, word counter, letter counter, or text length checker</em>, this tool gives all counts in one place.</p>
+              <p className="mt-2">Unlike basic counters, Textlyzer is a <strong>rich-text character counter</strong> — Bold, Italic, H1/H2, lists work without showing ** or # symbols. It also works as a <strong>Hindi character counter and Hinglish word counter</strong> with correct Unicode counting.</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-[11px]"><span className="px-2 py-1 rounded-full border">character counter</span><span className="px-2 py-1 rounded-full border">word counter</span><span className="px-2 py-1 rounded-full border">Hindi character count</span><span className="px-2 py-1 rounded-full border">text analyzer</span></div>
+            </article>
 
-            <article><h3 className="text-xl font-bold mb-2">How Duplicate Removal Works</h3><p>The Duplicate button processes lines while preserving the first occurrence. It trims leading and trailing whitespace and normalizes repeated spaces before comparison. Empty lines are retained so the tool does not unexpectedly destroy document spacing. Optional case-insensitive matching lets “Hello” and “hello” be treated as duplicates. This is useful for lists, notes, keyword lists and pasted data.</p></article>
+            <article id="who-can-use">
+              <h3 className="text-xl font-bold mb-2">Who Should Use This Text Counter Tool?</h3>
+              <div className="grid md:grid-cols-2 gap-3">{[["Bloggers & Content Writers","Check article length, paragraph count, reading time 225 WPM, keyword density for SEO content."],["SEO Professionals & Digital Marketers","Validate SEO title 50-60 chars, meta description 150-160 chars, generate URL slugs and check top keywords."],["Social Media & YouTube Creators","Check X/Twitter 280, Instagram 2200, LinkedIn 3000, Facebook 63206, YouTube title 100 limits before posting."],["Students & Teachers","Stay within assignment word limits, count words for essays, estimate speaking time 150 WPM for presentations."],["Copywriters & Journalists","Write ad copy, headlines, press releases with precise character limits."],["Developers & Freelancers","Test form limits, database varchar limits, API payload size with exact char count."]].map(([a,b])=><div key={a} className={`card-hover p-4 rounded-xl border ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><b>{a}</b><p className="text-xs opacity-70 mt-1">{b}</p></div>)}</div>
+            </article>
 
-            <article><h3 className="text-xl font-bold mb-2">Privacy & Local Processing</h3><p>The counter calculations are performed in the browser. Draft text and preferences can be stored in your browser&apos;s local storage so that a refresh does not immediately erase your work. Do not paste confidential information into any online service unless you are comfortable with its storage and privacy practices.</p></article>
+            <article id="how-to-use">
+              <h3 className="text-xl font-bold mb-2">How to Use Textlyzer - Step by Step Guide</h3>
+              <ol className="list-decimal pl-5 space-y-1">
+                <li><b>Paste or type:</b> Drop any Hindi, English, Hinglish text into the editor.</li>
+                <li><b>Live count:</b> Instant character, word, sentence, paragraph, reading & speaking time.</li>
+                <li><b>Format:</b> Select text → Bold (Ctrl+B), Italic, Underline, H1/H2, bullet list, quote, link — real formatting, not markdown.</li>
+                <li><b>Clean:</b> Clean tab → Find & Replace, remove extra spaces, empty lines, <strong>remove duplicate lines</strong> with case-insensitive option.</li>
+                <li><b>SEO check:</b> SEO tab → Enter title/description → Get SEO score /100 + Google SERP preview + slug generator.</li>
+                <li><b>Compare:</b> DIFF tab → Compare original vs modified text with word-level red highlight.</li>
+                <li><b>Export:</b> Download as TXT or HTML, copy/cut selected text only.</li>
+              </ol>
+            </article>
 
-            <article><h3 className="text-xl font-bold mb-3">Frequently Asked Questions</h3><div className="grid gap-2">{[
-              ["What is the difference between characters and words?","Characters are individual letters, numbers, spaces, punctuation marks and other symbols. Words are groups of text separated by whitespace."],
-              ["Are spaces included in the character count?","Yes. Textlyzer shows both total characters and characters without whitespace so you can use whichever limit a platform specifies."],
-              ["Does it support Hindi?","Yes. The editor accepts Hindi, English, Hinglish, mixed scripts and emoji."],
-              ["Will bold text show ** characters?","No. Bold, italic, headings and other toolbar actions use rich-text formatting in the editor instead of inserting Markdown markers."],
-              ["How do I make an H1 heading?","Select the text and click H1. The editor applies a real heading block rather than adding a visible # character."],
-              ["How does the Duplicate tool work?","It removes repeated non-empty lines while keeping the first occurrence and preserving the original order."],
-              ["Can duplicate matching ignore capitalization?","Yes. Enable the case-insensitive option in the Clean menu."],
-              ["How is reading time calculated?","The current estimate uses approximately 225 words per minute and rounds up to a practical minute value."],
-              ["How is speaking time calculated?","The current estimate uses approximately 150 words per minute, suitable as a general speaking estimate."],
-              ["Can I check social-media limits?","Yes. The Count panel shows example limits for X, Instagram, LinkedIn, Facebook, YouTube titles and Google titles."],
-              ["What is an SEO title counter?","It measures the title length and gives a simple indication when the title falls within the configured 50–60 character range."],
-              ["What is a meta description counter?","It measures the description and indicates when the description falls within the configured 150–160 character range."],
-              ["Does voice typing work on every browser?","Voice typing depends on browser support for the Web Speech API. Chrome-based browsers generally provide the best support. Multilingual voice now supports Hindi, Hinglish (en-IN), English US and UK."],
-              ["Can the text be read aloud?","Yes. Textlyzer uses the browser's speech-synthesis capability to read the current text."],
-              ["Can I export my text?","Yes. The editor provides TXT and HTML export actions."],
-              ["Does dark mode affect the counter?","No. Theme changes are visual only; the underlying counts and text remain unchanged."],
-              ["Is it useful for students?","Yes. Students can check word and character requirements, organize paragraphs and estimate reading or speaking time."],
-              ["Is it useful for SEO writers?","Yes. SEO writers can measure titles and descriptions, generate slugs and inspect basic keyword frequency."],
-              ["Can I use it on mobile?","Yes. The layout is responsive and toolbar controls wrap to smaller screens."],
-              ["Does the tool replace professional proofreading?","No. Character counting and basic analysis are utilities; they do not replace human proofreading, fact checking or professional editing."],
-            ].map(([q,a])=><details key={q} className={`rounded-xl border p-4 ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><summary className="font-semibold cursor-pointer">{q}</summary><p className="mt-2 opacity-70">{a}</p></details>)}</div></article>
+            <article id="duplicate-remover-seo">
+              <h3 className="text-xl font-bold mb-2">Advanced Duplicate Line Remover - Keep First Occurrence</h3>
+              <p>Our <strong>duplicate line remover</strong> removes repeated lines while preserving first occurrence and original order. It trims leading/trailing spaces, normalizes multiple spaces to single space (e.g. `&nbsp;` handling), and keeps empty lines. Enable <strong>case-insensitive duplicate matching</strong> to treat <code>Hello</code> and <code>hello</code> as duplicate — perfect for keyword lists, email lists, and data cleaning.</p>
+            </article>
+
+            <article id="seo-features">
+              <h3 className="text-xl font-bold mb-2">Free SEO Tools Included: Title Counter, Meta Description Checker & Slug Generator</h3>
+              <p>Textlyzer includes: <strong>SEO title length checker (ideal 50-60 chars), meta description checker (ideal 150-160 chars), SEO score calculator, Google preview, keyword frequency analyzer, Flesch reading ease score, and URL slug generator</strong> supporting Hindi Unicode. Ideal for bloggers targeting <em>character counter SEO, word count for blog, title length checker</em> queries.</p>
+            </article>
+
+            <article id="faq">
+              <h3 className="text-xl font-bold mb-3">FAQs - Character Counter Online</h3>
+              <div className="grid gap-2">{[
+                ["What is the difference between characters and words?","Characters are individual letters, numbers, spaces, punctuation. Words are separated by whitespace. Textlyzer shows both counts: chars, chars without spaces, and words."],
+                ["Are spaces included in character count?","Yes. We show total characters WITH spaces and WITHOUT spaces, so you can match any platform limit like Twitter 280 or Instagram 2200."],
+                ["Does your character counter support Hindi and Hinglish?","Yes. Full Hindi Unicode support. It correctly counts हिंदी अक्षर, English letters, Hinglish mix, and emoji like 😊 without breaking."],
+                ["Will bold show ** stars?","No. Unlike markdown tools, Textlyzer uses real rich-text editor. Bold, italic, H1 are WYSIWYG — no ** or # visible."],
+                ["How does duplicate remover work for SEO?","It removes repeated lines, keeps first occurrence, preserves order, normalizes spaces. Great for cleaning keyword lists, backlink lists, email lists for SEO."],
+                ["How is reading and speaking time calculated?","Reading time = words / 225 WPM, Speaking time = words / 150 WPM. Rounded up. Useful for blog posts and YouTube scripts."],
+                ["Is Textlyzer free and private?","100% free, no login. All counting happens in browser. Text saved in localStorage only, not sent to server."],
+                ["Can I check social media character limits?","Yes. Count panel shows live check against X/Twitter 280, Instagram 2200, LinkedIn 3000, Facebook 63206, YouTube title 100, Google title 60."],
+              ].map(([q,a])=><details key={q} className={`rounded-xl border p-4 open:bg-white/5 ${dark?"bg-[#1e2138] border-white/10":"bg-[#f7f8ff] border-black/5"}`}><summary className="font-semibold cursor-pointer list-none flex justify-between"><span>{q}</span><span>＋</span></summary><p className="mt-2 opacity-70">{a}</p></details>)}</div>
+            </article>
+
+            <article className="text-[12px] opacity-60 border-t pt-4">
+              <p><strong>Related searches:</strong> character counter, word counter, letter counter, character count online, word count tool, Hindi word counter, duplicate line remover, SEO title checker, meta description length checker, text analyzer, reading time calculator, speaking time calculator, slug generator, free online text tools.</p>
+            </article>
           </div>}
-          <p className="text-[11px] opacity-40 mt-8 text-center">© 2026 Textlyzer PRO • Rich-text editor • Duplicate cleaner • User guide & FAQ</p>
+          <p className="text-[11px] opacity-40 mt-8 text-center">© 2026 Textlyzer PRO • Free Character Counter • Word Counter • SEO Analyzer • Duplicate Remover • Textlyzer.app</p>
         </section>
       </div>
     </div>
