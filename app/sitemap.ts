@@ -3,7 +3,6 @@ import { MetadataRoute } from 'next'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://lorem-pro-tool.run4ravish.workers.dev';
 
-  // Abhi ke liye jo tools ka SEO ho chuka hai
   return [
     {
       url: baseUrl,
@@ -22,6 +21,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/character-counter`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
     },
   ];
 }
