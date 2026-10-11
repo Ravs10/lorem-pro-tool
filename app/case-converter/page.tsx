@@ -650,7 +650,97 @@ export default function CaseConverterPage() {
             {faqs.map((faq, index) => (<details key={index} className="group rounded-2xl border border-red-100 bg-white/70 px-5 py-4 backdrop-blur-xl open:bg-white"><summary className="flex cursor-pointer list-none justify-between gap-4 font-semibold text-slate-900">{faq.q}<span className="text-red-500 group-open:rotate-45 transition">+</span></summary><p className="mt-3 text-sm text-slate-600 leading-relaxed">{faq.a}</p></details>))}
           </div>
         </section>
+{/* OTHER USEFUL TOOLS SECTION - Paste before footer */}
+<section className="mt-20 animate-fade">
+  <div className="text-center">
+    <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/70 px-4 py-1.5 text-xs font-semibold text-red-600 backdrop-blur-xl">
+      ✨ More Free Tools
+    </span>
+    <h2 className="mt-4 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
+      Other <span className="text-red-600">Useful Tools</span>
+    </h2>
+    <p className="mx-auto mt-3 max-w-xl text-slate-600 text-sm sm:text-base">
+      Explore our other free, fast and private tools for developers, writers and students.
+    </p>
+  </div>
 
+  <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {[
+      {
+        title: "Word Counter",
+        desc: "Count words, chars, sentences & reading time",
+        icon: "📝",
+        href: "/word-counter",
+        color: "from-red-500 to-rose-500",
+      },
+      {
+        title: "JSON Formatter",
+        desc: "Beautify, minify & validate JSON instantly",
+        icon: "{ }",
+        href: "/json-formatter",
+        color: "from-orange-500 to-red-500",
+      },
+      {
+        title: "Base64 Converter",
+        desc: "Encode & decode Base64 text & images",
+        icon: "⚡",
+        href: "/base64",
+        color: "from-rose-500 to-pink-500",
+      },
+      {
+        title: "URL Encoder",
+        desc: "Encode & decode URLs for safe sharing",
+        icon: "🔗",
+        href: "/url-encoder",
+        color: "from-red-600 to-orange-600",
+      },
+      {
+        title: "Password Generator",
+        desc: "Generate strong & secure passwords",
+        icon: "🔐",
+        href: "/password-generator",
+        color: "from-slate-800 to-slate-600",
+      },
+      {
+        title: "Lorem Ipsum",
+        desc: "Generate dummy text for designs",
+        icon: "¶",
+        href: "/lorem-ipsum",
+        color: "from-red-400 to-red-600",
+      },
+      {
+        title: "Text to Speech",
+        desc: "Convert text to natural voice",
+        icon: "🔊",
+        href: "/text-to-speech",
+        color: "from-rose-400 to-red-500",
+      },
+      {
+        title: "QR Code Generator",
+        desc: "Create QR codes for links & text",
+        icon: "⬚",
+        href: "/qr-generator",
+        color: "from-orange-400 to-red-500",
+      },
+    ].map((tool) => (
+      <a
+        key={tool.title}
+        href={tool.href}
+        className="group relative overflow-hidden rounded-[20px] border border-red-100 bg-white/70 p-5 backdrop-blur-xl transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(220,38,38,0.3)] hover:border-red-200"
+      >
+        <div className={`absolute -right-8 -top-8 h-20 w-20 rounded-full bg-gradient-to-br ${tool.color} opacity-10 group-hover:opacity-20 transition`} />
+        <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${tool.color} text-white font-bold text-sm shadow-lg`}>
+          {tool.icon}
+        </div>
+        <h3 className="mt-4 font-bold text-slate-900 group-hover:text-red-600 transition">{tool.title}</h3>
+        <p className="mt-1 text-xs text-slate-500 leading-relaxed">{tool.desc}</p>
+        <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-red-600 opacity-0 group-hover:opacity-100 transition">
+          Try now <span className="transition group-hover:translate-x-1">→</span>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>
         <footer className="mt-16 text-center text-sm text-slate-400 border-t border-red-100 pt-6">© {new Date().getFullYear()} Advanced Case Converter — Built with Next.js</footer>
       </div>
     </div>
