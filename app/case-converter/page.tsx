@@ -245,7 +245,7 @@ export default function CaseConverterPage() {
   const [redoStack, setRedoStack] = useState<string[]>([])
   const [keywordPanel, setKeywordPanel] = useState(false)
 
-  const editorRef = useRef<HTMLTextAreaElement>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
   const voiceTypingRef = useRef(false)
 
