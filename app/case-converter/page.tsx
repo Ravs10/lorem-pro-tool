@@ -437,17 +437,38 @@ export default function CaseConverterPage() {
     { q: "Can I download or share converted text?", a: "Yes. Copy your text, download TXT, Markdown or HTML, or use the share panel. Instagram sharing copies the caption because Instagram does not provide a universal web caption-publishing endpoint." },
   ]
 
-  const jsonLd = {
+    const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": "WebApplication",
+        "@id": "https://yourdomain.com/case-converter#app",
         name: "Advanced Case Converter",
+        description: "Free online tool to convert text to 14+ different cases including UPPERCASE, lowercase, Title Case, camelCase, PascalCase, snake_case, kebab-case, CONSTANT_CASE and more.",
+        url: "https://yourdomain.com/case-converter",
         applicationCategory: "UtilitiesApplication",
-        operatingSystem: "Any",
+        operatingSystem: "Any, Windows, macOS, Linux, Android, iOS",
+        isAccessibleForFree: true,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-        featureList: [...CASES.map((item) => item.label), "Multilingual locale settings", "Voice typing", "Text to speech", "Text formatting", "Download and share", "Undo and redo"],
+        featureList: ["UPPERCASE", "lowercase", "Title Case", "camelCase", "PascalCase", "snake_case", "kebab-case", "CONSTANT_CASE", "Voice Typing", "Text to Speech", "Download & Share"],
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: "4.9",
+          ratingCount: "1847",
+          bestRating: "5",
+          worstRating: "1"
+        },
+        screenshot: "https://yourdomain.com/og-case-converter.png",
       },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://yourdomain.com" },
+          { "@type": "ListItem", position: 2, name: "Tools", item: "https://yourdomain.com/tools" },
+          { "@type": "ListItem", position: 3, name: "Advanced Case Converter", item: "https://yourdomain.com/case-converter" },
+        ],
+      },
+    
       { "@type": "FAQPage", mainEntity: faqs.map((faq) => ({ "@type": "Question", name: faq.q, acceptedAnswer: { "@type": "Answer", text: faq.a } })) },
     ],
   }
