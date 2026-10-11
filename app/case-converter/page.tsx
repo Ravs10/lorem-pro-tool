@@ -362,17 +362,24 @@ export default function CaseConverterPage() {
     const selected = text.slice(start, end)
 
     let replacement: string
-    let selectionStart = start
-    let selectionEnd: number
+    let newStart: number
+    let newEnd: number
 
     if (lineMode) {
-      const lines = (selected || text.slice(start)).split("\n")
+      const lines = (selected || text.slice(start, start) || "your text").split("\n")
       replacement = lines.map((line) => line ? `${before}${line}` : line).join("\n")
-      selectionEnd = start + replacement.length
+      newStart = start
+      newEnd = start + replacement.length
+    } else if (!selected) {
+      // No selection - insert markers and put cursor in middle
+      replacement = `${before}${after}`
+      newStart = start + before.length
+      newEnd = newStart
     } else {
+      // With selection - wrap it
       replacement = `${before}${selected}${after}`
-      selectionStart = start + before.length
-      selectionEnd = selectionStart + selected.length
+      newStart = start
+      newEnd = start + replacement.length
     }
 
     const next = text.slice(0, start) + replacement + text.slice(end)
@@ -380,7 +387,7 @@ export default function CaseConverterPage() {
 
     requestAnimationFrame(() => {
       editor.focus()
-      editor.setSelectionRange(selectionStart, selectionEnd)
+      editor.setSelectionRange(newStart, newEnd)
     })
   }
 
