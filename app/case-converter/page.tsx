@@ -744,18 +744,18 @@ export default function CaseConverterPage() {
                 Typing & formatting toolbar — applies to selected text
               </p>
               <div className="flex flex-wrap gap-2">
-                <button className="tool-button" onClick={() => applyFormatting("**", "**")}><b>B</b> Bold</button>
-                <button className="tool-button" onClick={() => applyFormatting("*", "*")}><i>Italic</i></button>
-                <button className="tool-button" onClick={() => applyFormatting("__", "__")}><u>Underline</u></button>
-                <button className="tool-button" onClick={() => applyFormatting("~~", "~~")}>Strike</button>
-                <button className="tool-button" onClick={() => applyFormatting("`", "`")}>Code</button>
-                <button className="tool-button" onClick={() => applyFormatting("> ", "", true)}>Quote lines</button>
-                <button className="tool-button" onClick={() => applyFormatting("- ", "", true)}>• Bullets</button>
-                <button className="tool-button" onClick={() => applyFormatting("1. ", "", true)}>Numbered lines</button>
-                <button className="tool-button" onClick={insertLink}>Insert link</button>
-                <button className="tool-button" onClick={() => applyFormatting("(", ")")}>Parentheses</button>
-                <button className="tool-button" onClick={() => applyFormatting('"', '"')}>Quotes</button>
-              </div>
+  <button className="tool-button" onClick={() => applyFormatting("**", "**")}><b>B</b> Bold</button>
+  <button className="tool-button" onClick={() => applyFormatting("*", "*")}><i>Italic</i></button>
+  <button className="tool-button" onClick={() => applyFormatting("<u>", "</u>")}> <u>Underline</u> </button>
+  <button className="tool-button" onClick={() => applyFormatting("~~", "~~")}> Strike </button>
+  <button className="tool-button" onClick={() => applyFormatting("`", "`")}>Code</button>
+  <button className="tool-button" onClick={() => applyFormatting("> ", "", true)}>Quote lines</button>
+  <button className="tool-button" onClick={() => applyFormatting("- ", "", true)}>• Bullets</button>
+  <button className="tool-button" onClick={() => applyFormatting("1. ", "", true)}>Numbered lines</button>
+  <button className="tool-button" onClick={insertLink}>Insert link</button>
+  <button className="tool-button" onClick={() => applyFormatting("(", ")")}>Parentheses</button>
+  <button className="tool-button" onClick={() => applyFormatting('"', '"')}>Quotes</button>
+</div>
               <p className="mt-2 text-xs text-slate-500">
                 Formatting inserts plain-text Markdown markers. It does not change the editor into a rich-text document.
               </p>
