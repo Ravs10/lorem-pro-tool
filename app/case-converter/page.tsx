@@ -626,7 +626,20 @@ export default function CaseConverterPage() {
 
         <article className="prose prose-slate max-w-none mt-16 rounded-3xl border border-red-100 bg-white/70 p-6 sm:p-10 backdrop-blur-xl">
           <h2 className="text-2xl font-bold text-slate-900">What is Case Converter?</h2>
-          <p>A case converter is a free online utility that changes the capitalization or naming style of text.</p>
+          <p>
+            A case converter is a free online utility that changes the capitalization or naming
+            style of text. Use UPPERCASE for headings, camelCase for JavaScript variables,
+            PascalCase for component names, or snake_case for Python and databases.
+          </p>
+
+          <h2>How to Use This Tool? (Step by Step Guide)</h2>
+          <ol>
+            <li><b>Type or paste text:</b> Enter a paragraph, title, code identifier or list.</li>
+            <li><b>Choose a locale:</b> Select a language for locale-aware casing and voice options.</li>
+            <li><b>Choose a case:</b> Click the format you need. The text updates immediately.</li>
+            <li><b>Format and edit:</b> Select text and use the toolbar. Undo or redo changes when needed.</li>
+            <li><b>Copy, speak, share or download:</b> Use the buttons above the editor.</li>
+          </ol>
           <button onClick={() => setShowMore((value) =>!value)} className="rounded-full bg-red-600 text-white px-6 py-2.5 text-sm font-semibold mt-4 hover:bg-red-700">{showMore? "Show Less ▲" : "Show More - Detailed Guide ▼"}</button>
           {showMore && (<div className="mt-8 animate-fade"><h2>Case Types Explained</h2><p>All 14 cases supported with Unicode and locale awareness.</p></div>)}
         </article>
