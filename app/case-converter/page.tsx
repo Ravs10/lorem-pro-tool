@@ -349,46 +349,11 @@ export default function CaseConverterPage() {
     setActive(null)
   }
 
-  const applyFormatting = (
-    before: string,
-    after = before,
-    lineMode = false
-  ) => {
+    const applyFormatting = (command: "bold" | "italic" | "underline" | "strikeThrough") => {
     const editor = editorRef.current
     if (!editor) return
-
-    const start = editor.selectionStart
-    const end = editor.selectionEnd
-    const selected = text.slice(start, end)
-
-    let replacement: string
-    let newStart: number
-    let newEnd: number
-
-    if (lineMode) {
-      const lines = (selected || text.slice(start, start) || "your text").split("\n")
-      replacement = lines.map((line) => line ? `${before}${line}` : line).join("\n")
-      newStart = start
-      newEnd = start + replacement.length
-    } else if (!selected) {
-      // No selection - insert markers and put cursor in middle
-      replacement = `${before}${after}`
-      newStart = start + before.length
-      newEnd = newStart
-    } else {
-      // With selection - wrap it
-      replacement = `${before}${selected}${after}`
-      newStart = start
-      newEnd = start + replacement.length
-    }
-
-    const next = text.slice(0, start) + replacement + text.slice(end)
-    updateText(next)
-
-    requestAnimationFrame(() => {
-      editor.focus()
-      editor.setSelectionRange(newStart, newEnd)
-    })
+    editor.focus()
+    document.execCommand(command, false)
   }
 
   const insertLink = () => {
