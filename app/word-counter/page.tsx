@@ -4,7 +4,7 @@ import WordCounterClient from "./WordCounterClient";
 export const metadata: Metadata = {
   title: "Word Counter - Free Online Word & Character Counter Tool 2026",
   description: "Free online word counter tool to count words, characters, sentences, paragraphs, reading time & keyword density instantly. 100% free, no signup, private & accurate for essays, blogs and SEO.",
-  keywords: ["word counter", "character counter", "word count tool", "online word counter", "count words online", "lorem pro tool word counter"],
+  keywords: ["word counter", "character counter", "word count tool", "online word counter", "count words online", "lorem pro tool word counter", "lorem pro tool", "lorem ipsum"],
   alternates: {
     canonical: "https://lorem-pro-tool.run4ravish.workers.dev/word-counter",
   },
