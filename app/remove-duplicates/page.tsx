@@ -193,10 +193,10 @@ export default function RemoveDuplicateProPage() {
     <div className="min-h-screen bg-[#0a0e27] text-white selection:bg-violet-500/30">
       <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify(jsonLd).replace(/</g,"\\u003c")}} />
       <style>{`
-       .glass{background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1)}
-       .glass-strong{background:rgba(255,255,255,0.08);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12)}
-       .glass-hover:hover{background:rgba(255,255,255,0.10);border-color:rgba(139,92,246,0.3);transform:translateY(-2px);box-shadow:0 10px 40px rgba(139,92,246,0.15)}
-       .animate-float{animation:float 8s ease-in-out infinite} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+      .glass{background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.1)}
+      .glass-strong{background:rgba(255,255,255,0.08);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.12)}
+      .glass-hover:hover{background:rgba(255,255,255,0.10);border-color:rgba(139,92,246,0.3);transform:translateY(-2px);box-shadow:0 10px 40px rgba(139,92,246,0.15)}
+      .animate-float{animation:float 8s ease-in-out infinite} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
       `}</style>
 
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -241,14 +241,43 @@ export default function RemoveDuplicateProPage() {
               {showVoice && <div className="mt-3 grid grid-cols-2 gap-3 text-xs"><label>Speed <input type="range" min="0.5" max="2" step="0.1" value={voiceRate} onChange={e=>setVoiceRate(Number(e.target.value))} className="w-full" /></label><label>Pitch <input type="range" min="0" max="2" step="0.1" value={voicePitch} onChange={e=>setVoicePitch(Number(e.target.value))} className="w-full" /></label></div>}
             </div>
 
+            {/* FIXED ADVANCED SETTINGS - No feature removed */}
             <div className="mt-5">
               <button onClick={()=>setShowAdvanced(!showAdvanced)} className="w-full flex justify-between glass rounded-xl px-4 py-3 text-sm">Advanced Settings <span>{showAdvanced?"−":"+"}</span></button>
               {showAdvanced && (
                 <div className="mt-3 grid sm:grid-cols-2 gap-3 text-sm">
-                  <select value={mode} onChange={e=>setMode(e.target.value as Mode)} className="glass rounded-xl p-3 bg-[#0f1330]"><option value="lines">Duplicate Lines</option><option value="words">Duplicate Words</option><option value="csv">CSV / List</option><option value="para">Duplicate Paragraphs</option></select>
-                  <select value={sortMode} onChange={e=>setSortMode(e.target.value as SortMode)} className="glass rounded-xl p-3 bg-[#0f1330]"><option value="original">Original</option><option value="az">A-Z</option><option value="za">Z-A</option><option value="numAsc">Num ↑</option><option value="numDesc">Num ↓</option></select>
+                  <select value={mode} onChange={e=>setMode(e.target.value as Mode)} className="glass rounded-xl p-3 bg-[#0f1330] border border-white/10">
+                    <option value="lines">Duplicate Lines</option>
+                    <option value="words">Duplicate Words</option>
+                    <option value="csv">CSV / List</option>
+                    <option value="para">Duplicate Paragraphs</option>
+                  </select>
+
+                  <select value={sortMode} onChange={e=>setSortMode(e.target.value as SortMode)} className="glass rounded-xl p-3 bg-[#0f1330] border border-white/10">
+                    <option value="original">Original Order</option>
+                    <option value="az">A → Z</option>
+                    <option value="za">Z → A</option>
+                    <option value="numAsc">Numeric ↑</option>
+                    <option value="numDesc">Numeric ↓</option>
+                  </select>
+
+                  {/* RESTORED: Keep First / Last */}
+                  <select value={occurrence} onChange={e=>setOccurrence(e.target.value as Occurrence)} className="glass rounded-xl p-3 bg-[#0f1330] border border-white/10">
+                    <option value="first">Keep First Occurrence</option>
+                    <option value="last">Keep Last Occurrence</option>
+                  </select>
+
+                  {/* RESTORED: Remove Blank Lines */}
+                  <select value={blankMode} onChange={e=>setBlankMode(e.target.value as any)} className="glass rounded-xl p-3 bg-[#0f1330] border border-white/10">
+                    <option value="keep">Keep Blank Lines</option>
+                    <option value="remove">Remove Blank Lines</option>
+                    <option value="collapse">Collapse Blank Lines</option>
+                  </select>
+
                   <label className="glass rounded-xl p-3 flex justify-between text-xs">Case Sensitive <input type="checkbox" checked={caseSensitive} onChange={e=>setCaseSensitive(e.target.checked)} /></label>
                   <label className="glass rounded-xl p-3 flex justify-between text-xs">Trim Spaces <input type="checkbox" checked={trimSpaces} onChange={e=>setTrimSpaces(e.target.checked)} /></label>
+                  <label className="glass rounded-xl p-3 flex justify-between text-xs">Normalize Spaces <input type="checkbox" checked={normalizeSpaces} onChange={e=>setNormalizeSpaces(e.target.checked)} /></label>
+                  <label className="glass rounded-xl p-3 flex justify-between text-xs">Show Removed <input type="checkbox" checked={showRemoved} onChange={e=>setShowRemoved(e.target.checked)} /></label>
                 </div>
               )}
             </div>
@@ -269,6 +298,12 @@ export default function RemoveDuplicateProPage() {
               <div className="mt-4 glass rounded-2xl p-4">
                 <div className="grid sm:grid-cols-2 gap-2"><input value={shareTitle} onChange={e=>setShareTitle(e.target.value)} className="rounded-xl bg-[#0f1330] border border-white/10 px-3 py-2 text-sm" /><input value={shareMsg} onChange={e=>setShareMsg(e.target.value)} className="rounded-xl bg-[#0f1330] border border-white/10 px-3 py-2 text-sm" /></div>
                 <div className="mt-2 flex flex-wrap gap-2">{["WhatsApp","X","Facebook","LinkedIn","Email"].map(p=><button key={p} onClick={()=>shareTo(p)} className="px-3 py-1.5 rounded-full glass text-xs">{p}</button>)}</div>
+              </div>
+            )}
+            {showRemoved && removed.length>0 && (
+              <div className="mt-5 glass rounded-2xl p-4 max-h-[160px] overflow-auto">
+                <div className="text-xs uppercase tracking-widest text-slate-400 mb-2">Removed ({removed.length})</div>
+                <div className="font-mono text-xs text-rose-300">{removed.map((r,i)=><div key={i} className="border-b border-white/5 py-1">{r||"(blank)"}</div>)}</div>
               </div>
             )}
           </div>
