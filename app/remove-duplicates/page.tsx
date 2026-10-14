@@ -145,7 +145,11 @@ export default function RemoveDuplicateProPage() {
           const {dup, matchKey} = isDuplicate(item.key)
           if(!dup){
             seen.push({key: item.key})
-            result.push(item.original)
+            result.push(
+  normalizeSpaces
+    ? item.original.replace(/[ \t]+/g, " ")
+    : item.original
+);
             groupMap.set(item.key, 1)
           } else {
             removedList.push(item.original)
