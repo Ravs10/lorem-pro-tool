@@ -30,12 +30,30 @@ function similarity(a: string, b: string) {
   if (a === b) return 1
   return 1 - levenshtein(a,b) / Math.max(a.length, b.length)
 }
-function normalizeForCompare(line: string, caseSensitive: boolean, trim: boolean, normalizeSpaces: boolean) {
-  let s = line
-  if (trim) s = s.trim()
-  if (normalizeSpaces) s = s.replace(/\s+/g, " ")
-  if (!caseSensitive) s = s.toLowerCase()
-  return s
+function normalizeForCompare(
+  line: string,
+  caseSensitive: boolean,
+  trim: boolean,
+  normalizeSpaces: boolean
+) {
+  let s = line;
+
+  // Normalize multiple spaces and tabs into a single space
+  if (normalizeSpaces) {
+    s = s.replace(/[ \t]+/g, " ");
+  }
+
+  // Remove leading and trailing spaces when enabled
+  if (trim) {
+    s = s.trim();
+  }
+
+  // Ignore case when case-sensitive mode is disabled
+  if (!caseSensitive) {
+    s = s.toLowerCase();
+  }
+
+  return s;
 }
 
 export default function RemoveDuplicateProPage() {
