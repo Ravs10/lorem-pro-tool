@@ -1,14 +1,13 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Head from 'next/head';
 
 // ============================================================
-// STYLE ENGINE — generates 1000+ real transform styles
+// STYLE ENGINE
 // ============================================================
-
 const BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
 type StyleDef = { name: string; fn: (s: string) => string; category: string };
 
 const ALPHA_MAPS: [string, string, string][] = [
@@ -211,19 +210,23 @@ const LINE_STYLES: [string, (s: string) => string, string][] = [
   }, 'Brackets'],
 ];
 
+// FIXED: reverse-only for whole string
 const FLIP_STYLES: [string, (s: string) => string, string][] = [
   ['Reverse Text', s => [...s].reverse().join(''), 'Flipped'],
   ['Reverse Words', s => s.split(' ').reverse().join(' '), 'Flipped'],
   ['Reverse Lines', s => s.split('\n').reverse().join('\n'), 'Flipped'],
-  ['Alternating Case', s => [...s].map((c, i) => i % 2 ? c.toLowerCase() : c.toUpperCase()).join(''), 'Case'],
+  ['Alternating Case', s => [...s].map((c, i) => (i % 2 ? c.toLowerCase() : c.toUpperCase())).join(''), 'Case'],
   ['UPPERCASE', s => s.toUpperCase(), 'Case'],
   ['lowercase', s => s.toLowerCase(), 'Case'],
   ['Title Case', s => s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()), 'Case'],
   ['Sentence Case', s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase(), 'Case'],
-  ['Camel Case', s => s.replace(/[^a-zA-Z0-9]+(.)/g, (_, c) => c.toUpperCase()), 'Case'],
+  ['Camel Case', s => s.trim().split(/[\s_-]+/).map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(''), 'Case'],
+  ['Pascal Case', s => s.trim().split(/[\s_-]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(''), 'Case'],
   ['Snake Case', s => s.trim().toLowerCase().replace(/\s+/g, '_'), 'Case'],
   ['Kebab Case', s => s.trim().toLowerCase().replace(/\s+/g, '-'), 'Case'],
   ['Dot Case', s => s.trim().toLowerCase().replace(/\s+/g, '.'), 'Case'],
+  ['Constant Case', s => s.trim().toUpperCase().replace(/\s+/g, '_'), 'Case'],
+  ['Toggle Case', s => [...s].map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join(''), 'Case'],
 ];
 
 function buildAllStyles(): StyleDef[] {
@@ -299,249 +302,116 @@ const ALL_STYLES = buildAllStyles();
 const CATEGORIES = ['All', 'Favorites', 'Recent', ...Array.from(new Set(ALL_STYLES.map(s => s.category))).sort()];
 
 // ============================================================
-// FUNNY TEXT ENGINE — dropdown-selectable comedic transformations
+// FUNNY TEXT ENGINE
 // ============================================================
 type FunnyDef = { id: string; label: string; fn: (s: string) => string; emoji: string };
 
 const FUNNY_STYLES: FunnyDef[] = [
-  {
-    id: 'mocking',
-    emoji: '😏',
-    label: 'Mocking SpongeBob',
-    fn: s => [...s].map((c, i) => i % 2 ? c.toUpperCase() : c.toLowerCase()).join(''),
-  },
-  {
-    id: 'sarcasm',
-    emoji: '🙄',
-    label: 'Sarcasm Caps',
-    fn: s => s.toUpperCase().split(' ').join(' '),
-  },
-  {
-    id: 'whisper',
-    emoji: '🤫',
-    label: 'Whisper (tiny)',
-    fn: s => s.toLowerCase().replace(/[aeiou]/g, c => ({ a: 'ᵃ', e: 'ᵉ', i: 'ⁱ', o: 'ᵒ', u: 'ᵘ' }[c] || c)),
-  },
-  {
-    id: 'robot',
-    emoji: '🤖',
-    label: 'Robot',
-    fn: s => s.split('').join('-').replace(/\s/g, '_'),
-  },
-  {
-    id: 'alien',
-    emoji: '👽',
-    label: 'Alien Speak',
-    fn: s => s.replace(/[aeiou]/gi, c => ({ a: 'α', e: 'ε', i: 'ι', o: 'σ', u: 'υ' }[c.toLowerCase()] || c)),
-  },
-  {
-    id: 'pirate',
-    emoji: '🏴‍☠️',
-    label: 'Pirate',
-    fn: s => s.replace(/\byou\b/gi, 'ye').replace(/\byour\b/gi, 'yer').replace(/\bis\b/gi, 'be').replace(/\bare\b/gi, 'be').replace(/\bmy\b/gi, 'me') + ' arrr!',
-  },
-  {
-    id: 'uwu',
-    emoji: '🥺',
-    label: 'UwU',
-    fn: s => s.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W').replace(/n([aeiou])/g, 'ny$1').replace(/N([AEIOU])/g, 'NY$1') + ' uwu',
-  },
-  {
-    id: 'owo',
-    emoji: '😺',
-    label: 'OwO',
-    fn: s => s.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W') + ' owo',
-  },
-  {
-    id: 'cat',
-    emoji: '🐱',
-    label: 'Cat Speak',
-    fn: s => s.replace(/[aeiou]/gi, 'a').replace(/\s+/g, ' ') + ' nya~',
-  },
-  {
-    id: 'dog',
-    emoji: '🐶',
-    label: 'Dog Speak',
-    fn: s => s + ' woof woof! 🐾',
-  },
-  {
-    id: 'shout',
-    emoji: '📢',
-    label: 'SHOUTING',
-    fn: s => s.toUpperCase() + '!!!',
-  },
-  {
-    id: 'whispery',
-    emoji: '💭',
-    label: 'whispering',
-    fn: s => s.toLowerCase().split(' ').join('... ') + '...',
-  },
-  {
-    id: 'stutter',
-    emoji: '😅',
-    label: 'S-s-stutter',
-    fn: s => s.replace(/\b([a-z])/gi, (m, c) => `${c}-${c}`),
-  },
-  {
-    id: 'backwards',
-    emoji: '🔄',
-    label: 'Backwards',
-    fn: s => [...s].reverse().join(''),
-  },
-  {
-    id: 'leet',
-    emoji: '💻',
-    label: '1337 / Leet Speak',
-    fn: s => s.replace(/a/gi, '4').replace(/e/gi, '3').replace(/i/gi, '1').replace(/o/gi, '0').replace(/s/gi, '5').replace(/t/gi, '7'),
-  },
-  {
-    id: 'bubble',
-    emoji: '🫧',
-    label: 'Bubble Wrap',
-    fn: s => s.split('').join('°˖✧').replace(/°˖✧$/, ''),
-  },
-  {
-    id: 'zalgofy',
-    emoji: '👾',
-    label: 'Zalgo Glitch',
-    fn: s => [...s].map(c => c + '\u0336\u0301\u0353\u0308').join(''),
-  },
-  {
-    id: 'rainbow',
-    emoji: '🌈',
-    label: 'Rainbow Sparkle',
-    fn: s => `🌈 ✨ ${s} ✨ 🌈`,
-  },
-  {
-    id: 'angry',
-    emoji: '😡',
-    label: 'Angry',
-    fn: s => s.toUpperCase().split('').join(' ') + '!!! 😡',
-  },
-  {
-    id: 'sad',
-    emoji: '😢',
-    label: 'Sad / Soft',
-    fn: s => s.toLowerCase().replace(/\./g, '...') + ' 😢',
-  },
-  {
-    id: 'excited',
-    emoji: '🤩',
-    label: 'Excited',
-    fn: s => s.toUpperCase().split(' ').join('!!! ') + '!!!',
-  },
-  {
-    id: 'drunk',
-    emoji: '🍺',
-    label: 'Drunk Typing',
-    fn: s => s.replace(/[aeiou]/gi, c => ({ a: 'aa', e: 'ee', i: 'ii', o: 'oo', u: 'uu' }[c.toLowerCase()] || c)) + ' 🍻',
-  },
-  {
-    id: 'soviet',
-    emoji: '☭',
-    label: 'Soviet',
-    fn: s => `☭ ${s.toUpperCase()} ☭`,
-  },
-  {
-    id: 'wizard',
-    emoji: '🧙',
-    label: 'Wizard Spell',
-    fn: s => `✨🪄 ${s.split('').join('·')} 🪄✨`,
-  },
-  {
-    id: 'zombie',
-    emoji: '🧟',
-    label: 'Zombie',
-    fn: s => s.replace(/[aeiou]/gi, 'rrr') + ' brraaiinnss...',
-  },
-  {
-    id: 'vampire',
-    emoji: '🧛',
-    label: 'Vampire',
-    fn: s => `🦇 ${s} 🦇  bluh!`,
-  },
-  {
-    id: 'princess',
-    emoji: '👑',
-    label: 'Princess',
-    fn: s => `👑💖 ${s} 💖👑`,
-  },
-  {
-    id: 'gamer',
-    emoji: '🎮',
-    label: 'Gamer',
-    fn: s => `[GG] ${s} [GG]  no scope`,
-  },
-  {
-    id: 'boomer',
-    emoji: '👴',
-    label: 'OK Boomer',
-    fn: s => s.toUpperCase().split('').join(' ') + '  OK boomer.',
-  },
-  {
-    id: 'yoda',
-    emoji: '🧝',
-    label: 'Yoda Speak',
-    fn: s => s.split(' ').reverse().join(' ') + ', hmm yes.',
-  },
+  { id: 'mocking', emoji: '😏', label: 'Mocking SpongeBob', fn: s => [...s].map((c, i) => i % 2 ? c.toUpperCase() : c.toLowerCase()).join('') },
+  { id: 'sarcasm', emoji: '🙄', label: 'Sarcasm Caps', fn: s => s.toUpperCase() },
+  { id: 'robot', emoji: '🤖', label: 'Robot', fn: s => s.split('').join('-').replace(/\s/g, '_') },
+  { id: 'alien', emoji: '👽', label: 'Alien Speak', fn: s => s.replace(/[aeiou]/gi, c => ({ a: 'α', e: 'ε', i: 'ι', o: 'σ', u: 'υ' }[c.toLowerCase()] || c)) },
+  { id: 'pirate', emoji: '🏴‍☠️', label: 'Pirate', fn: s => s.replace(/\byou\b/gi, 'ye').replace(/\byour\b/gi, 'yer').replace(/\bis\b/gi, 'be').replace(/\bare\b/gi, 'be').replace(/\bmy\b/gi, 'me') + ' arrr!' },
+  { id: 'uwu', emoji: '🥺', label: 'UwU', fn: s => s.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W').replace(/n([aeiou])/g, 'ny$1').replace(/N([AEIOU])/g, 'NY$1') + ' uwu' },
+  { id: 'owo', emoji: '😺', label: 'OwO', fn: s => s.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W') + ' owo' },
+  { id: 'cat', emoji: '🐱', label: 'Cat Speak', fn: s => s.replace(/[aeiou]/gi, 'a') + ' nya~' },
+  { id: 'dog', emoji: '🐶', label: 'Dog Speak', fn: s => s + ' woof woof! 🐾' },
+  { id: 'shout', emoji: '📢', label: 'SHOUTING', fn: s => s.toUpperCase() + '!!!' },
+  { id: 'whispery', emoji: '💭', label: 'whispering', fn: s => s.toLowerCase().split(' ').join('... ') + '...' },
+  { id: 'stutter', emoji: '😅', label: 'S-s-stutter', fn: s => s.replace(/\b([a-z])/gi, (m, c) => `${c}-${c}`) },
+  { id: 'backwards', emoji: '🔄', label: 'Backwards', fn: s => [...s].reverse().join('') },
+  { id: 'leet', emoji: '💻', label: '1337 / Leet Speak', fn: s => s.replace(/a/gi, '4').replace(/e/gi, '3').replace(/i/gi, '1').replace(/o/gi, '0').replace(/s/gi, '5').replace(/t/gi, '7') },
+  { id: 'zalgofy', emoji: '👾', label: 'Zalgo Glitch', fn: s => [...s].map(c => c + '\u0336\u0301\u0353\u0308').join('') },
+  { id: 'rainbow', emoji: '🌈', label: 'Rainbow Sparkle', fn: s => `🌈 ✨ ${s} ✨ 🌈` },
+  { id: 'angry', emoji: '😡', label: 'Angry', fn: s => s.toUpperCase().split('').join(' ') + '!!! 😡' },
+  { id: 'sad', emoji: '😢', label: 'Sad / Soft', fn: s => s.toLowerCase().replace(/\./g, '...') + ' 😢' },
+  { id: 'excited', emoji: '🤩', label: 'Excited', fn: s => s.toUpperCase().split(' ').join('!!! ') + '!!!' },
+  { id: 'drunk', emoji: '🍺', label: 'Drunk Typing', fn: s => s.replace(/[aeiou]/gi, c => ({ a: 'aa', e: 'ee', i: 'ii', o: 'oo', u: 'uu' }[c.toLowerCase()] || c)) + ' 🍻' },
+  { id: 'soviet', emoji: '☭', label: 'Soviet', fn: s => `☭ ${s.toUpperCase()} ☭` },
+  { id: 'wizard', emoji: '🧙', label: 'Wizard Spell', fn: s => `✨🪄 ${s.split('').join('·')} 🪄✨` },
+  { id: 'zombie', emoji: '🧟', label: 'Zombie', fn: s => s.replace(/[aeiou]/gi, 'rrr') + ' brraaiinnss...' },
+  { id: 'vampire', emoji: '🧛', label: 'Vampire', fn: s => `🦇 ${s} 🦇  bluh!` },
+  { id: 'princess', emoji: '👑', label: 'Princess', fn: s => `👑💖 ${s} 💖👑` },
+  { id: 'gamer', emoji: '🎮', label: 'Gamer', fn: s => `[GG] ${s} [GG]  no scope` },
+  { id: 'boomer', emoji: '👴', label: 'OK Boomer', fn: s => s.toUpperCase().split('').join(' ') + '  OK boomer.' },
+  { id: 'yoda', emoji: '🧝', label: 'Yoda Speak', fn: s => s.split(' ').reverse().join(' ') + ', hmm yes.' },
 ];
 
 // ============================================================
-// FAQ DATA (also used for JSON-LD schema)
+// COLOR PALETTE
+// ============================================================
+const TEXT_COLORS = [
+  { name: 'Default', value: 'inherit' },
+  { name: 'White', value: '#ffffff' },
+  { name: 'Black', value: '#000000' },
+  { name: 'Purple', value: '#8b5cf6' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Cyan', value: '#06b6d4' },
+  { name: 'Green', value: '#10b981' },
+  { name: 'Yellow', value: '#facc15' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Lime', value: '#a3e635' },
+  { name: 'Rose', value: '#fb7185' },
+  { name: 'Teal', value: '#14b8a6' },
+  { name: 'Indigo', value: '#6366f1' },
+  { name: 'Amber', value: '#fbbf24' },
+];
+
+const BG_STYLES = [
+  { name: 'None', value: 'transparent' },
+  { name: 'Soft Purple', value: 'rgba(139, 92, 246, 0.18)' },
+  { name: 'Soft Pink', value: 'rgba(236, 72, 153, 0.18)' },
+  { name: 'Soft Cyan', value: 'rgba(6, 182, 212, 0.18)' },
+  { name: 'Soft Green', value: 'rgba(16, 185, 129, 0.18)' },
+  { name: 'Soft Yellow', value: 'rgba(250, 204, 21, 0.18)' },
+  { name: 'Gradient Sunset', value: 'linear-gradient(135deg, #f97316, #ec4899)' },
+  { name: 'Gradient Ocean', value: 'linear-gradient(135deg, #06b6d4, #8b5cf6)' },
+  { name: 'Gradient Forest', value: 'linear-gradient(135deg, #10b981, #06b6d4)' },
+  { name: 'Gradient Royal', value: 'linear-gradient(135deg, #6366f1, #ec4899)' },
+  { name: 'Gradient Fire', value: 'linear-gradient(135deg, #ef4444, #fbbf24)' },
+  { name: 'Gradient Mint', value: 'linear-gradient(135deg, #a3e635, #14b8a6)' },
+];
+
+// ============================================================
+// FAQS
 // ============================================================
 const FAQS = [
-  {
-    q: 'What is a fancy text generator?',
-    a: 'A fancy text generator is an online tool that converts ordinary letters into alternative Unicode characters and symbols. Because these alternative letters exist as real characters in the Unicode standard, the resulting text can be copied and pasted anywhere — Instagram bios, Twitter/X posts, Facebook comments, Discord messages, TikTok captions, WhatsApp chats, or YouTube titles — without needing to install anything.',
-  },
-  {
-    q: 'How does this fancy text tool work?',
-    a: 'Type or paste your text into the input box at the top of the page. The tool instantly converts your text into 1000+ styles using mathematical alphanumeric symbols, decorative Unicode blocks, combining diacritical marks, and artistic wrappers. Click any style card to copy it to your clipboard — or use the Share button to send it directly to another app.',
-  },
-  {
-    q: 'Is this fancy text generator free?',
-    a: 'Yes, 100% free. There is no signup, no login, no ads, and no character limit beyond the 200-character input field to keep the page fast. You can generate unlimited fancy text styles every day at no cost.',
-  },
-  {
-    q: 'Will fancy text work on Instagram, Twitter/X, Facebook, and TikTok?',
-    a: 'Yes. All of the Unicode characters used here are supported on Instagram, Twitter/X, Facebook, TikTok, Discord, WhatsApp, Telegram, Snapchat, Reddit, Pinterest, YouTube, LinkedIn, and most modern websites. A few very decorative styles (like combining marks) may not render perfectly on older devices or certain apps, so we recommend testing before posting.',
-  },
-  {
-    q: 'What is the Funny Text dropdown feature?',
-    a: 'The Funny Text dropdown is a special collection of 30 comedic text transformations — including Mocking SpongeBob case, UwU speak, Pirate talk, Leet (1337) speak, Zalgo glitch text, Robot mode, Dog and Cat speak, and more. Just pick a style from the dropdown, and your text instantly becomes hilarious.',
-  },
-  {
-    q: 'Can I save my favorite fancy text styles?',
-    a: 'Yes. Click the star icon ☆ on any style card to save it to your Favorites. Favorites are stored locally in your browser so they persist between visits — no account required. You can also view recently-copied styles via the Recent tab.',
-  },
-  {
-    q: 'Does the text stay the same when I paste it somewhere else?',
-    a: 'In most cases, yes. The fancy text you generate is made of real Unicode characters, so it pastes exactly as shown on any platform that supports Unicode. Some extremely small, superscript, or combining-mark styles may look different depending on the font used by the destination app.',
-  },
-  {
-    q: 'Can I use the generated text for commercial purposes?',
-    a: 'Yes. You own the text you generate. You can use it in social media posts, bios, product names, usernames, T-shirts, artwork, or anywhere else. The styles are simply Unicode characters, which are a free public standard — no attribution required.',
-  },
-  {
-    q: 'Why do some fancy fonts look like squares or boxes?',
-    a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters. Trying a different style, or switching to a modern device, will usually fix this.',
-  },
-  {
-    q: 'Does this tool work offline?',
-    a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips. However, loading the page for the first time requires an internet connection.',
-  },
-  {
-    q: 'Is there a character limit?',
-    a: 'The input box is limited to 200 characters to keep the interface fast and responsive, since each keystroke regenerates 1000+ styles. If you need longer text, paste it in sections or use the Download button to save individual styles as .txt files.',
-  },
-  {
-    q: 'Can I share my fancy text directly to other apps?',
-    a: 'Yes. Every style card includes a Share button. On supported devices (most phones and modern browsers), this opens the native share sheet, letting you send the text to WhatsApp, Instagram, Messages, Email, or any installed app instantly.',
-  },
+  { q: 'What is a fancy text generator?', a: 'A fancy text generator is an online tool that converts ordinary letters into alternative Unicode characters and symbols. Because these alternative letters exist as real characters in the Unicode standard, the resulting text can be copied and pasted anywhere — Instagram bios, Twitter/X posts, Facebook comments, Discord messages, TikTok captions, WhatsApp chats, or YouTube titles.' },
+  { q: 'How does this fancy text tool work?', a: 'Type or paste your text into the input box at the top of the page. The tool instantly converts your text into 1000+ styles using mathematical alphanumeric symbols, decorative Unicode blocks, combining diacritical marks, and artistic wrappers. Click any style card to copy it to your clipboard.' },
+  { q: 'Is this fancy text generator free?', a: 'Yes, 100% free. There is no signup, no login, no ads, and no character limit beyond the 200-character input field to keep the page fast. You can generate unlimited fancy text styles every day at no cost.' },
+  { q: 'Will fancy text work on Instagram, Twitter/X, Facebook, and TikTok?', a: 'Yes. All of the Unicode characters used here are supported on Instagram, Twitter/X, Facebook, TikTok, Discord, WhatsApp, Telegram, Snapchat, Reddit, Pinterest, YouTube, LinkedIn, and most modern websites.' },
+  { q: 'What is the Funny Text dropdown feature?', a: 'The Funny Text dropdown is a special collection of 28 comedic text transformations — including Mocking SpongeBob case, UwU speak, Pirate talk, Leet (1337) speak, Zalgo glitch text, Robot mode, Dog and Cat speak, and more.' },
+  { q: 'Can I save my favorite fancy text styles?', a: 'Yes. Click the star icon ☆ on any style card to save it to your Favorites. Favorites are stored locally in your browser so they persist between visits — no account required.' },
+  { q: 'Does the text stay the same when I paste it somewhere else?', a: 'In most cases, yes. The fancy text you generate is made of real Unicode characters, so it pastes exactly as shown on any platform that supports Unicode.' },
+  { q: 'Can I use the generated text for commercial purposes?', a: 'Yes. You own the text you generate. You can use it in social media posts, bios, product names, usernames, T-shirts, artwork, or anywhere else.' },
+  { q: 'Why do some fancy fonts look like squares or boxes?', a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters.' },
+  { q: 'Does this tool work offline?', a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips.' },
+  { q: 'Is there a character limit?', a: 'The input box is limited to 200 characters to keep the interface fast and responsive, since each keystroke regenerates 1000+ styles.' },
+  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. On supported devices, this opens the native share sheet, letting you send the text to WhatsApp, Instagram, Messages, Email, or any installed app instantly.' },
 ];
 
 // ============================================================
-// REACT COMPONENT
+// OTHER TOOLS
+// ============================================================
+const OTHER_TOOLS = [
+  { icon: '🔤', name: 'Word Counter', desc: 'Count words, characters & sentences', href: '#', color: '#8b5cf6' },
+  { icon: '🔠', name: 'Case Converter', desc: 'Convert text to UPPER, lower, Title', href: '#', color: '#ec4899' },
+  { icon: '🔡', name: 'Text Reverser', desc: 'Reverse letters, words or lines', href: '#', color: '#06b6d4' },
+  { icon: '🔣', name: 'Symbol Picker', desc: 'Copy 1000+ symbols & emojis', href: '#', color: '#10b981' },
+  { icon: '📝', name: 'Lorem Ipsum', desc: 'Generate placeholder text', href: '#', color: '#f59e0b' },
+  { icon: '🔒', name: 'Password Generator', desc: 'Create strong random passwords', href: '#', color: '#ef4444' },
+  { icon: '🔢', name: 'Number to Words', desc: 'Convert numbers into words', href: '#', color: '#6366f1' },
+  { icon: '📊', name: 'Text Analyzer', desc: 'Readability & text statistics', href: '#', color: '#14b8a6' },
+  { icon: '🌐', name: 'URL Encoder', desc: 'Encode & decode URLs safely', href: '#', color: '#a3e635' },
+  { icon: '🔑', name: 'Base64 Tool', desc: 'Encode or decode Base64 strings', href: '#', color: '#fb7185' },
+  { icon: '🎨', name: 'Color Picker', desc: 'Pick colors & generate palettes', href: '#', color: '#f97316' },
+  { icon: '📅', name: 'Age Calculator', desc: 'Calculate age from date of birth', href: '#', color: '#8b5cf6' },
+];
+
+// ============================================================
+// MAIN COMPONENT
 // ============================================================
 export default function Page() {
   const [input, setInput] = useState('Hello World');
@@ -566,7 +436,20 @@ export default function Page() {
   const [funnyId, setFunnyId] = useState(FUNNY_STYLES[0].id);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
+  // NEW: Colors
+  const [textColor, setTextColor] = useState(TEXT_COLORS[0].value);
+  const [bgStyle, setBgStyle] = useState(BG_STYLES[0].value);
+  const [showColorPanel, setShowColorPanel] = useState(false);
+
+  // NEW: Show/hide sections
+  const [showFancy, setShowFancy] = useState(true);
+  const [showFunny, setShowFunny] = useState(true);
+
+  // NEW: Style search
+  const [styleSearch, setStyleSearch] = useState('');
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fancyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -633,20 +516,65 @@ export default function Page() {
     setRecent(p => [name, ...p.filter(n => n !== name)].slice(0, 12));
   }, []);
 
+  // ====== FIXED TRANSFORM FUNCTIONS ======
   const applyTransform = useCallback((type: string) => {
     setInput(prev => {
+      const trimmed = prev;
       switch (type) {
-        case 'upper': return prev.toUpperCase();
-        case 'lower': return prev.toLowerCase();
-        case 'title': return prev.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-        case 'sentence': return prev.charAt(0).toUpperCase() + prev.slice(1).toLowerCase();
-        case 'camel': return prev.replace(/[^a-zA-Z0-9]+(.)/g, (_, c) => c.toUpperCase());
-        case 'snake': return prev.trim().toLowerCase().replace(/\s+/g, '_');
-        case 'kebab': return prev.trim().toLowerCase().replace(/\s+/g, '-');
-        case 'reverse': return [...prev].reverse().join('');
-        case 'trim': return prev.trim();
-        case 'clearSpaces': return prev.replace(/\s+/g, ' ').trim();
-        default: return prev;
+        case 'upper':
+          return trimmed.toUpperCase();
+        case 'lower':
+          return trimmed.toLowerCase();
+        case 'title':
+          return trimmed.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        case 'sentence':
+          return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+        case 'camel':
+          return trimmed
+            .trim()
+            .split(/[\s_\-.]+/)
+            .filter(Boolean)
+            .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+            .join('');
+        case 'pascal':
+          return trimmed
+            .trim()
+            .split(/[\s_\-.]+/)
+            .filter(Boolean)
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+            .join('');
+        case 'snake':
+          return trimmed.trim().toLowerCase().replace(/\s+/g, '_');
+        case 'kebab':
+          return trimmed.trim().toLowerCase().replace(/\s+/g, '-');
+        case 'constant':
+          return trimmed.trim().toUpperCase().replace(/\s+/g, '_');
+        case 'reverse':
+          return [...trimmed].reverse().join('');
+        case 'trim':
+          return trimmed.trim();
+        case 'clearSpaces':
+          return trimmed.replace(/\s+/g, ' ').trim();
+        case 'removeSpaces':
+          return trimmed.replace(/\s+/g, '');
+        case 'removeLineBreaks':
+          return trimmed.replace(/\n+/g, ' ');
+        case 'removeNumbers':
+          return trimmed.replace(/[0-9]/g, '');
+        case 'removePunctuation':
+          return trimmed.replace(/[^\w\s]|_/g, '');
+        case 'removeExtraDots':
+          return trimmed.replace(/\.{2,}/g, '.');
+        case 'toggleCase':
+          return [...trimmed].map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
+        case 'alternateCase':
+          return [...trimmed].map((c, i) => i % 2 ? c.toLowerCase() : c.toUpperCase()).join('');
+        case 'duplicateWords':
+          return trimmed.split(/\s+/).map(w => `${w} ${w}`).join(' ');
+        case 'duplicateChars':
+          return [...trimmed].map(c => `${c}${c}`).join('');
+        default:
+          return prev;
       }
     });
     showToast('✓ Applied');
@@ -657,6 +585,8 @@ export default function Page() {
     setBold(false); setItalic(false); setUnderline(false); setUppercase(false);
     setFontSize(16); setLetterSpacing(0); setLineHeight(1.4); setAlign('left');
     setFontFamily('Inter');
+    setTextColor(TEXT_COLORS[0].value);
+    setBgStyle(BG_STYLES[0].value);
     showToast('✓ Cleared');
   }, [showToast]);
 
@@ -681,6 +611,10 @@ export default function Page() {
     showToast('✓ Downloaded');
   }, [input, showToast]);
 
+  const scrollToFancy = useCallback(() => {
+    fancyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const currentFunny = useMemo(
     () => FUNNY_STYLES.find(f => f.id === funnyId) || FUNNY_STYLES[0],
     [funnyId]
@@ -697,20 +631,22 @@ export default function Page() {
     textAlign: align,
     letterSpacing: `${letterSpacing}px`,
     lineHeight,
+    color: textColor === 'inherit' ? undefined : textColor,
+    background: bgStyle === 'transparent' ? undefined : bgStyle,
   };
 
   const filteredStyles = useMemo(() => {
+    const q = (styleSearch || search).toLowerCase().trim();
     return ALL_STYLES.filter(s => {
       if (category === 'Favorites' && !favorites.includes(s.name)) return false;
       if (category === 'Recent' && !recent.includes(s.name)) return false;
       if (category !== 'All' && category !== 'Favorites' && category !== 'Recent' && s.category !== category) return false;
-      if (search) {
-        const q = search.toLowerCase();
+      if (q) {
         return s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q);
       }
       return true;
     });
-  }, [category, search, favorites, recent]);
+  }, [category, search, styleSearch, favorites, recent]);
 
   if (!mounted) return <div style={{ minHeight: '100vh', background: '#07071a' }} />;
 
@@ -718,14 +654,8 @@ export default function Page() {
     <>
       <Head>
         <title>Fancy Text Generator — 1000+ Stylish Fonts, Funny Text & Cool Unicode Styles (Free)</title>
-        <meta
-          name="description"
-          content="Free fancy text generator with 1000+ stylish fonts, funny text styles, and cool Unicode characters. Instantly copy & paste fancy letters for Instagram, TikTok, Discord, Twitter/X, WhatsApp bios & posts. No signup required."
-        />
-        <meta
-          name="keywords"
-          content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts, funny text generator, mocking spongebob text, uwu text, zalgo text, leet speak, bubble text, cursive text, aesthetic fonts"
-        />
+        <meta name="description" content="Free fancy text generator with 1000+ stylish fonts, funny text styles, and cool Unicode characters. Instantly copy & paste fancy letters for Instagram, TikTok, Discord, Twitter/X, WhatsApp bios & posts." />
+        <meta name="keywords" content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts, funny text generator, mocking spongebob text, uwu text, zalgo text, leet speak, bubble text, cursive text, aesthetic fonts" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content={theme === 'dark' ? '#07071a' : '#f5f5ff'} />
         <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -739,82 +669,34 @@ export default function Page() {
         <meta name="twitter:title" content="Fancy Text Generator — 1000+ Styles" />
         <meta name="twitter:description" content="Copy & paste 1000+ fancy and funny text styles instantly." />
         <link rel="canonical" href="https://example.com/fancy-text" />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'WebApplication',
-              name: 'Fancy Text Generator',
-              url: 'https://example.com/fancy-text',
-              description:
-                'Generate 1000+ fancy text styles and funny text transformations instantly. Copy & paste for Instagram, TikTok, Discord, and more.',
-              applicationCategory: 'UtilitiesApplication',
-              operatingSystem: 'Any',
-              browserRequirements: 'Requires JavaScript',
-              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-              aggregateRating: {
-                '@type': 'AggregateRating',
-                ratingValue: '4.9',
-                ratingCount: '1284',
-              },
-              featureList: [
-                '1000+ fancy text styles',
-                'Funny text generator',
-                'Rich formatting toolbar',
-                'Dark and light theme',
-                'Favorites and recent history',
-                'Native share and download',
-              ],
-            }),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'FAQPage',
-              mainEntity: FAQS.map(f => ({
-                '@type': 'Question',
-                name: f.q,
-                acceptedAnswer: { '@type': 'Answer', text: f.a },
-              })),
-            }),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'HowTo',
-              name: 'How to use the Fancy Text Generator',
-              description:
-                'Learn how to generate and copy 1000+ fancy text styles and funny text in a few seconds.',
-              totalTime: 'PT1M',
-              step: [
-                { '@type': 'HowToStep', name: 'Type your text', text: 'Type or paste your text into the input box at the top of the page.' },
-                { '@type': 'HowToStep', name: 'Choose a style', text: 'Browse 1000+ fancy text styles by category or search, or pick a Funny Text style from the dropdown.' },
-                { '@type': 'HowToStep', name: 'Copy', text: 'Click any style card to copy it to your clipboard instantly.' },
-                { '@type': 'HowToStep', name: 'Paste anywhere', text: 'Paste the fancy text into Instagram, TikTok, Discord, Twitter/X, WhatsApp, Facebook, or any other app.' },
-              ],
-            }),
-          }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://example.com/' },
-                { '@type': 'ListItem', position: 2, name: 'Fancy Text Generator', item: 'https://example.com/fancy-text' },
-              ],
-            }),
-          }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org', '@type': 'WebApplication',
+          name: 'Fancy Text Generator', url: 'https://example.com/fancy-text',
+          description: 'Generate 1000+ fancy text styles and funny text transformations instantly.',
+          applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any',
+          browserRequirements: 'Requires JavaScript',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', ratingCount: '1284' },
+        })}} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org', '@type': 'FAQPage',
+          mainEntity: FAQS.map(f => ({
+            '@type': 'Question', name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        })}} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org', '@type': 'HowTo',
+          name: 'How to use the Fancy Text Generator',
+          description: 'Learn how to generate and copy 1000+ fancy text styles and funny text.',
+          totalTime: 'PT1M',
+          step: [
+            { '@type': 'HowToStep', name: 'Type your text', text: 'Type or paste your text into the input box.' },
+            { '@type': 'HowToStep', name: 'Choose a style', text: 'Browse 1000+ fancy text styles or pick a Funny Text style.' },
+            { '@type': 'HowToStep', name: 'Copy', text: 'Click any style card to copy it to your clipboard.' },
+            { '@type': 'HowToStep', name: 'Paste anywhere', text: 'Paste the fancy text into Instagram, TikTok, Discord, or any app.' },
+          ],
+        })}} />
       </Head>
 
       <div className="app">
@@ -839,8 +721,10 @@ export default function Page() {
               <a href="#funny" className="nav-link">Funny</a>
               <a href="#how-to" className="nav-link">How to Use</a>
               <a href="#faq" className="nav-link">FAQ</a>
+              <a href="#tools" className="nav-link">Tools</a>
             </nav>
             <div className="header-actions">
+              <button className="icon-btn" onClick={scrollToFancy} aria-label="Jump to styles" title="Jump to styles">⬇</button>
               <button className="icon-btn" onClick={() => setShowToolbar(v => !v)} aria-label="Toggle toolbar" title="Formatting toolbar">
                 {showToolbar ? '▼' : '⚙️'}
               </button>
@@ -853,16 +737,14 @@ export default function Page() {
 
         <main className="main">
           <section className="hero">
-            <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · 30 funny modes · No signup</div>
-            <h1 className="hero-title">
-              1000+ <span className="grad-text">Fancy Text</span> &amp; Funny Text Generator
-            </h1>
+            <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · 28 funny modes · No signup</div>
+            <h1 className="hero-title">1000+ <span className="grad-text">Fancy Text</span> &amp; Funny Text Generator</h1>
             <p className="hero-sub">
               Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more.
             </p>
           </section>
 
-          {/* ===== INPUT PANEL ===== */}
+          {/* INPUT PANEL */}
           <section className="panel glass" id="styles">
             <div className="panel-head">
               <div className="panel-tabs" role="tablist">
@@ -895,21 +777,95 @@ export default function Page() {
               </div>
             </div>
 
+            {/* ===== COLOR TOOL ===== */}
+            <div className="color-panel-wrap">
+              <button
+                className={`color-toggle ${showColorPanel ? 'on' : ''}`}
+                onClick={() => setShowColorPanel(v => !v)}
+                aria-expanded={showColorPanel}
+              >
+                🎨 Color &amp; Background {showColorPanel ? '▲' : '▼'}
+              </button>
+
+              {showColorPanel && (
+                <div className="color-panel">
+                  <div className="color-section">
+                    <span className="color-label">Text Color</span>
+                    <div className="color-grid">
+                      {TEXT_COLORS.map(c => (
+                        <button
+                          key={c.name}
+                          className={`color-swatch ${textColor === c.value ? 'active' : ''}`}
+                          onClick={() => setTextColor(c.value)}
+                          title={c.name}
+                          aria-label={`Text color ${c.name}`}
+                          style={{ background: c.value === 'inherit' ? 'var(--fg)' : c.value }}
+                        >
+                          {textColor === c.value && <span className="swatch-check">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="color-section">
+                    <span className="color-label">Background Style</span>
+                    <div className="bg-grid-colors">
+                      {BG_STYLES.map(b => (
+                        <button
+                          key={b.name}
+                          className={`bg-swatch ${bgStyle === b.value ? 'active' : ''}`}
+                          onClick={() => setBgStyle(b.value)}
+                          title={b.name}
+                        >
+                          <span className="bg-swatch-preview" style={{ background: b.value === 'transparent' ? 'repeating-conic-gradient(rgba(255,255,255,.1) 0 25%, transparent 0 50%) 50%/10px 10px' : b.value }} />
+                          <span className="bg-swatch-name">{b.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {showToolbar && (
               <div className="toolbar">
                 <div className="tool-group">
-                  <span className="tool-label">Transform</span>
+                  <span className="tool-label">Case</span>
                   <button className="tool-btn" onClick={() => applyTransform('upper')} title="UPPERCASE">AA</button>
                   <button className="tool-btn" onClick={() => applyTransform('lower')} title="lowercase">aa</button>
                   <button className="tool-btn" onClick={() => applyTransform('title')} title="Title Case">Aa</button>
                   <button className="tool-btn" onClick={() => applyTransform('sentence')} title="Sentence case">A.</button>
+                  <button className="tool-btn" onClick={() => applyTransform('toggleCase')} title="tOGGLE cASE">tG</button>
+                  <button className="tool-btn" onClick={() => applyTransform('alternateCase')} title="aLtErNaTiNg CaSe">aA</button>
+                </div>
+
+                <div className="tool-group">
+                  <span className="tool-label">Naming</span>
                   <button className="tool-btn" onClick={() => applyTransform('camel')} title="camelCase">cC</button>
+                  <button className="tool-btn" onClick={() => applyTransform('pascal')} title="PascalCase">PC</button>
                   <button className="tool-btn" onClick={() => applyTransform('snake')} title="snake_case">s_s</button>
                   <button className="tool-btn" onClick={() => applyTransform('kebab')} title="kebab-case">k-k</button>
-                  <button className="tool-btn" onClick={() => applyTransform('reverse')} title="Reverse">⇋</button>
-                  <button className="tool-btn" onClick={() => applyTransform('trim')} title="Trim">✂</button>
-                  <button className="tool-btn" onClick={() => applyTransform('clearSpaces')} title="Clear extra spaces">␣</button>
+                  <button className="tool-btn" onClick={() => applyTransform('constant')} title="CONSTANT_CASE">C_C</button>
                 </div>
+
+                <div className="tool-group">
+                  <span className="tool-label">Cleanup</span>
+                  <button className="tool-btn" onClick={() => applyTransform('trim')} title="Trim spaces">✂</button>
+                  <button className="tool-btn" onClick={() => applyTransform('clearSpaces')} title="Collapse spaces">␣</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeSpaces')} title="Remove all spaces">∅</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeLineBreaks')} title="Remove line breaks">↵</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeNumbers')} title="Remove numbers">1x</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removePunctuation')} title="Remove punctuation">!x</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeExtraDots')} title="Collapse dots">..</button>
+                </div>
+
+                <div className="tool-group">
+                  <span className="tool-label">Fun</span>
+                  <button className="tool-btn" onClick={() => applyTransform('reverse')} title="Reverse">⇋</button>
+                  <button className="tool-btn" onClick={() => applyTransform('duplicateWords')} title="Duplicate words">ww</button>
+                  <button className="tool-btn" onClick={() => applyTransform('duplicateChars')} title="Duplicate chars">cc</button>
+                </div>
+
                 <div className="tool-group">
                   <span className="tool-label">Format</span>
                   <button className={`tool-btn ${bold ? 'on' : ''}`} onClick={() => setBold(v => !v)} title="Bold"><b>B</b></button>
@@ -917,12 +873,14 @@ export default function Page() {
                   <button className={`tool-btn ${underline ? 'on' : ''}`} onClick={() => setUnderline(v => !v)} title="Underline"><u>U</u></button>
                   <button className={`tool-btn ${uppercase ? 'on' : ''}`} onClick={() => setUppercase(v => !v)} title="Uppercase">A↑</button>
                 </div>
+
                 <div className="tool-group">
                   <span className="tool-label">Align</span>
                   <button className={`tool-btn ${align === 'left' ? 'on' : ''}`} onClick={() => setAlign('left')} title="Left">⯇</button>
                   <button className={`tool-btn ${align === 'center' ? 'on' : ''}`} onClick={() => setAlign('center')} title="Center">≡</button>
                   <button className={`tool-btn ${align === 'right' ? 'on' : ''}`} onClick={() => setAlign('right')} title="Right">⯈</button>
                 </div>
+
                 <div className="tool-group">
                   <span className="tool-label">Font</span>
                   <select className="tool-select" value={fontFamily} onChange={e => setFontFamily(e.target.value)}>
@@ -932,14 +890,17 @@ export default function Page() {
                     <option>Trebuchet MS</option><option>Impact</option>
                   </select>
                 </div>
+
                 <div className="tool-group">
                   <span className="tool-label">Size: {fontSize}px</span>
                   <input type="range" min={12} max={32} value={fontSize} onChange={e => setFontSize(+e.target.value)} className="tool-range" />
                 </div>
+
                 <div className="tool-group">
                   <span className="tool-label">Spacing: {letterSpacing}px</span>
                   <input type="range" min={0} max={10} value={letterSpacing} onChange={e => setLetterSpacing(+e.target.value)} className="tool-range" />
                 </div>
+
                 <div className="tool-group">
                   <span className="tool-label">Line: {lineHeight.toFixed(1)}</span>
                   <input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(+e.target.value)} className="tool-range" />
@@ -951,8 +912,16 @@ export default function Page() {
               <div className="filters">
                 <div className="search-wrap">
                   <span className="search-icon">🔍</span>
-                  <input className="search" placeholder="Search 1000+ styles..." value={search} onChange={e => setSearch(e.target.value)} />
-                  {search && <button className="search-clear" onClick={() => setSearch('')}>×</button>}
+                  <input
+                    className="search"
+                    placeholder="Search 1000+ styles by name or category..."
+                    value={styleSearch}
+                    onChange={e => setStyleSearch(e.target.value)}
+                    aria-label="Search fancy text styles"
+                  />
+                  {styleSearch && (
+                    <button className="search-clear" onClick={() => setStyleSearch('')} aria-label="Clear search">×</button>
+                  )}
                 </div>
                 <div className="chips" role="tablist">
                   {CATEGORIES.map(cat => (
@@ -972,218 +941,226 @@ export default function Page() {
             )}
           </section>
 
-          {/* ===== FUNNY TEXT DROPDOWN ===== */}
-          <section className="panel glass funny-panel" id="funny">
-            <div className="funny-head">
-              <div>
-                <h2 className="funny-title">😂 Funny Text Generator</h2>
-                <p className="funny-sub">Pick a comedic style from the dropdown — your text instantly transforms.</p>
-              </div>
-              <div className="funny-select-wrap">
-                <label htmlFor="funny-select" className="sr-only">Choose a funny style</label>
-                <select
-                  id="funny-select"
-                  className="funny-select"
-                  value={funnyId}
-                  onChange={e => setFunnyId(e.target.value)}
-                >
-                  {FUNNY_STYLES.map(f => (
-                    <option key={f.id} value={f.id}>
-                      {f.emoji}  {f.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="funny-preview">
-              <div className="funny-preview-label">
-                <span className="funny-emoji">{currentFunny.emoji}</span>
-                <span>{currentFunny.label}</span>
-              </div>
-              <div
-                className={`funny-output ${copiedStyle === 'Funny' ? 'copied' : ''}`}
-                onClick={() => copy(funnyOutput, 'Funny')}
-                title="Click to copy"
-              >
-                {funnyOutput}
-              </div>
-              <div className="funny-actions">
-                <button className="card-btn" onClick={() => copy(funnyOutput, 'Funny')}>
-                  {copiedStyle === 'Funny' ? '✓ Copied' : '📋 Copy'}
-                </button>
-                <button className="card-btn" onClick={() => share(funnyOutput)}>🔗 Share</button>
-                <button
-                  className="card-btn"
-                  onClick={() => {
-                    const nextIdx = (FUNNY_STYLES.findIndex(f => f.id === funnyId) + 1) % FUNNY_STYLES.length;
-                    setFunnyId(FUNNY_STYLES[nextIdx].id);
-                  }}
-                >
-                  🎲 Random
-                </button>
-              </div>
-            </div>
-
-            <div className="funny-grid">
-              {FUNNY_STYLES.map(f => (
-                <button
-                  key={f.id}
-                  className={`funny-chip ${funnyId === f.id ? 'active' : ''}`}
-                  onClick={() => setFunnyId(f.id)}
-                  title={f.label}
-                >
-                  <span className="funny-chip-emoji">{f.emoji}</span>
-                  <span className="funny-chip-label">{f.label}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
+          {/* ===== FANCY STYLES SECTION (show/hide) ===== */}
           {!showToolbar && (
             <>
-              <div className="stats">
-                <span><strong>{ALL_STYLES.length}+</strong> styles</span>
-                <span className="dot">•</span>
-                <span><strong>{filteredStyles.length}</strong> showing</span>
-                <span className="dot">•</span>
-                <span><strong>{favorites.length}</strong> favorites</span>
-                <span className="dot">•</span>
-                <span><strong>{FUNNY_STYLES.length}</strong> funny modes</span>
-                <span className="dot">•</span>
-                <span><strong>{CATEGORIES.length - 3}</strong> categories</span>
+              <section className="section-head">
+                <h2 className="section-title">
+                  <span>✨ Fancy Text Styles</span>
+                </h2>
+                <button
+                  className={`toggle-section-btn ${showFancy ? 'on' : ''}`}
+                  onClick={() => setShowFancy(v => !v)}
+                  aria-expanded={showFancy}
+                >
+                  {showFancy ? '👁 Hide' : '👁 Show'}
+                </button>
+              </section>
+
+              {showFancy && (
+                <>
+                  <div className="stats">
+                    <span><strong>{ALL_STYLES.length}+</strong> styles</span>
+                    <span className="dot">•</span>
+                    <span><strong>{filteredStyles.length}</strong> showing</span>
+                    <span className="dot">•</span>
+                    <span><strong>{favorites.length}</strong> favorites</span>
+                    <span className="dot">•</span>
+                    <span><strong>{CATEGORIES.length - 3}</strong> categories</span>
+                  </div>
+
+                  <section className="grid" aria-label="Fancy text styles" ref={fancyRef}>
+                    {filteredStyles.length === 0 ? (
+                      <div className="empty glass">
+                        <div className="empty-icon">✨</div>
+                        <p>No styles match your search</p>
+                        <button className="mini-btn accent" onClick={() => { setSearch(''); setStyleSearch(''); setCategory('All'); }}>Reset filters</button>
+                      </div>
+                    ) : (
+                      filteredStyles.map((style, i) => {
+                        const output = style.fn(input || 'Hello');
+                        const isFav = favorites.includes(style.name);
+                        const isCopied = copiedStyle === style.name;
+                        return (
+                          <article key={style.name + i} className="card glass" style={{ animationDelay: `${Math.min(i * 4, 400)}ms` }}>
+                            <div className="card-head">
+                              <span className="card-label">{style.name}</span>
+                              <button
+                                className={`fav-btn ${isFav ? 'on' : ''}`}
+                                onClick={() => toggleFav(style.name)}
+                                aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
+                              >{isFav ? '★' : '☆'}</button>
+                            </div>
+                            <div
+                              className={`card-output ${isCopied ? 'copied' : ''}`}
+                              onClick={() => { copy(output, style.name); addRecent(style.name); }}
+                              title="Click to copy"
+                              style={{
+                                color: textColor === 'inherit' ? undefined : textColor,
+                                background: bgStyle === 'transparent' ? undefined : bgStyle,
+                              }}
+                            >
+                              {output}
+                            </div>
+                            <div className="card-actions">
+                              <button className="card-btn" onClick={() => { copy(output, style.name); addRecent(style.name); }}>
+                                {isCopied ? '✓ Copied' : '📋 Copy'}
+                              </button>
+                              <button className="card-btn" onClick={() => share(output)}>🔗 Share</button>
+                            </div>
+                          </article>
+                        );
+                      })
+                    )}
+                  </section>
+                </>
+              )}
+            </>
+          )}
+
+          {/* ===== FUNNY SECTION (show/hide) ===== */}
+          <section className="section-head">
+            <h2 className="section-title">
+              <span>😂 Funny Text Generator</span>
+            </h2>
+            <button
+              className={`toggle-section-btn ${showFunny ? 'on' : ''}`}
+              onClick={() => setShowFunny(v => !v)}
+              aria-expanded={showFunny}
+            >
+              {showFunny ? '👁 Hide' : '👁 Show'}
+            </button>
+          </section>
+
+          {showFunny && (
+            <section className="panel glass funny-panel" id="funny">
+              <div className="funny-head">
+                <div>
+                  <h3 className="funny-title">Pick a comedic style from the dropdown</h3>
+                  <p className="funny-sub">Your text instantly transforms — try them all!</p>
+                </div>
+                <div className="funny-select-wrap">
+                  <label htmlFor="funny-select" className="sr-only">Choose a funny style</label>
+                  <select id="funny-select" className="funny-select" value={funnyId} onChange={e => setFunnyId(e.target.value)}>
+                    {FUNNY_STYLES.map(f => (
+                      <option key={f.id} value={f.id}>{f.emoji}  {f.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <section className="grid" aria-label="Fancy text styles">
-                {filteredStyles.length === 0 ? (
-                  <div className="empty glass">
-                    <div className="empty-icon">✨</div>
-                    <p>No styles match your search</p>
-                    <button className="mini-btn accent" onClick={() => { setSearch(''); setCategory('All'); }}>Reset filters</button>
-                  </div>
-                ) : (
-                  filteredStyles.map((style, i) => {
-                    const output = style.fn(input || 'Hello');
-                    const isFav = favorites.includes(style.name);
-                    const isCopied = copiedStyle === style.name;
-                    return (
-                      <article
-                        key={style.name + i}
-                        className="card glass"
-                        style={{ animationDelay: `${Math.min(i * 4, 400)}ms` }}
-                      >
-                        <div className="card-head">
-                          <span className="card-label">{style.name}</span>
-                          <button
-                            className={`fav-btn ${isFav ? 'on' : ''}`}
-                            onClick={() => toggleFav(style.name)}
-                            aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
-                          >{isFav ? '★' : '☆'}</button>
-                        </div>
-                        <div
-                          className={`card-output ${isCopied ? 'copied' : ''}`}
-                          onClick={() => { copy(output, style.name); addRecent(style.name); }}
-                          title="Click to copy"
-                        >
-                          {output}
-                        </div>
-                        <div className="card-actions">
-                          <button className="card-btn" onClick={() => { copy(output, style.name); addRecent(style.name); }}>
-                            {isCopied ? '✓ Copied' : '📋 Copy'}
-                          </button>
-                          <button className="card-btn" onClick={() => share(output)}>🔗 Share</button>
-                        </div>
-                      </article>
-                    );
-                  })
-                )}
-              </section>
-            </>
+              <div className="funny-preview">
+                <div className="funny-preview-label">
+                  <span className="funny-emoji">{currentFunny.emoji}</span>
+                  <span>{currentFunny.label}</span>
+                </div>
+                <div
+                  className={`funny-output ${copiedStyle === 'Funny' ? 'copied' : ''}`}
+                  onClick={() => copy(funnyOutput, 'Funny')}
+                  title="Click to copy"
+                  style={{
+                    color: textColor === 'inherit' ? undefined : textColor,
+                    background: bgStyle === 'transparent' ? undefined : bgStyle,
+                  }}
+                >
+                  {funnyOutput}
+                </div>
+                <div className="funny-actions">
+                  <button className="card-btn" onClick={() => copy(funnyOutput, 'Funny')}>
+                    {copiedStyle === 'Funny' ? '✓ Copied' : '📋 Copy'}
+                  </button>
+                  <button className="card-btn" onClick={() => share(funnyOutput)}>🔗 Share</button>
+                  <button className="card-btn" onClick={() => {
+                    const nextIdx = (FUNNY_STYLES.findIndex(f => f.id === funnyId) + 1) % FUNNY_STYLES.length;
+                    setFunnyId(FUNNY_STYLES[nextIdx].id);
+                  }}>🎲 Random</button>
+                </div>
+              </div>
+
+              <div className="funny-grid">
+                {FUNNY_STYLES.map(f => (
+                  <button
+                    key={f.id}
+                    className={`funny-chip ${funnyId === f.id ? 'active' : ''}`}
+                    onClick={() => setFunnyId(f.id)}
+                    title={f.label}
+                  >
+                    <span className="funny-chip-emoji">{f.emoji}</span>
+                    <span className="funny-chip-label">{f.label}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
           )}
 
           {/* ===== HOW TO USE ===== */}
           <section className="content glass" id="how-to">
             <h2>How to Use the Fancy Text Generator (Step-by-Step)</h2>
             <p>
-              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful
-              tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a{' '}
-              <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a{' '}
-              <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds.
+              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds.
             </p>
-
             <div className="steps">
               <div className="step">
                 <div className="step-num">1</div>
                 <h3>Type or paste your text</h3>
-                <p>
-                  Enter up to 200 characters in the input box at the top. Every keystroke
-                  regenerates all 1000+ styles in real time — no waiting, no page reloads. Use the
-                  📥 <strong>Paste</strong> button to pull text from your clipboard instantly.
-                </p>
+                <p>Enter up to 200 characters in the input box at the top. Every keystroke regenerates all 1000+ styles in real time. Use 📥 <strong>Paste</strong> to pull text from your clipboard.</p>
               </div>
               <div className="step">
                 <div className="step-num">2</div>
                 <h3>Pick a style or a funny mode</h3>
-                <p>
-                  Browse the searchable style gallery by category (Serif, Script, Gothic, Bubble,
-                  Squared, Decor, Effects, Lines, and 20+ more), or open the{' '}
-                  <strong>Funny Text dropdown</strong> for 30 comedic transformations like Mocking
-                  SpongeBob, UwU, Pirate, Leet, Zalgo, Robot, and Dog Speak.
-                </p>
+                <p>Browse the searchable style gallery by category, or open the <strong>Funny Text dropdown</strong> for 28 comedic transformations like Mocking SpongeBob, UwU, Pirate, Leet, Zalgo, and Robot.</p>
               </div>
               <div className="step">
                 <div className="step-num">3</div>
-                <h3>Copy with one click</h3>
-                <p>
-                  Click any style card to copy the transformed text to your clipboard. Star ⭐ your
-                  favorites so they persist across visits, and open the <strong>Recent</strong> tab
-                  to see styles you copied earlier.
-                </p>
+                <h3>Customize color &amp; style</h3>
+                <p>Open the 🎨 <strong>Color &amp; Background</strong> panel to pick from 16 text colors and 12 background styles (including gradients). Your choice applies live to both fancy &amp; funny previews.</p>
               </div>
               <div className="step">
                 <div className="step-num">4</div>
-                <h3>Paste it anywhere</h3>
-                <p>
-                  Use the generated text in your Instagram bio, TikTok caption, Discord server
-                  nickname, WhatsApp status, Twitter/X post, Facebook comment, YouTube title,
-                  Snapchat username, or any other app that accepts Unicode.
-                </p>
+                <h3>Copy with one click</h3>
+                <p>Click any style card to copy the transformed text. Star ⭐ your favorites so they persist across visits, and open the <strong>Recent</strong> tab to see styles you copied earlier.</p>
               </div>
               <div className="step">
                 <div className="step-num">5</div>
+                <h3>Paste it anywhere</h3>
+                <p>Use the generated text in your Instagram bio, TikTok caption, Discord server nickname, WhatsApp status, Twitter/X post, or YouTube title.</p>
+              </div>
+              <div className="step">
+                <div className="step-num">6</div>
                 <h3>Fine-tune with the toolbar</h3>
-                <p>
-                  Open the ⚙️ <strong>Formatting Toolbar</strong> to apply Bold / Italic / Underline
-                  formatting, change the font family, adjust font size, letter spacing and line
-                  height, and align the text left, center, or right — all with a live preview.
-                </p>
+                <p>Open the ⚙️ <strong>Formatting Toolbar</strong> for Bold / Italic / Underline, font family, size, spacing, line height, alignment, and 20+ text transforms.</p>
               </div>
             </div>
           </section>
 
-          {/* ===== WHY CHOOSE / FEATURES ===== */}
+          {/* ===== FEATURES ===== */}
           <section className="content glass">
             <h2>Why Choose This Fancy Text Tool?</h2>
             <div className="features">
               <div className="feature">
                 <div className="feature-icon">⚡</div>
                 <h3>Instant, real-time</h3>
-                <p>Every style regenerates as you type — no buttons, no lag, no page reloads.</p>
+                <p>Every style regenerates as you type — no buttons, no lag, no reloads.</p>
               </div>
               <div className="feature">
                 <div className="feature-icon">🎨</div>
                 <h3>1000+ styles</h3>
-                <p>More than a thousand real Unicode styles across Serif, Script, Gothic, Bubble, Decor, Effects, Lines, Case, and Flipped categories.</p>
+                <p>Real Unicode styles across Serif, Script, Gothic, Bubble, Decor, Effects, Lines, Case &amp; Flipped categories.</p>
               </div>
               <div className="feature">
                 <div className="feature-icon">😂</div>
                 <h3>Funny text modes</h3>
-                <p>30 hand-picked comedic transformations — UwU, Pirate, Zalgo, Leet, Robot, Dog, Cat, Boomer, and more.</p>
+                <p>28 hand-picked comedic transformations — UwU, Pirate, Zalgo, Leet, Robot, Dog, Cat, Boomer &amp; more.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">🌈</div>
+                <h3>Color &amp; background</h3>
+                <p>Choose from 16 text colors and 12 background styles — including beautiful gradients.</p>
               </div>
               <div className="feature">
                 <div className="feature-icon">🌗</div>
                 <h3>Dark &amp; light theme</h3>
-                <p>Glassmorphism UI with an animated gradient background and one-tap theme toggle.</p>
+                <p>Glassmorphism UI with animated gradient background and one-tap theme toggle.</p>
               </div>
               <div className="feature">
                 <div className="feature-icon">⭐</div>
@@ -1191,14 +1168,9 @@ export default function Page() {
                 <p>Save styles locally and revisit your recent copies — no signup required.</p>
               </div>
               <div className="feature">
-                <div className="feature-icon">📱</div>
-                <h3>Mobile-first</h3>
-                <p>Fully responsive — works flawlessly on phones, tablets, and desktops.</p>
-              </div>
-              <div className="feature">
-                <div className="feature-icon">🔗</div>
-                <h3>Native share</h3>
-                <p>Send any style to WhatsApp, Instagram, or Messages with one tap via the Web Share API.</p>
+                <div className="feature-icon">👁️</div>
+                <h3>Show / hide sections</h3>
+                <p>Toggle Fancy and Funny sections independently for a distraction-free workflow.</p>
               </div>
               <div className="feature">
                 <div className="feature-icon">🆓</div>
@@ -1214,71 +1186,82 @@ export default function Page() {
             <div className="faq-list">
               {FAQS.map((f, i) => (
                 <div key={i} className={`faq-item ${openFaq === i ? 'open' : ''}`}>
-                  <button
-                    className="faq-q"
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    aria-expanded={openFaq === i}
-                  >
+                  <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)} aria-expanded={openFaq === i}>
                     <span>{f.q}</span>
                     <span className="faq-icon">{openFaq === i ? '−' : '+'}</span>
                   </button>
                   {openFaq === i && (
-                    <div className="faq-a">
-                      <p>{f.a}</p>
-                    </div>
+                    <div className="faq-a"><p>{f.a}</p></div>
                   )}
                 </div>
               ))}
             </div>
           </section>
 
-          {/* ===== SEO / ABOUT ===== */}
+          {/* ===== ABOUT ===== */}
           <section className="content glass" id="about">
             <h2>About the Fancy Text Generator</h2>
             <p>
-              The <strong>Fancy Text Generator</strong> is a free online utility that turns plain
-              text into over 1000 fancy, stylish, and decorative Unicode fonts — plus 30 funny text
-              transformations — that you can copy and paste anywhere. Unlike traditional fonts, the
-              styles produced here are made of real Unicode characters, so they don&apos;t require
-              the receiving app to install a font file. That&apos;s why they work in social media
-              bios, usernames, messages, comments, and captions across virtually every modern
-              platform.
+              The <strong>Fancy Text Generator</strong> is a free online utility that turns plain text into over 1000 fancy, stylish, and decorative Unicode fonts — plus 28 funny text transformations — that you can copy and paste anywhere. Unlike traditional fonts, the styles produced here are made of real Unicode characters, so they don&apos;t require the receiving app to install a font file.
             </p>
             <p>
-              This tool is a popular choice for <strong>Instagram bio fonts</strong>,{' '}
-              <strong>TikTok caption styles</strong>, <strong>Discord nickname fonts</strong>,{' '}
-              <strong>Twitter/X display names</strong>, <strong>WhatsApp status text</strong>,{' '}
-              <strong>Facebook posts</strong>, <strong>YouTube channel titles</strong>, and{' '}
-              <strong>gaming usernames</strong> in games like Fortnite, Roblox, Minecraft, Valorant,
-              and Free Fire.
+              This tool is a popular choice for <strong>Instagram bio fonts</strong>, <strong>TikTok caption styles</strong>, <strong>Discord nickname fonts</strong>, <strong>Twitter/X display names</strong>, <strong>WhatsApp status text</strong>, <strong>Facebook posts</strong>, <strong>YouTube channel titles</strong>, and <strong>gaming usernames</strong> in games like Fortnite, Roblox, Minecraft, Valorant, and Free Fire.
             </p>
             <p>
-              Categories include <em>Bold</em>, <em>Italic</em>, <em>Bold Italic</em>,{' '}
-              <em>Script</em>, <em>Cursive</em>, <em>Fraktur / Gothic</em>, <em>Double-Struck</em>,{' '}
-              <em>Sans-Serif</em>, <em>Monospace</em>, <em>Small Caps</em>, <em>Superscript</em>,{' '}
-              <em>Subscript</em>, <em>Upside-down</em>, <em>Mirrored</em>, <em>Bubble / Circled</em>,{' '}
-              <em>Squared</em>, <em>Fullwidth</em>, <em>Parenthesized</em>, plus dozens of
-              decorative <em>Effects</em>, <em>Wrappers</em>, <em>Separators</em>, and{' '}
-              <em>Line transformations</em>.
+              Categories include <em>Bold</em>, <em>Italic</em>, <em>Script</em>, <em>Fraktur / Gothic</em>, <em>Double-Struck</em>, <em>Sans-Serif</em>, <em>Monospace</em>, <em>Small Caps</em>, <em>Superscript</em>, <em>Subscript</em>, <em>Upside-down</em>, <em>Mirrored</em>, <em>Bubble / Circled</em>, <em>Squared</em>, <em>Fullwidth</em>, and dozens of decorative <em>Effects</em>, <em>Wrappers</em>, <em>Separators</em>, and <em>Line transformations</em>.
             </p>
-            <p>
-              Whether you&apos;re an influencer building a brand aesthetic, a gamer crafting a
-              memorable handle, a student decorating a note, or just someone who wants to send a
-              friend a silly <em>UwU</em>-style message, this tool has you covered. It&apos;s fast,
-              free, mobile-friendly, and requires no registration.
-            </p>
+          </section>
+
+          {/* ===== OTHER TOOLS ===== */}
+          <section className="content glass tools-section" id="tools">
+            <h2>Other Useful Tools</h2>
+            <p className="tools-sub">Explore our growing collection of free web utilities.</p>
+            <div className="tools-grid">
+              {OTHER_TOOLS.map((t, i) => (
+                <a
+                  key={t.name}
+                  href={t.href}
+                  className="tool-card"
+                  style={{ '--tool-color': t.color, animationDelay: `${i * 40}ms` } as React.CSSProperties}
+                >
+                  <div className="tool-card-icon">{t.icon}</div>
+                  <div className="tool-card-body">
+                    <h3 className="tool-card-name">{t.name}</h3>
+                    <p className="tool-card-desc">{t.desc}</p>
+                  </div>
+                  <span className="tool-card-arrow">→</span>
+                </a>
+              ))}
+            </div>
           </section>
 
           <footer className="footer">
             <p>Made with ✦ — FancyText Generator © {new Date().getFullYear()}</p>
             <p className="footer-links">
               <a href="#styles">Styles</a> · <a href="#funny">Funny</a> ·{' '}
-              <a href="#how-to">How to Use</a> · <a href="#faq">FAQ</a>
+              <a href="#how-to">How to Use</a> · <a href="#faq">FAQ</a> · <a href="#tools">Tools</a>
             </p>
           </footer>
         </main>
 
-        <button className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top">↑</button>
+        {/* Down arrow to bottom */}
+        <button
+          className="scroll-bottom"
+          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+          aria-label="Scroll to bottom"
+          title="Jump to bottom"
+        >
+          ⬇
+        </button>
+
+        <button
+          className="back-to-top"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Back to top"
+          title="Back to top"
+        >
+          ↑
+        </button>
 
         <div className={`toast ${toast ? 'show' : ''}`} role="status" aria-live="polite">{toast}</div>
       </div>
@@ -1306,6 +1289,7 @@ export default function Page() {
           --glass-shadow: 0 8px 32px rgba(100, 100, 180, 0.18);
         }
         * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         html, body {
           margin: 0; padding: 0;
           background: var(--bg); color: var(--fg);
@@ -1318,7 +1302,7 @@ export default function Page() {
           padding: 0; margin: -1px; overflow: hidden;
           clip: rect(0,0,0,0); border: 0;
         }
-        .app { min-height: 100vh; position: relative; overflow-x: hidden; padding: 0 0 60px; }
+        .app { min-height: 100vh; position: relative; overflow-x: hidden; padding: 0 0 100px; }
 
         .bg-gradient {
           position: fixed; inset: 0; z-index: -3;
@@ -1328,10 +1312,7 @@ export default function Page() {
             radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.10), transparent 65%);
           animation: bgShift 22s ease-in-out infinite alternate;
         }
-        @keyframes bgShift {
-          0% { transform: scale(1) rotate(0deg); }
-          100% { transform: scale(1.15) rotate(3deg); }
-        }
+        @keyframes bgShift { 0% { transform: scale(1) rotate(0deg); } 100% { transform: scale(1.15) rotate(3deg); } }
         .bg-grid {
           position: fixed; inset: 0; z-index: -2; opacity: 0.35;
           background-image:
@@ -1398,10 +1379,10 @@ export default function Page() {
           animation: gradMove 6s linear infinite;
         }
         @keyframes gradMove { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
-        .header-nav { display: flex; gap: 4px; }
+        .header-nav { display: flex; gap: 2px; }
         .nav-link {
-          color: var(--muted); text-decoration: none; font-size: 0.88rem;
-          font-weight: 600; padding: 8px 12px; border-radius: 10px;
+          color: var(--muted); text-decoration: none; font-size: 0.85rem;
+          font-weight: 600; padding: 8px 10px; border-radius: 10px;
           transition: color 0.2s, background 0.2s;
         }
         .nav-link:hover { color: var(--fg); background: var(--glass-bg); }
@@ -1481,14 +1462,101 @@ export default function Page() {
         .mini-btn.danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
         .mini-btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
 
+        /* ===== COLOR PANEL ===== */
+        .color-panel-wrap { margin-top: 14px; }
+        .color-toggle {
+          width: 100%; padding: 10px 14px;
+          border-radius: 12px; cursor: pointer;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid var(--glass-border);
+          color: var(--fg); font-weight: 700; font-size: 0.85rem;
+          text-align: left; transition: all 0.2s;
+          font-family: inherit;
+        }
+        [data-theme='light'] .color-toggle { background: rgba(255,255,255,0.75); }
+        .color-toggle:hover { background: rgba(139,92,246,0.12); }
+        .color-toggle.on {
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15));
+          border-color: rgba(139, 92, 246, 0.4);
+        }
+        .color-panel {
+          margin-top: 12px; padding: 16px;
+          background: rgba(0,0,0,0.2);
+          border: 1px solid var(--glass-border);
+          border-radius: 12px;
+          animation: panelIn 0.3s ease;
+        }
+        [data-theme='light'] .color-panel { background: rgba(255,255,255,0.5); }
+        @keyframes panelIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        .color-section { margin-bottom: 16px; }
+        .color-section:last-child { margin-bottom: 0; }
+        .color-label {
+          display: block; font-size: 0.72rem; font-weight: 800;
+          text-transform: uppercase; letter-spacing: 0.06em;
+          color: var(--muted); margin-bottom: 10px;
+        }
+        .color-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+          gap: 8px;
+        }
+        .color-swatch {
+          width: 100%; aspect-ratio: 1;
+          border-radius: 10px; cursor: pointer;
+          border: 2px solid rgba(255,255,255,0.15);
+          transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+          position: relative;
+          padding: 0;
+        }
+        .color-swatch:hover { transform: scale(1.12); }
+        .color-swatch.active {
+          border-color: white;
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.6);
+          transform: scale(1.05);
+        }
+        .swatch-check {
+          position: absolute; inset: 0;
+          display: grid; place-items: center;
+          font-weight: 900; font-size: 1rem;
+          color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+        }
+        .bg-grid-colors {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 8px;
+        }
+        .bg-swatch {
+          display: flex; align-items: center; gap: 10px;
+          padding: 8px 10px; border-radius: 10px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--glass-border);
+          cursor: pointer; color: var(--fg);
+          font-size: 0.78rem; font-weight: 600;
+          transition: all 0.15s; text-align: left;
+          font-family: inherit;
+        }
+        [data-theme='light'] .bg-swatch { background: rgba(255,255,255,0.75); }
+        .bg-swatch:hover { transform: translateY(-1px); background: rgba(139,92,246,0.12); }
+        .bg-swatch.active {
+          border-color: var(--accent-1);
+          box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
+        }
+        .bg-swatch-preview {
+          width: 26px; height: 26px; border-radius: 6px;
+          border: 1px solid rgba(255,255,255,0.2);
+          flex-shrink: 0;
+        }
+        .bg-swatch-name {
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
         .toolbar {
           margin-top: 16px; padding: 14px;
           background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
-          border-radius: 14px; display: flex; flex-wrap: wrap; gap: 14px;
-          animation: toolbarIn 0.35s ease;
+          border-radius: 14px; display: flex; flex-wrap: wrap; gap: 12px;
+          animation: panelIn 0.35s ease;
         }
         [data-theme='light'] .toolbar { background: rgba(255,255,255,0.5); }
-        @keyframes toolbarIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
         .tool-group {
           display: flex; align-items: center; gap: 6px;
           padding: 6px 10px; border-radius: 10px;
@@ -1498,7 +1566,7 @@ export default function Page() {
         }
         [data-theme='light'] .tool-group { background: rgba(255,255,255,0.65); }
         .tool-label {
-          font-size: 0.7rem; font-weight: 700; color: var(--muted);
+          font-size: 0.68rem; font-weight: 700; color: var(--muted);
           text-transform: uppercase; letter-spacing: 0.05em;
           margin-right: 4px;
         }
@@ -1507,7 +1575,7 @@ export default function Page() {
           border-radius: 8px; cursor: pointer;
           background: rgba(255,255,255,0.06);
           border: 1px solid var(--glass-border);
-          color: var(--fg); font-weight: 600; font-size: 0.85rem;
+          color: var(--fg); font-weight: 600; font-size: 0.82rem;
           display: inline-flex; align-items: center; justify-content: center;
           transition: all 0.15s;
         }
@@ -1569,14 +1637,39 @@ export default function Page() {
           box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
         }
 
+        /* ===== SECTION HEAD / TOGGLE ===== */
+        .section-head {
+          display: flex; justify-content: space-between; align-items: center;
+          gap: 12px; margin: 20px 0 12px; flex-wrap: wrap;
+        }
+        .section-title {
+          margin: 0; font-size: 1.3rem; font-weight: 800;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .toggle-section-btn {
+          padding: 8px 16px; font-size: 0.82rem;
+          border-radius: 999px; cursor: pointer;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid var(--glass-border);
+          color: var(--fg); font-weight: 700;
+          transition: all 0.2s; font-family: inherit;
+        }
+        [data-theme='light'] .toggle-section-btn { background: rgba(255,255,255,0.75); }
+        .toggle-section-btn:hover { transform: translateY(-1px); background: rgba(139,92,246,0.15); }
+        .toggle-section-btn.on {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+          border-color: rgba(16, 185, 129, 0.5);
+          color: #6ee7b7;
+        }
+
         /* FUNNY PANEL */
         .funny-panel { background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.08)); }
         .funny-head {
           display: flex; justify-content: space-between; align-items: flex-end;
           gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
         }
-        .funny-title { margin: 0 0 4px; font-size: 1.35rem; font-weight: 800; }
-        .funny-sub { margin: 0; color: var(--muted); font-size: 0.9rem; }
+        .funny-title { margin: 0 0 4px; font-size: 1.05rem; font-weight: 800; }
+        .funny-sub { margin: 0; color: var(--muted); font-size: 0.88rem; }
         .funny-select-wrap { flex-shrink: 0; }
         .funny-select {
           padding: 12px 16px; min-width: 240px;
@@ -1585,7 +1678,6 @@ export default function Page() {
           border: 1px solid var(--glass-border);
           color: var(--fg); font-family: inherit; font-size: 0.95rem;
           font-weight: 700; outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s;
         }
         [data-theme='light'] .funny-select { background: rgba(255,255,255,0.9); }
         .funny-select:focus { border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
@@ -1612,16 +1704,11 @@ export default function Page() {
           min-height: 52px; display: flex; align-items: center;
           cursor: pointer; word-break: break-word;
           transition: all 0.2s; line-height: 1.4;
+          border-radius: 10px;
         }
         [data-theme='light'] .funny-output { background: rgba(255,255,255,0.7); }
-        .funny-output:hover {
-          background: rgba(139, 92, 246, 0.1);
-          border-color: var(--accent-1);
-        }
-        .funny-output.copied {
-          background: rgba(16, 185, 129, 0.15);
-          border-color: var(--accent-5);
-        }
+        .funny-output:hover { background: rgba(139, 92, 246, 0.1); border-color: var(--accent-1); }
+        .funny-output.copied { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-5); }
         .funny-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
         .funny-grid {
@@ -1636,6 +1723,7 @@ export default function Page() {
           color: var(--fg); cursor: pointer;
           font-size: 0.82rem; font-weight: 600;
           transition: all 0.2s; text-align: left;
+          font-family: inherit;
         }
         [data-theme='light'] .funny-chip { background: rgba(255,255,255,0.7); }
         .funny-chip:hover { transform: translateY(-2px); background: rgba(139,92,246,0.12); }
@@ -1694,14 +1782,8 @@ export default function Page() {
           line-height: 1.4; overflow: hidden;
         }
         [data-theme='light'] .card-output { background: rgba(255,255,255,0.65); }
-        .card-output:hover {
-          background: rgba(139, 92, 246, 0.1);
-          border-color: var(--accent-1);
-        }
-        .card-output.copied {
-          background: rgba(16, 185, 129, 0.15);
-          border-color: var(--accent-5);
-        }
+        .card-output:hover { background: rgba(139, 92, 246, 0.1); border-color: var(--accent-1); }
+        .card-output.copied { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-5); }
         .card-actions { display: flex; gap: 8px; }
         .card-btn {
           flex: 1; padding: 9px 10px; font-size: 0.82rem;
@@ -1709,6 +1791,7 @@ export default function Page() {
           background: rgba(255,255,255,0.06);
           border: 1px solid var(--glass-border);
           color: var(--fg); transition: all 0.2s;
+          font-family: inherit;
         }
         [data-theme='light'] .card-btn { background: rgba(255,255,255,0.75); }
         .card-btn:hover {
@@ -1727,7 +1810,7 @@ export default function Page() {
           50% { transform: scale(1.15); opacity: 0.7; }
         }
 
-        /* CONTENT SECTIONS */
+        /* CONTENT */
         .content { margin-top: 30px; padding: 28px; line-height: 1.75; }
         .content h2 { margin-top: 0; font-size: 1.45rem; }
         .content h3 { font-size: 1.05rem; margin: 20px 0 6px; }
@@ -1775,7 +1858,6 @@ export default function Page() {
         .feature h3 { margin: 0 0 6px; font-size: 1rem; }
         .feature p { margin: 0; font-size: 0.88rem; }
 
-        /* FAQ */
         .faq-list { margin-top: 18px; display: grid; gap: 10px; }
         .faq-item {
           border: 1px solid var(--glass-border);
@@ -1793,10 +1875,7 @@ export default function Page() {
           align-items: center; gap: 12px;
           font-family: inherit;
         }
-        .faq-icon {
-          font-size: 1.4rem; font-weight: 300;
-          color: var(--accent-1); flex-shrink: 0;
-        }
+        .faq-icon { font-size: 1.4rem; font-weight: 300; color: var(--accent-1); flex-shrink: 0; }
         .faq-a {
           padding: 0 18px 18px; color: var(--muted);
           font-size: 0.9rem; line-height: 1.7;
@@ -1804,6 +1883,74 @@ export default function Page() {
         }
         .faq-a p { margin: 0; }
         @keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== OTHER TOOLS ===== */
+        .tools-section { position: relative; }
+        .tools-sub { margin: 0 0 18px; }
+        .tools-grid {
+          display: grid; gap: 14px;
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        }
+        .tool-card {
+          position: relative; display: flex; align-items: center; gap: 14px;
+          padding: 16px; border-radius: 14px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--glass-border);
+          text-decoration: none; color: var(--fg);
+          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                      border-color 0.25s, box-shadow 0.25s,
+                      background 0.25s;
+          overflow: hidden;
+          opacity: 0; transform: translateY(10px);
+          animation: cardIn 0.5s ease forwards;
+        }
+        [data-theme='light'] .tool-card { background: rgba(255,255,255,0.6); }
+        .tool-card::before {
+          content: '';
+          position: absolute; inset: 0;
+          background: radial-gradient(circle at 20% 50%, var(--tool-color), transparent 70%);
+          opacity: 0; transition: opacity 0.35s ease;
+          pointer-events: none;
+        }
+        .tool-card:hover {
+          transform: translateY(-6px) scale(1.02);
+          border-color: var(--tool-color);
+          box-shadow: 0 14px 40px color-mix(in srgb, var(--tool-color) 35%, transparent);
+        }
+        .tool-card:hover::before { opacity: 0.18; }
+        .tool-card:active { transform: translateY(-2px) scale(1); }
+        .tool-card-icon {
+          font-size: 1.8rem; width: 50px; height: 50px;
+          display: grid; place-items: center;
+          border-radius: 12px; flex-shrink: 0;
+          background: color-mix(in srgb, var(--tool-color) 22%, transparent);
+          border: 1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
+          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          position: relative; z-index: 1;
+        }
+        .tool-card:hover .tool-card-icon {
+          transform: scale(1.12) rotate(-6deg);
+        }
+        .tool-card-body { flex: 1; min-width: 0; position: relative; z-index: 1; }
+        .tool-card-name {
+          margin: 0 0 4px; font-size: 0.95rem; font-weight: 800;
+          transition: color 0.25s;
+        }
+        .tool-card:hover .tool-card-name { color: var(--tool-color); }
+        .tool-card-desc {
+          margin: 0; font-size: 0.82rem; color: var(--muted);
+          overflow: hidden; text-overflow: ellipsis;
+          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        }
+        .tool-card-arrow {
+          font-size: 1.2rem; font-weight: 800;
+          color: var(--tool-color); opacity: 0.6;
+          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s;
+          position: relative; z-index: 1;
+        }
+        .tool-card:hover .tool-card-arrow {
+          transform: translateX(6px); opacity: 1;
+        }
 
         .footer {
           text-align: center; margin-top: 40px;
@@ -1813,16 +1960,27 @@ export default function Page() {
         .footer-links a { color: var(--muted); text-decoration: none; }
         .footer-links a:hover { color: var(--accent-1); }
 
-        .back-to-top {
-          position: fixed; bottom: 24px; right: 24px;
+        /* FLOATING BUTTONS */
+        .back-to-top, .scroll-bottom {
+          position: fixed; right: 24px;
           width: 46px; height: 46px; border-radius: 50%;
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
           color: white; border: none; cursor: pointer;
           font-size: 1.2rem; font-weight: 800;
+          z-index: 40; transition: transform 0.2s, box-shadow 0.2s;
+          display: grid; place-items: center;
+        }
+        .back-to-top {
+          bottom: 24px;
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
           box-shadow: 0 8px 28px rgba(139, 92, 246, 0.5);
-          z-index: 40; transition: transform 0.2s;
+        }
+        .scroll-bottom {
+          bottom: 80px;
+          background: linear-gradient(135deg, var(--accent-3), var(--accent-5));
+          box-shadow: 0 8px 28px rgba(6, 182, 212, 0.5);
         }
         .back-to-top:hover { transform: translateY(-3px) scale(1.05); }
+        .scroll-bottom:hover { transform: translateY(3px) scale(1.05); }
 
         .toast {
           position: fixed; bottom: 24px; left: 50%;
@@ -1837,8 +1995,10 @@ export default function Page() {
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        @media (max-width: 720px) {
+        @media (max-width: 900px) {
           .header-nav { display: none; }
+        }
+        @media (max-width: 720px) {
           .grid { grid-template-columns: 1fr; gap: 12px; }
           .panel, .content { padding: 16px; }
           .hero { padding: 22px 4px 18px; }
@@ -1853,6 +2013,12 @@ export default function Page() {
           .funny-select { width: 100%; min-width: 0; }
           .step { padding: 14px 14px 14px 66px; }
           .step-num { left: 14px; top: 14px; width: 36px; height: 36px; font-size: 1rem; }
+          .bg-grid-colors { grid-template-columns: 1fr 1fr; }
+          .section-head { gap: 8px; }
+          .section-title { font-size: 1.1rem; }
+          .back-to-top, .scroll-bottom { width: 42px; height: 42px; right: 14px; }
+          .back-to-top { bottom: 14px; }
+          .scroll-bottom { bottom: 64px; }
         }
         @media (min-width: 1280px) { .grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 1680px) { .grid { grid-template-columns: repeat(4, 1fr); } }
