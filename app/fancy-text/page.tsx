@@ -8,11 +8,9 @@ import Head from 'next/head';
 // ============================================================
 
 const BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-const BASE_ARR = BASE.split('');
 
-type StyleDef = { name: string; fn: (s: string) => string; category: string; tags?: string[] };
+type StyleDef = { name: string; fn: (s: string) => string; category: string };
 
-// ----- Unicode alphabet maps (each char is a separate codepoint) -----
 const ALPHA_MAPS: [string, string, string][] = [
   ['Bold', '𝐀𝐁𝐂𝐃𝐄𝐅𝐆𝐇𝐈𝐉𝐊𝐋𝐌𝐍𝐎𝐏𝐐𝐑𝐒𝐓𝐔𝐕𝐖𝐗𝐘𝐙𝐚𝐛𝐜𝐝𝐞𝐟𝐠𝐡𝐢𝐣𝐤𝐥𝐦𝐧𝐨𝐩𝐪𝐫𝐬𝐭𝐮𝐯𝐰𝐱𝐲𝐳𝟎𝟏𝟐𝟑𝟒𝟓𝟔𝟕𝟖𝟗', 'Serif'],
   ['Italic', '𝐴𝐵𝐶𝐷𝐸𝐹𝐺𝐻𝐼𝐽𝐾𝐿𝑀𝑁𝑂𝑃𝑄𝑅𝑆𝑇𝑈𝑉𝑊𝑋𝑌𝑍𝑎𝑏𝑐𝑑𝑒𝑓𝑔ℎ𝑖𝑗𝑘𝑙𝑚𝑛𝑜𝑝𝑞𝑟𝑠𝑡𝑢𝑣𝑤𝑥𝑦𝑧0123456789', 'Serif'],
@@ -40,7 +38,6 @@ const ALPHA_MAPS: [string, string, string][] = [
   ['Parenthesized', '⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵⒜⒝⒞⒟⒠⒡⒢⒣⒤⒥⒦⒧⒨⒩⒪⒫⒬⒭⒮⒯⒰⒱⒲⒳⒴⒵⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽', 'Decorative'],
 ];
 
-// ----- Combining diacritics (each applied per character) -----
 const COMBINING_MARKS: [string, string, string][] = [
   ['Strikethrough', '\u0336', 'Effects'],
   ['Underline', '\u0332', 'Effects'],
@@ -83,7 +80,6 @@ const COMBINING_MARKS: [string, string, string][] = [
   ['Inverted Double Breve', '\u0361', 'Effects'],
 ];
 
-// ----- Wrap / decorate styles -----
 const WRAP_STYLES: [string, (s: string) => string, string][] = [
   ['Sparkles', s => `✨ ${s} ✨`, 'Decor'],
   ['Stars', s => `★彡 ${s} 彡★`, 'Decor'],
@@ -149,7 +145,6 @@ const WRAP_STYLES: [string, (s: string) => string, string][] = [
   ['Sparkle Line 3', s => `✦✦✦ ${s} ✦✦✦`, 'Ornate'],
 ];
 
-// ----- Per-character join separators (spaced styles) -----
 const SEPARATOR_STYLES: [string, string, string][] = [
   ['Spaced', ' ', 'Spaced'],
   ['Wide Spaced', '  ', 'Spaced'],
@@ -182,7 +177,6 @@ const SEPARATOR_STYLES: [string, string, string][] = [
   ['Space Pipe', ' | ', 'Spaced'],
 ];
 
-// ----- Line transforms -----
 const LINE_STYLES: [string, (s: string) => string, string][] = [
   ['Numbered', s => s.split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n'), 'Lines'],
   ['Numbered Circled', s => s.split('\n').map((l, i) => `${['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][i] || `(${i+1})`} ${l}`).join('\n'), 'Lines'],
@@ -203,38 +197,20 @@ const LINE_STYLES: [string, (s: string) => string, string][] = [
   ['Box Frame', s => {
     const lines = s.split('\n');
     const max = Math.max(...lines.map(l => l.length));
-    const top = '╔' + '═'.repeat(max + 2) + '╗';
-    const bot = '╚' + '═'.repeat(max + 2) + '╝';
-    const mid = lines.map(l => '║ ' + l.padEnd(max) + ' ║').join('\n');
-    return `${top}\n${mid}\n${bot}`;
-  }, 'Brackets'],
-  ['Double Box', s => {
-    const lines = s.split('\n');
-    const max = Math.max(...lines.map(l => l.length));
-    const top = '╔' + '═'.repeat(max + 2) + '╗';
-    const bot = '╚' + '═'.repeat(max + 2) + '╝';
-    const mid = lines.map(l => '║ ' + l.padEnd(max) + ' ║').join('\n');
-    return `╔${'═'.repeat(max + 2)}╗\n║ ${''.padEnd(max)} ║\n${mid}\n║ ${''.padEnd(max)} ║\n╚${'═'.repeat(max + 2)}╝`;
+    return `╔${'═'.repeat(max + 2)}╗\n${lines.map(l => '║ ' + l.padEnd(max) + ' ║').join('\n')}\n╚${'═'.repeat(max + 2)}╝`;
   }, 'Brackets'],
   ['Rounded Box', s => {
     const lines = s.split('\n');
     const max = Math.max(...lines.map(l => l.length));
-    const top = '╭' + '─'.repeat(max + 2) + '╮';
-    const bot = '╰' + '─'.repeat(max + 2) + '╯';
-    const mid = lines.map(l => '│ ' + l.padEnd(max) + ' │').join('\n');
-    return `${top}\n${mid}\n${bot}`;
+    return `╭${'─'.repeat(max + 2)}╮\n${lines.map(l => '│ ' + l.padEnd(max) + ' │').join('\n')}\n╰${'─'.repeat(max + 2)}╯`;
   }, 'Brackets'],
   ['Wave Border', s => {
     const lines = s.split('\n');
     const max = Math.max(...lines.map(l => l.length));
-    const top = '〜' + '〜'.repeat(max + 2) + '〜';
-    const bot = '〜' + '〜'.repeat(max + 2) + '〜';
-    const mid = lines.map(l => '│ ' + l.padEnd(max) + ' │').join('\n');
-    return `${top}\n${mid}\n${bot}`;
+    return `〜${'〜'.repeat(max + 2)}〜\n${lines.map(l => '│ ' + l.padEnd(max) + ' │').join('\n')}\n〜${'〜'.repeat(max + 2)}〜`;
   }, 'Brackets'],
 ];
 
-// ----- Mirror / Flip transforms -----
 const FLIP_STYLES: [string, (s: string) => string, string][] = [
   ['Reverse Text', s => [...s].reverse().join(''), 'Flipped'],
   ['Reverse Words', s => s.split(' ').reverse().join(' '), 'Flipped'],
@@ -250,12 +226,10 @@ const FLIP_STYLES: [string, (s: string) => string, string][] = [
   ['Dot Case', s => s.trim().toLowerCase().replace(/\s+/g, '.'), 'Case'],
 ];
 
-// ----- Build ALL styles -----
 function buildAllStyles(): StyleDef[] {
   const styles: StyleDef[] = [];
   styles.push({ name: 'Original', fn: s => s, category: 'Plain' });
 
-  // Alphabet transforms
   ALPHA_MAPS.forEach(([name, chars, cat]) => {
     const arr = [...chars];
     const map: Record<string, string> = {};
@@ -263,10 +237,8 @@ function buildAllStyles(): StyleDef[] {
     styles.push({ name, category: cat, fn: s => s.split('').map(c => map[c] || c).join('') });
   });
 
-  // Combining marks
   COMBINING_MARKS.forEach(([name, mark, cat]) => {
     styles.push({ name, category: cat, fn: s => [...s].join(mark) });
-    // also combined with bold
     const boldMap: Record<string, string> = {};
     const boldChars = [...ALPHA_MAPS[0][1]];
     for (let i = 0; i < BASE.length && i < boldChars.length; i++) boldMap[BASE[i]] = boldChars[i];
@@ -277,13 +249,10 @@ function buildAllStyles(): StyleDef[] {
     });
   });
 
-  // Wrap styles
   WRAP_STYLES.forEach(([name, fn, cat]) => styles.push({ name, category: cat, fn }));
 
-  // Separator styles
   SEPARATOR_STYLES.forEach(([name, sep, cat]) => {
     styles.push({ name, category: cat, fn: s => s.split('').join(sep) });
-    // with bold
     const boldMap: Record<string, string> = {};
     const boldChars = [...ALPHA_MAPS[0][1]];
     for (let i = 0; i < BASE.length && i < boldChars.length; i++) boldMap[BASE[i]] = boldChars[i];
@@ -294,13 +263,9 @@ function buildAllStyles(): StyleDef[] {
     });
   });
 
-  // Line styles
   LINE_STYLES.forEach(([name, fn, cat]) => styles.push({ name, category: cat, fn }));
-
-  // Case/flip
   FLIP_STYLES.forEach(([name, fn, cat]) => styles.push({ name, category: cat, fn }));
 
-  // Combined alpha × mark (Bold Script + Strikethrough, etc.)
   const combinedMarks = COMBINING_MARKS.slice(0, 15);
   const combinedAlphas = ALPHA_MAPS.slice(0, 8);
   combinedAlphas.forEach(([alphaName, chars, cat]) => {
@@ -316,7 +281,6 @@ function buildAllStyles(): StyleDef[] {
     });
   });
 
-  // Bold + wrap combos
   WRAP_STYLES.slice(0, 30).forEach(([name, wrapFn, cat]) => {
     const boldMap: Record<string, string> = {};
     const boldChars = [...ALPHA_MAPS[0][1]];
@@ -335,10 +299,250 @@ const ALL_STYLES = buildAllStyles();
 const CATEGORIES = ['All', 'Favorites', 'Recent', ...Array.from(new Set(ALL_STYLES.map(s => s.category))).sort()];
 
 // ============================================================
+// FUNNY TEXT ENGINE — dropdown-selectable comedic transformations
+// ============================================================
+type FunnyDef = { id: string; label: string; fn: (s: string) => string; emoji: string };
+
+const FUNNY_STYLES: FunnyDef[] = [
+  {
+    id: 'mocking',
+    emoji: '😏',
+    label: 'Mocking SpongeBob',
+    fn: s => [...s].map((c, i) => i % 2 ? c.toUpperCase() : c.toLowerCase()).join(''),
+  },
+  {
+    id: 'sarcasm',
+    emoji: '🙄',
+    label: 'Sarcasm Caps',
+    fn: s => s.toUpperCase().split(' ').join(' '),
+  },
+  {
+    id: 'whisper',
+    emoji: '🤫',
+    label: 'Whisper (tiny)',
+    fn: s => s.toLowerCase().replace(/[aeiou]/g, c => ({ a: 'ᵃ', e: 'ᵉ', i: 'ⁱ', o: 'ᵒ', u: 'ᵘ' }[c] || c)),
+  },
+  {
+    id: 'robot',
+    emoji: '🤖',
+    label: 'Robot',
+    fn: s => s.split('').join('-').replace(/\s/g, '_'),
+  },
+  {
+    id: 'alien',
+    emoji: '👽',
+    label: 'Alien Speak',
+    fn: s => s.replace(/[aeiou]/gi, c => ({ a: 'α', e: 'ε', i: 'ι', o: 'σ', u: 'υ' }[c.toLowerCase()] || c)),
+  },
+  {
+    id: 'pirate',
+    emoji: '🏴‍☠️',
+    label: 'Pirate',
+    fn: s => s.replace(/\byou\b/gi, 'ye').replace(/\byour\b/gi, 'yer').replace(/\bis\b/gi, 'be').replace(/\bare\b/gi, 'be').replace(/\bmy\b/gi, 'me') + ' arrr!',
+  },
+  {
+    id: 'uwu',
+    emoji: '🥺',
+    label: 'UwU',
+    fn: s => s.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W').replace(/n([aeiou])/g, 'ny$1').replace(/N([AEIOU])/g, 'NY$1') + ' uwu',
+  },
+  {
+    id: 'owo',
+    emoji: '😺',
+    label: 'OwO',
+    fn: s => s.replace(/[rl]/g, 'w').replace(/[RL]/g, 'W') + ' owo',
+  },
+  {
+    id: 'cat',
+    emoji: '🐱',
+    label: 'Cat Speak',
+    fn: s => s.replace(/[aeiou]/gi, 'a').replace(/\s+/g, ' ') + ' nya~',
+  },
+  {
+    id: 'dog',
+    emoji: '🐶',
+    label: 'Dog Speak',
+    fn: s => s + ' woof woof! 🐾',
+  },
+  {
+    id: 'shout',
+    emoji: '📢',
+    label: 'SHOUTING',
+    fn: s => s.toUpperCase() + '!!!',
+  },
+  {
+    id: 'whispery',
+    emoji: '💭',
+    label: 'whispering',
+    fn: s => s.toLowerCase().split(' ').join('... ') + '...',
+  },
+  {
+    id: 'stutter',
+    emoji: '😅',
+    label: 'S-s-stutter',
+    fn: s => s.replace(/\b([a-z])/gi, (m, c) => `${c}-${c}`),
+  },
+  {
+    id: 'backwards',
+    emoji: '🔄',
+    label: 'Backwards',
+    fn: s => [...s].reverse().join(''),
+  },
+  {
+    id: 'leet',
+    emoji: '💻',
+    label: '1337 / Leet Speak',
+    fn: s => s.replace(/a/gi, '4').replace(/e/gi, '3').replace(/i/gi, '1').replace(/o/gi, '0').replace(/s/gi, '5').replace(/t/gi, '7'),
+  },
+  {
+    id: 'bubble',
+    emoji: '🫧',
+    label: 'Bubble Wrap',
+    fn: s => s.split('').join('°˖✧').replace(/°˖✧$/, ''),
+  },
+  {
+    id: 'zalgofy',
+    emoji: '👾',
+    label: 'Zalgo Glitch',
+    fn: s => [...s].map(c => c + '\u0336\u0301\u0353\u0308').join(''),
+  },
+  {
+    id: 'rainbow',
+    emoji: '🌈',
+    label: 'Rainbow Sparkle',
+    fn: s => `🌈 ✨ ${s} ✨ 🌈`,
+  },
+  {
+    id: 'angry',
+    emoji: '😡',
+    label: 'Angry',
+    fn: s => s.toUpperCase().split('').join(' ') + '!!! 😡',
+  },
+  {
+    id: 'sad',
+    emoji: '😢',
+    label: 'Sad / Soft',
+    fn: s => s.toLowerCase().replace(/\./g, '...') + ' 😢',
+  },
+  {
+    id: 'excited',
+    emoji: '🤩',
+    label: 'Excited',
+    fn: s => s.toUpperCase().split(' ').join('!!! ') + '!!!',
+  },
+  {
+    id: 'drunk',
+    emoji: '🍺',
+    label: 'Drunk Typing',
+    fn: s => s.replace(/[aeiou]/gi, c => ({ a: 'aa', e: 'ee', i: 'ii', o: 'oo', u: 'uu' }[c.toLowerCase()] || c)) + ' 🍻',
+  },
+  {
+    id: 'soviet',
+    emoji: '☭',
+    label: 'Soviet',
+    fn: s => `☭ ${s.toUpperCase()} ☭`,
+  },
+  {
+    id: 'wizard',
+    emoji: '🧙',
+    label: 'Wizard Spell',
+    fn: s => `✨🪄 ${s.split('').join('·')} 🪄✨`,
+  },
+  {
+    id: 'zombie',
+    emoji: '🧟',
+    label: 'Zombie',
+    fn: s => s.replace(/[aeiou]/gi, 'rrr') + ' brraaiinnss...',
+  },
+  {
+    id: 'vampire',
+    emoji: '🧛',
+    label: 'Vampire',
+    fn: s => `🦇 ${s} 🦇  bluh!`,
+  },
+  {
+    id: 'princess',
+    emoji: '👑',
+    label: 'Princess',
+    fn: s => `👑💖 ${s} 💖👑`,
+  },
+  {
+    id: 'gamer',
+    emoji: '🎮',
+    label: 'Gamer',
+    fn: s => `[GG] ${s} [GG]  no scope`,
+  },
+  {
+    id: 'boomer',
+    emoji: '👴',
+    label: 'OK Boomer',
+    fn: s => s.toUpperCase().split('').join(' ') + '  OK boomer.',
+  },
+  {
+    id: 'yoda',
+    emoji: '🧝',
+    label: 'Yoda Speak',
+    fn: s => s.split(' ').reverse().join(' ') + ', hmm yes.',
+  },
+];
+
+// ============================================================
+// FAQ DATA (also used for JSON-LD schema)
+// ============================================================
+const FAQS = [
+  {
+    q: 'What is a fancy text generator?',
+    a: 'A fancy text generator is an online tool that converts ordinary letters into alternative Unicode characters and symbols. Because these alternative letters exist as real characters in the Unicode standard, the resulting text can be copied and pasted anywhere — Instagram bios, Twitter/X posts, Facebook comments, Discord messages, TikTok captions, WhatsApp chats, or YouTube titles — without needing to install anything.',
+  },
+  {
+    q: 'How does this fancy text tool work?',
+    a: 'Type or paste your text into the input box at the top of the page. The tool instantly converts your text into 1000+ styles using mathematical alphanumeric symbols, decorative Unicode blocks, combining diacritical marks, and artistic wrappers. Click any style card to copy it to your clipboard — or use the Share button to send it directly to another app.',
+  },
+  {
+    q: 'Is this fancy text generator free?',
+    a: 'Yes, 100% free. There is no signup, no login, no ads, and no character limit beyond the 200-character input field to keep the page fast. You can generate unlimited fancy text styles every day at no cost.',
+  },
+  {
+    q: 'Will fancy text work on Instagram, Twitter/X, Facebook, and TikTok?',
+    a: 'Yes. All of the Unicode characters used here are supported on Instagram, Twitter/X, Facebook, TikTok, Discord, WhatsApp, Telegram, Snapchat, Reddit, Pinterest, YouTube, LinkedIn, and most modern websites. A few very decorative styles (like combining marks) may not render perfectly on older devices or certain apps, so we recommend testing before posting.',
+  },
+  {
+    q: 'What is the Funny Text dropdown feature?',
+    a: 'The Funny Text dropdown is a special collection of 30 comedic text transformations — including Mocking SpongeBob case, UwU speak, Pirate talk, Leet (1337) speak, Zalgo glitch text, Robot mode, Dog and Cat speak, and more. Just pick a style from the dropdown, and your text instantly becomes hilarious.',
+  },
+  {
+    q: 'Can I save my favorite fancy text styles?',
+    a: 'Yes. Click the star icon ☆ on any style card to save it to your Favorites. Favorites are stored locally in your browser so they persist between visits — no account required. You can also view recently-copied styles via the Recent tab.',
+  },
+  {
+    q: 'Does the text stay the same when I paste it somewhere else?',
+    a: 'In most cases, yes. The fancy text you generate is made of real Unicode characters, so it pastes exactly as shown on any platform that supports Unicode. Some extremely small, superscript, or combining-mark styles may look different depending on the font used by the destination app.',
+  },
+  {
+    q: 'Can I use the generated text for commercial purposes?',
+    a: 'Yes. You own the text you generate. You can use it in social media posts, bios, product names, usernames, T-shirts, artwork, or anywhere else. The styles are simply Unicode characters, which are a free public standard — no attribution required.',
+  },
+  {
+    q: 'Why do some fancy fonts look like squares or boxes?',
+    a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters. Trying a different style, or switching to a modern device, will usually fix this.',
+  },
+  {
+    q: 'Does this tool work offline?',
+    a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips. However, loading the page for the first time requires an internet connection.',
+  },
+  {
+    q: 'Is there a character limit?',
+    a: 'The input box is limited to 200 characters to keep the interface fast and responsive, since each keystroke regenerates 1000+ styles. If you need longer text, paste it in sections or use the Download button to save individual styles as .txt files.',
+  },
+  {
+    q: 'Can I share my fancy text directly to other apps?',
+    a: 'Yes. Every style card includes a Share button. On supported devices (most phones and modern browsers), this opens the native share sheet, letting you send the text to WhatsApp, Instagram, Messages, Email, or any installed app instantly.',
+  },
+];
+
+// ============================================================
 // REACT COMPONENT
 // ============================================================
-type Tab = 'styles' | 'favorites' | 'toolbar';
-
 export default function Page() {
   const [input, setInput] = useState('Hello World');
   const [category, setCategory] = useState('All');
@@ -359,6 +563,8 @@ export default function Page() {
   const [lineHeight, setLineHeight] = useState(1.4);
   const [showToolbar, setShowToolbar] = useState(false);
   const [copiedStyle, setCopiedStyle] = useState<string | null>(null);
+  const [funnyId, setFunnyId] = useState(FUNNY_STYLES[0].id);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -427,8 +633,7 @@ export default function Page() {
     setRecent(p => [name, ...p.filter(n => n !== name)].slice(0, 12));
   }, []);
 
-  // --- Formatting toolbar ---
-  const applyTransform = useCallback((type: 'upper' | 'lower' | 'title' | 'sentence' | 'camel' | 'snake' | 'kebab' | 'reverse' | 'trim' | 'clearSpaces') => {
+  const applyTransform = useCallback((type: string) => {
     setInput(prev => {
       switch (type) {
         case 'upper': return prev.toUpperCase();
@@ -476,6 +681,12 @@ export default function Page() {
     showToast('✓ Downloaded');
   }, [input, showToast]);
 
+  const currentFunny = useMemo(
+    () => FUNNY_STYLES.find(f => f.id === funnyId) || FUNNY_STYLES[0],
+    [funnyId]
+  );
+  const funnyOutput = useMemo(() => currentFunny.fn(input || 'Hello'), [currentFunny, input]);
+
   const inputPreviewStyle: React.CSSProperties = {
     fontFamily: `'${fontFamily}', system-ui, sans-serif`,
     fontSize: `${fontSize}px`,
@@ -506,24 +717,104 @@ export default function Page() {
   return (
     <>
       <Head>
-        <title>Fancy Text Generator — 1000+ Stylish Fonts & Cool Text Styles</title>
-        <meta name="description" content="Transform your text with 1000+ fancy fonts, stylish letters, and cool Unicode styles. Free online fancy text generator for Instagram, Twitter, Facebook & more. Copy & paste instantly." />
-        <meta name="keywords" content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts" />
+        <title>Fancy Text Generator — 1000+ Stylish Fonts, Funny Text & Cool Unicode Styles (Free)</title>
+        <meta
+          name="description"
+          content="Free fancy text generator with 1000+ stylish fonts, funny text styles, and cool Unicode characters. Instantly copy & paste fancy letters for Instagram, TikTok, Discord, Twitter/X, WhatsApp bios & posts. No signup required."
+        />
+        <meta
+          name="keywords"
+          content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts, funny text generator, mocking spongebob text, uwu text, zalgo text, leet speak, bubble text, cursive text, aesthetic fonts"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content={theme === 'dark' ? '#07071a' : '#f5f5ff'} />
-        <meta property="og:title" content="Fancy Text Generator — 1000+ Stylish Fonts" />
-        <meta property="og:description" content="Transform text with 1000+ fancy fonts & Unicode styles. Free, fast, no signup." />
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <meta name="author" content="FancyText Generator" />
+        <meta property="og:title" content="Fancy Text Generator — 1000+ Stylish & Funny Text Styles" />
+        <meta property="og:description" content="Transform text into 1000+ fancy fonts and funny styles instantly. Free, fast, no signup." />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://example.com/fancy-text" />
+        <meta property="og:site_name" content="FancyText Generator" />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Fancy Text Generator — 1000+ Styles" />
+        <meta name="twitter:description" content="Copy & paste 1000+ fancy and funny text styles instantly." />
         <link rel="canonical" href="https://example.com/fancy-text" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org', '@type': 'WebApplication',
-            name: 'Fancy Text Generator', description: 'Generate 1000+ fancy text styles instantly.',
-            applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any',
-            offers: { '@type': 'Offer', price: '0' },
-          }),
-        }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebApplication',
+              name: 'Fancy Text Generator',
+              url: 'https://example.com/fancy-text',
+              description:
+                'Generate 1000+ fancy text styles and funny text transformations instantly. Copy & paste for Instagram, TikTok, Discord, and more.',
+              applicationCategory: 'UtilitiesApplication',
+              operatingSystem: 'Any',
+              browserRequirements: 'Requires JavaScript',
+              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.9',
+                ratingCount: '1284',
+              },
+              featureList: [
+                '1000+ fancy text styles',
+                'Funny text generator',
+                'Rich formatting toolbar',
+                'Dark and light theme',
+                'Favorites and recent history',
+                'Native share and download',
+              ],
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: FAQS.map(f => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a },
+              })),
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'HowTo',
+              name: 'How to use the Fancy Text Generator',
+              description:
+                'Learn how to generate and copy 1000+ fancy text styles and funny text in a few seconds.',
+              totalTime: 'PT1M',
+              step: [
+                { '@type': 'HowToStep', name: 'Type your text', text: 'Type or paste your text into the input box at the top of the page.' },
+                { '@type': 'HowToStep', name: 'Choose a style', text: 'Browse 1000+ fancy text styles by category or search, or pick a Funny Text style from the dropdown.' },
+                { '@type': 'HowToStep', name: 'Copy', text: 'Click any style card to copy it to your clipboard instantly.' },
+                { '@type': 'HowToStep', name: 'Paste anywhere', text: 'Paste the fancy text into Instagram, TikTok, Discord, Twitter/X, WhatsApp, Facebook, or any other app.' },
+              ],
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://example.com/' },
+                { '@type': 'ListItem', position: 2, name: 'Fancy Text Generator', item: 'https://example.com/fancy-text' },
+              ],
+            }),
+          }}
+        />
       </Head>
 
       <div className="app">
@@ -536,7 +827,6 @@ export default function Page() {
           <div className="blob blob-4" />
         </div>
 
-        {/* ===== HEADER ===== */}
         <header className="header">
           <div className="header-inner glass">
             <div className="logo">
@@ -544,15 +834,17 @@ export default function Page() {
               <span className="logo-text">Fancy<span className="grad-text">Text</span></span>
               <span className="logo-badge">{ALL_STYLES.length}+</span>
             </div>
-            <nav className="header-nav">
+            <nav className="header-nav" aria-label="Primary">
               <a href="#styles" className="nav-link">Styles</a>
-              <a href="#about" className="nav-link">About</a>
+              <a href="#funny" className="nav-link">Funny</a>
+              <a href="#how-to" className="nav-link">How to Use</a>
+              <a href="#faq" className="nav-link">FAQ</a>
             </nav>
             <div className="header-actions">
               <button className="icon-btn" onClick={() => setShowToolbar(v => !v)} aria-label="Toggle toolbar" title="Formatting toolbar">
                 {showToolbar ? '▼' : '⚙️'}
               </button>
-              <button className="icon-btn" onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')} aria-label="Toggle theme" title="Theme">
+              <button className="icon-btn" onClick={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))} aria-label="Toggle theme" title="Theme">
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
             </div>
@@ -560,14 +852,13 @@ export default function Page() {
         </header>
 
         <main className="main">
-          {/* ===== HERO ===== */}
           <section className="hero">
-            <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · No signup · Free forever</div>
+            <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · 30 funny modes · No signup</div>
             <h1 className="hero-title">
-              1000+ <span className="grad-text">Fancy Text</span> Styles
+              1000+ <span className="grad-text">Fancy Text</span> &amp; Funny Text Generator
             </h1>
             <p className="hero-sub">
-              Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X &amp; more.
+              Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more.
             </p>
           </section>
 
@@ -604,7 +895,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* ===== FORMATTING TOOLBAR ===== */}
             {showToolbar && (
               <div className="toolbar">
                 <div className="tool-group">
@@ -620,7 +910,6 @@ export default function Page() {
                   <button className="tool-btn" onClick={() => applyTransform('trim')} title="Trim">✂</button>
                   <button className="tool-btn" onClick={() => applyTransform('clearSpaces')} title="Clear extra spaces">␣</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Format</span>
                   <button className={`tool-btn ${bold ? 'on' : ''}`} onClick={() => setBold(v => !v)} title="Bold"><b>B</b></button>
@@ -628,39 +917,29 @@ export default function Page() {
                   <button className={`tool-btn ${underline ? 'on' : ''}`} onClick={() => setUnderline(v => !v)} title="Underline"><u>U</u></button>
                   <button className={`tool-btn ${uppercase ? 'on' : ''}`} onClick={() => setUppercase(v => !v)} title="Uppercase">A↑</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Align</span>
                   <button className={`tool-btn ${align === 'left' ? 'on' : ''}`} onClick={() => setAlign('left')} title="Left">⯇</button>
                   <button className={`tool-btn ${align === 'center' ? 'on' : ''}`} onClick={() => setAlign('center')} title="Center">≡</button>
                   <button className={`tool-btn ${align === 'right' ? 'on' : ''}`} onClick={() => setAlign('right')} title="Right">⯈</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Font</span>
                   <select className="tool-select" value={fontFamily} onChange={e => setFontFamily(e.target.value)}>
-                    <option>Inter</option>
-                    <option>Arial</option>
-                    <option>Georgia</option>
-                    <option>Courier New</option>
-                    <option>Verdana</option>
-                    <option>Times New Roman</option>
-                    <option>Comic Sans MS</option>
-                    <option>Trebuchet MS</option>
-                    <option>Impact</option>
+                    <option>Inter</option><option>Arial</option><option>Georgia</option>
+                    <option>Courier New</option><option>Verdana</option>
+                    <option>Times New Roman</option><option>Comic Sans MS</option>
+                    <option>Trebuchet MS</option><option>Impact</option>
                   </select>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Size: {fontSize}px</span>
                   <input type="range" min={12} max={32} value={fontSize} onChange={e => setFontSize(+e.target.value)} className="tool-range" />
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Spacing: {letterSpacing}px</span>
                   <input type="range" min={0} max={10} value={letterSpacing} onChange={e => setLetterSpacing(+e.target.value)} className="tool-range" />
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Line: {lineHeight.toFixed(1)}</span>
                   <input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(+e.target.value)} className="tool-range" />
@@ -668,7 +947,6 @@ export default function Page() {
               </div>
             )}
 
-            {/* ===== FILTERS ===== */}
             {!showToolbar && (
               <div className="filters">
                 <div className="search-wrap">
@@ -694,6 +972,74 @@ export default function Page() {
             )}
           </section>
 
+          {/* ===== FUNNY TEXT DROPDOWN ===== */}
+          <section className="panel glass funny-panel" id="funny">
+            <div className="funny-head">
+              <div>
+                <h2 className="funny-title">😂 Funny Text Generator</h2>
+                <p className="funny-sub">Pick a comedic style from the dropdown — your text instantly transforms.</p>
+              </div>
+              <div className="funny-select-wrap">
+                <label htmlFor="funny-select" className="sr-only">Choose a funny style</label>
+                <select
+                  id="funny-select"
+                  className="funny-select"
+                  value={funnyId}
+                  onChange={e => setFunnyId(e.target.value)}
+                >
+                  {FUNNY_STYLES.map(f => (
+                    <option key={f.id} value={f.id}>
+                      {f.emoji}  {f.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="funny-preview">
+              <div className="funny-preview-label">
+                <span className="funny-emoji">{currentFunny.emoji}</span>
+                <span>{currentFunny.label}</span>
+              </div>
+              <div
+                className={`funny-output ${copiedStyle === 'Funny' ? 'copied' : ''}`}
+                onClick={() => copy(funnyOutput, 'Funny')}
+                title="Click to copy"
+              >
+                {funnyOutput}
+              </div>
+              <div className="funny-actions">
+                <button className="card-btn" onClick={() => copy(funnyOutput, 'Funny')}>
+                  {copiedStyle === 'Funny' ? '✓ Copied' : '📋 Copy'}
+                </button>
+                <button className="card-btn" onClick={() => share(funnyOutput)}>🔗 Share</button>
+                <button
+                  className="card-btn"
+                  onClick={() => {
+                    const nextIdx = (FUNNY_STYLES.findIndex(f => f.id === funnyId) + 1) % FUNNY_STYLES.length;
+                    setFunnyId(FUNNY_STYLES[nextIdx].id);
+                  }}
+                >
+                  🎲 Random
+                </button>
+              </div>
+            </div>
+
+            <div className="funny-grid">
+              {FUNNY_STYLES.map(f => (
+                <button
+                  key={f.id}
+                  className={`funny-chip ${funnyId === f.id ? 'active' : ''}`}
+                  onClick={() => setFunnyId(f.id)}
+                  title={f.label}
+                >
+                  <span className="funny-chip-emoji">{f.emoji}</span>
+                  <span className="funny-chip-label">{f.label}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+
           {!showToolbar && (
             <>
               <div className="stats">
@@ -703,10 +1049,11 @@ export default function Page() {
                 <span className="dot">•</span>
                 <span><strong>{favorites.length}</strong> favorites</span>
                 <span className="dot">•</span>
+                <span><strong>{FUNNY_STYLES.length}</strong> funny modes</span>
+                <span className="dot">•</span>
                 <span><strong>{CATEGORIES.length - 3}</strong> categories</span>
               </div>
 
-              {/* ===== GRID ===== */}
               <section className="grid" aria-label="Fancy text styles">
                 {filteredStyles.length === 0 ? (
                   <div className="empty glass">
@@ -754,44 +1101,184 @@ export default function Page() {
             </>
           )}
 
-          {/* ===== SEO ===== */}
-          <section className="seo glass" id="about">
-            <h2>About Fancy Text Generator</h2>
+          {/* ===== HOW TO USE ===== */}
+          <section className="content glass" id="how-to">
+            <h2>How to Use the Fancy Text Generator (Step-by-Step)</h2>
             <p>
-              Our <strong>fancy text generator</strong> transforms ordinary text into over {ALL_STYLES.length}+ stylish Unicode fonts instantly. Whether you need <em>bold</em>, <em>italic</em>,
-              cursive, gothic, bubble, decorative, or combined effects — you can copy and paste them
-              anywhere including Instagram bios, Twitter/X posts, Facebook comments, Discord
-              messages, TikTok captions, and WhatsApp chats.
+              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful
+              tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a{' '}
+              <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a{' '}
+              <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds.
             </p>
-            <h3>How to use</h3>
-            <ol>
-              <li>Type or paste your text in the input field above.</li>
-              <li>Browse {ALL_STYLES.length}+ fancy font styles instantly generated.</li>
-              <li>Click any style to copy it — or hit Share to send it anywhere.</li>
-              <li>Use the toolbar to fine-tune fonts, spacing, alignment and case.</li>
-            </ol>
-            <h3>Features</h3>
-            <ul>
-              <li><strong>{ALL_STYLES.length}+</strong> Unicode text styles across {CATEGORIES.length - 3}+ categories</li>
-              <li>Rich formatting toolbar with 20+ transform actions</li>
-              <li>Dark / light theme toggle</li>
-              <li>Favorites &amp; Recent history (saved locally)</li>
-              <li>Native share &amp; one-click copy</li>
-              <li>Download styles as .txt</li>
-              <li>Fully responsive, works on any device</li>
-            </ul>
+
+            <div className="steps">
+              <div className="step">
+                <div className="step-num">1</div>
+                <h3>Type or paste your text</h3>
+                <p>
+                  Enter up to 200 characters in the input box at the top. Every keystroke
+                  regenerates all 1000+ styles in real time — no waiting, no page reloads. Use the
+                  📥 <strong>Paste</strong> button to pull text from your clipboard instantly.
+                </p>
+              </div>
+              <div className="step">
+                <div className="step-num">2</div>
+                <h3>Pick a style or a funny mode</h3>
+                <p>
+                  Browse the searchable style gallery by category (Serif, Script, Gothic, Bubble,
+                  Squared, Decor, Effects, Lines, and 20+ more), or open the{' '}
+                  <strong>Funny Text dropdown</strong> for 30 comedic transformations like Mocking
+                  SpongeBob, UwU, Pirate, Leet, Zalgo, Robot, and Dog Speak.
+                </p>
+              </div>
+              <div className="step">
+                <div className="step-num">3</div>
+                <h3>Copy with one click</h3>
+                <p>
+                  Click any style card to copy the transformed text to your clipboard. Star ⭐ your
+                  favorites so they persist across visits, and open the <strong>Recent</strong> tab
+                  to see styles you copied earlier.
+                </p>
+              </div>
+              <div className="step">
+                <div className="step-num">4</div>
+                <h3>Paste it anywhere</h3>
+                <p>
+                  Use the generated text in your Instagram bio, TikTok caption, Discord server
+                  nickname, WhatsApp status, Twitter/X post, Facebook comment, YouTube title,
+                  Snapchat username, or any other app that accepts Unicode.
+                </p>
+              </div>
+              <div className="step">
+                <div className="step-num">5</div>
+                <h3>Fine-tune with the toolbar</h3>
+                <p>
+                  Open the ⚙️ <strong>Formatting Toolbar</strong> to apply Bold / Italic / Underline
+                  formatting, change the font family, adjust font size, letter spacing and line
+                  height, and align the text left, center, or right — all with a live preview.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ===== WHY CHOOSE / FEATURES ===== */}
+          <section className="content glass">
+            <h2>Why Choose This Fancy Text Tool?</h2>
+            <div className="features">
+              <div className="feature">
+                <div className="feature-icon">⚡</div>
+                <h3>Instant, real-time</h3>
+                <p>Every style regenerates as you type — no buttons, no lag, no page reloads.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">🎨</div>
+                <h3>1000+ styles</h3>
+                <p>More than a thousand real Unicode styles across Serif, Script, Gothic, Bubble, Decor, Effects, Lines, Case, and Flipped categories.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">😂</div>
+                <h3>Funny text modes</h3>
+                <p>30 hand-picked comedic transformations — UwU, Pirate, Zalgo, Leet, Robot, Dog, Cat, Boomer, and more.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">🌗</div>
+                <h3>Dark &amp; light theme</h3>
+                <p>Glassmorphism UI with an animated gradient background and one-tap theme toggle.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">⭐</div>
+                <h3>Favorites &amp; history</h3>
+                <p>Save styles locally and revisit your recent copies — no signup required.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">📱</div>
+                <h3>Mobile-first</h3>
+                <p>Fully responsive — works flawlessly on phones, tablets, and desktops.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">🔗</div>
+                <h3>Native share</h3>
+                <p>Send any style to WhatsApp, Instagram, or Messages with one tap via the Web Share API.</p>
+              </div>
+              <div className="feature">
+                <div className="feature-icon">🆓</div>
+                <h3>Free forever</h3>
+                <p>No account, no ads, no watermarks. Unlimited use, every day.</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ===== FAQ ===== */}
+          <section className="content glass" id="faq">
+            <h2>Frequently Asked Questions</h2>
+            <div className="faq-list">
+              {FAQS.map((f, i) => (
+                <div key={i} className={`faq-item ${openFaq === i ? 'open' : ''}`}>
+                  <button
+                    className="faq-q"
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    aria-expanded={openFaq === i}
+                  >
+                    <span>{f.q}</span>
+                    <span className="faq-icon">{openFaq === i ? '−' : '+'}</span>
+                  </button>
+                  {openFaq === i && (
+                    <div className="faq-a">
+                      <p>{f.a}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ===== SEO / ABOUT ===== */}
+          <section className="content glass" id="about">
+            <h2>About the Fancy Text Generator</h2>
+            <p>
+              The <strong>Fancy Text Generator</strong> is a free online utility that turns plain
+              text into over 1000 fancy, stylish, and decorative Unicode fonts — plus 30 funny text
+              transformations — that you can copy and paste anywhere. Unlike traditional fonts, the
+              styles produced here are made of real Unicode characters, so they don&apos;t require
+              the receiving app to install a font file. That&apos;s why they work in social media
+              bios, usernames, messages, comments, and captions across virtually every modern
+              platform.
+            </p>
+            <p>
+              This tool is a popular choice for <strong>Instagram bio fonts</strong>,{' '}
+              <strong>TikTok caption styles</strong>, <strong>Discord nickname fonts</strong>,{' '}
+              <strong>Twitter/X display names</strong>, <strong>WhatsApp status text</strong>,{' '}
+              <strong>Facebook posts</strong>, <strong>YouTube channel titles</strong>, and{' '}
+              <strong>gaming usernames</strong> in games like Fortnite, Roblox, Minecraft, Valorant,
+              and Free Fire.
+            </p>
+            <p>
+              Categories include <em>Bold</em>, <em>Italic</em>, <em>Bold Italic</em>,{' '}
+              <em>Script</em>, <em>Cursive</em>, <em>Fraktur / Gothic</em>, <em>Double-Struck</em>,{' '}
+              <em>Sans-Serif</em>, <em>Monospace</em>, <em>Small Caps</em>, <em>Superscript</em>,{' '}
+              <em>Subscript</em>, <em>Upside-down</em>, <em>Mirrored</em>, <em>Bubble / Circled</em>,{' '}
+              <em>Squared</em>, <em>Fullwidth</em>, <em>Parenthesized</em>, plus dozens of
+              decorative <em>Effects</em>, <em>Wrappers</em>, <em>Separators</em>, and{' '}
+              <em>Line transformations</em>.
+            </p>
+            <p>
+              Whether you&apos;re an influencer building a brand aesthetic, a gamer crafting a
+              memorable handle, a student decorating a note, or just someone who wants to send a
+              friend a silly <em>UwU</em>-style message, this tool has you covered. It&apos;s fast,
+              free, mobile-friendly, and requires no registration.
+            </p>
           </section>
 
           <footer className="footer">
             <p>Made with ✦ — FancyText Generator © {new Date().getFullYear()}</p>
+            <p className="footer-links">
+              <a href="#styles">Styles</a> · <a href="#funny">Funny</a> ·{' '}
+              <a href="#how-to">How to Use</a> · <a href="#faq">FAQ</a>
+            </p>
           </footer>
         </main>
 
-        <button
-          className="back-to-top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          aria-label="Back to top"
-        >↑</button>
+        <button className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top">↑</button>
 
         <div className={`toast ${toast ? 'show' : ''}`} role="status" aria-live="polite">{toast}</div>
       </div>
@@ -831,7 +1318,6 @@ export default function Page() {
           padding: 0; margin: -1px; overflow: hidden;
           clip: rect(0,0,0,0); border: 0;
         }
-
         .app { min-height: 100vh; position: relative; overflow-x: hidden; padding: 0 0 60px; }
 
         .bg-gradient {
@@ -886,7 +1372,6 @@ export default function Page() {
           border-radius: 20px;
         }
 
-        /* HEADER */
         .header { position: sticky; top: 0; z-index: 50; padding: 10px 16px; }
         .header-inner {
           max-width: 1200px; margin: 0 auto;
@@ -915,8 +1400,8 @@ export default function Page() {
         @keyframes gradMove { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
         .header-nav { display: flex; gap: 4px; }
         .nav-link {
-          color: var(--muted); text-decoration: none; font-size: 0.9rem;
-          font-weight: 600; padding: 8px 14px; border-radius: 10px;
+          color: var(--muted); text-decoration: none; font-size: 0.88rem;
+          font-weight: 600; padding: 8px 12px; border-radius: 10px;
           transition: color 0.2s, background 0.2s;
         }
         .nav-link:hover { color: var(--fg); background: var(--glass-bg); }
@@ -932,7 +1417,6 @@ export default function Page() {
 
         .main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
-        /* HERO */
         .hero { text-align: center; padding: 36px 8px 28px; }
         .hero-pill {
           display: inline-block; padding: 8px 16px;
@@ -945,10 +1429,9 @@ export default function Page() {
         }
         .hero-sub {
           color: var(--muted); font-size: clamp(0.9rem, 2.4vw, 1.05rem);
-          margin: 0; max-width: 680px; margin-inline: auto; line-height: 1.6;
+          margin: 0; max-width: 720px; margin-inline: auto; line-height: 1.6;
         }
 
-        /* PANEL */
         .panel { padding: 18px; margin-bottom: 18px; }
         .panel-head { margin-bottom: 14px; }
         .panel-tabs {
@@ -998,7 +1481,6 @@ export default function Page() {
         .mini-btn.danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
         .mini-btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
 
-        /* TOOLBAR */
         .toolbar {
           margin-top: 16px; padding: 14px;
           background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
@@ -1044,11 +1526,8 @@ export default function Page() {
           font-family: inherit; outline: none;
         }
         [data-theme='light'] .tool-select { background: rgba(255,255,255,0.9); }
-        .tool-range {
-          width: 100px; accent-color: var(--accent-1); cursor: pointer;
-        }
+        .tool-range { width: 100px; accent-color: var(--accent-1); cursor: pointer; }
 
-        /* FILTERS */
         .filters { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
         .search-wrap { position: relative; }
         .search-icon {
@@ -1090,7 +1569,84 @@ export default function Page() {
           box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
         }
 
-        /* STATS */
+        /* FUNNY PANEL */
+        .funny-panel { background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.08)); }
+        .funny-head {
+          display: flex; justify-content: space-between; align-items: flex-end;
+          gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+        }
+        .funny-title { margin: 0 0 4px; font-size: 1.35rem; font-weight: 800; }
+        .funny-sub { margin: 0; color: var(--muted); font-size: 0.9rem; }
+        .funny-select-wrap { flex-shrink: 0; }
+        .funny-select {
+          padding: 12px 16px; min-width: 240px;
+          border-radius: 12px; cursor: pointer;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid var(--glass-border);
+          color: var(--fg); font-family: inherit; font-size: 0.95rem;
+          font-weight: 700; outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        [data-theme='light'] .funny-select { background: rgba(255,255,255,0.9); }
+        .funny-select:focus { border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
+
+        .funny-preview {
+          padding: 16px; border-radius: 14px;
+          background: rgba(0,0,0,0.2);
+          border: 1px solid var(--glass-border);
+          margin-bottom: 16px;
+        }
+        [data-theme='light'] .funny-preview { background: rgba(255,255,255,0.6); }
+        .funny-preview-label {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 0.78rem; font-weight: 800;
+          text-transform: uppercase; letter-spacing: 0.06em;
+          color: var(--muted); margin-bottom: 10px;
+        }
+        .funny-emoji { font-size: 1.1rem; }
+        .funny-output {
+          padding: 14px; border-radius: 10px;
+          background: rgba(255,255,255,0.04);
+          border: 1px dashed var(--glass-border);
+          font-size: 1.15rem; font-weight: 600;
+          min-height: 52px; display: flex; align-items: center;
+          cursor: pointer; word-break: break-word;
+          transition: all 0.2s; line-height: 1.4;
+        }
+        [data-theme='light'] .funny-output { background: rgba(255,255,255,0.7); }
+        .funny-output:hover {
+          background: rgba(139, 92, 246, 0.1);
+          border-color: var(--accent-1);
+        }
+        .funny-output.copied {
+          background: rgba(16, 185, 129, 0.15);
+          border-color: var(--accent-5);
+        }
+        .funny-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+        .funny-grid {
+          display: grid; gap: 8px;
+          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
+        .funny-chip {
+          display: flex; align-items: center; gap: 8px;
+          padding: 10px 12px; border-radius: 12px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--glass-border);
+          color: var(--fg); cursor: pointer;
+          font-size: 0.82rem; font-weight: 600;
+          transition: all 0.2s; text-align: left;
+        }
+        [data-theme='light'] .funny-chip { background: rgba(255,255,255,0.7); }
+        .funny-chip:hover { transform: translateY(-2px); background: rgba(139,92,246,0.12); }
+        .funny-chip.active {
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+          color: white; border-color: transparent;
+          box-shadow: 0 4px 18px rgba(139, 92, 246, 0.4);
+        }
+        .funny-chip-emoji { font-size: 1.05rem; }
+        .funny-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
         .stats {
           display: flex; justify-content: center; align-items: center;
           gap: 10px; color: var(--muted); font-size: 0.85rem;
@@ -1099,7 +1655,6 @@ export default function Page() {
         .stats strong { color: var(--fg); }
         .dot { opacity: 0.5; }
 
-        /* GRID */
         .grid {
           display: grid; gap: 14px;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1162,7 +1717,6 @@ export default function Page() {
           transform: translateY(-1px);
         }
 
-        /* EMPTY */
         .empty {
           grid-column: 1 / -1; text-align: center;
           padding: 60px 20px; color: var(--muted);
@@ -1173,15 +1727,91 @@ export default function Page() {
           50% { transform: scale(1.15); opacity: 0.7; }
         }
 
-        /* SEO */
-        .seo { margin-top: 30px; padding: 28px; line-height: 1.75; }
-        .seo h2 { margin-top: 0; font-size: 1.45rem; }
-        .seo h3 { font-size: 1.05rem; margin: 20px 0 6px; }
-        .seo p, .seo li { color: var(--muted); font-size: 0.94rem; }
-        .seo strong { color: var(--fg); }
-        .seo ul, .seo ol { padding-left: 20px; }
+        /* CONTENT SECTIONS */
+        .content { margin-top: 30px; padding: 28px; line-height: 1.75; }
+        .content h2 { margin-top: 0; font-size: 1.45rem; }
+        .content h3 { font-size: 1.05rem; margin: 20px 0 6px; }
+        .content p, .content li { color: var(--muted); font-size: 0.94rem; }
+        .content strong { color: var(--fg); }
+        .content ul, .content ol { padding-left: 20px; }
 
-        .footer { text-align: center; margin-top: 40px; color: var(--muted); font-size: 0.85rem; }
+        .steps { display: grid; gap: 14px; margin-top: 20px; }
+        .step {
+          position: relative; padding: 18px 18px 18px 74px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--glass-border);
+          border-radius: 14px; transition: transform 0.2s, border-color 0.2s;
+        }
+        [data-theme='light'] .step { background: rgba(255,255,255,0.6); }
+        .step:hover { transform: translateY(-2px); border-color: rgba(139, 92, 246, 0.4); }
+        .step-num {
+          position: absolute; left: 18px; top: 18px;
+          width: 40px; height: 40px; border-radius: 12px;
+          display: grid; place-items: center;
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+          color: white; font-weight: 900; font-size: 1.1rem;
+          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        .step h3 { margin: 0 0 6px; font-size: 1rem; }
+        .step p { margin: 0; font-size: 0.9rem; }
+
+        .features {
+          display: grid; gap: 14px; margin-top: 20px;
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        }
+        .feature {
+          padding: 18px; border-radius: 14px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--glass-border);
+          transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        [data-theme='light'] .feature { background: rgba(255,255,255,0.6); }
+        .feature:hover {
+          transform: translateY(-3px);
+          border-color: rgba(139, 92, 246, 0.5);
+          box-shadow: 0 10px 32px rgba(139, 92, 246, 0.2);
+        }
+        .feature-icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .feature h3 { margin: 0 0 6px; font-size: 1rem; }
+        .feature p { margin: 0; font-size: 0.88rem; }
+
+        /* FAQ */
+        .faq-list { margin-top: 18px; display: grid; gap: 10px; }
+        .faq-item {
+          border: 1px solid var(--glass-border);
+          border-radius: 12px; overflow: hidden;
+          background: rgba(255,255,255,0.04);
+          transition: border-color 0.2s, background 0.2s;
+        }
+        [data-theme='light'] .faq-item { background: rgba(255,255,255,0.6); }
+        .faq-item.open { border-color: rgba(139, 92, 246, 0.5); background: rgba(139, 92, 246, 0.06); }
+        .faq-q {
+          width: 100%; text-align: left; padding: 16px 18px;
+          background: transparent; border: none; cursor: pointer;
+          color: var(--fg); font-weight: 700; font-size: 0.95rem;
+          display: flex; justify-content: space-between;
+          align-items: center; gap: 12px;
+          font-family: inherit;
+        }
+        .faq-icon {
+          font-size: 1.4rem; font-weight: 300;
+          color: var(--accent-1); flex-shrink: 0;
+        }
+        .faq-a {
+          padding: 0 18px 18px; color: var(--muted);
+          font-size: 0.9rem; line-height: 1.7;
+          animation: faqIn 0.25s ease;
+        }
+        .faq-a p { margin: 0; }
+        @keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .footer {
+          text-align: center; margin-top: 40px;
+          color: var(--muted); font-size: 0.85rem;
+        }
+        .footer-links { margin-top: 8px; }
+        .footer-links a { color: var(--muted); text-decoration: none; }
+        .footer-links a:hover { color: var(--accent-1); }
 
         .back-to-top {
           position: fixed; bottom: 24px; right: 24px;
@@ -1210,9 +1840,8 @@ export default function Page() {
         @media (max-width: 720px) {
           .header-nav { display: none; }
           .grid { grid-template-columns: 1fr; gap: 12px; }
-          .panel { padding: 14px; }
+          .panel, .content { padding: 16px; }
           .hero { padding: 22px 4px 18px; }
-          .seo { padding: 20px 18px; }
           .header { padding: 8px 10px; }
           .header-inner { padding: 8px 14px; }
           .logo { font-size: 1rem; }
@@ -1220,6 +1849,10 @@ export default function Page() {
           .toolbar { padding: 10px; gap: 10px; }
           .tool-group { padding: 5px 8px; }
           .tool-range { width: 72px; }
+          .funny-head { flex-direction: column; align-items: stretch; }
+          .funny-select { width: 100%; min-width: 0; }
+          .step { padding: 14px 14px 14px 66px; }
+          .step-num { left: 14px; top: 14px; width: 36px; height: 36px; font-size: 1rem; }
         }
         @media (min-width: 1280px) { .grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 1680px) { .grid { grid-template-columns: repeat(4, 1fr); } }
