@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 
@@ -8,7 +10,6 @@ const UNICODE_MAPS: Record<string, string[]> = {
 };
 
 const generateStyles = () => {
-  const base = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   const styles: { name: string; fn: (s: string) => string; category: string }[] = [];
 
   const maps: [string, string, string][] = [
@@ -42,7 +43,6 @@ const generateStyles = () => {
 
   maps.forEach(([name, chars, cat]) => {
     const charArr = [...chars];
-    // pad/truncate to 62
     const map: Record<string, string> = {};
     for (let i = 0; i < letters.length && i < charArr.length; i++) {
       map[letters[i]] = charArr[i];
@@ -57,12 +57,11 @@ const generateStyles = () => {
   return styles;
 };
 
-// Additional decorative styles generated programmatically
 const generateExtraStyles = () => {
   const extras: { name: string; fn: (s: string) => string; category: string }[] = [];
 
   const wrappers: [string, (s: string) => string, string][] = [
-    ['Star Decorated', (s) => s.split('').join('★') , 'Decorative'],
+    ['Star Decorated', (s) => s.split('').join('★'), 'Decorative'],
     ['Heart Decorated', (s) => s.split('').join('♥'), 'Decorative'],
     ['Dot Separated', (s) => s.split('').join('·'), 'Decorative'],
     ['Wave Underline', (s) => [...s].join('̃'), 'Decorative'],
@@ -94,7 +93,6 @@ const generateExtraStyles = () => {
 
   wrappers.forEach(([name, fn, cat]) => extras.push({ name, fn, category: cat }));
 
-  // Word decorations
   const wordDecos: [string, (s: string) => string, string][] = [
     ['Sparkles', (s) => `✨ ${s} ✨`, 'Decor'],
     ['Stars', (s) => `★彡 ${s} 彡★`, 'Decor'],
@@ -120,7 +118,6 @@ const generateExtraStyles = () => {
 
   wordDecos.forEach(([name, fn, cat]) => extras.push({ name, fn, category: cat }));
 
-  // Spaced styles
   const spaced = (s: string, sep: string) => s.split('').join(sep);
   const spDecos: [string, (s: string) => string][] = [
     ['Spaced', (s) => spaced(s, ' ')],
@@ -138,7 +135,6 @@ const generateExtraStyles = () => {
   ];
   spDecos.forEach(([name, fn]) => extras.push({ name, fn, category: 'Spaced' }));
 
-  // Strike variations
   const strikes: [string, (s: string) => string][] = [
     ['Strike Slash', (s) => [...s].map(c => c + '\u0338').join('')],
     ['Strike Short', (s) => [...s].map(c => c + '\u0336').join('')],
@@ -146,7 +142,6 @@ const generateExtraStyles = () => {
   ];
   strikes.forEach(([name, fn]) => extras.push({ name, fn, category: 'Effects' }));
 
-  // Numbered / lettered
   const numWords = ['₁','₂','₃','₄','₅','₆','₇','₈','₉','₁₀'];
   extras.push({
     name: 'Numbered Lines',
@@ -169,7 +164,6 @@ const generateExtraStyles = () => {
     fn: (s) => s.split('\n').map(l => `▌ ${l} ▐`).join('\n'),
   });
 
-  // Box style
   extras.push({
     name: 'Box',
     category: 'Brackets',
@@ -186,7 +180,6 @@ const generateExtraStyles = () => {
   return extras;
 };
 
-// Combine all & add "Original"
 const buildAllStyles = () => {
   const all = [
     { name: 'Original', fn: (s: string) => s, category: 'Plain' },
@@ -200,7 +193,7 @@ const ALL_STYLES = buildAllStyles();
 const CATEGORIES = ['All', ...Array.from(new Set(ALL_STYLES.map(s => s.category)))];
 
 // ============ COMPONENT ============
-export default function Home() {
+export default function Page() {
   const [input, setInput] = useState('Hello World');
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
@@ -214,7 +207,11 @@ export default function Home() {
     const saved = localStorage.getItem('theme') as 'dark' | 'light' | null;
     if (saved) setTheme(saved);
     const favs = localStorage.getItem('favs');
-    if (favs) try { setFavorites(JSON.parse(favs)); } catch {}
+    if (favs) {
+      try {
+        setFavorites(JSON.parse(favs));
+      } catch {}
+    }
   }, []);
 
   useEffect(() => {
@@ -233,25 +230,31 @@ export default function Home() {
     setTimeout(() => setToast(''), 1800);
   }, []);
 
-  const copy = useCallback(async (text: string, label: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast(`✓ ${label} copied!`);
-    } catch {
-      showToast('Failed to copy');
-    }
-  }, [showToast]);
-
-  const share = useCallback(async (text: string) => {
-    if (navigator.share) {
+  const copy = useCallback(
+    async (text: string, label: string) => {
       try {
-        await navigator.share({ title: 'Fancy Text', text });
-        showToast('✓ Shared!');
-      } catch {}
-    } else {
-      copy(text, 'Share text');
-    }
-  }, [copy, showToast]);
+        await navigator.clipboard.writeText(text);
+        showToast(`✓ ${label} copied!`);
+      } catch {
+        showToast('Failed to copy');
+      }
+    },
+    [showToast]
+  );
+
+  const share = useCallback(
+    async (text: string) => {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'Fancy Text', text });
+          showToast('✓ Shared!');
+        } catch {}
+      } else {
+        copy(text, 'Share text');
+      }
+    },
+    [copy, showToast]
+  );
 
   const toggleFav = useCallback((name: string) => {
     setFavorites(prev =>
@@ -268,28 +271,34 @@ export default function Home() {
     });
   }, [category, search, favorites]);
 
-  // Prevent SSR mismatch
   if (!mounted) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#0a0a1a' }} />
-    );
+    return <div style={{ minHeight: '100vh', background: '#0a0a1a' }} />;
   }
 
   return (
     <>
       <Head>
         <title>Fancy Text Generator — 1000+ Stylish Fonts & Cool Text Styles</title>
-        <meta name="description" content="Transform your text with 1000+ fancy fonts, stylish letters, and cool Unicode styles. Free online fancy text generator for Instagram, Twitter, Facebook & more. Copy & paste instantly." />
-        <meta name="keywords" content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts" />
+        <meta
+          name="description"
+          content="Transform your text with 1000+ fancy fonts, stylish letters, and cool Unicode styles. Free online fancy text generator for Instagram, Twitter, Facebook & more. Copy & paste instantly."
+        />
+        <meta
+          name="keywords"
+          content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content={theme === 'dark' ? '#0a0a1a' : '#f5f5ff'} />
         <meta property="og:title" content="Fancy Text Generator — 1000+ Stylish Fonts" />
-        <meta property="og:description" content="Transform text with 1000+ fancy fonts & Unicode styles. Free, fast, no signup." />
+        <meta
+          property="og:description"
+          content="Transform text with 1000+ fancy fonts & Unicode styles. Free, fast, no signup."
+        />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Fancy Text Generator — 1000+ Styles" />
         <meta name="twitter:description" content="Copy & paste 1000+ fancy text styles instantly." />
-        <link rel="canonical" href="https://example.com/" />
+        <link rel="canonical" href="https://example.com/fancy-text" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -307,7 +316,6 @@ export default function Home() {
       </Head>
 
       <div className="app" data-theme={theme}>
-        {/* Animated gradient background */}
         <div className="bg-gradient" aria-hidden="true" />
         <div className="bg-blobs" aria-hidden="true">
           <div className="blob blob-1" />
@@ -315,17 +323,18 @@ export default function Home() {
           <div className="blob blob-3" />
         </div>
 
-        {/* Header */}
         <header className="header">
           <div className="header-inner glass">
             <div className="logo">
               <span className="logo-icon">✦</span>
-              <span className="logo-text">Fancy<span className="grad-text">Text</span></span>
+              <span className="logo-text">
+                Fancy<span className="grad-text">Text</span>
+              </span>
             </div>
             <div className="header-actions">
               <button
                 className="icon-btn"
-                onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+                onClick={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
                 aria-label="Toggle theme"
                 title="Toggle theme"
               >
@@ -336,20 +345,21 @@ export default function Home() {
         </header>
 
         <main className="main">
-          {/* Hero */}
           <section className="hero">
             <h1 className="hero-title">
               1000+ <span className="grad-text">Fancy Text</span> Styles
             </h1>
             <p className="hero-sub">
-              Type once · Copy in any style · Paste anywhere. Instagram, Twitter, Discord, WhatsApp & more.
+              Type once · Copy in any style · Paste anywhere. Instagram, Twitter, Discord, WhatsApp
+              & more.
             </p>
           </section>
 
-          {/* Input Panel */}
           <section className="panel glass">
             <div className="input-wrap">
-              <label htmlFor="input" className="sr-only">Enter your text</label>
+              <label htmlFor="input" className="sr-only">
+                Enter your text
+              </label>
               <textarea
                 id="input"
                 className="input"
@@ -362,13 +372,16 @@ export default function Home() {
               <div className="input-meta">
                 <span className="count">{input.length}/200</span>
                 <div className="input-actions">
-                  <button className="mini-btn" onClick={() => setInput('')}>Clear</button>
-                  <button className="mini-btn accent" onClick={() => copy(input, 'Text')}>Copy</button>
+                  <button className="mini-btn" onClick={() => setInput('')}>
+                    Clear
+                  </button>
+                  <button className="mini-btn accent" onClick={() => copy(input, 'Text')}>
+                    Copy
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Filters */}
             <div className="filters">
               <div className="search-wrap">
                 <span className="search-icon">🔍</span>
@@ -395,16 +408,20 @@ export default function Home() {
             </div>
           </section>
 
-          {/* Stats bar */}
           <div className="stats">
-            <span><strong>{ALL_STYLES.length}+</strong> styles</span>
+            <span>
+              <strong>{ALL_STYLES.length}+</strong> styles
+            </span>
             <span className="dot">•</span>
-            <span><strong>{filteredStyles.length}</strong> showing</span>
+            <span>
+              <strong>{filteredStyles.length}</strong> showing
+            </span>
             <span className="dot">•</span>
-            <span><strong>{favorites.length}</strong> favorites</span>
+            <span>
+              <strong>{favorites.length}</strong> favorites
+            </span>
           </div>
 
-          {/* Results grid */}
           <section className="grid" aria-label="Fancy text styles">
             {filteredStyles.length === 0 ? (
               <div className="empty glass">
@@ -452,15 +469,13 @@ export default function Home() {
             )}
           </section>
 
-          {/* SEO content */}
           <section className="seo glass">
             <h2>About Fancy Text Generator</h2>
             <p>
               Our <strong>fancy text generator</strong> lets you transform ordinary text into over
               1000 stylish Unicode fonts instantly. Whether you need <em>bold</em>, <em>italic</em>,
               cursive, gothic, bubble, or decorative text — you can copy and paste it anywhere
-              including Instagram bios, Twitter posts, Facebook comments, Discord messages, TikTok
-              captions, and WhatsApp chats.
+              including Instagram bios, Twitter posts, Facebook comments, Discord messages, TikTok              captions, and WhatsApp chats.
             </p>
             <h3>How to use</h3>
             <ol>
@@ -483,14 +498,12 @@ export default function Home() {
           </footer>
         </main>
 
-        {/* Toast */}
         <div className={`toast ${toast ? 'show' : ''}`} role="status" aria-live="polite">
           {toast}
         </div>
       </div>
 
       <style jsx global>{`
-        /* ============ THEME TOKENS ============ */
         :root {
           --bg: #0a0a1a;
           --fg: #f0f0ff;
@@ -512,19 +525,29 @@ export default function Home() {
           --glass-shadow: 0 8px 32px rgba(100, 100, 180, 0.15);
         }
 
-        * { box-sizing: border-box; }
-        html, body {
-          margin: 0; padding: 0;
+        * {
+          box-sizing: border-box;
+        }
+        html,
+        body {
+          margin: 0;
+          padding: 0;
           background: var(--bg);
           color: var(--fg);
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+            Arial, sans-serif;
           -webkit-font-smoothing: antialiased;
           transition: background 0.4s ease, color 0.4s ease;
         }
         .sr-only {
-          position: absolute; width: 1px; height: 1px;
-          padding: 0; margin: -1px; overflow: hidden;
-          clip: rect(0,0,0,0); border: 0;
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          border: 0;
         }
 
         .app {
@@ -534,20 +557,34 @@ export default function Home() {
           padding: 0 0 60px;
         }
 
-        /* ============ BACKGROUND ============ */
         .bg-gradient {
-          position: fixed; inset: 0; z-index: -2;
-          background:
-            radial-gradient(ellipse at 20% 0%, rgba(139, 92, 246, 0.18), transparent 50%),
+          position: fixed;
+          inset: 0;
+          z-index: -2;
+          background: radial-gradient(
+              ellipse at 20% 0%,
+              rgba(139, 92, 246, 0.18),
+              transparent 50%
+            ),
             radial-gradient(ellipse at 80% 100%, rgba(236, 72, 153, 0.15), transparent 50%),
             radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.08), transparent 60%);
           animation: bgShift 18s ease-in-out infinite alternate;
         }
         @keyframes bgShift {
-          0%   { transform: scale(1) rotate(0deg); }
-          100% { transform: scale(1.15) rotate(3deg); }
+          0% {
+            transform: scale(1) rotate(0deg);
+          }
+          100% {
+            transform: scale(1.15) rotate(3deg);
+          }
         }
-        .bg-blobs { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+        .bg-blobs {
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          overflow: hidden;
+          pointer-events: none;
+        }
         .blob {
           position: absolute;
           border-radius: 50%;
@@ -555,17 +592,45 @@ export default function Home() {
           opacity: 0.5;
           animation: float 20s ease-in-out infinite;
         }
-        .blob-1 { width: 420px; height: 420px; background: var(--accent-1); top: -120px; left: -120px; }
-        .blob-2 { width: 380px; height: 380px; background: var(--accent-2); bottom: -100px; right: -100px; animation-delay: -6s; }
-        .blob-3 { width: 320px; height: 320px; background: var(--accent-3); top: 40%; left: 60%; animation-delay: -12s; }
-        [data-theme='light'] .blob { opacity: 0.25; }
+        .blob-1 {
+          width: 420px;
+          height: 420px;
+          background: var(--accent-1);
+          top: -120px;
+          left: -120px;
+        }
+        .blob-2 {
+          width: 380px;
+          height: 380px;
+          background: var(--accent-2);
+          bottom: -100px;
+          right: -100px;
+          animation-delay: -6s;
+        }
+        .blob-3 {
+          width: 320px;
+          height: 320px;
+          background: var(--accent-3);
+          top: 40%;
+          left: 60%;
+          animation-delay: -12s;
+        }
+        [data-theme='light'] .blob {
+          opacity: 0.25;
+        }
         @keyframes float {
-          0%, 100% { transform: translate(0,0) scale(1); }
-          33% { transform: translate(40px, -30px) scale(1.1); }
-          66% { transform: translate(-30px, 40px) scale(0.95); }
+          0%,
+          100% {
+            transform: translate(0, 0) scale(1);
+          }
+          33% {
+            transform: translate(40px, -30px) scale(1.1);
+          }
+          66% {
+            transform: translate(-30px, 40px) scale(0.95);
+          }
         }
 
-        /* ============ GLASS ============ */
         .glass {
           background: var(--glass-bg);
           backdrop-filter: blur(18px) saturate(140%);
@@ -575,63 +640,120 @@ export default function Home() {
           border-radius: 20px;
         }
 
-        /* ============ HEADER ============ */
-        .header { position: sticky; top: 0; z-index: 50; padding: 12px 16px; }
-        .header-inner {
-          max-width: 1100px; margin: 0 auto;
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 10px 18px; border-radius: 16px;
+        .header {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          padding: 12px 16px;
         }
-        .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; }
+        .header-inner {
+          max-width: 1100px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 18px;
+          border-radius: 16px;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-weight: 800;
+          font-size: 1.15rem;
+        }
         .logo-icon {
           font-size: 1.4rem;
           background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          -webkit-background-clip: text; background-clip: text; color: transparent;
-          animation: spin 6s linear infinite; display: inline-block;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          animation: spin 6s linear infinite;
+          display: inline-block;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
         .grad-text {
-          background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-1));
+          background: linear-gradient(
+            90deg,
+            var(--accent-1),
+            var(--accent-2),
+            var(--accent-3),
+            var(--accent-1)
+          );
           background-size: 300% 100%;
-          -webkit-background-clip: text; background-clip: text; color: transparent;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
           animation: gradMove 6s linear infinite;
         }
         @keyframes gradMove {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 300% 50%; }
+          0% {
+            background-position: 0% 50%;
+          }
+          100% {
+            background-position: 300% 50%;
+          }
         }
         .icon-btn {
-          width: 42px; height: 42px; border-radius: 12px;
-          background: var(--glass-bg); border: 1px solid var(--glass-border);
-          color: var(--fg); cursor: pointer; font-size: 1.1rem;
-          display: grid; place-items: center;
+          width: 42px;
+          height: 42px;
+          border-radius: 12px;
+          background: var(--glass-bg);
+          border: 1px solid var(--glass-border);
+          color: var(--fg);
+          cursor: pointer;
+          font-size: 1.1rem;
+          display: grid;
+          place-items: center;
           transition: transform 0.2s, background 0.2s;
         }
-        .icon-btn:hover { transform: scale(1.08); background: rgba(139, 92, 246, 0.15); }
+        .icon-btn:hover {
+          transform: scale(1.08);
+          background: rgba(139, 92, 246, 0.15);
+        }
 
-        /* ============ LAYOUT ============ */
-        .main { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+        .main {
+          max-width: 1100px;
+          margin: 0 auto;
+          padding: 0 16px;
+        }
 
-        .hero { text-align: center; padding: 30px 8px 24px; }
+        .hero {
+          text-align: center;
+          padding: 30px 8px 24px;
+        }
         .hero-title {
           font-size: clamp(1.7rem, 5.5vw, 3rem);
-          font-weight: 900; margin: 0 0 10px; line-height: 1.15;
+          font-weight: 900;
+          margin: 0 0 10px;
+          line-height: 1.15;
           letter-spacing: -0.02em;
         }
         .hero-sub {
-          color: var(--muted); font-size: clamp(0.9rem, 2.4vw, 1.05rem);
-          margin: 0; max-width: 640px; margin-inline: auto;
+          color: var(--muted);
+          font-size: clamp(0.9rem, 2.4vw, 1.05rem);
+          margin: 0;
+          max-width: 640px;
+          margin-inline: auto;
         }
 
-        /* ============ PANEL ============ */
-        .panel { padding: 18px; margin-bottom: 18px; }
-        .input-wrap { position: relative; }
+        .panel {
+          padding: 18px;
+          margin-bottom: 18px;
+        }
+        .input-wrap {
+          position: relative;
+        }
         .input {
           width: 100%;
           padding: 16px 18px;
           font-size: 1.05rem;
           border-radius: 14px;
-          background: rgba(255,255,255,0.06);
+          background: rgba(255, 255, 255, 0.06);
           border: 1px solid var(--glass-border);
           color: var(--fg);
           font-family: inherit;
@@ -640,135 +762,224 @@ export default function Home() {
           transition: border-color 0.2s, box-shadow 0.2s;
           min-height: 64px;
         }
-        [data-theme='light'] .input { background: rgba(255,255,255,0.7); }
+        [data-theme='light'] .input {
+          background: rgba(255, 255, 255, 0.7);
+        }
         .input:focus {
           border-color: var(--accent-1);
           box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
         }
         .input-meta {
-          display: flex; justify-content: space-between; align-items: center;
-          margin-top: 10px; flex-wrap: wrap; gap: 8px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 10px;
+          flex-wrap: wrap;
+          gap: 8px;
         }
-        .count { color: var(--muted); font-size: 0.82rem; }
-        .input-actions { display: flex; gap: 8px; }
+        .count {
+          color: var(--muted);
+          font-size: 0.82rem;
+        }
+        .input-actions {
+          display: flex;
+          gap: 8px;
+        }
         .mini-btn {
-          padding: 8px 14px; font-size: 0.85rem;
-          border-radius: 10px; cursor: pointer;
-          background: rgba(255,255,255,0.06);
+          padding: 8px 14px;
+          font-size: 0.85rem;
+          border-radius: 10px;
+          cursor: pointer;
+          background: rgba(255, 255, 255, 0.06);
           border: 1px solid var(--glass-border);
-          color: var(--fg); font-weight: 600;
+          color: var(--fg);
+          font-weight: 600;
           transition: transform 0.15s, background 0.2s;
         }
-        [data-theme='light'] .mini-btn { background: rgba(255,255,255,0.7); }
-        .mini-btn:hover { transform: translateY(-1px); }
+        [data-theme='light'] .mini-btn {
+          background: rgba(255, 255, 255, 0.7);
+        }
+        .mini-btn:hover {
+          transform: translateY(-1px);
+        }
         .mini-btn.accent {
           background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          border: none; color: white;
+          border: none;
+          color: white;
         }
 
-        /* ============ FILTERS ============ */
-        .filters { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
-        .search-wrap { position: relative; }
+        .filters {
+          margin-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .search-wrap {
+          position: relative;
+        }
         .search-icon {
-          position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-          opacity: 0.6; font-size: 0.9rem;
+          position: absolute;
+          left: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          opacity: 0.6;
+          font-size: 0.9rem;
         }
         .search {
-          width: 100%; padding: 12px 16px 12px 40px;
+          width: 100%;
+          padding: 12px 16px 12px 40px;
           border-radius: 12px;
-          background: rgba(255,255,255,0.06);
+          background: rgba(255, 255, 255, 0.06);
           border: 1px solid var(--glass-border);
-          color: var(--fg); font-size: 0.95rem;
-          outline: none; font-family: inherit;
+          color: var(--fg);
+          font-size: 0.95rem;
+          outline: none;
+          font-family: inherit;
         }
-        [data-theme='light'] .search { background: rgba(255,255,255,0.7); }
-        .search:focus { border-color: var(--accent-1); }
+        [data-theme='light'] .search {
+          background: rgba(255, 255, 255, 0.7);
+        }
+        .search:focus {
+          border-color: var(--accent-1);
+        }
 
         .chips {
-          display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
-          scrollbar-width: thin; -webkit-overflow-scrolling: touch;
+          display: flex;
+          gap: 8px;
+          overflow-x: auto;
+          padding-bottom: 4px;
+          scrollbar-width: thin;
+          -webkit-overflow-scrolling: touch;
         }
-        .chips::-webkit-scrollbar { height: 4px; }
-        .chips::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+        .chips::-webkit-scrollbar {
+          height: 4px;
+        }
+        .chips::-webkit-scrollbar-thumb {
+          background: var(--glass-border);
+          border-radius: 4px;
+        }
         .chip {
-          flex: 0 0 auto; padding: 8px 14px; font-size: 0.83rem;
-          border-radius: 20px; cursor: pointer;
-          background: rgba(255,255,255,0.06);
+          flex: 0 0 auto;
+          padding: 8px 14px;
+          font-size: 0.83rem;
+          border-radius: 20px;
+          cursor: pointer;
+          background: rgba(255, 255, 255, 0.06);
           border: 1px solid var(--glass-border);
-          color: var(--fg); font-weight: 600; white-space: nowrap;
+          color: var(--fg);
+          font-weight: 600;
+          white-space: nowrap;
           transition: all 0.2s;
         }
-        [data-theme='light'] .chip { background: rgba(255,255,255,0.7); }
-        .chip:hover { transform: translateY(-1px); }
+        [data-theme='light'] .chip {
+          background: rgba(255, 255, 255, 0.7);
+        }
+        .chip:hover {
+          transform: translateY(-1px);
+        }
         .chip.active {
           background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          border-color: transparent; color: white;
+          border-color: transparent;
+          color: white;
           box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
         }
 
-        /* ============ STATS ============ */
         .stats {
-          display: flex; justify-content: center; align-items: center;
-          gap: 10px; color: var(--muted); font-size: 0.85rem;
-          margin: 4px 0 16px; flex-wrap: wrap;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 10px;
+          color: var(--muted);
+          font-size: 0.85rem;
+          margin: 4px 0 16px;
+          flex-wrap: wrap;
         }
-        .stats strong { color: var(--fg); }
-        .dot { opacity: 0.5; }
+        .stats strong {
+          color: var(--fg);
+        }
+        .dot {
+          opacity: 0.5;
+        }
 
-        /* ============ GRID ============ */
         .grid {
-          display: grid; gap: 14px;
+          display: grid;
+          gap: 14px;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         }
         .card {
           padding: 14px;
-          display: flex; flex-direction: column; gap: 10px;
-          opacity: 0; transform: translateY(12px);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          opacity: 0;
+          transform: translateY(12px);
           animation: cardIn 0.5s ease forwards;
           transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
         }
         @keyframes cardIn {
-          to { opacity: 1; transform: translateY(0); }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .card:hover {
           transform: translateY(-4px);
           border-color: rgba(139, 92, 246, 0.5);
           box-shadow: 0 12px 40px rgba(139, 92, 246, 0.25);
         }
-        .card-head { display: flex; justify-content: space-between; align-items: center; }
+        .card-head {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
         .card-label {
-          font-size: 0.72rem; font-weight: 700;
-          text-transform: uppercase; letter-spacing: 0.06em;
+          font-size: 0.72rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
           color: var(--muted);
         }
         .fav-btn {
-          background: transparent; border: none;
-          cursor: pointer; font-size: 1.15rem;
-          color: var(--muted); padding: 2px 6px;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          font-size: 1.15rem;
+          color: var(--muted);
+          padding: 2px 6px;
           transition: transform 0.2s, color 0.2s;
         }
-        .fav-btn.on { color: #fbbf24; }
-        .fav-btn:hover { transform: scale(1.25); }
+        .fav-btn.on {
+          color: #fbbf24;
+        }
+        .fav-btn:hover {
+          transform: scale(1.25);
+        }
         .card-output {
           padding: 12px;
           border-radius: 10px;
-          background: rgba(0,0,0,0.15);
+          background: rgba(0, 0, 0, 0.15);
           border: 1px dashed var(--glass-border);
           font-size: 1.05rem;
           word-break: break-word;
           min-height: 48px;
-          display: flex; align-items: center;
+          display: flex;
+          align-items: center;
           cursor: pointer;
           transition: background 0.2s, border-color 0.2s;
           line-height: 1.4;
           overflow: hidden;
         }
-        [data-theme='light'] .card-output { background: rgba(255,255,255,0.6); }
+        [data-theme='light'] .card-output {
+          background: rgba(255, 255, 255, 0.6);
+        }
         .card-output:hover {
           background: rgba(139, 92, 246, 0.1);
           border-color: var(--accent-1);
         }
-        .card-actions { display: flex; gap: 8px; }
+        .card-actions {
+          display: flex;
+          gap: 8px;
+        }
         .card-btn {
           flex: 1;
           padding: 9px 10px;
@@ -776,54 +987,92 @@ export default function Home() {
           font-weight: 600;
           border-radius: 10px;
           cursor: pointer;
-          background: rgba(255,255,255,0.06);
+          background: rgba(255, 255, 255, 0.06);
           border: 1px solid var(--glass-border);
           color: var(--fg);
           transition: all 0.2s;
         }
-        [data-theme='light'] .card-btn { background: rgba(255,255,255,0.7); }
+        [data-theme='light'] .card-btn {
+          background: rgba(255, 255, 255, 0.7);
+        }
         .card-btn:hover {
           background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; border-color: transparent;
+          color: white;
+          border-color: transparent;
           transform: translateY(-1px);
         }
 
-        /* ============ EMPTY ============ */
         .empty {
           grid-column: 1 / -1;
-          text-align: center; padding: 60px 20px;
+          text-align: center;
+          padding: 60px 20px;
           color: var(--muted);
         }
-        .empty-icon { font-size: 2.5rem; margin-bottom: 12px; animation: pulse 2s infinite; }
+        .empty-icon {
+          font-size: 2.5rem;
+          margin-bottom: 12px;
+          animation: pulse 2s infinite;
+        }
         @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.15); opacity: 0.7; }
+          0%,
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1.15);
+            opacity: 0.7;
+          }
         }
 
-        /* ============ SEO ============ */
-        .seo { margin-top: 30px; padding: 26px; line-height: 1.7; }
-        .seo h2 { margin-top: 0; font-size: 1.4rem; }
-        .seo h3 { font-size: 1.05rem; margin-bottom: 6px; }
-        .seo p, .seo li { color: var(--muted); font-size: 0.94rem; }
-        .seo strong { color: var(--fg); }
-        .seo ul, .seo ol { padding-left: 20px; }
+        .seo {
+          margin-top: 30px;
+          padding: 26px;
+          line-height: 1.7;
+        }
+        .seo h2 {
+          margin-top: 0;
+          font-size: 1.4rem;
+        }
+        .seo h3 {
+          font-size: 1.05rem;
+          margin-bottom: 6px;
+        }
+        .seo p,
+        .seo li {
+          color: var(--muted);
+          font-size: 0.94rem;
+        }
+        .seo strong {
+          color: var(--fg);
+        }
+        .seo ul,
+        .seo ol {
+          padding-left: 20px;
+        }
 
-        /* ============ FOOTER ============ */
         .footer {
-          text-align: center; margin-top: 40px;
-          color: var(--muted); font-size: 0.85rem;
+          text-align: center;
+          margin-top: 40px;
+          color: var(--muted);
+          font-size: 0.85rem;
         }
 
-        /* ============ TOAST ============ */
         .toast {
-          position: fixed; bottom: 24px; left: 50%;
+          position: fixed;
+          bottom: 24px;
+          left: 50%;
           transform: translateX(-50%) translateY(100px);
           background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; font-weight: 700; font-size: 0.9rem;
-          padding: 12px 22px; border-radius: 14px;
+          color: white;
+          font-weight: 700;
+          font-size: 0.9rem;
+          padding: 12px 22px;
+          border-radius: 14px;
           box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5);
-          opacity: 0; pointer-events: none;
-          transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+          opacity: 0;
+          pointer-events: none;
+          transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
           z-index: 100;
         }
         .toast.show {
@@ -831,26 +1080,45 @@ export default function Home() {
           opacity: 1;
         }
 
-        /* ============ RESPONSIVE ============ */
         @media (max-width: 640px) {
-          .grid { grid-template-columns: 1fr; gap: 12px; }
-          .panel { padding: 14px; }
-          .hero { padding: 20px 4px 16px; }
-          .seo { padding: 20px 18px; }
-          .header { padding: 8px 10px; }
-          .header-inner { padding: 8px 14px; }
-          .logo { font-size: 1rem; }
+          .grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+          }
+          .panel {
+            padding: 14px;
+          }
+          .hero {
+            padding: 20px 4px 16px;
+          }
+          .seo {
+            padding: 20px 18px;
+          }
+          .header {
+            padding: 8px 10px;
+          }
+          .header-inner {
+            padding: 8px 14px;
+          }
+          .logo {
+            font-size: 1rem;
+          }
         }
         @media (min-width: 1200px) {
-          .grid { grid-template-columns: repeat(3, 1fr); }
+          .grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
         }
         @media (min-width: 1600px) {
-          .grid { grid-template-columns: repeat(4, 1fr); }
+          .grid {
+            grid-template-columns: repeat(4, 1fr);
+          }
         }
 
-        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after {
+          *,
+          *::before,
+          *::after {
             animation-duration: 0.01ms !important;
             animation-iteration-count: 1 !important;
             transition-duration: 0.01ms !important;
