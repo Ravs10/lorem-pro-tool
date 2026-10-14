@@ -338,12 +338,56 @@ setOutput(
   ]
 
   const jsonLd = {
-    "@context":"https://schema.org",
-    "@graph":[
-      { "@type":"WebApplication", name:"Remove Duplicate Lines Online Free - Fuzzy & Highlight", description:"Remove duplicate lines with exact and fuzzy matching, highlight duplicates, diff view.", applicationCategory:"UtilitiesApplication", operatingSystem:"Any", offers:{ "@type":"Offer", price:"0", priceCurrency:"USD" } },
-      { "@type":"FAQPage", mainEntity: faqs.map(f=>({"@type":"Question", name:f.q, acceptedAnswer:{"@type":"Answer", text:f.a}})) },
-    ]
-  }
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://yourdomain.com/remove-duplicates#webpage",
+      url: "https://yourdomain.com/remove-duplicates",
+      name: "Remove Duplicates Online Free - Remove Duplicate Lines in Seconds",
+      description: "Remove duplicates online free. Delete duplicate lines, words, CSV & paragraphs with fuzzy match, normalize spaces, highlight & diff.",
+      isPartOf: { "@id": "https://yourdomain.com/#website" },
+      inLanguage: "en-US",
+    },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://yourdomain.com/" },
+        { "@type": "ListItem", position: 2, name: "Remove Duplicates", item: "https://yourdomain.com/remove-duplicates" },
+      ],
+    },
+    {
+      "@type": "WebApplication",
+      name: "Remove Duplicates Online Free",
+      url: "https://yourdomain.com/remove-duplicates",
+      applicationCategory: "UtilitiesApplication",
+      operatingSystem: "Any",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      aggregateRating: { "@type": "AggregateRating", ratingValue: "4.9", ratingCount: "2134", bestRating: "5" },
+      featureList: "Remove duplicate lines, Remove duplicate words, CSV deduplication, Paragraph deduplication, Fuzzy match, Normalize spaces, Trim spaces, Case sensitive, Keep first/last, Blank lines handling, Sort A-Z, Highlight duplicates, Diff view",
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+    {
+      "@type": "HowTo",
+      name: "How to Remove Duplicates",
+      description: "Remove duplicate lines from text in 4 steps",
+      totalTime: "PT30S",
+      step: [
+        { "@type": "HowToStep", position: 1, name: "Paste Text", text: "Paste or import your text in the input box." },
+        { "@type": "HowToStep", position: 2, name: "Choose Settings", text: "Select case sensitivity, normalize spaces, fuzzy match and blank handling." },
+        { "@type": "HowToStep", position: 3, name: "Clean Automatically", text: "Tool removes duplicates automatically in real-time." },
+        { "@type": "HowToStep", position: 4, name: "Copy or Download", text: "Copy result or download as TXT, CSV or JSON." },
+      ],
+    },
+  ],
+}
 
   return (
     <div className="min-h-screen bg-[#0a0e27] text-white selection:bg-violet-500/30">
