@@ -209,7 +209,14 @@ export default function RemoveDuplicateProPage() {
         if(!dup){ seen.push({key}); out.push(token); groupMap.set(key, 1) }
         else { removedList.push(token); groupMap.set(matchKey, (groupMap.get(matchKey)||1)+1) }
       }
-      setOutput(out.join("").replace(/[ \t]{2,}/g," ")); setRemoved(removedList); setGroups(groupMap); return
+      const finalOutput = out.join("");
+
+setOutput(
+  normalizeSpaces
+    ? finalOutput.replace(/[ \t]+/g, " ")
+    : finalOutput
+);
+      setRemoved(removedList); setGroups(groupMap); return
     }
 
     if (mode==="csv") {
