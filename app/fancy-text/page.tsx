@@ -357,7 +357,7 @@ const BG_STYLES = [
 ];
 
 // ============================================================
-// FAQS — ✅ UPDATED WITH NEW FEATURES
+// FAQS
 // ============================================================
 const FAQS = [
   {
@@ -620,37 +620,77 @@ async function renderStyledToPNG(
 // ============================================================
 // HOOKS
 // ============================================================
+
+// ✅ FIXED: useUndoableState — supports updater function, uses refs to avoid stale closures
 function useUndoableState(initial: string) {
   const [history, setHistory] = useState<string[]>([initial]);
   const [index, setIndex] = useState(0);
   const lastPush = useRef(0);
+  const historyRef = useRef(history);
+  const indexRef = useRef(index);
 
-  const set = useCallback((next: string, opts?: { immediate?: boolean }) => {
-    const now = Date.now();
-    if (!opts?.immediate && now - lastPush.current < 400) {
-      setHistory(h => { const copy = h.slice(0, index + 1); copy[index] = next; return copy; });
-      return;
-    }
-    lastPush.current = now;
-    setHistory(h => {
-      const trimmed = h.slice(0, index + 1);
-      if (trimmed[trimmed.length - 1] === next) return trimmed;
-      const nextHist = [...trimmed, next];
-      if (nextHist.length > 100) nextHist.shift();
-      return nextHist;
+  useEffect(() => { historyRef.current = history; }, [history]);
+  useEffect(() => { indexRef.current = index; }, [index]);
+
+  const set = useCallback(
+    (next: string | ((prev: string) => string), opts?: { immediate?: boolean }) => {
+      const cur = historyRef.current[indexRef.current] ?? '';
+      const resolved = typeof next === 'function' ? next(cur) : next;
+
+      const now = Date.now();
+      const isDebouncedTyping = !opts?.immediate && now - lastPush.current < 400;
+
+      if (isDebouncedTyping) {
+        setHistory(h => {
+          const copy = h.slice(0, indexRef.current + 1);
+          copy[indexRef.current] = resolved;
+          return copy;
+        });
+        return;
+      }
+
+      lastPush.current = now;
+
+      setHistory(h => {
+        const trimmed = h.slice(0, indexRef.current + 1);
+        if (trimmed[trimmed.length - 1] === resolved) return trimmed;
+        const nextHist = [...trimmed, resolved];
+        if (nextHist.length > 100) nextHist.shift();
+        return nextHist;
+      });
+      setIndex(i => Math.min(i + 1, 99));
+    },
+    []
+  );
+
+  const undo = useCallback(() => {
+    setIndex(i => (i <= 0 ? i : i - 1));
+  }, []);
+
+  const redo = useCallback(() => {
+    setIndex(i => {
+      const maxIdx = historyRef.current.length - 1;
+      return i >= maxIdx ? i : i + 1;
     });
-    setIndex(i => Math.min(i + 1, 99));
-  }, [index]);
+  }, []);
 
-  const undo = useCallback(() => { setIndex(i => i <= 0 ? i : i - 1); }, []);
-  const redo = useCallback(() => { setIndex(i => i >= history.length - 1 ? i : i + 1); }, [history.length]);
-  const reset = useCallback((v: string) => { setHistory([v]); setIndex(0); }, []);
+  const reset = useCallback((v: string) => {
+    setHistory([v]);
+    setIndex(0);
+    lastPush.current = 0;
+  }, []);
+
+  const canUndo = index > 0;
+  const canRedo = index < history.length - 1;
 
   return {
     value: history[index] ?? '',
-    set, undo, redo, reset,
-    canUndo: index > 0,
-    canRedo: index < history.length - 1,
+    set,
+    undo,
+    redo,
+    reset,
+    canUndo,
+    canRedo,
   };
 }
 
@@ -895,36 +935,49 @@ export default function Page() {
     setRecent(p => [name, ...p.filter(n => n !== name)].slice(0, 12));
   }, []);
 
+  // ✅ FIXED: applyTransform — uses functional updater, no stale closure
   const applyTransform = useCallback((type: string) => {
-    inputState.set((() => {
-      const s = input;
-      switch (type) {
-        case 'upper': return s.toUpperCase();
-        case 'lower': return s.toLowerCase();
-        case 'title': return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-        case 'sentence': return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-        case 'camel': return s.trim().split(/[\s_\-.]+/).filter(Boolean).map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
-        case 'pascal': return s.trim().split(/[\s_\-.]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
-        case 'snake': return s.trim().replace(/\s+/g, '_').toLowerCase();
-        case 'kebab': return s.trim().replace(/\s+/g, '-').toLowerCase();
-        case 'constant': return s.trim().replace(/\s+/g, '_').toUpperCase();
-        case 'reverse': return [...s].reverse().join('');
-        case 'trim': return s.replace(/^\s+|\s+$/g, '');
-        case 'clearSpaces': return s.replace(/[ \t]+/g, ' ').replace(/^\s+|\s+$/g, '');
-        case 'removeSpaces': return s.replace(/[ \t]+/g, '');
-        case 'removeLineBreaks': return s.replace(/[\r\n]+/g, ' ').replace(/^\s+|\s+$/g, '');
-        case 'removeNumbers': return s.replace(/[0-9]/g, '');
-        case 'removePunctuation': return s.replace(/[!-\/:-@\[-`{-~]/g, '');
-        case 'removeExtraDots': return s.replace(/\.{2,}/g, '.');
-        case 'toggleCase': return [...s].map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
-        case 'alternateCase': return [...s].map((c, i) => i % 2 ? c.toLowerCase() : c.toUpperCase()).join('');
-        case 'duplicateWords': return s.split(/\s+/).filter(Boolean).map(w => `${w} ${w}`).join(' ');
-        case 'duplicateChars': return [...s].map(c => c === ' ' ? ' ' : `${c}${c}`).join('');
-        default: return s;
-      }
-    })(), { immediate: true });
+    inputState.set(
+      (s) => {
+        switch (type) {
+          case 'upper': return s.toUpperCase();
+          case 'lower': return s.toLowerCase();
+          case 'title': return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+          case 'sentence': return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+          case 'camel':
+            return s.trim().split(/[\s_\-.]+/).filter(Boolean)
+              .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+              .join('');
+          case 'pascal':
+            return s.trim().split(/[\s_\-.]+/).filter(Boolean)
+              .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+              .join('');
+          case 'snake': return s.trim().replace(/\s+/g, '_').toLowerCase();
+          case 'kebab': return s.trim().replace(/\s+/g, '-').toLowerCase();
+          case 'constant': return s.trim().replace(/\s+/g, '_').toUpperCase();
+          case 'reverse': return [...s].reverse().join('');
+          case 'trim': return s.replace(/^\s+|\s+$/g, '');
+          case 'clearSpaces': return s.replace(/[ \t]+/g, ' ').replace(/^\s+|\s+$/g, '');
+          case 'removeSpaces': return s.replace(/[ \t]+/g, '');
+          case 'removeLineBreaks': return s.replace(/[\r\n]+/g, ' ').replace(/^\s+|\s+$/g, '');
+          case 'removeNumbers': return s.replace(/[0-9]/g, '');
+          case 'removePunctuation': return s.replace(/[!-\/:-@\[-`{-~]/g, '');
+          case 'removeExtraDots': return s.replace(/\.{2,}/g, '.');
+          case 'toggleCase':
+            return [...s].map(c => (c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase())).join('');
+          case 'alternateCase':
+            return [...s].map((c, i) => (i % 2 ? c.toLowerCase() : c.toUpperCase())).join('');
+          case 'duplicateWords':
+            return s.split(/\s+/).filter(Boolean).map(w => `${w} ${w}`).join(' ');
+          case 'duplicateChars':
+            return [...s].map(c => (c === ' ' ? ' ' : `${c}${c}`)).join('');
+          default: return s;
+        }
+      },
+      { immediate: true }
+    );
     showToast('✓ Applied', 'success');
-  }, [input, inputState, showToast]);
+  }, [inputState, showToast]);
 
   const clearAll = useCallback(() => {
     inputState.reset('');
@@ -985,8 +1038,7 @@ export default function Page() {
         const end = ta.selectionEnd ?? input.length;
         const before = input.slice(0, start);
         const after = input.slice(end);
-        const next = before + pastedText + after;
-        inputState.set(next, { immediate: true });
+        inputState.set(prev => before + pastedText + after, { immediate: true });
         requestAnimationFrame(() => {
           try {
             const newPos = start + pastedText.length;
@@ -995,7 +1047,7 @@ export default function Page() {
           } catch {}
         });
       } else {
-        inputState.set(input + pastedText, { immediate: true });
+        inputState.set(prev => prev + pastedText, { immediate: true });
       }
       showToast(detectedColor || detectedBg ? '✓ Pasted with style!' : '✓ Pasted', 'success');
     } catch {
@@ -1097,9 +1149,6 @@ export default function Page() {
 
   return (
     <>
-      {/* ============================================================
-          ✅ UPDATED SEO HEAD — title, description, keywords, schema
-          ============================================================ */}
       <Head>
         <title>Fancy Text Generator — 1000+ Stylish Fonts, Funny Text &amp; Cool Unicode Styles (Free)</title>
         <meta
@@ -1118,7 +1167,6 @@ export default function Page() {
         <meta name="apple-mobile-web-app-title" content="FancyText" />
         <meta name="format-detection" content="telephone=no" />
 
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Fancy Text Generator — 1000+ Stylish & Funny Text Styles" />
         <meta
@@ -1133,7 +1181,6 @@ export default function Page() {
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="Fancy Text Generator — create stylish Unicode text instantly" />
 
-        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@yourhandle" />
         <meta name="twitter:creator" content="@yourhandle" />
@@ -1145,19 +1192,13 @@ export default function Page() {
         <meta name="twitter:image" content="https://example.com/og-image.png" />
 
         <link rel="canonical" href="https://example.com/fancy-text" />
-
-        {/* Alternate / hreflang */}
         <link rel="alternate" hrefLang="en-US" href="https://example.com/fancy-text" />
         <link rel="alternate" hrefLang="en-GB" href="https://example.com/fancy-text" />
         <link rel="alternate" hrefLang="x-default" href="https://example.com/fancy-text" />
 
-        {/* Preconnect for perf */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* ============================================================
-            Structured Data — WebApplication (this page)
-            ============================================================ */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -1205,9 +1246,6 @@ export default function Page() {
           }}
         />
 
-        {/* ============================================================
-            Structured Data — FAQPage
-            ============================================================ */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -1223,9 +1261,6 @@ export default function Page() {
           }}
         />
 
-        {/* ============================================================
-            Structured Data — HowTo
-            ============================================================ */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -1247,9 +1282,6 @@ export default function Page() {
           }}
         />
 
-        {/* ============================================================
-            Structured Data — BreadcrumbList
-            ============================================================ */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -1264,9 +1296,6 @@ export default function Page() {
           }}
         />
 
-        {/* ============================================================
-            Structured Data — ItemList (all styles categories)
-            ============================================================ */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
