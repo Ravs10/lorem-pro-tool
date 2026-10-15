@@ -387,7 +387,7 @@ const FAQS = [
   { q: 'Why do some fancy fonts look like squares or boxes?', a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters.' },
   { q: 'Does this tool work offline?', a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips.' },
   { q: 'Is there a character limit?', a: 'No! There is no character limit. You can type as much text as you want, in any language — English, Hindi, Arabic, Chinese, Japanese, Korean, Russian, and more.' },
-  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. When colors/background are selected, Share produces a PNG image with your exact styling — perfect for WhatsApp Stories, Instagram Stories, etc. For rich copy-paste with colors, the text is placed on the clipboard with HTML formatting so apps like Gmail, Google Docs, Word, and Telegram keep the colors. Note: WhatsApp chat does not support colored text or backgrounds — for WhatsApp, use the Share button to send a styled image instead.' },
+  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. You can toggle "Share as PNG image" ON to send a beautiful colored image with your chosen text color and background — perfect for WhatsApp Stories, Instagram Stories, etc. When OFF (default), Share sends the fancy text as plain text (no colors), which pastes cleanly anywhere. For rich copy-paste with colors, the Copy button places text on the clipboard with HTML formatting so apps like Gmail, Google Docs, Word, and Telegram keep the colors.' },
 ];
 
 // ============================================================
@@ -488,7 +488,7 @@ async function copyRich(
   }
 }
 
-// FIXED: canvas-based PNG render — now robust, waits for fonts, handles emojis, gradients, and rounding
+// FIXED: canvas PNG render — bigger fonts, higher resolution, readable without zoom
 async function renderStyledToPNG(
   text: string,
   opts: {
@@ -498,7 +498,6 @@ async function renderStyledToPNG(
     align: 'left' | 'center' | 'right';
   }
 ): Promise<Blob | null> {
-  // Ensure fonts are loaded before measuring text
   try {
     if (typeof document !== 'undefined' && (document as any).fonts?.ready) {
       await (document as any).fonts.ready;
@@ -509,34 +508,37 @@ async function renderStyledToPNG(
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const padding = 48;
-  const baseFontSize = 36;
-  const fontStack = `700 ${baseFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
+  // Bigger canvas + higher DPR → crisp, large readable text
+  const dpr = Math.min(Math.max(window.devicePixelRatio || 2, 2), 3);
+  const padding = 80;
+  const baseFontSize = 96; // much bigger than before (was 36)
+  const fontStack = `800 ${baseFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
 
   ctx.font = fontStack;
 
   const lines = text.split('\n');
-  let maxLineWidth = 200;
+  let maxLineWidth = 400;
   for (const line of lines) {
     const w = ctx.measureText(line).width;
     if (w > maxLineWidth) maxLineWidth = w;
   }
 
-  const width = Math.min(Math.max(maxLineWidth + padding * 2, 480), 1600);
-  const height = Math.max(lines.length * baseFontSize * 1.35 + padding * 2, 180);
+  // Wider max so long lines don't get squeezed too small
+  const minWidth = 720;
+  const maxWidth = 2400;
+  const width = Math.min(Math.max(maxLineWidth + padding * 2, minWidth), maxWidth);
+  const lineGap = 1.25;
+  const height = Math.max(lines.length * baseFontSize * lineGap + padding * 2, 320);
 
   canvas.width = Math.round(width * dpr);
   canvas.height = Math.round(height * dpr);
   ctx.scale(dpr, dpr);
 
-  // Draw background (with rounded corners for gradient & solid fills)
   const bg = opts.bgStyle === 'transparent' ? '#0a0a1a' : opts.bgStyle;
   const isGradient = bg.startsWith('linear-gradient');
-  const radius = 24;
+  const radius = 32;
 
   ctx.save();
-  // Rounded-rect path
   ctx.beginPath();
   const r = Math.min(radius, width / 2, height / 2);
   ctx.moveTo(r, 0);
@@ -578,23 +580,24 @@ async function renderStyledToPNG(
   ctx.fillRect(0, 0, width, height);
   ctx.restore();
 
-  // Draw text
   ctx.fillStyle = opts.textColor === 'inherit' ? '#f0f0ff' : opts.textColor;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
 
-  // Auto-shrink to fit
+  // Auto-shrink only if the text is really long — never below 40px (still readable)
   let currentFontSize = baseFontSize;
+  const minFontSize = 40;
   const longestLine = lines.reduce((a, b) => (a.length > b.length ? a : b), '');
+  ctx.font = `800 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
   while (
     ctx.measureText(longestLine).width > width - padding * 2 &&
-    currentFontSize > 14
+    currentFontSize > minFontSize
   ) {
-    currentFontSize -= 1;
-    ctx.font = `700 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
+    currentFontSize -= 2;
+    ctx.font = `800 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
   }
 
-  const finalLineH = currentFontSize * 1.35;
+  const finalLineH = currentFontSize * lineGap;
   const totalTextH = lines.length * finalLineH;
   const startY = (height - totalTextH) / 2 + finalLineH / 2;
 
@@ -610,7 +613,7 @@ async function renderStyledToPNG(
   });
 
   return new Promise(res => {
-    canvas.toBlob(b => res(b), 'image/png', 0.95);
+    canvas.toBlob(b => res(b), 'image/png', 1.0);
   });
 }
 
@@ -646,6 +649,9 @@ export default function Page() {
   const [showFunny, setShowFunny] = useState(true);
   const [styleSearch, setStyleSearch] = useState('');
 
+  // NEW: user-controlled "share as PNG" toggle (default OFF → shares fancy text)
+  const [shareAsPNG, setShareAsPNG] = useState(false);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fancyRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -658,6 +664,8 @@ export default function Page() {
     if (favs) try { setFavorites(JSON.parse(favs)); } catch {}
     const rec = localStorage.getItem('recent');
     if (rec) try { setRecent(JSON.parse(rec)); } catch {}
+    const savedPNG = localStorage.getItem('shareAsPNG');
+    if (savedPNG !== null) setShareAsPNG(savedPNG === 'true');
   }, []);
 
   useEffect(() => {
@@ -675,6 +683,11 @@ export default function Page() {
     if (!mounted) return;
     localStorage.setItem('recent', JSON.stringify(recent));
   }, [recent, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem('shareAsPNG', String(shareAsPNG));
+  }, [shareAsPNG, mounted]);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -707,58 +720,58 @@ export default function Page() {
     [showToast, textColor, bgStyle]
   );
 
-  // FIXED: robust share — always produces a PNG image with colors/bg and shares it
+  // UPDATED: share respects user's shareAsPNG toggle
   const shareStyled = useCallback(
     async (text: string, label: string) => {
       try {
-        // Always render a PNG so colors & background are preserved
-        const blob = await renderStyledToPNG(text, {
-          textColor,
-          bgStyle,
-          fontFamily,
-          align,
-        });
+        // When user enabled "Share as PNG" → render image with colors
+        if (shareAsPNG) {
+          const blob = await renderStyledToPNG(text, {
+            textColor,
+            bgStyle,
+            fontFamily,
+            align,
+          });
 
-        if (blob) {
-          const file = new File([blob], `fancy-text-${Date.now()}.png`, { type: 'image/png' });
+          if (blob) {
+            const file = new File([blob], `fancy-text-${Date.now()}.png`, { type: 'image/png' });
 
-          // Try native share with files
-          if (
-            typeof navigator !== 'undefined' &&
-            typeof (navigator as any).canShare === 'function' &&
-            (navigator as any).canShare({ files: [file] }) &&
-            typeof navigator.share === 'function'
-          ) {
-            try {
-              await navigator.share({
-                title: 'Fancy Text',
-                text: label,
-                files: [file],
-              });
-              showToast('✓ Shared styled image!');
-              return;
-            } catch (err: any) {
-              // If user cancelled, don't fall through to download
-              if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
+            if (
+              typeof navigator !== 'undefined' &&
+              typeof (navigator as any).canShare === 'function' &&
+              (navigator as any).canShare({ files: [file] }) &&
+              typeof navigator.share === 'function'
+            ) {
+              try {
+                await navigator.share({
+                  title: 'Fancy Text',
+                  text: label,
+                  files: [file],
+                });
+                showToast('✓ Shared styled image!');
                 return;
+              } catch (err: any) {
+                if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
+                  return;
+                }
               }
             }
-          }
 
-          // Fallback: download the styled PNG
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `fancy-text-${label.replace(/\s+/g, '-').toLowerCase()}.png`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-          showToast('✓ Saved as PNG image');
-          return;
+            // Fallback: download the PNG
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fancy-text-${label.replace(/\s+/g, '-').toLowerCase()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('✓ Saved as PNG image');
+            return;
+          }
         }
 
-        // Last resort: share as plain text
+        // Default: share fancy text as plain text (no colors)
         if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
           await navigator.share({ title: 'Fancy Text', text });
           showToast('✓ Shared!');
@@ -769,7 +782,7 @@ export default function Page() {
         // silent
       }
     },
-    [bgStyle, textColor, fontFamily, align, copy, showToast]
+    [shareAsPNG, bgStyle, textColor, fontFamily, align, copy, showToast]
   );
 
   const toggleFav = useCallback((name: string) => {
@@ -821,7 +834,6 @@ export default function Page() {
     showToast('✓ Cleared');
   }, [showToast]);
 
-  // FIXED: paste inserts at current cursor position, not just at the start
   const pasteFromClipboard = useCallback(async () => {
     try {
       let pastedText = '';
@@ -868,7 +880,6 @@ export default function Page() {
       if (detectedColor) setTextColor(detectedColor);
       if (detectedBg) setBgStyle(detectedBg);
 
-      // Insert at cursor position in the textarea
       const ta = textareaRef.current;
       if (ta) {
         const start = ta.selectionStart ?? input.length;
@@ -877,7 +888,6 @@ export default function Page() {
         const after = input.slice(end);
         const next = before + pastedText + after;
         setInput(next);
-        // Restore cursor position after the pasted text on next tick
         requestAnimationFrame(() => {
           try {
             const newPos = start + pastedText.length;
@@ -886,7 +896,6 @@ export default function Page() {
           } catch {}
         });
       } else {
-        // Fallback: append
         setInput(prev => prev + pastedText);
       }
 
@@ -1154,7 +1163,7 @@ export default function Page() {
 
                   <div className="color-section">
                     <div className="copy-hint" role="note">
-                      💡 <strong>Tip:</strong> Rich colors work when pasting into Gmail, Google Docs, Word, Telegram &amp; similar apps. <strong>WhatsApp chat does not support colored text</strong> — use the 🔗 Share button to send a styled image instead.
+                      💡 <strong>Tip:</strong> Rich colors work when pasting into Gmail, Google Docs, Word, Telegram &amp; similar apps. <strong>WhatsApp chat does not support colored text</strong> — turn ON <strong>Share as PNG image</strong> below to send a styled image instead.
                     </div>
                   </div>
                 </div>
@@ -1279,6 +1288,31 @@ export default function Page() {
             )}
           </section>
 
+          {/* ===== SHARE AS PNG TOGGLE ===== */}
+          <section className="share-toggle-panel glass">
+            <label className="share-toggle" data-tooltip={shareAsPNG ? 'Sharing as image (colors kept)' : 'Sharing as fancy text'}>
+              <input
+                type="checkbox"
+                checked={shareAsPNG}
+                onChange={e => setShareAsPNG(e.target.checked)}
+                aria-label="Share as PNG image"
+              />
+              <span className="share-toggle-track">
+                <span className="share-toggle-thumb" />
+              </span>
+              <span className="share-toggle-text">
+                <span className="share-toggle-title">
+                  {shareAsPNG ? '🖼️ Share as PNG image' : '📝 Share as fancy text'}
+                </span>
+                <span className="share-toggle-sub">
+                  {shareAsPNG
+                    ? 'Share button will send a big, colored image with your text color & background'
+                    : 'Share button will send the fancy text only (no colors) — paste it anywhere'}
+                </span>
+              </span>
+            </label>
+          </section>
+
           {!showToolbar && (
             <>
               <section className="section-head">
@@ -1353,8 +1387,13 @@ export default function Page() {
                               >
                                 {isCopied ? '✓ Copied!' : '📋 Copy'}
                               </button>
-                              <button className="card-btn" onClick={() => shareStyled(output, style.name)} title="Share with color & background" data-tooltip="Share with colors!">
-                                🔗 Share
+                              <button
+                                className="card-btn"
+                                onClick={() => shareStyled(output, style.name)}
+                                title={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
+                                data-tooltip={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
+                              >
+                                {shareAsPNG ? '🖼️ Share PNG' : '🔗 Share'}
                               </button>
                             </div>
                           </article>
@@ -1432,7 +1471,14 @@ export default function Page() {
                   >
                     {copiedStyle === 'Funny' ? '✓ Copied!' : '📋 Copy'}
                   </button>
-                  <button className="card-btn" onClick={() => shareStyled(funnyOutput, 'Funny')} title="Share with colors" data-tooltip="Share with colors!">🔗 Share</button>
+                  <button
+                    className="card-btn"
+                    onClick={() => shareStyled(funnyOutput, 'Funny')}
+                    title={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
+                    data-tooltip={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
+                  >
+                    {shareAsPNG ? '🖼️ Share PNG' : '🔗 Share'}
+                  </button>
                   <button className="card-btn" onClick={() => {
                     const nextIdx = (FUNNY_STYLES.findIndex(f => f.id === funnyId) + 1) % FUNNY_STYLES.length;
                     setFunnyId(FUNNY_STYLES[nextIdx].id);
@@ -1480,8 +1526,8 @@ export default function Page() {
               </div>
               <div className="step">
                 <div className="step-num">4</div>
-                <h3>Copy or Share with style</h3>
-                <p>Click any style card — the text is copied with your exact colors on the clipboard. Paste it into Gmail, Google Docs, Word, Telegram, or any app that supports rich text. For apps like <strong>WhatsApp chat</strong> that don&apos;t support colored text, use the <strong>🔗 Share</strong> button to send a beautiful PNG image with your colors.</p>
+                <h3>Choose how you want to share</h3>
+                <p>Use the <strong>Share as PNG image</strong> toggle above the styles grid. When <em>ON</em>, the Share button sends a big, colorful image with your text color and background — perfect for WhatsApp, Instagram Stories, etc. When <em>OFF</em> (default), Share sends just the fancy text with no colors.</p>
               </div>
               <div className="step">
                 <div className="step-num">5</div>
@@ -1491,7 +1537,7 @@ export default function Page() {
               <div className="step">
                 <div className="step-num">6</div>
                 <h3>Paste it anywhere</h3>
-                <p>Use the generated text in your Instagram bio, TikTok caption, Discord server nickname, WhatsApp status (via Share image), Twitter/X post, or YouTube title.</p>
+                <p>Use the generated text in your Instagram bio, TikTok caption, Discord server nickname, WhatsApp status (via Share PNG), Twitter/X post, or YouTube title.</p>
               </div>
             </div>
           </section>
@@ -1517,7 +1563,7 @@ export default function Page() {
               <div className="feature" title="Color & background" data-tooltip="Color & background picker">
                 <div className="feature-icon">🌈</div>
                 <h3>Color &amp; background</h3>
-                <p>16 text colors and 12 background styles. Copy keeps the colors in rich-text apps; Share sends a styled image.</p>
+                <p>16 text colors and 12 background styles. Copy keeps the colors in rich-text apps; Share as PNG sends a styled image.</p>
               </div>
               <div className="feature" title="Any language supported" data-tooltip="Multilingual">
                 <div className="feature-icon">🌐</div>
@@ -1995,6 +2041,54 @@ export default function Page() {
           line-height: 1.5;
         }
         .copy-hint strong { color: var(--fg); }
+
+        /* ===== SHARE AS PNG TOGGLE ===== */
+        .share-toggle-panel {
+          padding: 16px 18px;
+          margin-bottom: 18px;
+        }
+        .share-toggle {
+          display: flex; align-items: center; gap: 16px;
+          cursor: pointer;
+          user-select: none;
+        }
+        .share-toggle input { display: none; }
+        .share-toggle-track {
+          width: 58px; height: 32px; border-radius: 999px;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid var(--glass-border);
+          position: relative; flex-shrink: 0;
+          transition: background 0.25s;
+        }
+        [data-theme='light'] .share-toggle-track { background: rgba(0,0,0,0.15); }
+        .share-toggle input:checked ~ .share-toggle-track {
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+          border-color: transparent;
+          box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
+        }
+        .share-toggle-thumb {
+          position: absolute; top: 3px; left: 3px;
+          width: 24px; height: 24px; border-radius: 50%;
+          background: white;
+          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .share-toggle input:checked ~ .share-toggle-track .share-toggle-thumb {
+          transform: translateX(26px);
+        }
+        .share-toggle-text {
+          display: flex; flex-direction: column; gap: 4px;
+          min-width: 0;
+        }
+        .share-toggle-title {
+          font-size: 0.98rem; font-weight: 800;
+          color: var(--fg);
+        }
+        .share-toggle-sub {
+          font-size: 0.82rem;
+          color: var(--muted);
+          line-height: 1.5;
+        }
 
         .toolbar {
           margin-top: 16px; padding: 14px;
@@ -2481,6 +2575,10 @@ export default function Page() {
           .back-to-top { bottom: 14px; }
           .scroll-bottom { bottom: 64px; }
           [data-tooltip]::after { font-size: 0.68rem; padding: 5px 8px; }
+          .share-toggle-panel { padding: 14px; }
+          .share-toggle { gap: 12px; }
+          .share-toggle-title { font-size: 0.92rem; }
+          .share-toggle-sub { font-size: 0.76rem; }
         }
         @media (min-width: 1280px) { .grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 1680px) { .grid { grid-template-columns: repeat(4, 1fr); } }
