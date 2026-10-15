@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
@@ -210,7 +209,6 @@ const LINE_STYLES: [string, (s: string) => string, string][] = [
   }, 'Brackets'],
 ];
 
-// FIXED: reverse-only for whole string
 const FLIP_STYLES: [string, (s: string) => string, string][] = [
   ['Reverse Text', s => [...s].reverse().join(''), 'Flipped'],
   ['Reverse Words', s => s.split(' ').reverse().join(' '), 'Flipped'],
@@ -380,7 +378,7 @@ const BG_STYLES = [
 const FAQS = [
   { q: 'What is a fancy text generator?', a: 'A fancy text generator is an online tool that converts ordinary letters into alternative Unicode characters and symbols. Because these alternative letters exist as real characters in the Unicode standard, the resulting text can be copied and pasted anywhere — Instagram bios, Twitter/X posts, Facebook comments, Discord messages, TikTok captions, WhatsApp chats, or YouTube titles.' },
   { q: 'How does this fancy text tool work?', a: 'Type or paste your text into the input box at the top of the page. The tool instantly converts your text into 1000+ styles using mathematical alphanumeric symbols, decorative Unicode blocks, combining diacritical marks, and artistic wrappers. Click any style card to copy it to your clipboard.' },
-  { q: 'Is this fancy text generator free?', a: 'Yes, 100% free. There is no signup, no login, no ads, and no character limit beyond the 200-character input field to keep the page fast. You can generate unlimited fancy text styles every day at no cost.' },
+  { q: 'Is this fancy text generator free?', a: 'Yes, 100% free. There is no signup, no login, no ads, and no character limit. You can generate unlimited fancy text styles every day at no cost.' },
   { q: 'Will fancy text work on Instagram, Twitter/X, Facebook, and TikTok?', a: 'Yes. All of the Unicode characters used here are supported on Instagram, Twitter/X, Facebook, TikTok, Discord, WhatsApp, Telegram, Snapchat, Reddit, Pinterest, YouTube, LinkedIn, and most modern websites.' },
   { q: 'What is the Funny Text dropdown feature?', a: 'The Funny Text dropdown is a special collection of 28 comedic text transformations — including Mocking SpongeBob case, UwU speak, Pirate talk, Leet (1337) speak, Zalgo glitch text, Robot mode, Dog and Cat speak, and more.' },
   { q: 'Can I save my favorite fancy text styles?', a: 'Yes. Click the star icon ☆ on any style card to save it to your Favorites. Favorites are stored locally in your browser so they persist between visits — no account required.' },
@@ -388,8 +386,8 @@ const FAQS = [
   { q: 'Can I use the generated text for commercial purposes?', a: 'Yes. You own the text you generate. You can use it in social media posts, bios, product names, usernames, T-shirts, artwork, or anywhere else.' },
   { q: 'Why do some fancy fonts look like squares or boxes?', a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters.' },
   { q: 'Does this tool work offline?', a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips.' },
-  { q: 'Is there a character limit?', a: 'The input box is limited to 200 characters to keep the interface fast and responsive, since each keystroke regenerates 1000+ styles.' },
-  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. On supported devices, this opens the native share sheet, letting you send the text to WhatsApp, Instagram, Messages, Email, or any installed app instantly.' },
+  { q: 'Is there a character limit?', a: 'No! There is now no character limit. You can type as much text as you want, in any language — English, Hindi, Arabic, Chinese, Japanese, Korean, Russian, and more.' },
+  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. On supported devices, this opens the native share sheet, letting you send the text to WhatsApp, Instagram, Messages, Email, or any installed app instantly — including your custom colors and background!' },
 ];
 
 // ============================================================
@@ -435,21 +433,16 @@ export default function Page() {
   const [copiedStyle, setCopiedStyle] = useState<string | null>(null);
   const [funnyId, setFunnyId] = useState(FUNNY_STYLES[0].id);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-
-  // NEW: Colors
   const [textColor, setTextColor] = useState(TEXT_COLORS[0].value);
   const [bgStyle, setBgStyle] = useState(BG_STYLES[0].value);
   const [showColorPanel, setShowColorPanel] = useState(false);
-
-  // NEW: Show/hide sections
   const [showFancy, setShowFancy] = useState(true);
   const [showFunny, setShowFunny] = useState(true);
-
-  // NEW: Style search
   const [styleSearch, setStyleSearch] = useState('');
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fancyRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -496,16 +489,117 @@ export default function Page() {
     [showToast]
   );
 
-  const share = useCallback(
-    async (text: string) => {
-      if (navigator.share) {
-        try {
+  // SHARE WITH COLOR/BG via canvas render
+  const shareStyled = useCallback(
+    async (text: string, label: string) => {
+      try {
+        // Build a canvas image of the styled text
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('no ctx');
+
+        const dpr = window.devicePixelRatio || 1;
+        const padding = 40;
+        const fontSizePx = 34;
+        const lineH = fontSizePx * 1.35;
+
+        // Font
+        const fontStack = `700 ${fontSizePx}px '${fontFamily}', 'Segoe UI', system-ui, sans-serif`;
+        ctx.font = fontStack;
+
+        const lines = text.split('\n');
+        const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width), 200);
+        const width = Math.min(Math.max(maxLineWidth + padding * 2, 400), 1600);
+        const height = Math.max(lines.length * lineH + padding * 2, 160);
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
+
+        // Background
+        const bg = bgStyle === 'transparent' ? 'rgba(10,10,26,1)' : bgStyle;
+        if (bg.startsWith('linear-gradient')) {
+          // parse linear-gradient(135deg, c1, c2)
+          const m = bg.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/);
+          if (m) {
+            const [, deg, c1, c2] = m;
+            const angle = (parseFloat(deg) - 90) * (Math.PI / 180);
+            const x1 = width / 2 - Math.cos(angle) * width / 2;
+            const y1 = height / 2 - Math.sin(angle) * height / 2;
+            const x2 = width / 2 + Math.cos(angle) * width / 2;
+            const y2 = height / 2 + Math.sin(angle) * height / 2;
+            const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+            grad.addColorStop(0, c1.trim());
+            grad.addColorStop(1, c2.trim());
+            ctx.fillStyle = grad;
+          } else {
+            ctx.fillStyle = '#0a0a1a';
+          }
+        } else {
+          ctx.fillStyle = bg;
+        }
+        ctx.fillRect(0, 0, width, height);
+
+        // Text
+        ctx.font = fontStack;
+        ctx.fillStyle = textColor === 'inherit' ? '#f0f0ff' : textColor;
+        ctx.textBaseline = 'top';
+
+        // Auto-shrink long text
+        let currentFontSize = fontSizePx;
+        while (ctx.measureText(lines.reduce((a, b) => a.length > b.length ? a : b)).width > width - padding * 2 && currentFontSize > 14) {
+          currentFontSize -= 1;
+          ctx.font = `700 ${currentFontSize}px '${fontFamily}', 'Segoe UI', system-ui, sans-serif`;
+        }
+
+        const finalLineH = currentFontSize * 1.35;
+        const totalTextH = lines.length * finalLineH;
+        const startY = (height - totalTextH) / 2;
+
+        lines.forEach((line, i) => {
+          const lineW = ctx.measureText(line).width;
+          const x = align === 'left' ? padding :
+                    align === 'right' ? width - padding - lineW :
+                    (width - lineW) / 2;
+          ctx.fillText(line, x, startY + i * finalLineH);
+        });
+
+        // Convert to blob & share
+        const blob: Blob | null = await new Promise(res =>
+          canvas.toBlob(b => res(b), 'image/png', 0.95)
+        );
+        if (!blob) throw new Error('no blob');
+
+        const file = new File([blob], 'fancy-text.png', { type: 'image/png' });
+
+        // Web Share with file (mobile)
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'Fancy Text',
+            text: label,
+            files: [file],
+          });
+          showToast('✓ Shared with style!');
+        } else if (navigator.share) {
+          // fallback: share text only
           await navigator.share({ title: 'Fancy Text', text });
           showToast('✓ Shared!');
-        } catch {}
-      } else copy(text, 'Share text');
+        } else {
+          // fallback: download the image
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `fancy-text-${label}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast('✓ Saved as image');
+        }
+      } catch {
+        // Ultimate fallback: just copy text
+        copy(text, label);
+      }
     },
-    [copy, showToast]
+    [bgStyle, textColor, fontFamily, align, copy, showToast]
   );
 
   const toggleFav = useCallback((name: string) => {
@@ -516,65 +610,33 @@ export default function Page() {
     setRecent(p => [name, ...p.filter(n => n !== name)].slice(0, 12));
   }, []);
 
-  // ====== FIXED TRANSFORM FUNCTIONS ======
+  // ====== FIXED TRANSFORMS ======
   const applyTransform = useCallback((type: string) => {
     setInput(prev => {
-      const trimmed = prev;
+      const s = prev;
       switch (type) {
-        case 'upper':
-          return trimmed.toUpperCase();
-        case 'lower':
-          return trimmed.toLowerCase();
-        case 'title':
-          return trimmed.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-        case 'sentence':
-          return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
-        case 'camel':
-          return trimmed
-            .trim()
-            .split(/[\s_\-.]+/)
-            .filter(Boolean)
-            .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-            .join('');
-        case 'pascal':
-          return trimmed
-            .trim()
-            .split(/[\s_\-.]+/)
-            .filter(Boolean)
-            .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-            .join('');
-        case 'snake':
-          return trimmed.trim().toLowerCase().replace(/\s+/g, '_');
-        case 'kebab':
-          return trimmed.trim().toLowerCase().replace(/\s+/g, '-');
-        case 'constant':
-          return trimmed.trim().toUpperCase().replace(/\s+/g, '_');
-        case 'reverse':
-          return [...trimmed].reverse().join('');
-        case 'trim':
-          return trimmed.trim();
-        case 'clearSpaces':
-          return trimmed.replace(/\s+/g, ' ').trim();
-        case 'removeSpaces':
-          return trimmed.replace(/\s+/g, '');
-        case 'removeLineBreaks':
-          return trimmed.replace(/\n+/g, ' ');
-        case 'removeNumbers':
-          return trimmed.replace(/[0-9]/g, '');
-        case 'removePunctuation':
-          return trimmed.replace(/[^\w\s]|_/g, '');
-        case 'removeExtraDots':
-          return trimmed.replace(/\.{2,}/g, '.');
-        case 'toggleCase':
-          return [...trimmed].map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
-        case 'alternateCase':
-          return [...trimmed].map((c, i) => i % 2 ? c.toLowerCase() : c.toUpperCase()).join('');
-        case 'duplicateWords':
-          return trimmed.split(/\s+/).map(w => `${w} ${w}`).join(' ');
-        case 'duplicateChars':
-          return [...trimmed].map(c => `${c}${c}`).join('');
-        default:
-          return prev;
+        case 'upper': return s.toUpperCase();
+        case 'lower': return s.toLowerCase();
+        case 'title': return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+        case 'sentence': return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+        case 'camel': return s.trim().split(/[\s_\-.]+/).filter(Boolean).map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+        case 'pascal': return s.trim().split(/[\s_\-.]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+        case 'snake': return s.trim().replace(/\s+/g, '_').toLowerCase();
+        case 'kebab': return s.trim().replace(/\s+/g, '-').toLowerCase();
+        case 'constant': return s.trim().replace(/\s+/g, '_').toUpperCase();
+        case 'reverse': return [...s].reverse().join('');
+        case 'trim': return s.replace(/^\s+|\s+$/g, '');
+        case 'clearSpaces': return s.replace(/[ \t]+/g, ' ').replace(/^\s+|\s+$/g, '');
+        case 'removeSpaces': return s.replace(/[ \t]+/g, '');
+        case 'removeLineBreaks': return s.replace(/[\r\n]+/g, ' ').replace(/^\s+|\s+$/g, '');
+        case 'removeNumbers': return s.replace(/[0-9]/g, '');
+        case 'removePunctuation': return s.replace(/[!-\/:-@\[-`{-~]/g, '');
+        case 'removeExtraDots': return s.replace(/\.{2,}/g, '.');
+        case 'toggleCase': return [...s].map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
+        case 'alternateCase': return [...s].map((c, i) => i % 2 ? c.toLowerCase() : c.toUpperCase()).join('');
+        case 'duplicateWords': return s.split(/\s+/).filter(Boolean).map(w => `${w} ${w}`).join(' ');
+        case 'duplicateChars': return [...s].map(c => c === ' ' ? ' ' : `${c}${c}`).join('');
+        default: return prev;
       }
     });
     showToast('✓ Applied');
@@ -593,7 +655,7 @@ export default function Page() {
   const pasteFromClipboard = useCallback(async () => {
     try {
       const t = await navigator.clipboard.readText();
-      setInput(t.slice(0, 200));
+      setInput(t);
       showToast('✓ Pasted');
     } catch {
       showToast('Paste failed');
@@ -601,7 +663,7 @@ export default function Page() {
   }, [showToast]);
 
   const download = useCallback(() => {
-    const blob = new Blob([input], { type: 'text/plain' });
+    const blob = new Blob([input], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -611,8 +673,22 @@ export default function Page() {
     showToast('✓ Downloaded');
   }, [input, showToast]);
 
+  // FIXED: scroll to bottom via ref
+  const scrollToBottom = useCallback(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } else {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+    }
+  }, []);
+
   const scrollToFancy = useCallback(() => {
-    fancyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (fancyRef.current) {
+      fancyRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      const el = document.getElementById('styles');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, []);
 
   const currentFunny = useMemo(
@@ -666,15 +742,11 @@ export default function Page() {
         <meta property="og:url" content="https://example.com/fancy-text" />
         <meta property="og:site_name" content="FancyText Generator" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Fancy Text Generator — 1000+ Styles" />
-        <meta name="twitter:description" content="Copy & paste 1000+ fancy and funny text styles instantly." />
         <link rel="canonical" href="https://example.com/fancy-text" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           '@context': 'https://schema.org', '@type': 'WebApplication',
           name: 'Fancy Text Generator', url: 'https://example.com/fancy-text',
-          description: 'Generate 1000+ fancy text styles and funny text transformations instantly.',
           applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any',
-          browserRequirements: 'Requires JavaScript',
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
           aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', ratingCount: '1284' },
         })}} />
@@ -684,18 +756,6 @@ export default function Page() {
             '@type': 'Question', name: f.q,
             acceptedAnswer: { '@type': 'Answer', text: f.a },
           })),
-        })}} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          '@context': 'https://schema.org', '@type': 'HowTo',
-          name: 'How to use the Fancy Text Generator',
-          description: 'Learn how to generate and copy 1000+ fancy text styles and funny text.',
-          totalTime: 'PT1M',
-          step: [
-            { '@type': 'HowToStep', name: 'Type your text', text: 'Type or paste your text into the input box.' },
-            { '@type': 'HowToStep', name: 'Choose a style', text: 'Browse 1000+ fancy text styles or pick a Funny Text style.' },
-            { '@type': 'HowToStep', name: 'Copy', text: 'Click any style card to copy it to your clipboard.' },
-            { '@type': 'HowToStep', name: 'Paste anywhere', text: 'Paste the fancy text into Instagram, TikTok, Discord, or any app.' },
-          ],
         })}} />
       </Head>
 
@@ -713,22 +773,52 @@ export default function Page() {
           <div className="header-inner glass">
             <div className="logo">
               <span className="logo-icon">✦</span>
-              <span className="logo-text">Fancy<span className="grad-text">Text</span></span>
+              <span className="logo-text">
+                <span className="logo-char">F</span>
+                <span className="logo-char">a</span>
+                <span className="logo-char">n</span>
+                <span className="logo-char">c</span>
+                <span className="logo-char">y</span>
+                <span className="logo-char grad-text">T</span>
+                <span className="logo-char grad-text">e</span>
+                <span className="logo-char grad-text">x</span>
+                <span className="logo-char grad-text">t</span>
+              </span>
               <span className="logo-badge">{ALL_STYLES.length}+</span>
             </div>
             <nav className="header-nav" aria-label="Primary">
-              <a href="#styles" className="nav-link">Styles</a>
-              <a href="#funny" className="nav-link">Funny</a>
-              <a href="#how-to" className="nav-link">How to Use</a>
-              <a href="#faq" className="nav-link">FAQ</a>
-              <a href="#tools" className="nav-link">Tools</a>
+              <a href="#styles" className="nav-link" title="Jump to styles section">Styles</a>
+              <a href="#funny" className="nav-link" title="Jump to funny text">Funny</a>
+              <a href="#how-to" className="nav-link" title="How to use this tool">How to Use</a>
+              <a href="#faq" className="nav-link" title="Frequently asked questions">FAQ</a>
+              <a href="#tools" className="nav-link" title="Other useful tools">Tools</a>
             </nav>
             <div className="header-actions">
-              <button className="icon-btn" onClick={scrollToFancy} aria-label="Jump to styles" title="Jump to styles">⬇</button>
-              <button className="icon-btn" onClick={() => setShowToolbar(v => !v)} aria-label="Toggle toolbar" title="Formatting toolbar">
+              <button
+                className="icon-btn down-arrow"
+                onClick={scrollToBottom}
+                aria-label="Scroll to bottom"
+                title="Jump to bottom of page"
+                data-tooltip="Jump to bottom"
+              >
+                ⬇
+              </button>
+              <button
+                className="icon-btn"
+                onClick={() => setShowToolbar(v => !v)}
+                aria-label="Toggle formatting toolbar"
+                title="Toggle formatting toolbar"
+                data-tooltip={showToolbar ? 'Hide toolbar' : 'Show formatting toolbar'}
+              >
                 {showToolbar ? '▼' : '⚙️'}
               </button>
-              <button className="icon-btn" onClick={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))} aria-label="Toggle theme" title="Theme">
+              <button
+                className="icon-btn"
+                onClick={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
+                aria-label="Toggle theme"
+                title="Toggle dark/light theme"
+                data-tooltip={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
             </div>
@@ -740,16 +830,15 @@ export default function Page() {
             <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · 28 funny modes · No signup</div>
             <h1 className="hero-title">1000+ <span className="grad-text">Fancy Text</span> &amp; Funny Text Generator</h1>
             <p className="hero-sub">
-              Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more.
+              Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more — in any language.
             </p>
           </section>
 
-          {/* INPUT PANEL */}
           <section className="panel glass" id="styles">
             <div className="panel-head">
               <div className="panel-tabs" role="tablist">
-                <button role="tab" aria-selected={!showToolbar} className={`panel-tab ${!showToolbar ? 'active' : ''}`} onClick={() => setShowToolbar(false)}>✨ Styles</button>
-                <button role="tab" aria-selected={showToolbar} className={`panel-tab ${showToolbar ? 'active' : ''}`} onClick={() => setShowToolbar(true)}>⚙️ Toolbar</button>
+                <button role="tab" aria-selected={!showToolbar} className={`panel-tab ${!showToolbar ? 'active' : ''}`} onClick={() => setShowToolbar(false)} title="Browse styles">✨ Styles</button>
+                <button role="tab" aria-selected={showToolbar} className={`panel-tab ${showToolbar ? 'active' : ''}`} onClick={() => setShowToolbar(true)} title="Open formatting toolbar">⚙️ Toolbar</button>
               </div>
             </div>
 
@@ -760,29 +849,34 @@ export default function Page() {
                 ref={textareaRef}
                 className="input"
                 value={input}
-                onChange={e => setInput(e.target.value.slice(0, 200))}
-                placeholder="Type or paste your text here..."
+                onChange={e => setInput(e.target.value)}
+                placeholder="Type or paste your text here... (any language supported, no character limit)"
                 rows={3}
-                maxLength={200}
                 style={inputPreviewStyle}
+                lang="en"
+                dir="auto"
+                spellCheck={false}
+                data-tooltip="Type in any language — no limit"
               />
               <div className="input-meta">
-                <span className="count">{input.length}/200 characters</span>
+                <span className="count">{input.length} characters · no limit</span>
                 <div className="input-actions">
-                  <button className="mini-btn" onClick={pasteFromClipboard} title="Paste">📥 Paste</button>
-                  <button className="mini-btn" onClick={() => copy(input, 'Text')} title="Copy">📋 Copy</button>
-                  <button className="mini-btn" onClick={download} title="Download">💾 Save</button>
-                  <button className="mini-btn danger" onClick={clearAll} title="Clear">🗑 Clear</button>
+                  <button className="mini-btn" onClick={pasteFromClipboard} title="Paste from clipboard" data-tooltip="Paste from clipboard">📥 Paste</button>
+                  <button className="mini-btn" onClick={() => copy(input, 'Text')} title="Copy raw text" data-tooltip="Copy plain text">📋 Copy</button>
+                  <button className="mini-btn" onClick={download} title="Download as .txt" data-tooltip="Download as .txt file">💾 Save</button>
+                  <button className="mini-btn danger" onClick={clearAll} title="Clear everything" data-tooltip="Clear all text and styles">🗑 Clear</button>
                 </div>
               </div>
             </div>
 
-            {/* ===== COLOR TOOL ===== */}
+            {/* COLOR PANEL */}
             <div className="color-panel-wrap">
               <button
                 className={`color-toggle ${showColorPanel ? 'on' : ''}`}
                 onClick={() => setShowColorPanel(v => !v)}
                 aria-expanded={showColorPanel}
+                title="Open color & background picker"
+                data-tooltip="Pick text color & background"
               >
                 🎨 Color &amp; Background {showColorPanel ? '▲' : '▼'}
               </button>
@@ -799,6 +893,7 @@ export default function Page() {
                           onClick={() => setTextColor(c.value)}
                           title={c.name}
                           aria-label={`Text color ${c.name}`}
+                          data-tooltip={c.name}
                           style={{ background: c.value === 'inherit' ? 'var(--fg)' : c.value }}
                         >
                           {textColor === c.value && <span className="swatch-check">✓</span>}
@@ -816,6 +911,7 @@ export default function Page() {
                           className={`bg-swatch ${bgStyle === b.value ? 'active' : ''}`}
                           onClick={() => setBgStyle(b.value)}
                           title={b.name}
+                          data-tooltip={b.name}
                         >
                           <span className="bg-swatch-preview" style={{ background: b.value === 'transparent' ? 'repeating-conic-gradient(rgba(255,255,255,.1) 0 25%, transparent 0 50%) 50%/10px 10px' : b.value }} />
                           <span className="bg-swatch-name">{b.name}</span>
@@ -831,59 +927,59 @@ export default function Page() {
               <div className="toolbar">
                 <div className="tool-group">
                   <span className="tool-label">Case</span>
-                  <button className="tool-btn" onClick={() => applyTransform('upper')} title="UPPERCASE">AA</button>
-                  <button className="tool-btn" onClick={() => applyTransform('lower')} title="lowercase">aa</button>
-                  <button className="tool-btn" onClick={() => applyTransform('title')} title="Title Case">Aa</button>
-                  <button className="tool-btn" onClick={() => applyTransform('sentence')} title="Sentence case">A.</button>
-                  <button className="tool-btn" onClick={() => applyTransform('toggleCase')} title="tOGGLE cASE">tG</button>
-                  <button className="tool-btn" onClick={() => applyTransform('alternateCase')} title="aLtErNaTiNg CaSe">aA</button>
+                  <button className="tool-btn" onClick={() => applyTransform('upper')} title="UPPERCASE" data-tooltip="UPPERCASE">AA</button>
+                  <button className="tool-btn" onClick={() => applyTransform('lower')} title="lowercase" data-tooltip="lowercase">aa</button>
+                  <button className="tool-btn" onClick={() => applyTransform('title')} title="Title Case" data-tooltip="Title Case">Aa</button>
+                  <button className="tool-btn" onClick={() => applyTransform('sentence')} title="Sentence case" data-tooltip="Sentence case">A.</button>
+                  <button className="tool-btn" onClick={() => applyTransform('toggleCase')} title="tOGGLE cASE" data-tooltip="tOGGLE cASE">tG</button>
+                  <button className="tool-btn" onClick={() => applyTransform('alternateCase')} title="aLtErNaTiNg" data-tooltip="aLtErNaTiNg CaSe">aA</button>
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Naming</span>
-                  <button className="tool-btn" onClick={() => applyTransform('camel')} title="camelCase">cC</button>
-                  <button className="tool-btn" onClick={() => applyTransform('pascal')} title="PascalCase">PC</button>
-                  <button className="tool-btn" onClick={() => applyTransform('snake')} title="snake_case">s_s</button>
-                  <button className="tool-btn" onClick={() => applyTransform('kebab')} title="kebab-case">k-k</button>
-                  <button className="tool-btn" onClick={() => applyTransform('constant')} title="CONSTANT_CASE">C_C</button>
+                  <button className="tool-btn" onClick={() => applyTransform('camel')} title="camelCase" data-tooltip="camelCase">cC</button>
+                  <button className="tool-btn" onClick={() => applyTransform('pascal')} title="PascalCase" data-tooltip="PascalCase">PC</button>
+                  <button className="tool-btn" onClick={() => applyTransform('snake')} title="snake_case" data-tooltip="snake_case">s_s</button>
+                  <button className="tool-btn" onClick={() => applyTransform('kebab')} title="kebab-case" data-tooltip="kebab-case">k-k</button>
+                  <button className="tool-btn" onClick={() => applyTransform('constant')} title="CONSTANT_CASE" data-tooltip="CONSTANT_CASE">C_C</button>
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Cleanup</span>
-                  <button className="tool-btn" onClick={() => applyTransform('trim')} title="Trim spaces">✂</button>
-                  <button className="tool-btn" onClick={() => applyTransform('clearSpaces')} title="Collapse spaces">␣</button>
-                  <button className="tool-btn" onClick={() => applyTransform('removeSpaces')} title="Remove all spaces">∅</button>
-                  <button className="tool-btn" onClick={() => applyTransform('removeLineBreaks')} title="Remove line breaks">↵</button>
-                  <button className="tool-btn" onClick={() => applyTransform('removeNumbers')} title="Remove numbers">1x</button>
-                  <button className="tool-btn" onClick={() => applyTransform('removePunctuation')} title="Remove punctuation">!x</button>
-                  <button className="tool-btn" onClick={() => applyTransform('removeExtraDots')} title="Collapse dots">..</button>
+                  <button className="tool-btn" onClick={() => applyTransform('trim')} title="Trim leading/trailing spaces" data-tooltip="Trim spaces at edges">✂</button>
+                  <button className="tool-btn" onClick={() => applyTransform('clearSpaces')} title="Collapse multiple spaces into one" data-tooltip="Collapse multiple spaces">␣</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeSpaces')} title="Remove all spaces" data-tooltip="Remove ALL spaces">∅</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeLineBreaks')} title="Remove all line breaks" data-tooltip="Remove line breaks">↵</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeNumbers')} title="Remove all digits 0-9" data-tooltip="Remove numbers">1x</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removePunctuation')} title="Remove all punctuation marks" data-tooltip="Remove punctuation">!x</button>
+                  <button className="tool-btn" onClick={() => applyTransform('removeExtraDots')} title="Collapse multiple dots into one" data-tooltip="Collapse ... into .">..</button>
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Fun</span>
-                  <button className="tool-btn" onClick={() => applyTransform('reverse')} title="Reverse">⇋</button>
-                  <button className="tool-btn" onClick={() => applyTransform('duplicateWords')} title="Duplicate words">ww</button>
-                  <button className="tool-btn" onClick={() => applyTransform('duplicateChars')} title="Duplicate chars">cc</button>
+                  <button className="tool-btn" onClick={() => applyTransform('reverse')} title="Reverse the entire text" data-tooltip="Reverse text">⇋</button>
+                  <button className="tool-btn" onClick={() => applyTransform('duplicateWords')} title="Duplicate every word" data-tooltip="Duplicate words">ww</button>
+                  <button className="tool-btn" onClick={() => applyTransform('duplicateChars')} title="Duplicate every character" data-tooltip="Duplicate characters">cc</button>
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Format</span>
-                  <button className={`tool-btn ${bold ? 'on' : ''}`} onClick={() => setBold(v => !v)} title="Bold"><b>B</b></button>
-                  <button className={`tool-btn ${italic ? 'on' : ''}`} onClick={() => setItalic(v => !v)} title="Italic"><i>I</i></button>
-                  <button className={`tool-btn ${underline ? 'on' : ''}`} onClick={() => setUnderline(v => !v)} title="Underline"><u>U</u></button>
-                  <button className={`tool-btn ${uppercase ? 'on' : ''}`} onClick={() => setUppercase(v => !v)} title="Uppercase">A↑</button>
+                  <button className={`tool-btn ${bold ? 'on' : ''}`} onClick={() => setBold(v => !v)} title="Toggle Bold" data-tooltip="Bold"><b>B</b></button>
+                  <button className={`tool-btn ${italic ? 'on' : ''}`} onClick={() => setItalic(v => !v)} title="Toggle Italic" data-tooltip="Italic"><i>I</i></button>
+                  <button className={`tool-btn ${underline ? 'on' : ''}`} onClick={() => setUnderline(v => !v)} title="Toggle Underline" data-tooltip="Underline"><u>U</u></button>
+                  <button className={`tool-btn ${uppercase ? 'on' : ''}`} onClick={() => setUppercase(v => !v)} title="Toggle Uppercase display" data-tooltip="Uppercase display">A↑</button>
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Align</span>
-                  <button className={`tool-btn ${align === 'left' ? 'on' : ''}`} onClick={() => setAlign('left')} title="Left">⯇</button>
-                  <button className={`tool-btn ${align === 'center' ? 'on' : ''}`} onClick={() => setAlign('center')} title="Center">≡</button>
-                  <button className={`tool-btn ${align === 'right' ? 'on' : ''}`} onClick={() => setAlign('right')} title="Right">⯈</button>
+                  <button className={`tool-btn ${align === 'left' ? 'on' : ''}`} onClick={() => setAlign('left')} title="Align left" data-tooltip="Align left">⯇</button>
+                  <button className={`tool-btn ${align === 'center' ? 'on' : ''}`} onClick={() => setAlign('center')} title="Align center" data-tooltip="Align center">≡</button>
+                  <button className={`tool-btn ${align === 'right' ? 'on' : ''}`} onClick={() => setAlign('right')} title="Align right" data-tooltip="Align right">⯈</button>
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Font</span>
-                  <select className="tool-select" value={fontFamily} onChange={e => setFontFamily(e.target.value)}>
+                  <select className="tool-select" value={fontFamily} onChange={e => setFontFamily(e.target.value)} title="Choose font family" data-tooltip="Font family">
                     <option>Inter</option><option>Arial</option><option>Georgia</option>
                     <option>Courier New</option><option>Verdana</option>
                     <option>Times New Roman</option><option>Comic Sans MS</option>
@@ -893,17 +989,17 @@ export default function Page() {
 
                 <div className="tool-group">
                   <span className="tool-label">Size: {fontSize}px</span>
-                  <input type="range" min={12} max={32} value={fontSize} onChange={e => setFontSize(+e.target.value)} className="tool-range" />
+                  <input type="range" min={12} max={32} value={fontSize} onChange={e => setFontSize(+e.target.value)} className="tool-range" title="Font size" data-tooltip="Font size" />
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Spacing: {letterSpacing}px</span>
-                  <input type="range" min={0} max={10} value={letterSpacing} onChange={e => setLetterSpacing(+e.target.value)} className="tool-range" />
+                  <input type="range" min={0} max={10} value={letterSpacing} onChange={e => setLetterSpacing(+e.target.value)} className="tool-range" title="Letter spacing" data-tooltip="Letter spacing" />
                 </div>
 
                 <div className="tool-group">
                   <span className="tool-label">Line: {lineHeight.toFixed(1)}</span>
-                  <input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(+e.target.value)} className="tool-range" />
+                  <input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(+e.target.value)} className="tool-range" title="Line height" data-tooltip="Line height" />
                 </div>
               </div>
             )}
@@ -918,9 +1014,11 @@ export default function Page() {
                     value={styleSearch}
                     onChange={e => setStyleSearch(e.target.value)}
                     aria-label="Search fancy text styles"
+                    title="Search styles"
+                    data-tooltip="Search styles by name or category"
                   />
                   {styleSearch && (
-                    <button className="search-clear" onClick={() => setStyleSearch('')} aria-label="Clear search">×</button>
+                    <button className="search-clear" onClick={() => setStyleSearch('')} aria-label="Clear search" title="Clear search" data-tooltip="Clear search">×</button>
                   )}
                 </div>
                 <div className="chips" role="tablist">
@@ -931,6 +1029,8 @@ export default function Page() {
                       aria-selected={category === cat}
                       className={`chip ${category === cat ? 'active' : ''}`}
                       onClick={() => setCategory(cat)}
+                      title={`Filter by ${cat}`}
+                      data-tooltip={`Show ${cat} styles`}
                     >
                       {cat === 'Favorites' ? `⭐ ${cat} (${favorites.length})` :
                        cat === 'Recent' ? `🕐 ${cat} (${recent.length})` : cat}
@@ -941,7 +1041,6 @@ export default function Page() {
             )}
           </section>
 
-          {/* ===== FANCY STYLES SECTION (show/hide) ===== */}
           {!showToolbar && (
             <>
               <section className="section-head">
@@ -952,6 +1051,8 @@ export default function Page() {
                   className={`toggle-section-btn ${showFancy ? 'on' : ''}`}
                   onClick={() => setShowFancy(v => !v)}
                   aria-expanded={showFancy}
+                  title={showFancy ? 'Hide fancy text section' : 'Show fancy text section'}
+                  data-tooltip={showFancy ? 'Hide fancy styles' : 'Show fancy styles'}
                 >
                   {showFancy ? '👁 Hide' : '👁 Show'}
                 </button>
@@ -984,17 +1085,20 @@ export default function Page() {
                         return (
                           <article key={style.name + i} className="card glass" style={{ animationDelay: `${Math.min(i * 4, 400)}ms` }}>
                             <div className="card-head">
-                              <span className="card-label">{style.name}</span>
+                              <span className="card-label" title={style.category}>{style.name}</span>
                               <button
                                 className={`fav-btn ${isFav ? 'on' : ''}`}
                                 onClick={() => toggleFav(style.name)}
                                 aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
+                                title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                                data-tooltip={isFav ? 'Remove from favorites' : 'Add to favorites'}
                               >{isFav ? '★' : '☆'}</button>
                             </div>
                             <div
                               className={`card-output ${isCopied ? 'copied' : ''}`}
                               onClick={() => { copy(output, style.name); addRecent(style.name); }}
                               title="Click to copy"
+                              data-tooltip="Click to copy"
                               style={{
                                 color: textColor === 'inherit' ? undefined : textColor,
                                 background: bgStyle === 'transparent' ? undefined : bgStyle,
@@ -1003,10 +1107,12 @@ export default function Page() {
                               {output}
                             </div>
                             <div className="card-actions">
-                              <button className="card-btn" onClick={() => { copy(output, style.name); addRecent(style.name); }}>
+                              <button className="card-btn" onClick={() => { copy(output, style.name); addRecent(style.name); }} title="Copy this style" data-tooltip="Copy this style">
                                 {isCopied ? '✓ Copied' : '📋 Copy'}
                               </button>
-                              <button className="card-btn" onClick={() => share(output)}>🔗 Share</button>
+                              <button className="card-btn" onClick={() => shareStyled(output, style.name)} title="Share with color & background" data-tooltip="Share with colors!">
+                                🔗 Share
+                              </button>
                             </div>
                           </article>
                         );
@@ -1018,15 +1124,16 @@ export default function Page() {
             </>
           )}
 
-          {/* ===== FUNNY SECTION (show/hide) ===== */}
           <section className="section-head">
             <h2 className="section-title">
               <span>😂 Funny Text Generator</span>
             </h2>
             <button
-              className={`toggle-section-btn ${showFunny ? 'on' : ''}`}
+              className={`toggle-section-btn pulse ${showFunny ? 'on' : ''}`}
               onClick={() => setShowFunny(v => !v)}
               aria-expanded={showFunny}
+              title={showFunny ? 'Hide funny text section' : 'Show funny text section'}
+              data-tooltip={showFunny ? 'Hide funny styles' : 'Show funny styles'}
             >
               {showFunny ? '👁 Hide' : '👁 Show'}
             </button>
@@ -1041,7 +1148,14 @@ export default function Page() {
                 </div>
                 <div className="funny-select-wrap">
                   <label htmlFor="funny-select" className="sr-only">Choose a funny style</label>
-                  <select id="funny-select" className="funny-select" value={funnyId} onChange={e => setFunnyId(e.target.value)}>
+                  <select
+                    id="funny-select"
+                    className="funny-select"
+                    value={funnyId}
+                    onChange={e => setFunnyId(e.target.value)}
+                    title="Choose a funny style"
+                    data-tooltip="Choose a funny style"
+                  >
                     {FUNNY_STYLES.map(f => (
                       <option key={f.id} value={f.id}>{f.emoji}  {f.label}</option>
                     ))}
@@ -1058,6 +1172,7 @@ export default function Page() {
                   className={`funny-output ${copiedStyle === 'Funny' ? 'copied' : ''}`}
                   onClick={() => copy(funnyOutput, 'Funny')}
                   title="Click to copy"
+                  data-tooltip="Click to copy"
                   style={{
                     color: textColor === 'inherit' ? undefined : textColor,
                     background: bgStyle === 'transparent' ? undefined : bgStyle,
@@ -1066,14 +1181,14 @@ export default function Page() {
                   {funnyOutput}
                 </div>
                 <div className="funny-actions">
-                  <button className="card-btn" onClick={() => copy(funnyOutput, 'Funny')}>
+                  <button className="card-btn" onClick={() => copy(funnyOutput, 'Funny')} title="Copy funny text" data-tooltip="Copy">
                     {copiedStyle === 'Funny' ? '✓ Copied' : '📋 Copy'}
                   </button>
-                  <button className="card-btn" onClick={() => share(funnyOutput)}>🔗 Share</button>
+                  <button className="card-btn" onClick={() => shareStyled(funnyOutput, 'Funny')} title="Share with colors" data-tooltip="Share with colors!">🔗 Share</button>
                   <button className="card-btn" onClick={() => {
                     const nextIdx = (FUNNY_STYLES.findIndex(f => f.id === funnyId) + 1) % FUNNY_STYLES.length;
                     setFunnyId(FUNNY_STYLES[nextIdx].id);
-                  }}>🎲 Random</button>
+                  }} title="Random funny style" data-tooltip="Random style">🎲 Random</button>
                 </div>
               </div>
 
@@ -1084,6 +1199,7 @@ export default function Page() {
                     className={`funny-chip ${funnyId === f.id ? 'active' : ''}`}
                     onClick={() => setFunnyId(f.id)}
                     title={f.label}
+                    data-tooltip={f.label}
                   >
                     <span className="funny-chip-emoji">{f.emoji}</span>
                     <span className="funny-chip-label">{f.label}</span>
@@ -1093,17 +1209,16 @@ export default function Page() {
             </section>
           )}
 
-          {/* ===== HOW TO USE ===== */}
           <section className="content glass" id="how-to">
             <h2>How to Use the Fancy Text Generator (Step-by-Step)</h2>
             <p>
-              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds.
+              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds. It works in <strong>every language</strong> — English, Hindi, Arabic, Chinese, Japanese, Russian, and more.
             </p>
             <div className="steps">
               <div className="step">
                 <div className="step-num">1</div>
                 <h3>Type or paste your text</h3>
-                <p>Enter up to 200 characters in the input box at the top. Every keystroke regenerates all 1000+ styles in real time. Use 📥 <strong>Paste</strong> to pull text from your clipboard.</p>
+                <p>Enter your text in the input box at the top — there is <strong>no character limit</strong>, and you can type in any language. Every keystroke regenerates all 1000+ styles in real time. Use 📥 <strong>Paste</strong> to pull from clipboard.</p>
               </div>
               <div className="step">
                 <div className="step-num">2</div>
@@ -1113,66 +1228,65 @@ export default function Page() {
               <div className="step">
                 <div className="step-num">3</div>
                 <h3>Customize color &amp; style</h3>
-                <p>Open the 🎨 <strong>Color &amp; Background</strong> panel to pick from 16 text colors and 12 background styles (including gradients). Your choice applies live to both fancy &amp; funny previews.</p>
+                <p>Open the 🎨 <strong>Color &amp; Background</strong> panel to pick from 16 text colors and 12 background styles (including gradients). Your choice applies live to both fancy &amp; funny previews <em>and</em> the shared image.</p>
               </div>
               <div className="step">
                 <div className="step-num">4</div>
-                <h3>Copy with one click</h3>
-                <p>Click any style card to copy the transformed text. Star ⭐ your favorites so they persist across visits, and open the <strong>Recent</strong> tab to see styles you copied earlier.</p>
+                <h3>Copy or Share with style</h3>
+                <p>Click any style card to copy plain text — or press <strong>🔗 Share</strong> to share the text as a beautiful colored image with your chosen colors and background. Perfect for Instagram Stories &amp; WhatsApp!</p>
               </div>
               <div className="step">
                 <div className="step-num">5</div>
-                <h3>Paste it anywhere</h3>
-                <p>Use the generated text in your Instagram bio, TikTok caption, Discord server nickname, WhatsApp status, Twitter/X post, or YouTube title.</p>
+                <h3>Fine-tune with the toolbar</h3>
+                <p>Open the ⚙️ <strong>Formatting Toolbar</strong> for Bold / Italic / Underline, font family, size, spacing, line height, alignment, and 20+ text transforms.</p>
               </div>
               <div className="step">
                 <div className="step-num">6</div>
-                <h3>Fine-tune with the toolbar</h3>
-                <p>Open the ⚙️ <strong>Formatting Toolbar</strong> for Bold / Italic / Underline, font family, size, spacing, line height, alignment, and 20+ text transforms.</p>
+                <h3>Paste it anywhere</h3>
+                <p>Use the generated text in your Instagram bio, TikTok caption, Discord server nickname, WhatsApp status, Twitter/X post, or YouTube title.</p>
               </div>
             </div>
           </section>
 
-          {/* ===== FEATURES ===== */}
           <section className="content glass">
             <h2>Why Choose This Fancy Text Tool?</h2>
             <div className="features">
-              <div className="feature">
+              <div className="feature" title="Instant, real-time transformation" data-tooltip="Real-time updates">
                 <div className="feature-icon">⚡</div>
                 <h3>Instant, real-time</h3>
                 <p>Every style regenerates as you type — no buttons, no lag, no reloads.</p>
               </div>
-              <div className="feature">
+              <div className="feature" title="1000+ styles" data-tooltip="1000+ styles">
                 <div className="feature-icon">🎨</div>
                 <h3>1000+ styles</h3>
                 <p>Real Unicode styles across Serif, Script, Gothic, Bubble, Decor, Effects, Lines, Case &amp; Flipped categories.</p>
               </div>
-              <div className="feature">
+              <div className="feature" title="Funny text modes" data-tooltip="28 funny modes">
                 <div className="feature-icon">😂</div>
                 <h3>Funny text modes</h3>
                 <p>28 hand-picked comedic transformations — UwU, Pirate, Zalgo, Leet, Robot, Dog, Cat, Boomer &amp; more.</p>
               </div>
-              <div className="feature">
+              <div className="feature" title="Color & background" data-tooltip="Color & background picker">
                 <div className="feature-icon">🌈</div>
                 <h3>Color &amp; background</h3>
-                <p>Choose from 16 text colors and 12 background styles — including beautiful gradients.</p>
+                <p>Choose from 16 text colors and 12 background styles — including beautiful gradients. Shares as an image!</p>
               </div>
-              <div className="feature">
+              <div className="feature" title="All languages supported" data-tooltip="Multilingual">
+                <div className="feature-icon">🌐</div>
+                <h3>Any language</h3>
+                <p>Type in English, Hindi, Arabic, Chinese, Japanese, Russian — no limits, no restrictions.</p>
+              </div>
+              <div className="feature" title="Dark & light theme" data-tooltip="Theme toggle">
                 <div className="feature-icon">🌗</div>
                 <h3>Dark &amp; light theme</h3>
                 <p>Glassmorphism UI with animated gradient background and one-tap theme toggle.</p>
               </div>
-              <div className="feature">
+              <div className="feature" title="Favorites & history" data-tooltip="Favorites & Recent">
                 <div className="feature-icon">⭐</div>
                 <h3>Favorites &amp; history</h3>
                 <p>Save styles locally and revisit your recent copies — no signup required.</p>
               </div>
-              <div className="feature">
-                <div className="feature-icon">👁️</div>
-                <h3>Show / hide sections</h3>
-                <p>Toggle Fancy and Funny sections independently for a distraction-free workflow.</p>
-              </div>
-              <div className="feature">
+              <div className="feature" title="Free forever" data-tooltip="100% free">
                 <div className="feature-icon">🆓</div>
                 <h3>Free forever</h3>
                 <p>No account, no ads, no watermarks. Unlimited use, every day.</p>
@@ -1180,13 +1294,12 @@ export default function Page() {
             </div>
           </section>
 
-          {/* ===== FAQ ===== */}
           <section className="content glass" id="faq">
             <h2>Frequently Asked Questions</h2>
             <div className="faq-list">
               {FAQS.map((f, i) => (
                 <div key={i} className={`faq-item ${openFaq === i ? 'open' : ''}`}>
-                  <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)} aria-expanded={openFaq === i}>
+                  <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)} aria-expanded={openFaq === i} title={f.q} data-tooltip="Click to expand">
                     <span>{f.q}</span>
                     <span className="faq-icon">{openFaq === i ? '−' : '+'}</span>
                   </button>
@@ -1198,7 +1311,6 @@ export default function Page() {
             </div>
           </section>
 
-          {/* ===== ABOUT ===== */}
           <section className="content glass" id="about">
             <h2>About the Fancy Text Generator</h2>
             <p>
@@ -1212,7 +1324,6 @@ export default function Page() {
             </p>
           </section>
 
-          {/* ===== OTHER TOOLS ===== */}
           <section className="content glass tools-section" id="tools">
             <h2>Other Useful Tools</h2>
             <p className="tools-sub">Explore our growing collection of free web utilities.</p>
@@ -1222,6 +1333,8 @@ export default function Page() {
                   key={t.name}
                   href={t.href}
                   className="tool-card"
+                  title={t.desc}
+                  data-tooltip={t.desc}
                   style={{ '--tool-color': t.color, animationDelay: `${i * 40}ms` } as React.CSSProperties}
                 >
                   <div className="tool-card-icon">{t.icon}</div>
@@ -1238,18 +1351,20 @@ export default function Page() {
           <footer className="footer">
             <p>Made with ✦ — FancyText Generator © {new Date().getFullYear()}</p>
             <p className="footer-links">
-              <a href="#styles">Styles</a> · <a href="#funny">Funny</a> ·{' '}
-              <a href="#how-to">How to Use</a> · <a href="#faq">FAQ</a> · <a href="#tools">Tools</a>
+              <a href="#styles" title="Fancy styles">Styles</a> · <a href="#funny" title="Funny text">Funny</a> ·{' '}
+              <a href="#how-to" title="How to use">How to Use</a> · <a href="#faq" title="FAQ">FAQ</a> · <a href="#tools" title="Other tools">Tools</a>
             </p>
           </footer>
         </main>
 
-        {/* Down arrow to bottom */}
+        <div ref={bottomRef} style={{ height: 1 }} />
+
         <button
           className="scroll-bottom"
-          onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+          onClick={scrollToBottom}
           aria-label="Scroll to bottom"
-          title="Jump to bottom"
+          title="Scroll to bottom of page"
+          data-tooltip="Scroll to bottom"
         >
           ⬇
         </button>
@@ -1258,7 +1373,8 @@ export default function Page() {
           className="back-to-top"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           aria-label="Back to top"
-          title="Back to top"
+          title="Back to top of page"
+          data-tooltip="Back to top"
         >
           ↑
         </button>
@@ -1293,7 +1409,7 @@ export default function Page() {
         html, body {
           margin: 0; padding: 0;
           background: var(--bg); color: var(--fg);
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Arabic', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
           -webkit-font-smoothing: antialiased;
           transition: background 0.4s ease, color 0.4s ease;
         }
@@ -1303,6 +1419,41 @@ export default function Page() {
           clip: rect(0,0,0,0); border: 0;
         }
         .app { min-height: 100vh; position: relative; overflow-x: hidden; padding: 0 0 100px; }
+
+        /* ===== TOOLTIPS ===== */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          bottom: calc(100% + 8px);
+          left: 50%;
+          transform: translateX(-50%) translateY(4px);
+          padding: 6px 10px;
+          background: rgba(15, 15, 40, 0.96);
+          color: #fff;
+          font-size: 0.72rem;
+          font-weight: 600;
+          border-radius: 8px;
+          white-space: nowrap;
+          max-width: 240px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.18s ease, transform 0.18s ease;
+          z-index: 999;
+          box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+          border: 1px solid rgba(139, 92, 246, 0.4);
+          font-family: inherit;
+        }
+        [data-theme='light'] [data-tooltip]::after {
+          background: rgba(20, 20, 45, 0.95);
+        }
+        [data-tooltip]:hover::after,
+        [data-tooltip]:focus-visible::after {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
 
         .bg-gradient {
           position: fixed; inset: 0; z-index: -3;
@@ -1367,10 +1518,37 @@ export default function Page() {
           animation: spin 8s linear infinite; display: inline-block;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* LOGO LETTER-BY-LETTER ANIMATION */
+        .logo-text { display: inline-flex; }
+        .logo-char {
+          display: inline-block;
+          animation: charJump 2.4s ease-in-out infinite;
+        }
+        .logo-char:nth-child(1) { animation-delay: 0s; }
+        .logo-char:nth-child(2) { animation-delay: 0.1s; }
+        .logo-char:nth-child(3) { animation-delay: 0.2s; }
+        .logo-char:nth-child(4) { animation-delay: 0.3s; }
+        .logo-char:nth-child(5) { animation-delay: 0.4s; }
+        .logo-char:nth-child(6) { animation-delay: 0.5s; }
+        .logo-char:nth-child(7) { animation-delay: 0.6s; }
+        .logo-char:nth-child(8) { animation-delay: 0.7s; }
+        .logo-char:nth-child(9) { animation-delay: 0.8s; }
+        @keyframes charJump {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          45% { transform: translateY(-2px) rotate(-3deg); }
+          55% { transform: translateY(-2px) rotate(3deg); }
+        }
+
         .logo-badge {
           font-size: 0.68rem; padding: 3px 8px; border-radius: 999px;
           background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
           color: white; font-weight: 800; letter-spacing: 0.03em;
+          animation: badgePulse 2.5s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.5); }
+          50% { transform: scale(1.06); box-shadow: 0 0 0 8px rgba(139, 92, 246, 0); }
         }
         .grad-text {
           background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3), var(--accent-1));
@@ -1395,6 +1573,20 @@ export default function Page() {
           transition: transform 0.2s, background 0.2s;
         }
         .icon-btn:hover { transform: scale(1.08); background: rgba(139, 92, 246, 0.15); }
+        .icon-btn.down-arrow {
+          background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(16, 185, 129, 0.15));
+          border-color: rgba(6, 182, 212, 0.4);
+          color: #67e8f9;
+          animation: arrowBob 1.8s ease-in-out infinite;
+        }
+        .icon-btn.down-arrow:hover {
+          background: linear-gradient(135deg, var(--accent-3), var(--accent-5));
+          color: white;
+        }
+        @keyframes arrowBob {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(3px); }
+        }
 
         .main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
@@ -1462,7 +1654,6 @@ export default function Page() {
         .mini-btn.danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
         .mini-btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
 
-        /* ===== COLOR PANEL ===== */
         .color-panel-wrap { margin-top: 14px; }
         .color-toggle {
           width: 100%; padding: 10px 14px;
@@ -1637,7 +1828,6 @@ export default function Page() {
           box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
         }
 
-        /* ===== SECTION HEAD / TOGGLE ===== */
         .section-head {
           display: flex; justify-content: space-between; align-items: center;
           gap: 12px; margin: 20px 0 12px; flex-wrap: wrap;
@@ -1653,6 +1843,7 @@ export default function Page() {
           border: 1px solid var(--glass-border);
           color: var(--fg); font-weight: 700;
           transition: all 0.2s; font-family: inherit;
+          position: relative;
         }
         [data-theme='light'] .toggle-section-btn { background: rgba(255,255,255,0.75); }
         .toggle-section-btn:hover { transform: translateY(-1px); background: rgba(139,92,246,0.15); }
@@ -1661,8 +1852,22 @@ export default function Page() {
           border-color: rgba(16, 185, 129, 0.5);
           color: #6ee7b7;
         }
+        /* BLINKING / PULSE animation to attract attention */
+        .toggle-section-btn.pulse,
+        .section-head .toggle-section-btn {
+          animation: blinkGlow 1.8s ease-in-out infinite;
+        }
+        @keyframes blinkGlow {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.55);
+            transform: scale(1);
+          }
+          50% {
+            box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
+            transform: scale(1.04);
+          }
+        }
 
-        /* FUNNY PANEL */
         .funny-panel { background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.08)); }
         .funny-head {
           display: flex; justify-content: space-between; align-items: flex-end;
@@ -1704,7 +1909,6 @@ export default function Page() {
           min-height: 52px; display: flex; align-items: center;
           cursor: pointer; word-break: break-word;
           transition: all 0.2s; line-height: 1.4;
-          border-radius: 10px;
         }
         [data-theme='light'] .funny-output { background: rgba(255,255,255,0.7); }
         .funny-output:hover { background: rgba(139, 92, 246, 0.1); border-color: var(--accent-1); }
@@ -1810,7 +2014,6 @@ export default function Page() {
           50% { transform: scale(1.15); opacity: 0.7; }
         }
 
-        /* CONTENT */
         .content { margin-top: 30px; padding: 28px; line-height: 1.75; }
         .content h2 { margin-top: 0; font-size: 1.45rem; }
         .content h3 { font-size: 1.05rem; margin: 20px 0 6px; }
@@ -1847,6 +2050,7 @@ export default function Page() {
           background: rgba(255,255,255,0.04);
           border: 1px solid var(--glass-border);
           transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+          cursor: default;
         }
         [data-theme='light'] .feature { background: rgba(255,255,255,0.6); }
         .feature:hover {
@@ -1884,7 +2088,6 @@ export default function Page() {
         .faq-a p { margin: 0; }
         @keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ===== OTHER TOOLS ===== */
         .tools-section { position: relative; }
         .tools-sub { margin: 0 0 18px; }
         .tools-grid {
@@ -1928,9 +2131,7 @@ export default function Page() {
           transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
           position: relative; z-index: 1;
         }
-        .tool-card:hover .tool-card-icon {
-          transform: scale(1.12) rotate(-6deg);
-        }
+        .tool-card:hover .tool-card-icon { transform: scale(1.12) rotate(-6deg); }
         .tool-card-body { flex: 1; min-width: 0; position: relative; z-index: 1; }
         .tool-card-name {
           margin: 0 0 4px; font-size: 0.95rem; font-weight: 800;
@@ -1948,9 +2149,7 @@ export default function Page() {
           transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s;
           position: relative; z-index: 1;
         }
-        .tool-card:hover .tool-card-arrow {
-          transform: translateX(6px); opacity: 1;
-        }
+        .tool-card:hover .tool-card-arrow { transform: translateX(6px); opacity: 1; }
 
         .footer {
           text-align: center; margin-top: 40px;
@@ -1960,7 +2159,6 @@ export default function Page() {
         .footer-links a { color: var(--muted); text-decoration: none; }
         .footer-links a:hover { color: var(--accent-1); }
 
-        /* FLOATING BUTTONS */
         .back-to-top, .scroll-bottom {
           position: fixed; right: 24px;
           width: 46px; height: 46px; border-radius: 50%;
@@ -1978,9 +2176,14 @@ export default function Page() {
           bottom: 80px;
           background: linear-gradient(135deg, var(--accent-3), var(--accent-5));
           box-shadow: 0 8px 28px rgba(6, 182, 212, 0.5);
+          animation: bounceDown 2s ease-in-out infinite;
         }
         .back-to-top:hover { transform: translateY(-3px) scale(1.05); }
-        .scroll-bottom:hover { transform: translateY(3px) scale(1.05); }
+        .scroll-bottom:hover { transform: translateY(3px) scale(1.05); animation-play-state: paused; }
+        @keyframes bounceDown {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(4px); }
+        }
 
         .toast {
           position: fixed; bottom: 24px; left: 50%;
@@ -1995,17 +2198,16 @@ export default function Page() {
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        @media (max-width: 900px) {
-          .header-nav { display: none; }
-        }
+        @media (max-width: 900px) { .header-nav { display: none; } }
         @media (max-width: 720px) {
           .grid { grid-template-columns: 1fr; gap: 12px; }
           .panel, .content { padding: 16px; }
           .hero { padding: 22px 4px 18px; }
           .header { padding: 8px 10px; }
-          .header-inner { padding: 8px 14px; }
+          .header-inner { padding: 8px 14px; gap: 6px; }
           .logo { font-size: 1rem; }
           .logo-badge { display: none; }
+          .icon-btn { width: 38px; height: 38px; font-size: 0.95rem; }
           .toolbar { padding: 10px; gap: 10px; }
           .tool-group { padding: 5px 8px; }
           .tool-range { width: 72px; }
@@ -2019,6 +2221,7 @@ export default function Page() {
           .back-to-top, .scroll-bottom { width: 42px; height: 42px; right: 14px; }
           .back-to-top { bottom: 14px; }
           .scroll-bottom { bottom: 64px; }
+          [data-tooltip]::after { font-size: 0.68rem; padding: 5px 8px; }
         }
         @media (min-width: 1280px) { .grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 1680px) { .grid { grid-template-columns: repeat(4, 1fr); } }
