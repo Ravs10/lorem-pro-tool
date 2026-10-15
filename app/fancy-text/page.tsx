@@ -373,6 +373,46 @@ const BG_STYLES = [
 ];
 
 // ============================================================
+// LANGUAGE SUPPORT
+// ============================================================
+type LangDef = { code: string; name: string; native: string; flag: string; dir: 'ltr' | 'rtl' };
+
+const LANGUAGES: LangDef[] = [
+  { code: 'en', name: 'English', native: 'English', flag: '🇬🇧', dir: 'ltr' },
+  { code: 'hi', name: 'Hindi', native: 'हिन्दी', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'ar', name: 'Arabic', native: 'العربية', flag: '🇸🇦', dir: 'rtl' },
+  { code: 'zh', name: 'Chinese', native: '中文', flag: '🇨🇳', dir: 'ltr' },
+  { code: 'ja', name: 'Japanese', native: '日本語', flag: '🇯🇵', dir: 'ltr' },
+  { code: 'ko', name: 'Korean', native: '한국어', flag: '🇰🇷', dir: 'ltr' },
+  { code: 'ru', name: 'Russian', native: 'Русский', flag: '🇷🇺', dir: 'ltr' },
+  { code: 'es', name: 'Spanish', native: 'Español', flag: '🇪🇸', dir: 'ltr' },
+  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷', dir: 'ltr' },
+  { code: 'de', name: 'German', native: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
+  { code: 'pt', name: 'Portuguese', native: 'Português', flag: '🇵🇹', dir: 'ltr' },
+  { code: 'it', name: 'Italian', native: 'Italiano', flag: '🇮🇹', dir: 'ltr' },
+  { code: 'bn', name: 'Bengali', native: 'বাংলা', flag: '🇧🇩', dir: 'ltr' },
+  { code: 'ta', name: 'Tamil', native: 'தமிழ்', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'te', name: 'Telugu', native: 'తెలుగు', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'mr', name: 'Marathi', native: 'मराठी', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'gu', name: 'Gujarati', native: 'ગુજરાતી', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'pa', name: 'Punjabi', native: 'ਪੰਜਾਬੀ', flag: '🇮🇳', dir: 'ltr' },
+  { code: 'ur', name: 'Urdu', native: 'اردو', flag: '🇵🇰', dir: 'rtl' },
+  { code: 'tr', name: 'Turkish', native: 'Türkçe', flag: '🇹🇷', dir: 'ltr' },
+  { code: 'nl', name: 'Dutch', native: 'Nederlands', flag: '🇳🇱', dir: 'ltr' },
+  { code: 'pl', name: 'Polish', native: 'Polski', flag: '🇵🇱', dir: 'ltr' },
+  { code: 'vi', name: 'Vietnamese', native: 'Tiếng Việt', flag: '🇻🇳', dir: 'ltr' },
+  { code: 'th', name: 'Thai', native: 'ไทย', flag: '🇹🇭', dir: 'ltr' },
+  { code: 'he', name: 'Hebrew', native: 'עברית', flag: '🇮🇱', dir: 'rtl' },
+  { code: 'fa', name: 'Persian', native: 'فارسی', flag: '🇮🇷', dir: 'rtl' },
+  { code: 'id', name: 'Indonesian', native: 'Indonesia', flag: '🇮🇩', dir: 'ltr' },
+  { code: 'ms', name: 'Malay', native: 'Melayu', flag: '🇲🇾', dir: 'ltr' },
+  { code: 'sw', name: 'Swahili', native: 'Kiswahili', flag: '🇰🇪', dir: 'ltr' },
+  { code: 'el', name: 'Greek', native: 'Ελληνικά', flag: '🇬🇷', dir: 'ltr' },
+  { code: 'uk', name: 'Ukrainian', native: 'Українська', flag: '🇺🇦', dir: 'ltr' },
+  { code: 'ro', name: 'Romanian', native: 'Română', flag: '🇷🇴', dir: 'ltr' },
+];
+
+// ============================================================
 // FAQS
 // ============================================================
 const FAQS = [
@@ -386,8 +426,8 @@ const FAQS = [
   { q: 'Can I use the generated text for commercial purposes?', a: 'Yes. You own the text you generate. You can use it in social media posts, bios, product names, usernames, T-shirts, artwork, or anywhere else.' },
   { q: 'Why do some fancy fonts look like squares or boxes?', a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters.' },
   { q: 'Does this tool work offline?', a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips.' },
-  { q: 'Is there a character limit?', a: 'No! There is now no character limit. You can type as much text as you want, in any language — English, Hindi, Arabic, Chinese, Japanese, Korean, Russian, and more.' },
-  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. On supported devices, this opens the native share sheet, letting you send the text to WhatsApp, Instagram, Messages, Email, or any installed app instantly — including your custom colors and background!' },
+  { q: 'Is there a character limit?', a: 'No! There is no character limit. You can type as much text as you want, in any language — English, Hindi, Arabic, Chinese, Japanese, Korean, Russian, and more.' },
+  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. When you have colors/background selected, Share produces a beautiful PNG image with your exact styling — perfect for Instagram Stories or WhatsApp. Otherwise it copies plain text.' },
 ];
 
 // ============================================================
@@ -407,6 +447,167 @@ const OTHER_TOOLS = [
   { icon: '🎨', name: 'Color Picker', desc: 'Pick colors & generate palettes', href: '#', color: '#f97316' },
   { icon: '📅', name: 'Age Calculator', desc: 'Calculate age from date of birth', href: '#', color: '#8b5cf6' },
 ];
+
+// ============================================================
+// HELPERS — RICH HTML COPY/PASTE & CANVAS RENDER
+// ============================================================
+
+// Build HTML with inline styles for rich clipboard
+function buildRichHTML(text: string, textColor: string, bgStyle: string): string {
+  const esc = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const color = textColor === 'inherit' ? '#f0f0ff' : textColor;
+  const bg = bgStyle === 'transparent' ? 'transparent' : bgStyle;
+  const lines = esc(text).split('\n').join('<br>');
+  return `<div style="display:inline-block;padding:14px 20px;border-radius:12px;background:${bg};color:${color};font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:20px;line-height:1.4;white-space:pre-wrap;word-break:break-word;">${lines}</div>`;
+}
+
+// Build RTF for even broader paste compatibility (Word, etc.)
+function buildRTF(text: string, textColor: string, bgStyle: string): string {
+  const esc = (s: string) =>
+    s.replace(/\\/g, '\\\\').replace(/\{/g, '\\{').replace(/\}/g, '\\}').replace(/\n/g, '\\line ');
+  const hex = (c: string) => {
+    if (!c || c === 'inherit') return '240;240;255';
+    const h = c.replace('#', '');
+    if (h.length !== 6) return '240;240;255';
+    return `${parseInt(h.slice(0, 2), 16)};${parseInt(h.slice(2, 4), 16)};${parseInt(h.slice(4, 6), 16)}`;
+  };
+  const [r, g, b] = hex(textColor).split(';');
+  return `{\\rtf1\\ansi\\deff0{\\colortbl ;\\red${r}\\green${g}\\blue${b};}\\fs40\\cf1 ${esc(text)}}`;
+}
+
+// Robust copy with rich formats
+async function copyRich(
+  text: string,
+  html: string,
+  rtf: string,
+  plainText: string
+): Promise<boolean> {
+  try {
+    // Try modern ClipboardItem approach first
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+      const items: Record<string, Blob> = {
+        'text/plain': new Blob([plainText], { type: 'text/plain' }),
+        'text/html': new Blob([html], { type: 'text/html' }),
+      };
+      // RTF support is spotty; include anyway
+      try {
+        items['text/rtf'] = new Blob([rtf], { type: 'text/rtf' });
+      } catch {}
+      await navigator.clipboard.write([new ClipboardItem(items)]);
+      return true;
+    }
+  } catch {}
+  // Fallback: contenteditable + execCommand copy
+  try {
+    const el = document.createElement('div');
+    el.contentEditable = 'true';
+    el.innerHTML = html;
+    el.style.position = 'fixed';
+    el.style.left = '-9999px';
+    el.style.top = '0';
+    document.body.appendChild(el);
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+    const ok = document.execCommand('copy');
+    sel?.removeAllRanges();
+    document.body.removeChild(el);
+    if (ok) return true;
+  } catch {}
+  // Final fallback: plain text
+  try {
+    await navigator.clipboard.writeText(plainText);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Render styled text into a PNG canvas Blob
+async function renderStyledToPNG(
+  text: string,
+  opts: {
+    textColor: string;
+    bgStyle: string;
+    fontFamily: string;
+    align: 'left' | 'center' | 'right';
+  }
+): Promise<Blob | null> {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const padding = 48;
+  const fontSizePx = 36;
+
+  ctx.font = `700 ${fontSizePx}px '${opts.fontFamily}', 'Segoe UI', system-ui, sans-serif`;
+  const lines = text.split('\n');
+  const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width), 200);
+  const width = Math.min(Math.max(maxLineWidth + padding * 2, 480), 1600);
+  const height = Math.max(lines.length * fontSizePx * 1.35 + padding * 2, 180);
+
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  ctx.scale(dpr, dpr);
+
+  // Background
+  const bg = opts.bgStyle === 'transparent' ? '#0a0a1a' : opts.bgStyle;
+  if (bg.startsWith('linear-gradient')) {
+    const m = bg.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/);
+    if (m) {
+      const [, deg, c1, c2] = m;
+      const angle = (parseFloat(deg) - 90) * (Math.PI / 180);
+      const x1 = width / 2 - Math.cos(angle) * width / 2;
+      const y1 = height / 2 - Math.sin(angle) * height / 2;
+      const x2 = width / 2 + Math.cos(angle) * width / 2;
+      const y2 = height / 2 + Math.sin(angle) * height / 2;
+      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
+      grad.addColorStop(0, c1.trim());
+      grad.addColorStop(1, c2.trim());
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = '#0a0a1a';
+    }
+  } else {
+    ctx.fillStyle = bg;
+  }
+  ctx.fillRect(0, 0, width, height);
+
+  // Text
+  ctx.fillStyle = opts.textColor === 'inherit' ? '#f0f0ff' : opts.textColor;
+  ctx.textBaseline = 'top';
+
+  let currentFontSize = fontSizePx;
+  const longestLine = lines.reduce((a, b) => (a.length > b.length ? a : b), '');
+  while (
+    ctx.measureText(longestLine).width > width - padding * 2 &&
+    currentFontSize > 14
+  ) {
+    currentFontSize -= 1;
+    ctx.font = `700 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, sans-serif`;
+  }
+
+  const finalLineH = currentFontSize * 1.35;
+  const totalTextH = lines.length * finalLineH;
+  const startY = (height - totalTextH) / 2;
+
+  lines.forEach((line, i) => {
+    const lineW = ctx.measureText(line).width;
+    const x =
+      opts.align === 'left'
+        ? padding
+        : opts.align === 'right'
+        ? width - padding - lineW
+        : (width - lineW) / 2;
+    ctx.fillText(line, x, startY + i * finalLineH);
+  });
+
+  return new Promise(res => canvas.toBlob(b => res(b), 'image/png', 0.95));
+}
 
 // ============================================================
 // MAIN COMPONENT
@@ -440,9 +641,15 @@ export default function Page() {
   const [showFunny, setShowFunny] = useState(true);
   const [styleSearch, setStyleSearch] = useState('');
 
+  // NEW: Language state
+  const [langCode, setLangCode] = useState('en');
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const [richClipboardMode, setRichClipboardMode] = useState(true);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fancyRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const langMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -452,6 +659,10 @@ export default function Page() {
     if (favs) try { setFavorites(JSON.parse(favs)); } catch {}
     const rec = localStorage.getItem('recent');
     if (rec) try { setRecent(JSON.parse(rec)); } catch {}
+    const savedLang = localStorage.getItem('lang');
+    if (savedLang) setLangCode(savedLang);
+    const savedRich = localStorage.getItem('richClipboard');
+    if (savedRich !== null) setRichClipboardMode(savedRich === 'true');
   }, []);
 
   useEffect(() => {
@@ -470,13 +681,60 @@ export default function Page() {
     localStorage.setItem('recent', JSON.stringify(recent));
   }, [recent, mounted]);
 
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem('lang', langCode);
+  }, [langCode, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem('richClipboard', String(richClipboardMode));
+  }, [richClipboardMode, mounted]);
+
+  // Close language dropdown on outside click
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
+        setShowLangMenu(false);
+      }
+    };
+    if (showLangMenu) {
+      document.addEventListener('mousedown', onDocClick);
+      return () => document.removeEventListener('mousedown', onDocClick);
+    }
+  }, [showLangMenu]);
+
   const showToast = useCallback((msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(''), 1600);
+    setTimeout(() => setToast(''), 2000);
   }, []);
 
+  const currentLang = useMemo(
+    () => LANGUAGES.find(l => l.code === langCode) || LANGUAGES[0],
+    [langCode]
+  );
+
+  // ====== COPY WITH COLOR & BACKGROUND ======
   const copy = useCallback(
-    async (text: string, label: string) => {
+    async (text: string, label: string, forceRich = false) => {
+      const wantRich = forceRich || richClipboardMode;
+
+      if (wantRich && (textColor !== 'inherit' || bgStyle !== 'transparent')) {
+        // Rich copy with color/background
+        const html = buildRichHTML(text, textColor, bgStyle);
+        const rtf = buildRTF(text, textColor, bgStyle);
+        const ok = await copyRich(text, html, rtf, text);
+        if (ok) {
+          showToast(`✓ ${label} copied with style!`);
+        } else {
+          showToast('Rich copy failed, copied plain');
+        }
+        setCopiedStyle(label);
+        setTimeout(() => setCopiedStyle(null), 900);
+        return;
+      }
+
+      // Plain copy
       try {
         await navigator.clipboard.writeText(text);
         showToast(`✓ ${label} copied!`);
@@ -486,117 +744,55 @@ export default function Page() {
         showToast('Copy failed');
       }
     },
-    [showToast]
+    [showToast, textColor, bgStyle, richClipboardMode]
   );
 
-  // SHARE WITH COLOR/BG via canvas render
+  // ====== SHARE WITH COLOR/BG ======
   const shareStyled = useCallback(
     async (text: string, label: string) => {
       try {
-        // Build a canvas image of the styled text
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('no ctx');
+        const hasStyle = textColor !== 'inherit' || bgStyle !== 'transparent';
 
-        const dpr = window.devicePixelRatio || 1;
-        const padding = 40;
-        const fontSizePx = 34;
-        const lineH = fontSizePx * 1.35;
-
-        // Font
-        const fontStack = `700 ${fontSizePx}px '${fontFamily}', 'Segoe UI', system-ui, sans-serif`;
-        ctx.font = fontStack;
-
-        const lines = text.split('\n');
-        const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width), 200);
-        const width = Math.min(Math.max(maxLineWidth + padding * 2, 400), 1600);
-        const height = Math.max(lines.length * lineH + padding * 2, 160);
-
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-        ctx.scale(dpr, dpr);
-
-        // Background
-        const bg = bgStyle === 'transparent' ? 'rgba(10,10,26,1)' : bgStyle;
-        if (bg.startsWith('linear-gradient')) {
-          // parse linear-gradient(135deg, c1, c2)
-          const m = bg.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/);
-          if (m) {
-            const [, deg, c1, c2] = m;
-            const angle = (parseFloat(deg) - 90) * (Math.PI / 180);
-            const x1 = width / 2 - Math.cos(angle) * width / 2;
-            const y1 = height / 2 - Math.sin(angle) * height / 2;
-            const x2 = width / 2 + Math.cos(angle) * width / 2;
-            const y2 = height / 2 + Math.sin(angle) * height / 2;
-            const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-            grad.addColorStop(0, c1.trim());
-            grad.addColorStop(1, c2.trim());
-            ctx.fillStyle = grad;
-          } else {
-            ctx.fillStyle = '#0a0a1a';
-          }
-        } else {
-          ctx.fillStyle = bg;
-        }
-        ctx.fillRect(0, 0, width, height);
-
-        // Text
-        ctx.font = fontStack;
-        ctx.fillStyle = textColor === 'inherit' ? '#f0f0ff' : textColor;
-        ctx.textBaseline = 'top';
-
-        // Auto-shrink long text
-        let currentFontSize = fontSizePx;
-        while (ctx.measureText(lines.reduce((a, b) => a.length > b.length ? a : b)).width > width - padding * 2 && currentFontSize > 14) {
-          currentFontSize -= 1;
-          ctx.font = `700 ${currentFontSize}px '${fontFamily}', 'Segoe UI', system-ui, sans-serif`;
-        }
-
-        const finalLineH = currentFontSize * 1.35;
-        const totalTextH = lines.length * finalLineH;
-        const startY = (height - totalTextH) / 2;
-
-        lines.forEach((line, i) => {
-          const lineW = ctx.measureText(line).width;
-          const x = align === 'left' ? padding :
-                    align === 'right' ? width - padding - lineW :
-                    (width - lineW) / 2;
-          ctx.fillText(line, x, startY + i * finalLineH);
-        });
-
-        // Convert to blob & share
-        const blob: Blob | null = await new Promise(res =>
-          canvas.toBlob(b => res(b), 'image/png', 0.95)
-        );
-        if (!blob) throw new Error('no blob');
-
-        const file = new File([blob], 'fancy-text.png', { type: 'image/png' });
-
-        // Web Share with file (mobile)
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: 'Fancy Text',
-            text: label,
-            files: [file],
+        if (hasStyle) {
+          // Render as PNG
+          const blob = await renderStyledToPNG(text, {
+            textColor,
+            bgStyle,
+            fontFamily,
+            align,
           });
-          showToast('✓ Shared with style!');
-        } else if (navigator.share) {
-          // fallback: share text only
+          if (blob) {
+            const file = new File([blob], 'fancy-text.png', { type: 'image/png' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                title: 'Fancy Text',
+                text: label,
+                files: [file],
+              });
+              showToast('✓ Shared styled image!');
+              return;
+            }
+            // Fallback: download the image
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fancy-text-${label.replace(/\s+/g, '-')}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('✓ Saved styled image');
+            return;
+          }
+        }
+
+        // Plain share
+        if (navigator.share) {
           await navigator.share({ title: 'Fancy Text', text });
           showToast('✓ Shared!');
         } else {
-          // fallback: download the image
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `fancy-text-${label}.png`;
-          a.click();
-          URL.revokeObjectURL(url);
-          showToast('✓ Saved as image');
+          await copy(text, label);
         }
       } catch {
-        // Ultimate fallback: just copy text
-        copy(text, label);
+        // silent
       }
     },
     [bgStyle, textColor, fontFamily, align, copy, showToast]
@@ -610,7 +806,6 @@ export default function Page() {
     setRecent(p => [name, ...p.filter(n => n !== name)].slice(0, 12));
   }, []);
 
-  // ====== FIXED TRANSFORMS ======
   const applyTransform = useCallback((type: string) => {
     setInput(prev => {
       const s = prev;
@@ -654,6 +849,46 @@ export default function Page() {
 
   const pasteFromClipboard = useCallback(async () => {
     try {
+      // Try to read HTML first for rich paste
+      if (navigator.clipboard.read) {
+        try {
+          const items = await navigator.clipboard.read();
+          for (const item of items) {
+            if (item.types.includes('text/html')) {
+              const blob = await item.getType('text/html');
+              const html = await blob.text();
+              // Strip tags to get text, but detect color
+              const temp = document.createElement('div');
+              temp.innerHTML = html;
+              const text = (temp.textContent || '').trim();
+              // Try to detect color from span
+              const styled = temp.querySelector('[style*="color"]') || temp.querySelector('span');
+              if (styled) {
+                const cs = (styled as HTMLElement).style.color;
+                if (cs) {
+                  // convert rgb to hex
+                  const m = cs.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+                  if (m) {
+                    const hex = '#' + [m[1], m[2], m[3]].map(x => (+x).toString(16).padStart(2, '0')).join('');
+                    const found = TEXT_COLORS.find(c => c.value.toLowerCase() === hex.toLowerCase());
+                    if (found) setTextColor(found.value);
+                  }
+                }
+                const bs = (styled as HTMLElement).style.background;
+                if (bs) {
+                  const found = BG_STYLES.find(b => b.value.toLowerCase() === bs.toLowerCase());
+                  if (found) setBgStyle(found.value);
+                }
+              }
+              if (text) {
+                setInput(text);
+                showToast('✓ Pasted with style!');
+                return;
+              }
+            }
+          }
+        } catch {}
+      }
       const t = await navigator.clipboard.readText();
       setInput(t);
       showToast('✓ Pasted');
@@ -673,7 +908,6 @@ export default function Page() {
     showToast('✓ Downloaded');
   }, [input, showToast]);
 
-  // FIXED: scroll to bottom via ref
   const scrollToBottom = useCallback(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -794,6 +1028,51 @@ export default function Page() {
               <a href="#tools" className="nav-link" title="Other useful tools">Tools</a>
             </nav>
             <div className="header-actions">
+              {/* LANGUAGE PICKER */}
+              <div className="lang-wrap" ref={langMenuRef}>
+                <button
+                  className={`icon-btn lang-btn ${showLangMenu ? 'on' : ''}`}
+                  onClick={() => setShowLangMenu(v => !v)}
+                  aria-label="Choose language"
+                  aria-expanded={showLangMenu}
+                  title="Choose language"
+                  data-tooltip="Choose your language"
+                >
+                  🌐
+                  <span className="lang-flag-mini">{currentLang.flag}</span>
+                </button>
+                {showLangMenu && (
+                  <div className="lang-menu glass" role="menu">
+                    <div className="lang-menu-header">
+                      <strong>Select Language</strong>
+                      <button className="lang-close" onClick={() => setShowLangMenu(false)} aria-label="Close">×</button>
+                    </div>
+                    <div className="lang-menu-grid">
+                      {LANGUAGES.map(l => (
+                        <button
+                          key={l.code}
+                          className={`lang-item ${langCode === l.code ? 'active' : ''}`}
+                          onClick={() => {
+                            setLangCode(l.code);
+                            setShowLangMenu(false);
+                            showToast(`✓ ${l.name} selected`);
+                          }}
+                          role="menuitem"
+                          title={`${l.name} (${l.native})`}
+                        >
+                          <span className="lang-item-flag">{l.flag}</span>
+                          <span className="lang-item-body">
+                            <span className="lang-item-name">{l.name}</span>
+                            <span className="lang-item-native">{l.native}</span>
+                          </span>
+                          {langCode === l.code && <span className="lang-item-check">✓</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 className="icon-btn down-arrow"
                 onClick={scrollToBottom}
@@ -853,16 +1132,16 @@ export default function Page() {
                 placeholder="Type or paste your text here... (any language supported, no character limit)"
                 rows={3}
                 style={inputPreviewStyle}
-                lang="en"
-                dir="auto"
+                lang={currentLang.code}
+                dir={currentLang.dir}
                 spellCheck={false}
                 data-tooltip="Type in any language — no limit"
               />
               <div className="input-meta">
-                <span className="count">{input.length} characters · no limit</span>
+                <span className="count">{input.length} characters · {currentLang.flag} {currentLang.name}</span>
                 <div className="input-actions">
-                  <button className="mini-btn" onClick={pasteFromClipboard} title="Paste from clipboard" data-tooltip="Paste from clipboard">📥 Paste</button>
-                  <button className="mini-btn" onClick={() => copy(input, 'Text')} title="Copy raw text" data-tooltip="Copy plain text">📋 Copy</button>
+                  <button className="mini-btn" onClick={pasteFromClipboard} title="Paste from clipboard" data-tooltip="Paste from clipboard (keeps colors!)">📥 Paste</button>
+                  <button className="mini-btn" onClick={() => copy(input, 'Text')} title="Copy raw text with style" data-tooltip="Copy raw text with style">📋 Copy</button>
                   <button className="mini-btn" onClick={download} title="Download as .txt" data-tooltip="Download as .txt file">💾 Save</button>
                   <button className="mini-btn danger" onClick={clearAll} title="Clear everything" data-tooltip="Clear all text and styles">🗑 Clear</button>
                 </div>
@@ -918,6 +1197,24 @@ export default function Page() {
                         </button>
                       ))}
                     </div>
+                  </div>
+
+                  {/* RICH CLIPBOARD TOGGLE */}
+                  <div className="color-section">
+                    <span className="color-label">Copy Mode</span>
+                    <label className="rich-toggle" title="Copy with color & background" data-tooltip="When ON, Copy/Share keeps colors & background">
+                      <input
+                        type="checkbox"
+                        checked={richClipboardMode}
+                        onChange={e => setRichClipboardMode(e.target.checked)}
+                      />
+                      <span className="rich-toggle-track">
+                        <span className="rich-toggle-thumb" />
+                      </span>
+                      <span className="rich-toggle-text">
+                        {richClipboardMode ? '🎨 Rich (color + background)' : '📄 Plain text only'}
+                      </span>
+                    </label>
                   </div>
                 </div>
               )}
@@ -1098,7 +1395,7 @@ export default function Page() {
                               className={`card-output ${isCopied ? 'copied' : ''}`}
                               onClick={() => { copy(output, style.name); addRecent(style.name); }}
                               title="Click to copy"
-                              data-tooltip="Click to copy"
+                              data-tooltip={richClipboardMode ? 'Click to copy with colors!' : 'Click to copy'}
                               style={{
                                 color: textColor === 'inherit' ? undefined : textColor,
                                 background: bgStyle === 'transparent' ? undefined : bgStyle,
@@ -1107,7 +1404,7 @@ export default function Page() {
                               {output}
                             </div>
                             <div className="card-actions">
-                              <button className="card-btn" onClick={() => { copy(output, style.name); addRecent(style.name); }} title="Copy this style" data-tooltip="Copy this style">
+                              <button className="card-btn" onClick={() => { copy(output, style.name); addRecent(style.name); }} title="Copy this style" data-tooltip={richClipboardMode ? 'Copy with colors' : 'Copy plain text'}>
                                 {isCopied ? '✓ Copied' : '📋 Copy'}
                               </button>
                               <button className="card-btn" onClick={() => shareStyled(output, style.name)} title="Share with color & background" data-tooltip="Share with colors!">
@@ -1172,7 +1469,7 @@ export default function Page() {
                   className={`funny-output ${copiedStyle === 'Funny' ? 'copied' : ''}`}
                   onClick={() => copy(funnyOutput, 'Funny')}
                   title="Click to copy"
-                  data-tooltip="Click to copy"
+                  data-tooltip={richClipboardMode ? 'Click to copy with colors!' : 'Click to copy'}
                   style={{
                     color: textColor === 'inherit' ? undefined : textColor,
                     background: bgStyle === 'transparent' ? undefined : bgStyle,
@@ -1181,7 +1478,7 @@ export default function Page() {
                   {funnyOutput}
                 </div>
                 <div className="funny-actions">
-                  <button className="card-btn" onClick={() => copy(funnyOutput, 'Funny')} title="Copy funny text" data-tooltip="Copy">
+                  <button className="card-btn" onClick={() => copy(funnyOutput, 'Funny')} title="Copy funny text" data-tooltip={richClipboardMode ? 'Copy with colors' : 'Copy plain text'}>
                     {copiedStyle === 'Funny' ? '✓ Copied' : '📋 Copy'}
                   </button>
                   <button className="card-btn" onClick={() => shareStyled(funnyOutput, 'Funny')} title="Share with colors" data-tooltip="Share with colors!">🔗 Share</button>
@@ -1212,38 +1509,38 @@ export default function Page() {
           <section className="content glass" id="how-to">
             <h2>How to Use the Fancy Text Generator (Step-by-Step)</h2>
             <p>
-              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds. It works in <strong>every language</strong> — English, Hindi, Arabic, Chinese, Japanese, Russian, and more.
+              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds. It works in <strong>32 languages</strong> — English, Hindi, Arabic, Chinese, Japanese, Russian, and more.
             </p>
             <div className="steps">
               <div className="step">
                 <div className="step-num">1</div>
-                <h3>Type or paste your text</h3>
-                <p>Enter your text in the input box at the top — there is <strong>no character limit</strong>, and you can type in any language. Every keystroke regenerates all 1000+ styles in real time. Use 📥 <strong>Paste</strong> to pull from clipboard.</p>
+                <h3>Choose your language</h3>
+                <p>Click the 🌐 globe button in the header to pick from 32 languages. The editor auto-adjusts direction (RTL/LTR) so Arabic, Hebrew, Persian, and Urdu render perfectly.</p>
               </div>
               <div className="step">
                 <div className="step-num">2</div>
+                <h3>Type or paste your text</h3>
+                <p>Enter your text in the input box — there is <strong>no character limit</strong>. Every keystroke regenerates all 1000+ styles in real time. Use 📥 <strong>Paste</strong> to pull from clipboard — even colored text keeps its color!</p>
+              </div>
+              <div className="step">
+                <div className="step-num">3</div>
                 <h3>Pick a style or a funny mode</h3>
                 <p>Browse the searchable style gallery by category, or open the <strong>Funny Text dropdown</strong> for 28 comedic transformations like Mocking SpongeBob, UwU, Pirate, Leet, Zalgo, and Robot.</p>
               </div>
               <div className="step">
-                <div className="step-num">3</div>
-                <h3>Customize color &amp; style</h3>
-                <p>Open the 🎨 <strong>Color &amp; Background</strong> panel to pick from 16 text colors and 12 background styles (including gradients). Your choice applies live to both fancy &amp; funny previews <em>and</em> the shared image.</p>
-              </div>
-              <div className="step">
                 <div className="step-num">4</div>
-                <h3>Copy or Share with style</h3>
-                <p>Click any style card to copy plain text — or press <strong>🔗 Share</strong> to share the text as a beautiful colored image with your chosen colors and background. Perfect for Instagram Stories &amp; WhatsApp!</p>
+                <h3>Customize color &amp; background</h3>
+                <p>Open the 🎨 <strong>Color &amp; Background</strong> panel to pick from 16 text colors and 12 background styles. Make sure <strong>Rich mode</strong> is ON to copy with color!</p>
               </div>
               <div className="step">
                 <div className="step-num">5</div>
-                <h3>Fine-tune with the toolbar</h3>
-                <p>Open the ⚙️ <strong>Formatting Toolbar</strong> for Bold / Italic / Underline, font family, size, spacing, line height, alignment, and 20+ text transforms.</p>
+                <h3>Copy or Share with style</h3>
+                <p>Click any style card — with Rich mode ON, the text is copied <strong>with your exact colors and background</strong>, ready to paste into WhatsApp, Instagram, Docs, Gmail, or anywhere. Press <strong>🔗 Share</strong> to send as a beautiful PNG image.</p>
               </div>
               <div className="step">
                 <div className="step-num">6</div>
-                <h3>Paste it anywhere</h3>
-                <p>Use the generated text in your Instagram bio, TikTok caption, Discord server nickname, WhatsApp status, Twitter/X post, or YouTube title.</p>
+                <h3>Fine-tune with the toolbar</h3>
+                <p>Open the ⚙️ <strong>Formatting Toolbar</strong> for Bold / Italic / Underline, font family, size, spacing, line height, alignment, and 20+ text transforms.</p>
               </div>
             </div>
           </section>
@@ -1269,12 +1566,12 @@ export default function Page() {
               <div className="feature" title="Color & background" data-tooltip="Color & background picker">
                 <div className="feature-icon">🌈</div>
                 <h3>Color &amp; background</h3>
-                <p>Choose from 16 text colors and 12 background styles — including beautiful gradients. Shares as an image!</p>
+                <p>16 text colors and 12 background styles. Copy keeps the colors — paste anywhere, even in Gmail &amp; Word!</p>
               </div>
-              <div className="feature" title="All languages supported" data-tooltip="Multilingual">
+              <div className="feature" title="32 languages supported" data-tooltip="Multilingual">
                 <div className="feature-icon">🌐</div>
-                <h3>Any language</h3>
-                <p>Type in English, Hindi, Arabic, Chinese, Japanese, Russian — no limits, no restrictions.</p>
+                <h3>32 languages</h3>
+                <p>English, हिन्दी, العربية, 中文, 日本語, 한국어, Русский, Español, Français &amp; 24 more. RTL support included.</p>
               </div>
               <div className="feature" title="Dark & light theme" data-tooltip="Theme toggle">
                 <div className="feature-icon">🌗</div>
@@ -1420,7 +1717,7 @@ export default function Page() {
         }
         .app { min-height: 100vh; position: relative; overflow-x: hidden; padding: 0 0 100px; }
 
-        /* ===== TOOLTIPS ===== */
+        /* TOOLTIPS */
         [data-tooltip] { position: relative; }
         [data-tooltip]::after {
           content: attr(data-tooltip);
@@ -1518,8 +1815,6 @@ export default function Page() {
           animation: spin 8s linear infinite; display: inline-block;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* LOGO LETTER-BY-LETTER ANIMATION */
         .logo-text { display: inline-flex; }
         .logo-char {
           display: inline-block;
@@ -1539,7 +1834,6 @@ export default function Page() {
           45% { transform: translateY(-2px) rotate(-3deg); }
           55% { transform: translateY(-2px) rotate(3deg); }
         }
-
         .logo-badge {
           font-size: 0.68rem; padding: 3px 8px; border-radius: 999px;
           background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
@@ -1564,13 +1858,14 @@ export default function Page() {
           transition: color 0.2s, background 0.2s;
         }
         .nav-link:hover { color: var(--fg); background: var(--glass-bg); }
-        .header-actions { display: flex; gap: 8px; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
         .icon-btn {
           width: 42px; height: 42px; border-radius: 12px;
           background: var(--glass-bg); border: 1px solid var(--glass-border);
           color: var(--fg); cursor: pointer; font-size: 1.05rem;
           display: grid; place-items: center;
           transition: transform 0.2s, background 0.2s;
+          position: relative;
         }
         .icon-btn:hover { transform: scale(1.08); background: rgba(139, 92, 246, 0.15); }
         .icon-btn.down-arrow {
@@ -1587,6 +1882,85 @@ export default function Page() {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(3px); }
         }
+
+        /* LANGUAGE PICKER */
+        .lang-wrap { position: relative; }
+        .icon-btn.lang-btn {
+          grid-template-columns: 1fr;
+          padding: 0;
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.15));
+          border-color: rgba(139, 92, 246, 0.4);
+          gap: 0;
+        }
+        .icon-btn.lang-btn.on {
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+          color: white;
+        }
+        .lang-flag-mini {
+          position: absolute;
+          bottom: 3px;
+          right: 3px;
+          font-size: 0.62rem;
+          line-height: 1;
+          background: rgba(0,0,0,0.5);
+          border-radius: 4px;
+          padding: 1px 3px;
+        }
+        .lang-menu {
+          position: absolute;
+          top: calc(100% + 10px);
+          right: 0;
+          width: 340px;
+          max-height: 460px;
+          padding: 14px;
+          z-index: 200;
+          animation: panelIn 0.25s ease;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
+        .lang-menu-header {
+          display: flex; justify-content: space-between; align-items: center;
+          font-size: 0.85rem; margin-bottom: 10px;
+          padding-bottom: 10px;
+          border-bottom: 1px solid var(--glass-border);
+        }
+        .lang-close {
+          background: transparent; border: none;
+          color: var(--muted); font-size: 1.4rem; cursor: pointer;
+          padding: 0 6px; line-height: 1;
+        }
+        .lang-menu-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 6px;
+          overflow-y: auto;
+          padding-right: 4px;
+          scrollbar-width: thin;
+        }
+        .lang-menu-grid::-webkit-scrollbar { width: 4px; }
+        .lang-menu-grid::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+        .lang-item {
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 10px; border-radius: 9px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid var(--glass-border);
+          color: var(--fg); cursor: pointer;
+          font-family: inherit; text-align: left;
+          transition: all 0.15s;
+          font-size: 0.78rem;
+        }
+        [data-theme='light'] .lang-item { background: rgba(255,255,255,0.7); }
+        .lang-item:hover { background: rgba(139, 92, 246, 0.15); transform: translateY(-1px); }
+        .lang-item.active {
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+          color: white; border-color: transparent;
+        }
+        .lang-item-flag { font-size: 1.05rem; flex-shrink: 0; }
+        .lang-item-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+        .lang-item-name { font-weight: 700; font-size: 0.78rem; }
+        .lang-item-native { font-size: 0.68rem; opacity: 0.75; }
+        .lang-item-check { font-weight: 800; font-size: 0.9rem; }
 
         .main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
@@ -1741,6 +2115,46 @@ export default function Page() {
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
+        /* RICH CLIPBOARD TOGGLE */
+        .rich-toggle {
+          display: flex; align-items: center; gap: 12px;
+          padding: 12px 14px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--glass-border);
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        [data-theme='light'] .rich-toggle { background: rgba(255,255,255,0.7); }
+        .rich-toggle:hover { background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.4); }
+        .rich-toggle input { display: none; }
+        .rich-toggle-track {
+          width: 46px; height: 26px; border-radius: 999px;
+          background: rgba(255,255,255,0.15);
+          border: 1px solid var(--glass-border);
+          position: relative; flex-shrink: 0;
+          transition: background 0.25s;
+        }
+        [data-theme='light'] .rich-toggle-track { background: rgba(0,0,0,0.15); }
+        .rich-toggle input:checked ~ .rich-toggle-track {
+          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+          border-color: transparent;
+        }
+        .rich-toggle-thumb {
+          position: absolute; top: 2px; left: 2px;
+          width: 20px; height: 20px; border-radius: 50%;
+          background: white;
+          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        .rich-toggle input:checked ~ .rich-toggle-track .rich-toggle-thumb {
+          transform: translateX(20px);
+        }
+        .rich-toggle-text {
+          font-size: 0.85rem; font-weight: 700;
+          color: var(--fg);
+        }
+
         .toolbar {
           margin-top: 16px; padding: 14px;
           background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
@@ -1852,7 +2266,6 @@ export default function Page() {
           border-color: rgba(16, 185, 129, 0.5);
           color: #6ee7b7;
         }
-        /* BLINKING / PULSE animation to attract attention */
         .toggle-section-btn.pulse,
         .section-head .toggle-section-btn {
           animation: blinkGlow 1.8s ease-in-out infinite;
@@ -2222,6 +2635,8 @@ export default function Page() {
           .back-to-top { bottom: 14px; }
           .scroll-bottom { bottom: 64px; }
           [data-tooltip]::after { font-size: 0.68rem; padding: 5px 8px; }
+          .lang-menu { width: 300px; right: -60px; }
+          .lang-menu-grid { grid-template-columns: 1fr; }
         }
         @media (min-width: 1280px) { .grid { grid-template-columns: repeat(3, 1fr); } }
         @media (min-width: 1680px) { .grid { grid-template-columns: repeat(4, 1fr); } }
