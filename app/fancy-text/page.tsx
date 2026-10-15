@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import Head from 'next/head';
 
 // ============================================================
@@ -144,34 +150,20 @@ const WRAP_STYLES: [string, (s: string) => string, string][] = [
 ];
 
 const SEPARATOR_STYLES: [string, string, string][] = [
-  ['Spaced', ' ', 'Spaced'],
-  ['Wide Spaced', '  ', 'Spaced'],
-  ['Dash Spaced', '-', 'Spaced'],
-  ['Underscore', '_', 'Spaced'],
-  ['Dot Dot', '.', 'Spaced'],
-  ['Comma', ',', 'Spaced'],
-  ['Colon', ':', 'Spaced'],
-  ['Semicolon', ';', 'Spaced'],
-  ['Tilde', '~', 'Spaced'],
-  ['Slash', '/', 'Spaced'],
-  ['Backslash', '\\', 'Spaced'],
-  ['Pipe', '|', 'Spaced'],
-  ['Bullet', '•', 'Spaced'],
-  ['Star', '★', 'Spaced'],
-  ['Heart', '♥', 'Spaced'],
-  ['Diamond', '◆', 'Spaced'],
-  ['Circle', '●', 'Spaced'],
-  ['Square', '■', 'Spaced'],
-  ['Triangle', '▲', 'Spaced'],
-  ['Plus', '+', 'Spaced'],
-  ['Equal', '=', 'Spaced'],
-  ['Arrow', '→', 'Spaced'],
-  ['Wave', '〜', 'Spaced'],
-  ['Dot Separator', '·', 'Spaced'],
-  ['Asterisk', '*', 'Spaced'],
-  ['Quote', '`', 'Spaced'],
-  ['Space Dash', ' - ', 'Spaced'],
-  ['Space Dot', ' . ', 'Spaced'],
+  ['Spaced', ' ', 'Spaced'], ['Wide Spaced', '  ', 'Spaced'],
+  ['Dash Spaced', '-', 'Spaced'], ['Underscore', '_', 'Spaced'],
+  ['Dot Dot', '.', 'Spaced'], ['Comma', ',', 'Spaced'],
+  ['Colon', ':', 'Spaced'], ['Semicolon', ';', 'Spaced'],
+  ['Tilde', '~', 'Spaced'], ['Slash', '/', 'Spaced'],
+  ['Backslash', '\\', 'Spaced'], ['Pipe', '|', 'Spaced'],
+  ['Bullet', '•', 'Spaced'], ['Star', '★', 'Spaced'],
+  ['Heart', '♥', 'Spaced'], ['Diamond', '◆', 'Spaced'],
+  ['Circle', '●', 'Spaced'], ['Square', '■', 'Spaced'],
+  ['Triangle', '▲', 'Spaced'], ['Plus', '+', 'Spaced'],
+  ['Equal', '=', 'Spaced'], ['Arrow', '→', 'Spaced'],
+  ['Wave', '〜', 'Spaced'], ['Dot Separator', '·', 'Spaced'],
+  ['Asterisk', '*', 'Spaced'], ['Quote', '`', 'Spaced'],
+  ['Space Dash', ' - ', 'Spaced'], ['Space Dot', ' . ', 'Spaced'],
   ['Space Pipe', ' | ', 'Spaced'],
 ];
 
@@ -339,22 +331,14 @@ const FUNNY_STYLES: FunnyDef[] = [
 // COLOR PALETTE
 // ============================================================
 const TEXT_COLORS = [
-  { name: 'Default', value: 'inherit' },
-  { name: 'White', value: '#ffffff' },
-  { name: 'Black', value: '#000000' },
-  { name: 'Purple', value: '#8b5cf6' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Cyan', value: '#06b6d4' },
-  { name: 'Green', value: '#10b981' },
-  { name: 'Yellow', value: '#facc15' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Lime', value: '#a3e635' },
-  { name: 'Rose', value: '#fb7185' },
-  { name: 'Teal', value: '#14b8a6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Amber', value: '#fbbf24' },
+  { name: 'Default', value: 'inherit' }, { name: 'White', value: '#ffffff' },
+  { name: 'Black', value: '#000000' }, { name: 'Purple', value: '#8b5cf6' },
+  { name: 'Pink', value: '#ec4899' }, { name: 'Cyan', value: '#06b6d4' },
+  { name: 'Green', value: '#10b981' }, { name: 'Yellow', value: '#facc15' },
+  { name: 'Orange', value: '#f97316' }, { name: 'Red', value: '#ef4444' },
+  { name: 'Blue', value: '#3b82f6' }, { name: 'Lime', value: '#a3e635' },
+  { name: 'Rose', value: '#fb7185' }, { name: 'Teal', value: '#14b8a6' },
+  { name: 'Indigo', value: '#6366f1' }, { name: 'Amber', value: '#fbbf24' },
 ];
 
 const BG_STYLES = [
@@ -373,21 +357,77 @@ const BG_STYLES = [
 ];
 
 // ============================================================
-// FAQS
+// FAQS — ✅ UPDATED WITH NEW FEATURES
 // ============================================================
 const FAQS = [
-  { q: 'What is a fancy text generator?', a: 'A fancy text generator is an online tool that converts ordinary letters into alternative Unicode characters and symbols. Because these alternative letters exist as real characters in the Unicode standard, the resulting text can be copied and pasted anywhere — Instagram bios, Twitter/X posts, Facebook comments, Discord messages, TikTok captions, WhatsApp chats, or YouTube titles.' },
-  { q: 'How does this fancy text tool work?', a: 'Type or paste your text into the input box at the top of the page. The tool instantly converts your text into 1000+ styles using mathematical alphanumeric symbols, decorative Unicode blocks, combining diacritical marks, and artistic wrappers. Click any style card to copy it to your clipboard.' },
-  { q: 'Is this fancy text generator free?', a: 'Yes, 100% free. There is no signup, no login, no ads, and no character limit. You can generate unlimited fancy text styles every day at no cost.' },
-  { q: 'Will fancy text work on Instagram, Twitter/X, Facebook, and TikTok?', a: 'Yes. All of the Unicode characters used here are supported on Instagram, Twitter/X, Facebook, TikTok, Discord, WhatsApp, Telegram, Snapchat, Reddit, Pinterest, YouTube, LinkedIn, and most modern websites.' },
-  { q: 'What is the Funny Text dropdown feature?', a: 'The Funny Text dropdown is a special collection of 28 comedic text transformations — including Mocking SpongeBob case, UwU speak, Pirate talk, Leet (1337) speak, Zalgo glitch text, Robot mode, Dog and Cat speak, and more.' },
-  { q: 'Can I save my favorite fancy text styles?', a: 'Yes. Click the star icon ☆ on any style card to save it to your Favorites. Favorites are stored locally in your browser so they persist between visits — no account required.' },
-  { q: 'Does the text stay the same when I paste it somewhere else?', a: 'In most cases, yes. The fancy text you generate is made of real Unicode characters, so it pastes exactly as shown on any platform that supports Unicode.' },
-  { q: 'Can I use the generated text for commercial purposes?', a: 'Yes. You own the text you generate. You can use it in social media posts, bios, product names, usernames, T-shirts, artwork, or anywhere else.' },
-  { q: 'Why do some fancy fonts look like squares or boxes?', a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters.' },
-  { q: 'Does this tool work offline?', a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips.' },
-  { q: 'Is there a character limit?', a: 'No! There is no character limit. You can type as much text as you want, in any language — English, Hindi, Arabic, Chinese, Japanese, Korean, Russian, and more.' },
-  { q: 'Can I share my fancy text directly to other apps?', a: 'Yes. Every style card includes a Share button. You can toggle "Share as PNG image" ON to send a beautiful colored image with your chosen text color and background — perfect for WhatsApp Stories, Instagram Stories, etc. When OFF (default), Share sends the fancy text as plain text (no colors), which pastes cleanly anywhere. For rich copy-paste with colors, the Copy button places text on the clipboard with HTML formatting so apps like Gmail, Google Docs, Word, and Telegram keep the colors.' },
+  {
+    q: 'What is a fancy text generator?',
+    a: 'A fancy text generator is an online tool that converts ordinary letters into alternative Unicode characters and symbols. Because these alternative letters exist as real characters in the Unicode standard, the resulting text can be copied and pasted anywhere — Instagram bios, Twitter/X posts, Facebook comments, Discord messages, TikTok captions, WhatsApp chats, or YouTube titles — without installing anything.',
+  },
+  {
+    q: 'How does this fancy text tool work?',
+    a: 'Type or paste your text into the input box at the top of the page. The tool instantly converts your text into 1000+ styles using mathematical alphanumeric symbols, decorative Unicode blocks, combining diacritical marks, and artistic wrappers. Click any style card to copy it to your clipboard — or use the Share button to send it directly.',
+  },
+  {
+    q: 'Is this fancy text generator free?',
+    a: 'Yes, 100% free. There is no signup, no login, no ads, and no character limit. You can generate unlimited fancy text styles every day at no cost.',
+  },
+  {
+    q: 'Will fancy text work on Instagram, Twitter/X, Facebook, and TikTok?',
+    a: 'Yes. All of the Unicode characters used here are supported on Instagram, Twitter/X, Facebook, TikTok, Discord, WhatsApp, Telegram, Snapchat, Reddit, Pinterest, YouTube, LinkedIn, and most modern websites. A few very decorative styles (like combining marks) may not render perfectly on older devices, so we recommend testing before posting.',
+  },
+  {
+    q: 'What is the Funny Text dropdown feature?',
+    a: 'The Funny Text dropdown is a special collection of 28 comedic text transformations — including Mocking SpongeBob case, UwU speak, Pirate talk, Leet (1337) speak, Zalgo glitch text, Robot mode, Dog and Cat speak, Yoda speak, Zombie, Vampire, Wizard spell, and more. Just pick a style from the dropdown, and your text instantly becomes hilarious.',
+  },
+  {
+    q: 'Can I save my favorite fancy text styles?',
+    a: 'Yes. Click the star icon ☆ on any style card to save it to your Favorites. Favorites are stored locally in your browser so they persist between visits — no account required. You can also view recently-copied styles via the Recent tab.',
+  },
+  {
+    q: 'Does the text stay the same when I paste it somewhere else?',
+    a: 'In most cases, yes. The fancy text you generate is made of real Unicode characters, so it pastes exactly as shown on any platform that supports Unicode. Some extremely small, superscript, or combining-mark styles may look different depending on the font used by the destination app.',
+  },
+  {
+    q: 'Can I use the generated text for commercial purposes?',
+    a: 'Yes. You own the text you generate. You can use it in social media posts, bios, product names, usernames, T-shirts, artwork, or anywhere else. The styles are simply Unicode characters, which are a free public standard — no attribution required.',
+  },
+  {
+    q: 'Why do some fancy fonts look like squares or boxes?',
+    a: 'If a particular style shows as empty squares (□□□), that means the device or app you are viewing it on does not have a font that supports those specific Unicode characters. Trying a different style, or switching to a modern device, will usually fix this.',
+  },
+  {
+    q: 'Does this tool work offline?',
+    a: 'The generator works offline once the page has loaded, since all transformations run in your browser — no server round-trips. However, loading the page for the first time requires an internet connection.',
+  },
+  {
+    q: 'Is there a character limit?',
+    a: 'No! There is no character limit. You can type as much text as you want, in any language — English, Hindi, Arabic, Chinese, Japanese, Korean, Russian, and more.',
+  },
+  {
+    q: 'What is the "Share as PNG image" toggle?',
+    a: 'This toggle controls how the Share button works. When ON, the Share button renders your text with your chosen color and background as a large, crisp PNG image — perfect for WhatsApp Stories, Instagram Stories, or anywhere colored text is needed. When OFF (default), the Share button sends just the fancy text as plain text (no colors), which pastes cleanly anywhere. Your choice is saved locally.',
+  },
+  {
+    q: 'Can I copy text with colors and background?',
+    a: 'Yes. When you select a text color or background, the Copy button automatically places the styled text on your clipboard using HTML formatting. This means apps like Gmail, Google Docs, Word, Outlook, Telegram, and Notion keep your exact colors and gradients. Note: WhatsApp chat does not support colored text — for WhatsApp, use the Share as PNG feature to send a styled image.',
+  },
+  {
+    q: 'Can I undo my changes?',
+    a: 'Yes! The editor has full Undo and Redo support — up to 100 steps. Press Ctrl/Cmd + Z to undo, Ctrl/Cmd + Shift + Z (or Ctrl + Y) to redo. You can also click the ↶ Undo and ↷ Redo buttons in the editor toolbar.',
+  },
+  {
+    q: 'What keyboard shortcuts are available?',
+    a: 'Ctrl/Cmd + Z = Undo · Ctrl/Cmd + Shift + Z (or Ctrl + Y) = Redo · Ctrl/Cmd + S = Download as .txt · Ctrl/Cmd + K = Focus the style search · Ctrl/Cmd + / = Toggle the formatting toolbar · Ctrl/Cmd + Shift + P = Toggle Share as PNG · Ctrl/Cmd + Shift + D = Toggle dark/light theme · ? = Open the keyboard shortcuts dialog · Esc = Close panels or clear search. On macOS, use ⌘ (Cmd) instead of Ctrl.',
+  },
+  {
+    q: 'Why is this tool so fast even with 1000+ styles?',
+    a: 'Three optimizations keep it fast: (1) Input is debounced by 150ms so styles only regenerate after you stop typing, not on every keystroke. (2) The style grid is virtualized — only ~20-30 style cards render at a time, no matter how many hundreds of styles match your filter. (3) All transformations run locally in your browser — there are zero server round-trips.',
+  },
+  {
+    q: 'What are the different toast notification colors?',
+    a: 'Toast notifications use color coding: green-cyan for success (copy/paste/download complete), red-orange for errors (copy failed, clipboard blocked), cyan-purple for informational messages (undo/redo, mode changes), and the default purple-pink gradient for general actions. This helps you instantly recognize what just happened.',
+  },
 ];
 
 // ============================================================
@@ -411,7 +451,6 @@ const OTHER_TOOLS = [
 // ============================================================
 // HELPERS
 // ============================================================
-
 function buildRichHTML(text: string, textColor: string, bgStyle: string): string {
   const esc = (s: string) =>
     s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -432,32 +471,22 @@ function buildRTF(text: string, textColor: string, bgStyle: string): string {
   };
   const [r, g, b] = hex(textColor).split(';');
   let bgHex = 'ffffff';
-  if (bgStyle.startsWith('rgba')) {
-    bgHex = 'f5f5ff';
-  } else if (bgStyle.startsWith('#')) {
-    bgHex = bgStyle.slice(1);
-  }
+  if (bgStyle.startsWith('rgba')) bgHex = 'f5f5ff';
+  else if (bgStyle.startsWith('#')) bgHex = bgStyle.slice(1);
   const br = parseInt(bgHex.slice(0, 2), 16) || 245;
   const bgc = parseInt(bgHex.slice(2, 4), 16) || 245;
   const bb = parseInt(bgHex.slice(4, 6), 16) || 255;
   return `{\\rtf1\\ansi\\deff0{\\colortbl ;\\red${r}\\green${g}\\blue${b};\\red${br}\\green${bgc}\\blue${bb};}\\fs40\\cf1 ${esc(text)}}`;
 }
 
-async function copyRich(
-  text: string,
-  html: string,
-  rtf: string,
-  plainText: string
-): Promise<boolean> {
+async function copyRich(text: string, html: string, rtf: string, plainText: string): Promise<boolean> {
   try {
     if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
       const items: Record<string, Blob> = {
         'text/plain': new Blob([plainText], { type: 'text/plain' }),
         'text/html': new Blob([html], { type: 'text/html' }),
       };
-      try {
-        items['text/rtf'] = new Blob([rtf], { type: 'text/rtf' });
-      } catch {}
+      try { items['text/rtf'] = new Blob([rtf], { type: 'text/rtf' }); } catch {}
       await navigator.clipboard.write([new ClipboardItem(items)]);
       return true;
     }
@@ -480,23 +509,12 @@ async function copyRich(
     document.body.removeChild(el);
     if (ok) return true;
   } catch {}
-  try {
-    await navigator.clipboard.writeText(plainText);
-    return true;
-  } catch {
-    return false;
-  }
+  try { await navigator.clipboard.writeText(plainText); return true; } catch { return false; }
 }
 
-// FIXED: canvas PNG render — bigger fonts, higher resolution, readable without zoom
 async function renderStyledToPNG(
   text: string,
-  opts: {
-    textColor: string;
-    bgStyle: string;
-    fontFamily: string;
-    align: 'left' | 'center' | 'right';
-  }
+  opts: { textColor: string; bgStyle: string; fontFamily: string; align: 'left' | 'center' | 'right'; }
 ): Promise<Blob | null> {
   try {
     if (typeof document !== 'undefined' && (document as any).fonts?.ready) {
@@ -508,14 +526,12 @@ async function renderStyledToPNG(
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  // Bigger canvas + higher DPR → crisp, large readable text
   const dpr = Math.min(Math.max(window.devicePixelRatio || 2, 2), 3);
   const padding = 80;
-  const baseFontSize = 96; // much bigger than before (was 36)
+  const baseFontSize = 96;
   const fontStack = `800 ${baseFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
 
   ctx.font = fontStack;
-
   const lines = text.split('\n');
   let maxLineWidth = 400;
   for (const line of lines) {
@@ -523,7 +539,6 @@ async function renderStyledToPNG(
     if (w > maxLineWidth) maxLineWidth = w;
   }
 
-  // Wider max so long lines don't get squeezed too small
   const minWidth = 720;
   const maxWidth = 2400;
   const width = Math.min(Math.max(maxLineWidth + padding * 2, minWidth), maxWidth);
@@ -571,12 +586,8 @@ async function renderStyledToPNG(
       grad.addColorStop(0, c1);
       grad.addColorStop(1, c2);
       ctx.fillStyle = grad;
-    } else {
-      ctx.fillStyle = '#0a0a1a';
-    }
-  } else {
-    ctx.fillStyle = bg;
-  }
+    } else { ctx.fillStyle = '#0a0a1a'; }
+  } else { ctx.fillStyle = bg; }
   ctx.fillRect(0, 0, width, height);
   ctx.restore();
 
@@ -584,15 +595,11 @@ async function renderStyledToPNG(
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
 
-  // Auto-shrink only if the text is really long — never below 40px (still readable)
   let currentFontSize = baseFontSize;
   const minFontSize = 40;
   const longestLine = lines.reduce((a, b) => (a.length > b.length ? a : b), '');
   ctx.font = `800 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
-  while (
-    ctx.measureText(longestLine).width > width - padding * 2 &&
-    currentFontSize > minFontSize
-  ) {
+  while (ctx.measureText(longestLine).width > width - padding * 2 && currentFontSize > minFontSize) {
     currentFontSize -= 2;
     ctx.font = `800 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
   }
@@ -603,29 +610,148 @@ async function renderStyledToPNG(
 
   lines.forEach((line, i) => {
     const lineW = ctx.measureText(line).width;
-    const x =
-      opts.align === 'left'
-        ? padding
-        : opts.align === 'right'
-        ? width - padding - lineW
-        : (width - lineW) / 2;
+    const x = opts.align === 'left' ? padding : opts.align === 'right' ? width - padding - lineW : (width - lineW) / 2;
     ctx.fillText(line, x, startY + i * finalLineH);
   });
 
-  return new Promise(res => {
-    canvas.toBlob(b => res(b), 'image/png', 1.0);
-  });
+  return new Promise(res => { canvas.toBlob(b => res(b), 'image/png', 1.0); });
+}
+
+// ============================================================
+// HOOKS
+// ============================================================
+function useUndoableState(initial: string) {
+  const [history, setHistory] = useState<string[]>([initial]);
+  const [index, setIndex] = useState(0);
+  const lastPush = useRef(0);
+
+  const set = useCallback((next: string, opts?: { immediate?: boolean }) => {
+    const now = Date.now();
+    if (!opts?.immediate && now - lastPush.current < 400) {
+      setHistory(h => { const copy = h.slice(0, index + 1); copy[index] = next; return copy; });
+      return;
+    }
+    lastPush.current = now;
+    setHistory(h => {
+      const trimmed = h.slice(0, index + 1);
+      if (trimmed[trimmed.length - 1] === next) return trimmed;
+      const nextHist = [...trimmed, next];
+      if (nextHist.length > 100) nextHist.shift();
+      return nextHist;
+    });
+    setIndex(i => Math.min(i + 1, 99));
+  }, [index]);
+
+  const undo = useCallback(() => { setIndex(i => i <= 0 ? i : i - 1); }, []);
+  const redo = useCallback(() => { setIndex(i => i >= history.length - 1 ? i : i + 1); }, [history.length]);
+  const reset = useCallback((v: string) => { setHistory([v]); setIndex(0); }, []);
+
+  return {
+    value: history[index] ?? '',
+    set, undo, redo, reset,
+    canUndo: index > 0,
+    canRedo: index < history.length - 1,
+  };
+}
+
+function useDebounced<T>(value: T, delay = 150): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
+// ============================================================
+// VIRTUAL GRID
+// ============================================================
+type VirtualGridProps<T> = {
+  items: T[];
+  renderItem: (item: T, index: number) => React.ReactNode;
+  minColWidth?: number;
+  rowHeight: number;
+  gap?: number;
+};
+
+function VirtualGrid<T>({ items, renderItem, minColWidth = 280, rowHeight, gap = 14 }: VirtualGridProps<T>) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(1200);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [viewportH, setViewportH] = useState(800);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onResize = () => setContainerWidth(el.clientWidth || 1200);
+    onResize();
+    const ro = new ResizeObserver(onResize);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = containerRef.current;
+      if (!el) return;
+      setScrollTop(window.scrollY);
+      setViewportH(window.innerHeight);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
+  const cols = Math.max(1, Math.floor((containerWidth + gap) / (minColWidth + gap)));
+  const rows = Math.ceil(items.length / cols);
+  const totalHeight = rows * (rowHeight + gap);
+
+  const el = containerRef.current;
+  const containerTop = el ? el.getBoundingClientRect().top + window.scrollY : 0;
+  const relativeScroll = Math.max(0, scrollTop - containerTop);
+  const overscan = 2;
+  const firstRow = Math.max(0, Math.floor(relativeScroll / (rowHeight + gap)) - overscan);
+  const lastRow = Math.min(rows - 1, Math.ceil((relativeScroll + viewportH) / (rowHeight + gap)) + overscan);
+
+  const visible: React.ReactNode[] = [];
+  for (let r = firstRow; r <= lastRow; r++) {
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c;
+      if (idx >= items.length) break;
+      const top = r * (rowHeight + gap);
+      const left = c * (minColWidth + gap);
+      visible.push(
+        <div key={idx} style={{ position: 'absolute', top, left, width: minColWidth, height: rowHeight }}>
+          {renderItem(items[idx], idx)}
+        </div>
+      );
+    }
+  }
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%', height: totalHeight }}>
+      {visible}
+    </div>
+  );
 }
 
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
 export default function Page() {
-  const [input, setInput] = useState('Hello World');
+  const inputState = useUndoableState('Hello World');
+  const input = inputState.value;
+  const debouncedInput = useDebounced(input, 150);
+
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [toast, setToast] = useState('');
+  const [toastVariant, setToastVariant] = useState<'default' | 'success' | 'error' | 'info'>('default');
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -648,13 +774,14 @@ export default function Page() {
   const [showFancy, setShowFancy] = useState(true);
   const [showFunny, setShowFunny] = useState(true);
   const [styleSearch, setStyleSearch] = useState('');
-
-  // NEW: user-controlled "share as PNG" toggle (default OFF → shares fancy text)
   const [shareAsPNG, setShareAsPNG] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fancyRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -689,101 +816,76 @@ export default function Page() {
     localStorage.setItem('shareAsPNG', String(shareAsPNG));
   }, [shareAsPNG, mounted]);
 
-  const showToast = useCallback((msg: string) => {
+  const showToast = useCallback((msg: string, variant: 'default' | 'success' | 'error' | 'info' = 'default') => {
     setToast(msg);
+    setToastVariant(variant);
     setTimeout(() => setToast(''), 2000);
   }, []);
 
-  const copy = useCallback(
-    async (text: string, label: string) => {
-      const hasStyle = textColor !== 'inherit' || bgStyle !== 'transparent';
-      if (hasStyle) {
-        const html = buildRichHTML(text, textColor, bgStyle);
-        const rtf = buildRTF(text, textColor, bgStyle);
-        const ok = await copyRich(text, html, rtf, text);
-        if (ok) {
-          showToast(`✓ ${label} copied!`);
-        } else {
-          showToast('✓ Copied!');
-        }
-      } else {
-        try {
-          await navigator.clipboard.writeText(text);
-          showToast(`✓ ${label} copied!`);
-        } catch {
-          showToast('Copy failed');
-        }
-      }
-      setCopiedStyle(label);
-      setTimeout(() => setCopiedStyle(null), 1400);
-    },
-    [showToast, textColor, bgStyle]
-  );
-
-  // UPDATED: share respects user's shareAsPNG toggle
-  const shareStyled = useCallback(
-    async (text: string, label: string) => {
+  const copy = useCallback(async (text: string, label: string) => {
+    const hasStyle = textColor !== 'inherit' || bgStyle !== 'transparent';
+    if (hasStyle) {
+      const html = buildRichHTML(text, textColor, bgStyle);
+      const rtf = buildRTF(text, textColor, bgStyle);
+      const ok = await copyRich(text, html, rtf, text);
+      if (ok) showToast(`✓ "${label}" copied!`, 'success');
+      else showToast('✗ Copy failed — try again', 'error');
+    } else {
       try {
-        // When user enabled "Share as PNG" → render image with colors
-        if (shareAsPNG) {
-          const blob = await renderStyledToPNG(text, {
-            textColor,
-            bgStyle,
-            fontFamily,
-            align,
-          });
+        await navigator.clipboard.writeText(text);
+        showToast(`✓ "${label}" copied!`, 'success');
+      } catch {
+        showToast('✗ Copy failed — check browser permissions', 'error');
+      }
+    }
+    setCopiedStyle(label);
+    setTimeout(() => setCopiedStyle(null), 1400);
+  }, [showToast, textColor, bgStyle]);
 
-          if (blob) {
-            const file = new File([blob], `fancy-text-${Date.now()}.png`, { type: 'image/png' });
-
-            if (
-              typeof navigator !== 'undefined' &&
-              typeof (navigator as any).canShare === 'function' &&
-              (navigator as any).canShare({ files: [file] }) &&
-              typeof navigator.share === 'function'
-            ) {
-              try {
-                await navigator.share({
-                  title: 'Fancy Text',
-                  text: label,
-                  files: [file],
-                });
-                showToast('✓ Shared styled image!');
+  const shareStyled = useCallback(async (text: string, label: string) => {
+    try {
+      if (shareAsPNG) {
+        setIsSharing(true);
+        showToast('🖼 Generating PNG…', 'info');
+        const blob = await renderStyledToPNG(text, { textColor, bgStyle, fontFamily, align });
+        if (blob) {
+          const file = new File([blob], `fancy-text-${Date.now()}.png`, { type: 'image/png' });
+          if (typeof navigator !== 'undefined' && typeof (navigator as any).canShare === 'function' &&
+              (navigator as any).canShare({ files: [file] }) && typeof navigator.share === 'function') {
+            try {
+              await navigator.share({ title: 'Fancy Text', text: label, files: [file] });
+              showToast('✓ Shared styled image!', 'success');
+              setIsSharing(false);
+              return;
+            } catch (err: any) {
+              if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
+                setIsSharing(false);
                 return;
-              } catch (err: any) {
-                if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
-                  return;
-                }
               }
             }
-
-            // Fallback: download the PNG
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `fancy-text-${label.replace(/\s+/g, '-').toLowerCase()}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showToast('✓ Saved as PNG image');
-            return;
           }
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `fancy-text-${label.replace(/\s+/g, '-').toLowerCase()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          showToast('✓ Saved as PNG image', 'success');
+          setIsSharing(false);
+          return;
         }
-
-        // Default: share fancy text as plain text (no colors)
-        if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-          await navigator.share({ title: 'Fancy Text', text });
-          showToast('✓ Shared!');
-        } else {
-          await copy(text, label);
-        }
-      } catch {
-        // silent
+        setIsSharing(false);
       }
-    },
-    [shareAsPNG, bgStyle, textColor, fontFamily, align, copy, showToast]
-  );
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({ title: 'Fancy Text', text });
+        showToast('✓ Shared!', 'success');
+      } else {
+        await copy(text, label);
+      }
+    } catch { setIsSharing(false); }
+  }, [shareAsPNG, bgStyle, textColor, fontFamily, align, copy, showToast]);
 
   const toggleFav = useCallback((name: string) => {
     setFavorites(p => (p.includes(name) ? p.filter(n => n !== name) : [...p, name]));
@@ -794,8 +896,8 @@ export default function Page() {
   }, []);
 
   const applyTransform = useCallback((type: string) => {
-    setInput(prev => {
-      const s = prev;
+    inputState.set((() => {
+      const s = input;
       switch (type) {
         case 'upper': return s.toUpperCase();
         case 'lower': return s.toLowerCase();
@@ -818,21 +920,21 @@ export default function Page() {
         case 'alternateCase': return [...s].map((c, i) => i % 2 ? c.toLowerCase() : c.toUpperCase()).join('');
         case 'duplicateWords': return s.split(/\s+/).filter(Boolean).map(w => `${w} ${w}`).join(' ');
         case 'duplicateChars': return [...s].map(c => c === ' ' ? ' ' : `${c}${c}`).join('');
-        default: return prev;
+        default: return s;
       }
-    });
-    showToast('✓ Applied');
-  }, [showToast]);
+    })(), { immediate: true });
+    showToast('✓ Applied', 'success');
+  }, [input, inputState, showToast]);
 
   const clearAll = useCallback(() => {
-    setInput('');
+    inputState.reset('');
     setBold(false); setItalic(false); setUnderline(false); setUppercase(false);
     setFontSize(16); setLetterSpacing(0); setLineHeight(1.4); setAlign('left');
     setFontFamily('Inter');
     setTextColor(TEXT_COLORS[0].value);
     setBgStyle(BG_STYLES[0].value);
-    showToast('✓ Cleared');
-  }, [showToast]);
+    showToast('✓ Cleared', 'success');
+  }, [inputState, showToast]);
 
   const pasteFromClipboard = useCallback(async () => {
     try {
@@ -873,10 +975,7 @@ export default function Page() {
         } catch {}
       }
 
-      if (!pastedText) {
-        pastedText = await navigator.clipboard.readText();
-      }
-
+      if (!pastedText) pastedText = await navigator.clipboard.readText();
       if (detectedColor) setTextColor(detectedColor);
       if (detectedBg) setBgStyle(detectedBg);
 
@@ -887,7 +986,7 @@ export default function Page() {
         const before = input.slice(0, start);
         const after = input.slice(end);
         const next = before + pastedText + after;
-        setInput(next);
+        inputState.set(next, { immediate: true });
         requestAnimationFrame(() => {
           try {
             const newPos = start + pastedText.length;
@@ -896,52 +995,80 @@ export default function Page() {
           } catch {}
         });
       } else {
-        setInput(prev => prev + pastedText);
+        inputState.set(input + pastedText, { immediate: true });
       }
-
-      showToast(
-        detectedColor || detectedBg ? '✓ Pasted with style!' : '✓ Pasted'
-      );
+      showToast(detectedColor || detectedBg ? '✓ Pasted with style!' : '✓ Pasted', 'success');
     } catch {
-      showToast('Paste failed');
+      showToast('✗ Paste failed — allow clipboard access', 'error');
     }
-  }, [showToast, input]);
+  }, [input, inputState, showToast]);
 
   const download = useCallback(() => {
-    const blob = new Blob([input], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'fancy-text.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('✓ Downloaded');
+    try {
+      const blob = new Blob([input], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'fancy-text.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('✓ Downloaded fancy-text.txt', 'success');
+    } catch { showToast('✗ Download failed', 'error'); }
   }, [input, showToast]);
 
   const scrollToBottom = useCallback(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    } else {
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
-    }
+    if (bottomRef.current) bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    else window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
   }, []);
 
-  const scrollToFancy = useCallback(() => {
-    if (fancyRef.current) {
-      fancyRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      const el = document.getElementById('styles');
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      const target = e.target as HTMLElement | null;
+      const isInput = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+
+      if (mod && !e.shiftKey && e.key.toLowerCase() === 'z' && isInput) {
+        e.preventDefault(); inputState.undo(); showToast('↶ Undo', 'info'); return;
+      }
+      if ((mod && e.shiftKey && e.key.toLowerCase() === 'z') || (mod && e.key.toLowerCase() === 'y')) {
+        if (isInput) { e.preventDefault(); inputState.redo(); showToast('↷ Redo', 'info'); return; }
+      }
+      if (mod && e.key.toLowerCase() === 's') { e.preventDefault(); download(); return; }
+      if (mod && e.key.toLowerCase() === 'k') { e.preventDefault(); searchRef.current?.focus(); showToast('🔍 Search focused', 'info'); return; }
+      if (mod && e.key === '/') { e.preventDefault(); setShowToolbar(v => !v); return; }
+      if (mod && e.shiftKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setShareAsPNG(v => !v);
+        showToast(shareAsPNG ? '📝 Sharing as fancy text' : '🖼️ Sharing as PNG image', 'info');
+        return;
+      }
+      if (mod && e.shiftKey && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        setTheme(t => (t === 'dark' ? 'light' : 'dark'));
+        return;
+      }
+      if (e.key === '?' && !isInput) { e.preventDefault(); setShowShortcuts(v => !v); return; }
+      if (e.key === 'Escape') {
+        if (showShortcuts) setShowShortcuts(false);
+        else if (showColorPanel) setShowColorPanel(false);
+        else if (styleSearch) setStyleSearch('');
+        else if (search) setSearch('');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [inputState, download, showToast, showColorPanel, styleSearch, search, showShortcuts, shareAsPNG]);
 
   const currentFunny = useMemo(
     () => FUNNY_STYLES.find(f => f.id === funnyId) || FUNNY_STYLES[0],
     [funnyId]
   );
-  const funnyOutput = useMemo(() => currentFunny.fn(input || 'Hello'), [currentFunny, input]);
+  const funnyOutput = useMemo(
+    () => currentFunny.fn(debouncedInput || 'Hello'),
+    [currentFunny, debouncedInput]
+  );
 
-  const inputPreviewStyle: React.CSSProperties = {
+  const inputPreviewStyle: React.CSSProperties = useMemo(() => ({
     fontFamily: `'${fontFamily}', system-ui, sans-serif`,
     fontSize: `${fontSize}px`,
     fontWeight: bold ? 800 : 400,
@@ -953,7 +1080,7 @@ export default function Page() {
     lineHeight,
     color: textColor === 'inherit' ? undefined : textColor,
     background: bgStyle === 'transparent' ? undefined : bgStyle,
-  };
+  }), [fontFamily, fontSize, bold, italic, underline, uppercase, align, letterSpacing, lineHeight, textColor, bgStyle]);
 
   const filteredStyles = useMemo(() => {
     const q = (styleSearch || search).toLowerCase().trim();
@@ -961,9 +1088,7 @@ export default function Page() {
       if (category === 'Favorites' && !favorites.includes(s.name)) return false;
       if (category === 'Recent' && !recent.includes(s.name)) return false;
       if (category !== 'All' && category !== 'Favorites' && category !== 'Recent' && s.category !== category) return false;
-      if (q) {
-        return s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q);
-      }
+      if (q) return s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q);
       return true;
     });
   }, [category, search, styleSearch, favorites, recent]);
@@ -972,35 +1097,193 @@ export default function Page() {
 
   return (
     <>
+      {/* ============================================================
+          ✅ UPDATED SEO HEAD — title, description, keywords, schema
+          ============================================================ */}
       <Head>
-        <title>Fancy Text Generator — 1000+ Stylish Fonts, Funny Text & Cool Unicode Styles (Free)</title>
-        <meta name="description" content="Free fancy text generator with 1000+ stylish fonts, funny text styles, and cool Unicode characters. Instantly copy & paste fancy letters for Instagram, TikTok, Discord, Twitter/X, WhatsApp bios & posts." />
-        <meta name="keywords" content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts, funny text generator, mocking spongebob text, uwu text, zalgo text, leet speak, bubble text, cursive text, aesthetic fonts" />
+        <title>Fancy Text Generator — 1000+ Stylish Fonts, Funny Text &amp; Cool Unicode Styles (Free)</title>
+        <meta
+          name="description"
+          content="Free fancy text generator with 1000+ stylish fonts, funny text styles, custom colors & gradients, and cool Unicode characters. Undo/Redo, keyboard shortcuts, share as PNG. Instantly copy & paste for Instagram, TikTok, Discord, Twitter/X, WhatsApp bios & posts. No signup, no ads."
+        />
+        <meta
+          name="keywords"
+          content="fancy text, fancy text generator, stylish text, cool fonts, unicode text, instagram fonts, fancy letters, text styles, copy paste fonts, funny text generator, mocking spongebob text, uwu text, zalgo text, leet speak, bubble text, cursive text, aesthetic fonts, colored text generator, fancy text with colors, share fancy text as image, fancy text keyboard shortcuts, undo redo text editor, cursive fonts, gothic fonts, bold text, italic text, gaming username fonts, discord nickname fonts, tiktok caption fonts"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <meta name="theme-color" content={theme === 'dark' ? '#07071a' : '#f5f5ff'} />
-        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
         <meta name="author" content="FancyText Generator" />
-        <meta property="og:title" content="Fancy Text Generator — 1000+ Stylish & Funny Text Styles" />
-        <meta property="og:description" content="Transform text into 1000+ fancy fonts and funny styles instantly. Free, fast, no signup." />
+        <meta name="application-name" content="FancyText Generator" />
+        <meta name="apple-mobile-web-app-title" content="FancyText" />
+        <meta name="format-detection" content="telephone=no" />
+
+        {/* Open Graph */}
         <meta property="og:type" content="website" />
+        <meta property="og:title" content="Fancy Text Generator — 1000+ Stylish & Funny Text Styles" />
+        <meta
+          property="og:description"
+          content="Transform text into 1000+ fancy fonts and funny styles instantly. Custom colors, gradient backgrounds, share as PNG. Free, fast, no signup."
+        />
         <meta property="og:url" content="https://example.com/fancy-text" />
         <meta property="og:site_name" content="FancyText Generator" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:image" content="https://example.com/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Fancy Text Generator — create stylish Unicode text instantly" />
+
+        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@yourhandle" />
+        <meta name="twitter:creator" content="@yourhandle" />
+        <meta name="twitter:title" content="Fancy Text Generator — 1000+ Styles" />
+        <meta
+          name="twitter:description"
+          content="Copy & paste 1000+ fancy and funny text styles instantly. Colors, gradients, PNG share, undo/redo, keyboard shortcuts. Free forever."
+        />
+        <meta name="twitter:image" content="https://example.com/og-image.png" />
+
         <link rel="canonical" href="https://example.com/fancy-text" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          '@context': 'https://schema.org', '@type': 'WebApplication',
-          name: 'Fancy Text Generator', url: 'https://example.com/fancy-text',
-          applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any',
-          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-          aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', ratingCount: '1284' },
-        })}} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          '@context': 'https://schema.org', '@type': 'FAQPage',
-          mainEntity: FAQS.map(f => ({
-            '@type': 'Question', name: f.q,
-            acceptedAnswer: { '@type': 'Answer', text: f.a },
-          })),
-        })}} />
+
+        {/* Alternate / hreflang */}
+        <link rel="alternate" hrefLang="en-US" href="https://example.com/fancy-text" />
+        <link rel="alternate" hrefLang="en-GB" href="https://example.com/fancy-text" />
+        <link rel="alternate" hrefLang="x-default" href="https://example.com/fancy-text" />
+
+        {/* Preconnect for perf */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* ============================================================
+            Structured Data — WebApplication (this page)
+            ============================================================ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebApplication',
+              '@id': 'https://example.com/fancy-text#webapp',
+              name: 'Fancy Text Generator',
+              url: 'https://example.com/fancy-text',
+              description:
+                'Generate 1000+ fancy text styles and 28 funny text transformations instantly. Custom colors, gradient backgrounds, undo/redo, keyboard shortcuts, share as PNG.',
+              applicationCategory: 'UtilitiesApplication',
+              applicationSubCategory: 'Text Tools',
+              operatingSystem: 'Any',
+              browserRequirements: 'Requires JavaScript',
+              softwareVersion: '2.0.0',
+              datePublished: '2024-01-01',
+              dateModified: new Date().toISOString().split('T')[0],
+              inLanguage: 'en-US',
+              isAccessibleForFree: true,
+              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', availability: 'https://schema.org/InStock' },
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.9',
+                ratingCount: '1284',
+                bestRating: '5',
+                worstRating: '1',
+              },
+              featureList: [
+                '1000+ fancy text styles',
+                'Funny text generator (28 modes)',
+                'Bold, italic, cursive, gothic, bubble fonts',
+                'Custom text colors & gradient backgrounds',
+                'Share as PNG image with colors',
+                'Undo and Redo (up to 100 steps)',
+                'Full keyboard shortcuts',
+                'Dark and light theme',
+                'Favorites and recent history',
+                'Copy & paste with colors (HTML/RTF)',
+                'Download as .txt',
+                'Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X',
+              ],
+              screenshot: ['https://example.com/og-image.png'],
+            }),
+          }}
+        />
+
+        {/* ============================================================
+            Structured Data — FAQPage
+            ============================================================ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: FAQS.map(f => ({
+                '@type': 'Question',
+                name: f.q,
+                acceptedAnswer: { '@type': 'Answer', text: f.a },
+              })),
+            }),
+          }}
+        />
+
+        {/* ============================================================
+            Structured Data — HowTo
+            ============================================================ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'HowTo',
+              name: 'How to Use the Fancy Text Generator',
+              description:
+                'Learn how to generate, customize, and share 1000+ fancy text styles and funny text in a few seconds.',
+              totalTime: 'PT1M',
+              step: [
+                { '@type': 'HowToStep', name: 'Type your text', text: 'Type or paste your text into the input box. There is no character limit.' },
+                { '@type': 'HowToStep', name: 'Choose a style', text: 'Browse 1000+ fancy text styles by category or search, or pick a Funny Text style from the dropdown.' },
+                { '@type': 'HowToStep', name: 'Customize color', text: 'Open the Color & Background panel to pick from 16 text colors and 12 background styles.' },
+                { '@type': 'HowToStep', name: 'Choose share mode', text: 'Toggle Share as PNG image ON to send a colored image, or leave OFF to share plain fancy text.' },
+                { '@type': 'HowToStep', name: 'Copy or Share', text: 'Click any style card to copy, or use the Share button. Rich colors are preserved on the clipboard.' },
+              ],
+            }),
+          }}
+        />
+
+        {/* ============================================================
+            Structured Data — BreadcrumbList
+            ============================================================ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://example.com/' },
+                { '@type': 'ListItem', position: 2, name: 'Fancy Text Generator', item: 'https://example.com/fancy-text' },
+              ],
+            }),
+          }}
+        />
+
+        {/* ============================================================
+            Structured Data — ItemList (all styles categories)
+            ============================================================ */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'ItemList',
+              name: 'Fancy Text Style Categories',
+              numberOfItems: CATEGORIES.length - 3,
+              itemListElement: CATEGORIES.filter(c => !['All', 'Favorites', 'Recent'].includes(c))
+                .map((c, i) => ({
+                  '@type': 'ListItem',
+                  position: i + 1,
+                  name: `${c} Fonts`,
+                })),
+            }),
+          }}
+        />
       </Head>
 
       <div className="app">
@@ -1039,6 +1322,15 @@ export default function Page() {
             </nav>
             <div className="header-actions">
               <button
+                className="icon-btn"
+                onClick={() => setShowShortcuts(v => !v)}
+                aria-label="Keyboard shortcuts"
+                title="Keyboard shortcuts (press ?)"
+                data-tooltip="Keyboard shortcuts"
+              >
+                ⌨️
+              </button>
+              <button
                 className="icon-btn down-arrow"
                 onClick={scrollToBottom}
                 aria-label="Scroll to bottom"
@@ -1051,8 +1343,8 @@ export default function Page() {
                 className="icon-btn"
                 onClick={() => setShowToolbar(v => !v)}
                 aria-label="Toggle formatting toolbar"
-                title="Toggle formatting toolbar"
-                data-tooltip={showToolbar ? 'Hide toolbar' : 'Show formatting toolbar'}
+                title="Toggle formatting toolbar (Ctrl/Cmd + /)"
+                data-tooltip="Formatting toolbar (Ctrl+/)"
               >
                 {showToolbar ? '▼' : '⚙️'}
               </button>
@@ -1060,8 +1352,8 @@ export default function Page() {
                 className="icon-btn"
                 onClick={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
                 aria-label="Toggle theme"
-                title="Toggle dark/light theme"
-                data-tooltip={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                title="Toggle dark/light theme (Ctrl+Shift+D)"
+                data-tooltip="Theme (Ctrl+Shift+D)"
               >
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
@@ -1071,10 +1363,10 @@ export default function Page() {
 
         <main className="main">
           <section className="hero">
-            <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · 28 funny modes · No signup</div>
+            <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · 28 funny modes · Undo/Redo · Keyboard shortcuts</div>
             <h1 className="hero-title">1000+ <span className="grad-text">Fancy Text</span> &amp; Funny Text Generator</h1>
             <p className="hero-sub">
-              Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more.
+              Type once · Copy any style · Paste anywhere. Custom colors, gradient backgrounds, share as PNG. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more.
             </p>
           </section>
 
@@ -1093,19 +1385,35 @@ export default function Page() {
                 ref={textareaRef}
                 className="input"
                 value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => inputState.set(e.target.value)}
                 placeholder="Type or paste your text here... (no character limit)"
                 rows={3}
                 style={inputPreviewStyle}
                 spellCheck={false}
-                data-tooltip="Type your text here — no character limit"
+                data-tooltip="Type your text here — Ctrl+Z undo, Ctrl+Y redo"
               />
               <div className="input-meta">
                 <span className="count">{input.length} characters · no limit</span>
                 <div className="input-actions">
+                  <button
+                    className="mini-btn"
+                    onClick={() => { inputState.undo(); showToast('↶ Undo', 'info'); }}
+                    disabled={!inputState.canUndo}
+                    title="Undo (Ctrl/Cmd + Z)"
+                    data-tooltip="Undo (Ctrl+Z)"
+                    style={{ opacity: inputState.canUndo ? 1 : 0.4 }}
+                  >↶ Undo</button>
+                  <button
+                    className="mini-btn"
+                    onClick={() => { inputState.redo(); showToast('↷ Redo', 'info'); }}
+                    disabled={!inputState.canRedo}
+                    title="Redo (Ctrl/Cmd + Shift + Z)"
+                    data-tooltip="Redo (Ctrl+Shift+Z)"
+                    style={{ opacity: inputState.canRedo ? 1 : 0.4 }}
+                  >↷ Redo</button>
                   <button className="mini-btn" onClick={pasteFromClipboard} title="Paste from clipboard" data-tooltip="Paste from clipboard">📥 Paste</button>
                   <button className="mini-btn" onClick={() => copy(input, 'Text')} title="Copy text" data-tooltip="Copy">📋 Copy</button>
-                  <button className="mini-btn" onClick={download} title="Download as .txt" data-tooltip="Download as .txt file">💾 Save</button>
+                  <button className="mini-btn" onClick={download} title="Download as .txt (Ctrl/Cmd + S)" data-tooltip="Download (Ctrl+S)">💾 Save</button>
                   <button className="mini-btn danger" onClick={clearAll} title="Clear everything" data-tooltip="Clear all text and styles">🗑 Clear</button>
                 </div>
               </div>
@@ -1166,6 +1474,19 @@ export default function Page() {
                       💡 <strong>Tip:</strong> Rich colors work when pasting into Gmail, Google Docs, Word, Telegram &amp; similar apps. <strong>WhatsApp chat does not support colored text</strong> — turn ON <strong>Share as PNG image</strong> below to send a styled image instead.
                     </div>
                   </div>
+
+                  <div className="color-section">
+                    <button
+                      className="mini-btn"
+                      onClick={() => {
+                        setTextColor(TEXT_COLORS[0].value);
+                        setBgStyle(BG_STYLES[0].value);
+                        showToast('✓ Colors reset', 'success');
+                      }}
+                      title="Reset text color & background"
+                      data-tooltip="Reset colors"
+                    >↺ Reset Colors</button>
+                  </div>
                 </div>
               )}
             </div>
@@ -1181,7 +1502,6 @@ export default function Page() {
                   <button className="tool-btn" onClick={() => applyTransform('toggleCase')} title="tOGGLE cASE" data-tooltip="tOGGLE cASE">tG</button>
                   <button className="tool-btn" onClick={() => applyTransform('alternateCase')} title="aLtErNaTiNg" data-tooltip="aLtErNaTiNg CaSe">aA</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Naming</span>
                   <button className="tool-btn" onClick={() => applyTransform('camel')} title="camelCase" data-tooltip="camelCase">cC</button>
@@ -1190,7 +1510,6 @@ export default function Page() {
                   <button className="tool-btn" onClick={() => applyTransform('kebab')} title="kebab-case" data-tooltip="kebab-case">k-k</button>
                   <button className="tool-btn" onClick={() => applyTransform('constant')} title="CONSTANT_CASE" data-tooltip="CONSTANT_CASE">C_C</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Cleanup</span>
                   <button className="tool-btn" onClick={() => applyTransform('trim')} title="Trim leading/trailing spaces" data-tooltip="Trim spaces at edges">✂</button>
@@ -1201,14 +1520,12 @@ export default function Page() {
                   <button className="tool-btn" onClick={() => applyTransform('removePunctuation')} title="Remove all punctuation marks" data-tooltip="Remove punctuation">!x</button>
                   <button className="tool-btn" onClick={() => applyTransform('removeExtraDots')} title="Collapse multiple dots into one" data-tooltip="Collapse ... into .">..</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Fun</span>
                   <button className="tool-btn" onClick={() => applyTransform('reverse')} title="Reverse the entire text" data-tooltip="Reverse text">⇋</button>
                   <button className="tool-btn" onClick={() => applyTransform('duplicateWords')} title="Duplicate every word" data-tooltip="Duplicate words">ww</button>
                   <button className="tool-btn" onClick={() => applyTransform('duplicateChars')} title="Duplicate every character" data-tooltip="Duplicate characters">cc</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Format</span>
                   <button className={`tool-btn ${bold ? 'on' : ''}`} onClick={() => setBold(v => !v)} title="Toggle Bold" data-tooltip="Bold"><b>B</b></button>
@@ -1216,14 +1533,12 @@ export default function Page() {
                   <button className={`tool-btn ${underline ? 'on' : ''}`} onClick={() => setUnderline(v => !v)} title="Toggle Underline" data-tooltip="Underline"><u>U</u></button>
                   <button className={`tool-btn ${uppercase ? 'on' : ''}`} onClick={() => setUppercase(v => !v)} title="Toggle Uppercase display" data-tooltip="Uppercase display">A↑</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Align</span>
                   <button className={`tool-btn ${align === 'left' ? 'on' : ''}`} onClick={() => setAlign('left')} title="Align left" data-tooltip="Align left">⯇</button>
                   <button className={`tool-btn ${align === 'center' ? 'on' : ''}`} onClick={() => setAlign('center')} title="Align center" data-tooltip="Align center">≡</button>
                   <button className={`tool-btn ${align === 'right' ? 'on' : ''}`} onClick={() => setAlign('right')} title="Align right" data-tooltip="Align right">⯈</button>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Font</span>
                   <select className="tool-select" value={fontFamily} onChange={e => setFontFamily(e.target.value)} title="Choose font family" data-tooltip="Font family">
@@ -1233,17 +1548,14 @@ export default function Page() {
                     <option>Trebuchet MS</option><option>Impact</option>
                   </select>
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Size: {fontSize}px</span>
                   <input type="range" min={12} max={32} value={fontSize} onChange={e => setFontSize(+e.target.value)} className="tool-range" title="Font size" data-tooltip="Font size" />
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Spacing: {letterSpacing}px</span>
                   <input type="range" min={0} max={10} value={letterSpacing} onChange={e => setLetterSpacing(+e.target.value)} className="tool-range" title="Letter spacing" data-tooltip="Letter spacing" />
                 </div>
-
                 <div className="tool-group">
                   <span className="tool-label">Line: {lineHeight.toFixed(1)}</span>
                   <input type="range" min={1} max={2.5} step={0.1} value={lineHeight} onChange={e => setLineHeight(+e.target.value)} className="tool-range" title="Line height" data-tooltip="Line height" />
@@ -1256,16 +1568,17 @@ export default function Page() {
                 <div className="search-wrap">
                   <span className="search-icon">🔍</span>
                   <input
+                    ref={searchRef}
                     className="search"
                     placeholder="Search 1000+ styles by name or category..."
                     value={styleSearch}
                     onChange={e => setStyleSearch(e.target.value)}
                     aria-label="Search fancy text styles"
-                    title="Search styles"
-                    data-tooltip="Search styles by name or category"
+                    title="Search styles (Ctrl/Cmd + K)"
+                    data-tooltip="Search (Ctrl+K)"
                   />
                   {styleSearch && (
-                    <button className="search-clear" onClick={() => setStyleSearch('')} aria-label="Clear search" title="Clear search" data-tooltip="Clear search">×</button>
+                    <button className="search-clear" onClick={() => setStyleSearch('')} aria-label="Clear search" title="Clear search (Esc)" data-tooltip="Clear (Esc)">×</button>
                   )}
                 </div>
                 <div className="chips" role="tablist">
@@ -1288,7 +1601,6 @@ export default function Page() {
             )}
           </section>
 
-          {/* ===== SHARE AS PNG TOGGLE ===== */}
           <section className="share-toggle-panel glass">
             <label className="share-toggle" data-tooltip={shareAsPNG ? 'Sharing as image (colors kept)' : 'Sharing as fancy text'}>
               <input
@@ -1316,9 +1628,7 @@ export default function Page() {
           {!showToolbar && (
             <>
               <section className="section-head">
-                <h2 className="section-title">
-                  <span>✨ Fancy Text Styles</span>
-                </h2>
+                <h2 className="section-title"><span>✨ Fancy Text Styles</span></h2>
                 <button
                   className={`toggle-section-btn ${showFancy ? 'on' : ''}`}
                   onClick={() => setShowFancy(v => !v)}
@@ -1340,9 +1650,11 @@ export default function Page() {
                     <span><strong>{favorites.length}</strong> favorites</span>
                     <span className="dot">•</span>
                     <span><strong>{CATEGORIES.length - 3}</strong> categories</span>
+                    <span className="dot">•</span>
+                    <span className="perf-hint">⚡ virtualized for speed</span>
                   </div>
 
-                  <section className="grid" aria-label="Fancy text styles" ref={fancyRef}>
+                  <div ref={fancyRef}>
                     {filteredStyles.length === 0 ? (
                       <div className="empty glass">
                         <div className="empty-icon">✨</div>
@@ -1350,66 +1662,72 @@ export default function Page() {
                         <button className="mini-btn accent" onClick={() => { setSearch(''); setStyleSearch(''); setCategory('All'); }}>Reset filters</button>
                       </div>
                     ) : (
-                      filteredStyles.map((style, i) => {
-                        const output = style.fn(input || 'Hello');
-                        const isFav = favorites.includes(style.name);
-                        const isCopied = copiedStyle === style.name;
-                        return (
-                          <article key={style.name + i} className="card glass" style={{ animationDelay: `${Math.min(i * 4, 400)}ms` }}>
-                            <div className="card-head">
-                              <span className="card-label" title={style.category}>{style.name}</span>
-                              <button
-                                className={`fav-btn ${isFav ? 'on' : ''}`}
-                                onClick={() => toggleFav(style.name)}
-                                aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
-                                title={isFav ? 'Remove from favorites' : 'Add to favorites'}
-                                data-tooltip={isFav ? 'Remove from favorites' : 'Add to favorites'}
-                              >{isFav ? '★' : '☆'}</button>
-                            </div>
-                            <div
-                              className={`card-output ${isCopied ? 'copied' : ''}`}
-                              onClick={() => { copy(output, style.name); addRecent(style.name); }}
-                              title="Click to copy"
-                              data-tooltip="Click to copy"
-                              style={{
-                                color: textColor === 'inherit' ? undefined : textColor,
-                                background: bgStyle === 'transparent' ? undefined : bgStyle,
-                              }}
-                            >
-                              {output}
-                            </div>
-                            <div className="card-actions">
-                              <button
-                                className={`card-btn ${isCopied ? 'copied' : ''}`}
+                      <VirtualGrid
+                        items={filteredStyles}
+                        rowHeight={190}
+                        minColWidth={280}
+                        gap={14}
+                        renderItem={(style, i) => {
+                          const output = style.fn(debouncedInput || 'Hello');
+                          const isFav = favorites.includes(style.name);
+                          const isCopied = copiedStyle === style.name;
+                          return (
+                            <article className="card glass" style={{ height: '100%', animationDelay: `${Math.min(i * 2, 200)}ms` }}>
+                              <div className="card-head">
+                                <span className="card-label" title={style.category}>{style.name}</span>
+                                <button
+                                  className={`fav-btn ${isFav ? 'on' : ''}`}
+                                  onClick={() => toggleFav(style.name)}
+                                  aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
+                                  title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                                  data-tooltip={isFav ? 'Remove from favorites' : 'Add to favorites'}
+                                >{isFav ? '★' : '☆'}</button>
+                              </div>
+                              <div
+                                className={`card-output ${isCopied ? 'copied' : ''}`}
                                 onClick={() => { copy(output, style.name); addRecent(style.name); }}
-                                title="Copy"
-                                data-tooltip="Copy"
+                                title="Click to copy"
+                                data-tooltip="Click to copy"
+                                style={{
+                                  color: textColor === 'inherit' ? undefined : textColor,
+                                  background: bgStyle === 'transparent' ? undefined : bgStyle,
+                                }}
                               >
-                                {isCopied ? '✓ Copied!' : '📋 Copy'}
-                              </button>
-                              <button
-                                className="card-btn"
-                                onClick={() => shareStyled(output, style.name)}
-                                title={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
-                                data-tooltip={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
-                              >
-                                {shareAsPNG ? '🖼️ Share PNG' : '🔗 Share'}
-                              </button>
-                            </div>
-                          </article>
-                        );
-                      })
+                                {output}
+                              </div>
+                              <div className="card-actions">
+                                <button
+                                  className={`card-btn ${isCopied ? 'copied' : ''}`}
+                                  onClick={() => { copy(output, style.name); addRecent(style.name); }}
+                                  title="Copy"
+                                  data-tooltip="Copy"
+                                >
+                                  {isCopied ? '✓ Copied!' : '📋 Copy'}
+                                </button>
+                                <button
+                                  className="card-btn"
+                                  onClick={() => shareStyled(output, style.name)}
+                                  title={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
+                                  data-tooltip={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
+                                  disabled={isSharing}
+                                  style={{ opacity: isSharing ? 0.6 : 1 }}
+                                >
+                                  {isSharing ? '⏳' : shareAsPNG ? '🖼️ Share PNG' : '🔗 Share'}
+                                </button>
+                              </div>
+                            </article>
+                          );
+                        }}
+                      />
                     )}
-                  </section>
+                  </div>
                 </>
               )}
             </>
           )}
 
           <section className="section-head">
-            <h2 className="section-title">
-              <span>😂 Funny Text Generator</span>
-            </h2>
+            <h2 className="section-title"><span>😂 Funny Text Generator</span></h2>
             <button
               className={`toggle-section-btn pulse ${showFunny ? 'on' : ''}`}
               onClick={() => setShowFunny(v => !v)}
@@ -1476,8 +1794,9 @@ export default function Page() {
                     onClick={() => shareStyled(funnyOutput, 'Funny')}
                     title={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
                     data-tooltip={shareAsPNG ? 'Share as PNG image' : 'Share fancy text'}
+                    disabled={isSharing}
                   >
-                    {shareAsPNG ? '🖼️ Share PNG' : '🔗 Share'}
+                    {isSharing ? '⏳ Generating…' : shareAsPNG ? '🖼️ Share PNG' : '🔗 Share'}
                   </button>
                   <button className="card-btn" onClick={() => {
                     const nextIdx = (FUNNY_STYLES.findIndex(f => f.id === funnyId) + 1) % FUNNY_STYLES.length;
@@ -1512,7 +1831,7 @@ export default function Page() {
               <div className="step">
                 <div className="step-num">1</div>
                 <h3>Type or paste your text</h3>
-                <p>Enter your text in the input box — there is <strong>no character limit</strong>. Every keystroke regenerates all 1000+ styles in real time. Use 📥 <strong>Paste</strong> to pull from clipboard — even colored text keeps its color!</p>
+                <p>Enter your text in the input box — there is <strong>no character limit</strong>. Use 📥 <strong>Paste</strong> to pull from clipboard (colored text keeps its color). <strong>Undo</strong> and <strong>Redo</strong> your edits with Ctrl/Cmd + Z and Ctrl/Cmd + Shift + Z — up to 100 steps.</p>
               </div>
               <div className="step">
                 <div className="step-num">2</div>
@@ -1522,22 +1841,22 @@ export default function Page() {
               <div className="step">
                 <div className="step-num">3</div>
                 <h3>Customize color &amp; background</h3>
-                <p>Open the 🎨 <strong>Color &amp; Background</strong> panel to pick from 16 text colors and 12 background styles (including gradients).</p>
+                <p>Open the 🎨 <strong>Color &amp; Background</strong> panel to pick from 16 text colors and 12 background styles (including gradients). Your choices apply live to previews and copy/share.</p>
               </div>
               <div className="step">
                 <div className="step-num">4</div>
                 <h3>Choose how you want to share</h3>
-                <p>Use the <strong>Share as PNG image</strong> toggle above the styles grid. When <em>ON</em>, the Share button sends a big, colorful image with your text color and background — perfect for WhatsApp, Instagram Stories, etc. When <em>OFF</em> (default), Share sends just the fancy text with no colors.</p>
+                <p>Use the <strong>Share as PNG image</strong> toggle above the styles grid. When <em>ON</em>, Share sends a big, colorful image with your text color and background — perfect for WhatsApp and Stories. When <em>OFF</em> (default), Share sends just the fancy text.</p>
               </div>
               <div className="step">
                 <div className="step-num">5</div>
                 <h3>Fine-tune with the toolbar</h3>
-                <p>Open the ⚙️ <strong>Formatting Toolbar</strong> for Bold / Italic / Underline, font family, size, spacing, line height, alignment, and 20+ text transforms.</p>
+                <p>Open the ⚙️ <strong>Formatting Toolbar</strong> for Bold / Italic / Underline, font family, size, spacing, line height, alignment, and 20+ text transforms. Press <strong>Ctrl/Cmd + /</strong> to toggle instantly.</p>
               </div>
               <div className="step">
                 <div className="step-num">6</div>
-                <h3>Paste it anywhere</h3>
-                <p>Use the generated text in your Instagram bio, TikTok caption, Discord server nickname, WhatsApp status (via Share PNG), Twitter/X post, or YouTube title.</p>
+                <h3>Master the keyboard shortcuts</h3>
+                <p>Press <strong>?</strong> to open the full keyboard shortcuts dialog. Quick reference: <em>Ctrl/Cmd + K</em> focuses search, <em>Ctrl/Cmd + S</em> downloads, <em>Ctrl/Cmd + Shift + P</em> toggles PNG share, <em>Ctrl/Cmd + Shift + D</em> toggles theme, <em>Esc</em> closes panels.</p>
               </div>
             </div>
           </section>
@@ -1548,7 +1867,7 @@ export default function Page() {
               <div className="feature" title="Instant, real-time transformation" data-tooltip="Real-time updates">
                 <div className="feature-icon">⚡</div>
                 <h3>Instant, real-time</h3>
-                <p>Every style regenerates as you type — no buttons, no lag, no reloads.</p>
+                <p>Styles regenerate as you type with smart 150ms debouncing — smooth and lag-free.</p>
               </div>
               <div className="feature" title="1000+ styles" data-tooltip="1000+ styles">
                 <div className="feature-icon">🎨</div>
@@ -1563,27 +1882,27 @@ export default function Page() {
               <div className="feature" title="Color & background" data-tooltip="Color & background picker">
                 <div className="feature-icon">🌈</div>
                 <h3>Color &amp; background</h3>
-                <p>16 text colors and 12 background styles. Copy keeps the colors in rich-text apps; Share as PNG sends a styled image.</p>
+                <p>16 text colors and 12 background styles. Copy keeps colors in rich-text apps; Share as PNG sends a styled image.</p>
               </div>
-              <div className="feature" title="Any language supported" data-tooltip="Multilingual">
-                <div className="feature-icon">🌐</div>
-                <h3>Any language</h3>
-                <p>Type in English, Hindi, Arabic, Chinese, Japanese, Russian — no limits, no restrictions.</p>
+              <div className="feature" title="Undo & Redo" data-tooltip="Undo & Redo">
+                <div className="feature-icon">↶</div>
+                <h3>Undo &amp; Redo</h3>
+                <p>Made a mistake? Press Ctrl/Cmd + Z to undo, Ctrl/Cmd + Shift + Z to redo — up to 100 steps of history.</p>
               </div>
-              <div className="feature" title="Dark & light theme" data-tooltip="Theme toggle">
-                <div className="feature-icon">🌗</div>
-                <h3>Dark &amp; light theme</h3>
-                <p>Glassmorphism UI with animated gradient background and one-tap theme toggle.</p>
+              <div className="feature" title="Keyboard shortcuts" data-tooltip="Keyboard shortcuts">
+                <div className="feature-icon">⌨️</div>
+                <h3>Keyboard shortcuts</h3>
+                <p>Power-user controls: Ctrl+K (search), Ctrl+S (download), Ctrl+/ (toolbar), ? (shortcuts). Press ? to see all.</p>
+              </div>
+              <div className="feature" title="Virtualized for speed" data-tooltip="Virtualized performance">
+                <div className="feature-icon">🚀</div>
+                <h3>Virtualized for speed</h3>
+                <p>Only ~20–30 style cards render at a time — smooth scrolling even with 1000+ styles on mobile.</p>
               </div>
               <div className="feature" title="Favorites & history" data-tooltip="Favorites & Recent">
                 <div className="feature-icon">⭐</div>
                 <h3>Favorites &amp; history</h3>
                 <p>Save styles locally and revisit your recent copies — no signup required.</p>
-              </div>
-              <div className="feature" title="Free forever" data-tooltip="100% free">
-                <div className="feature-icon">🆓</div>
-                <h3>Free forever</h3>
-                <p>No account, no ads, no watermarks. Unlimited use, every day.</p>
               </div>
             </div>
           </section>
@@ -1611,10 +1930,13 @@ export default function Page() {
               The <strong>Fancy Text Generator</strong> is a free online utility that turns plain text into over 1000 fancy, stylish, and decorative Unicode fonts — plus 28 funny text transformations — that you can copy and paste anywhere. Unlike traditional fonts, the styles produced here are made of real Unicode characters, so they don&apos;t require the receiving app to install a font file.
             </p>
             <p>
+              Version 2.0 brings powerful new features: <strong>Undo and Redo</strong> up to 100 steps, <strong>full keyboard shortcuts</strong> for power users, a <strong>Share as PNG</strong> toggle that renders colored text as a large image, <strong>virtualized grid rendering</strong> for buttery-smooth performance on mobile, <strong>debounced input</strong> so 1000+ styles regenerate without any lag, and <strong>color-coded toast notifications</strong> for clearer feedback. Copy with color now uses HTML + RTF clipboard formats, so apps like Gmail, Google Docs, Word, Outlook, Telegram, and Notion preserve your exact text color and gradient background.
+            </p>
+            <p>
               This tool is a popular choice for <strong>Instagram bio fonts</strong>, <strong>TikTok caption styles</strong>, <strong>Discord nickname fonts</strong>, <strong>Twitter/X display names</strong>, <strong>WhatsApp status text</strong>, <strong>Facebook posts</strong>, <strong>YouTube channel titles</strong>, and <strong>gaming usernames</strong> in games like Fortnite, Roblox, Minecraft, Valorant, and Free Fire.
             </p>
             <p>
-              Categories include <em>Bold</em>, <em>Italic</em>, <em>Script</em>, <em>Fraktur / Gothic</em>, <em>Double-Struck</em>, <em>Sans-Serif</em>, <em>Monospace</em>, <em>Small Caps</em>, <em>Superscript</em>, <em>Subscript</em>, <em>Upside-down</em>, <em>Mirrored</em>, <em>Bubble / Circled</em>, <em>Squared</em>, <em>Fullwidth</em>, and dozens of decorative <em>Effects</em>, <em>Wrappers</em>, <em>Separators</em>, and <em>Line transformations</em>.
+              Categories include <em>Bold</em>, <em>Italic</em>, <em>Script</em>, <em>Cursive</em>, <em>Fraktur / Gothic</em>, <em>Double-Struck</em>, <em>Sans-Serif</em>, <em>Monospace</em>, <em>Small Caps</em>, <em>Superscript</em>, <em>Subscript</em>, <em>Upside-down</em>, <em>Mirrored</em>, <em>Bubble / Circled</em>, <em>Squared</em>, <em>Fullwidth</em>, <em>Parenthesized</em>, and dozens of decorative <em>Effects</em>, <em>Wrappers</em>, <em>Separators</em>, and <em>Line transformations</em>.
             </p>
           </section>
 
@@ -1648,32 +1970,42 @@ export default function Page() {
               <a href="#styles" title="Fancy styles">Styles</a> · <a href="#funny" title="Funny text">Funny</a> ·{' '}
               <a href="#how-to" title="How to use">How to Use</a> · <a href="#faq" title="FAQ">FAQ</a> · <a href="#tools" title="Other tools">Tools</a>
             </p>
+            <p className="footer-hint">Press <kbd>?</kbd> for keyboard shortcuts</p>
           </footer>
         </main>
 
         <div ref={bottomRef} style={{ height: 1 }} />
 
-        <button
-          className="scroll-bottom"
-          onClick={scrollToBottom}
-          aria-label="Scroll to bottom"
-          title="Scroll to bottom of page"
-          data-tooltip="Scroll to bottom"
-        >
-          ⬇
-        </button>
+        <button className="scroll-bottom" onClick={scrollToBottom} aria-label="Scroll to bottom" title="Scroll to bottom of page" data-tooltip="Scroll to bottom">⬇</button>
+        <button className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top" title="Back to top of page" data-tooltip="Back to top">↑</button>
 
-        <button
-          className="back-to-top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          aria-label="Back to top"
-          title="Back to top of page"
-          data-tooltip="Back to top"
-        >
-          ↑
-        </button>
+        {showShortcuts && (
+          <div className="shortcut-overlay" onClick={() => setShowShortcuts(false)}>
+            <div className="shortcut-modal glass" onClick={e => e.stopPropagation()}>
+              <div className="shortcut-head">
+                <h3>⌨️ Keyboard Shortcuts</h3>
+                <button className="shortcut-close" onClick={() => setShowShortcuts(false)} aria-label="Close">×</button>
+              </div>
+              <div className="shortcut-list">
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>Z</kbd><span className="shortcut-desc">Undo</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>Z</kbd><span className="shortcut-desc">Redo</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>Y</kbd><span className="shortcut-desc">Redo (alt)</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>C</kbd><span className="shortcut-desc">Copy selected</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>V</kbd><span className="shortcut-desc">Paste</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>S</kbd><span className="shortcut-desc">Download as .txt</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>K</kbd><span className="shortcut-desc">Focus search</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>/</kbd><span className="shortcut-desc">Toggle toolbar</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>P</kbd><span className="shortcut-desc">Toggle PNG share</span></div>
+                <div className="shortcut-row"><kbd>Ctrl</kbd><span>+</span><kbd>Shift</kbd><span>+</span><kbd>D</kbd><span className="shortcut-desc">Toggle theme</span></div>
+                <div className="shortcut-row"><kbd>?</kbd><span className="shortcut-desc">Show this dialog</span></div>
+                <div className="shortcut-row"><kbd>Esc</kbd><span className="shortcut-desc">Close / clear</span></div>
+              </div>
+              <p className="shortcut-note">On macOS use <kbd>Cmd ⌘</kbd> instead of Ctrl</p>
+            </div>
+          </div>
+        )}
 
-        <div className={`toast ${toast ? 'show' : ''}`} role="status" aria-live="polite">{toast}</div>
+        <div className={`toast toast-${toastVariant} ${toast ? 'show' : ''}`} role="status" aria-live="polite">{toast}</div>
       </div>
 
       <style jsx global>{`
@@ -1693,7 +2025,7 @@ export default function Page() {
         [data-theme='light'] {
           --bg: #f5f5ff;
           --fg: #0f0f20;
-          --muted: #5a5f80;
+          --muted: #4a4f70;
           --glass-bg: rgba(255, 255, 255, 0.6);
           --glass-border: rgba(255, 255, 255, 0.9);
           --glass-shadow: 0 8px 32px rgba(100, 100, 180, 0.18);
@@ -1707,45 +2039,31 @@ export default function Page() {
           -webkit-font-smoothing: antialiased;
           transition: background 0.4s ease, color 0.4s ease;
         }
-        .sr-only {
-          position: absolute; width: 1px; height: 1px;
-          padding: 0; margin: -1px; overflow: hidden;
-          clip: rect(0,0,0,0); border: 0;
-        }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
         .app { min-height: 100vh; position: relative; overflow-x: hidden; padding: 0 0 100px; }
+
+        *:focus-visible { outline: 2px solid var(--accent-1); outline-offset: 2px; border-radius: 6px; }
 
         [data-tooltip] { position: relative; }
         [data-tooltip]::after {
           content: attr(data-tooltip);
-          position: absolute;
-          bottom: calc(100% + 8px);
-          left: 50%;
+          position: absolute; bottom: calc(100% + 8px); left: 50%;
           transform: translateX(-50%) translateY(4px);
           padding: 6px 10px;
-          background: rgba(15, 15, 40, 0.96);
-          color: #fff;
-          font-size: 0.72rem;
-          font-weight: 600;
-          border-radius: 8px;
-          white-space: nowrap;
-          max-width: 240px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          opacity: 0;
-          pointer-events: none;
+          background: rgba(15, 15, 40, 0.96); color: #fff;
+          font-size: 0.72rem; font-weight: 600;
+          border-radius: 8px; white-space: nowrap;
+          max-width: 240px; overflow: hidden; text-overflow: ellipsis;
+          opacity: 0; pointer-events: none;
           transition: opacity 0.18s ease, transform 0.18s ease;
           z-index: 999;
           box-shadow: 0 6px 20px rgba(0,0,0,0.4);
           border: 1px solid rgba(139, 92, 246, 0.4);
           font-family: inherit;
         }
-        [data-theme='light'] [data-tooltip]::after {
-          background: rgba(20, 20, 45, 0.95);
-        }
-        [data-tooltip]:hover::after,
-        [data-tooltip]:focus-visible::after {
-          opacity: 1;
-          transform: translateX(-50%) translateY(0);
+        [data-theme='light'] [data-tooltip]::after { background: rgba(20, 20, 45, 0.95); }
+        [data-tooltip]:hover::after, [data-tooltip]:focus-visible::after {
+          opacity: 1; transform: translateX(-50%) translateY(0);
         }
 
         .bg-gradient {
@@ -1812,10 +2130,7 @@ export default function Page() {
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .logo-text { display: inline-flex; }
-        .logo-char {
-          display: inline-block;
-          animation: charJump 2.4s ease-in-out infinite;
-        }
+        .logo-char { display: inline-block; animation: charJump 2.4s ease-in-out infinite; }
         .logo-char:nth-child(1) { animation-delay: 0s; }
         .logo-char:nth-child(2) { animation-delay: 0.1s; }
         .logo-char:nth-child(3) { animation-delay: 0.2s; }
@@ -1869,49 +2184,22 @@ export default function Page() {
           color: #67e8f9;
           animation: arrowBob 1.8s ease-in-out infinite;
         }
-        .icon-btn.down-arrow:hover {
-          background: linear-gradient(135deg, var(--accent-3), var(--accent-5));
-          color: white;
-        }
-        @keyframes arrowBob {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(3px); }
-        }
+        .icon-btn.down-arrow:hover { background: linear-gradient(135deg, var(--accent-3), var(--accent-5)); color: white; }
+        @keyframes arrowBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
 
         .main { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
         .hero { text-align: center; padding: 36px 8px 28px; }
-        .hero-pill {
-          display: inline-block; padding: 8px 16px;
-          font-size: 0.82rem; font-weight: 600; color: var(--muted);
-          margin-bottom: 18px; border-radius: 999px;
-        }
-        .hero-title {
-          font-size: clamp(1.8rem, 6vw, 3.4rem); font-weight: 900;
-          margin: 0 0 14px; line-height: 1.1; letter-spacing: -0.025em;
-        }
-        .hero-sub {
-          color: var(--muted); font-size: clamp(0.9rem, 2.4vw, 1.05rem);
-          margin: 0; max-width: 720px; margin-inline: auto; line-height: 1.6;
-        }
+        .hero-pill { display: inline-block; padding: 8px 16px; font-size: 0.82rem; font-weight: 600; color: var(--muted); margin-bottom: 18px; border-radius: 999px; }
+        .hero-title { font-size: clamp(1.8rem, 6vw, 3.4rem); font-weight: 900; margin: 0 0 14px; line-height: 1.1; letter-spacing: -0.025em; }
+        .hero-sub { color: var(--muted); font-size: clamp(0.9rem, 2.4vw, 1.05rem); margin: 0; max-width: 760px; margin-inline: auto; line-height: 1.6; }
 
         .panel { padding: 18px; margin-bottom: 18px; }
         .panel-head { margin-bottom: 14px; }
-        .panel-tabs {
-          display: inline-flex; gap: 4px; padding: 4px;
-          background: rgba(255,255,255,0.04);
-          border-radius: 12px; border: 1px solid var(--glass-border);
-        }
+        .panel-tabs { display: inline-flex; gap: 4px; padding: 4px; background: rgba(255,255,255,0.04); border-radius: 12px; border: 1px solid var(--glass-border); }
         [data-theme='light'] .panel-tabs { background: rgba(255,255,255,0.6); }
-        .panel-tab {
-          padding: 8px 16px; font-size: 0.85rem; font-weight: 700;
-          background: transparent; border: none; color: var(--muted);
-          border-radius: 9px; cursor: pointer; transition: all 0.2s;
-        }
-        .panel-tab.active {
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
-        }
+        .panel-tab { padding: 8px 16px; font-size: 0.85rem; font-weight: 700; background: transparent; border: none; color: var(--muted); border-radius: 9px; cursor: pointer; transition: all 0.2s; }
+        .panel-tab.active { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4); }
 
         .input-wrap { position: relative; }
         .input {
@@ -1923,449 +2211,149 @@ export default function Page() {
         }
         [data-theme='light'] .input { background: rgba(255,255,255,0.75); }
         .input:focus { border-color: var(--accent-1); box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15); }
-        .input-meta {
-          display: flex; justify-content: space-between; align-items: center;
-          margin-top: 12px; flex-wrap: wrap; gap: 8px;
-        }
+        .input-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 8px; }
         .count { color: var(--muted); font-size: 0.82rem; }
         .input-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .mini-btn {
-          padding: 8px 14px; font-size: 0.82rem; border-radius: 10px;
-          cursor: pointer; background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border); color: var(--fg);
-          font-weight: 600; transition: transform 0.15s, background 0.2s;
-        }
+        .mini-btn { padding: 8px 14px; font-size: 0.82rem; border-radius: 10px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); font-weight: 600; transition: transform 0.15s, background 0.2s; }
         [data-theme='light'] .mini-btn { background: rgba(255,255,255,0.75); }
-        .mini-btn:hover { transform: translateY(-1px); background: rgba(139,92,246,0.12); }
-        .mini-btn.accent {
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          border: none; color: white;
-        }
+        .mini-btn:hover:not(:disabled) { transform: translateY(-1px); background: rgba(139,92,246,0.12); }
+        .mini-btn:disabled { cursor: not-allowed; }
+        .mini-btn.accent { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); border: none; color: white; }
         .mini-btn.danger { color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); }
         .mini-btn.danger:hover { background: rgba(239, 68, 68, 0.15); }
 
         .color-panel-wrap { margin-top: 14px; }
-        .color-toggle {
-          width: 100%; padding: 10px 14px;
-          border-radius: 12px; cursor: pointer;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); font-weight: 700; font-size: 0.85rem;
-          text-align: left; transition: all 0.2s;
-          font-family: inherit;
-        }
+        .color-toggle { width: 100%; padding: 10px 14px; border-radius: 12px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); font-weight: 700; font-size: 0.85rem; text-align: left; transition: all 0.2s; font-family: inherit; }
         [data-theme='light'] .color-toggle { background: rgba(255,255,255,0.75); }
         .color-toggle:hover { background: rgba(139,92,246,0.12); }
-        .color-toggle.on {
-          background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15));
-          border-color: rgba(139, 92, 246, 0.4);
-        }
-        .color-panel {
-          margin-top: 12px; padding: 16px;
-          background: rgba(0,0,0,0.2);
-          border: 1px solid var(--glass-border);
-          border-radius: 12px;
-          animation: panelIn 0.3s ease;
-        }
+        .color-toggle.on { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.15)); border-color: rgba(139, 92, 246, 0.4); }
+        .color-panel { margin-top: 12px; padding: 16px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; animation: panelIn 0.3s ease; }
         [data-theme='light'] .color-panel { background: rgba(255,255,255,0.5); }
         @keyframes panelIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
         .color-section { margin-bottom: 16px; }
         .color-section:last-child { margin-bottom: 0; }
-        .color-label {
-          display: block; font-size: 0.72rem; font-weight: 800;
-          text-transform: uppercase; letter-spacing: 0.06em;
-          color: var(--muted); margin-bottom: 10px;
-        }
-        .color-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
-          gap: 8px;
-        }
-        .color-swatch {
-          width: 100%; aspect-ratio: 1;
-          border-radius: 10px; cursor: pointer;
-          border: 2px solid rgba(255,255,255,0.15);
-          transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
-          position: relative;
-          padding: 0;
-        }
+        .color-label { display: block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
+        .color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 8px; }
+        .color-swatch { width: 100%; aspect-ratio: 1; border-radius: 10px; cursor: pointer; border: 2px solid rgba(255,255,255,0.15); transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; position: relative; padding: 0; }
         .color-swatch:hover { transform: scale(1.12); }
-        .color-swatch.active {
-          border-color: white;
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.6);
-          transform: scale(1.05);
-        }
-        .swatch-check {
-          position: absolute; inset: 0;
-          display: grid; place-items: center;
-          font-weight: 900; font-size: 1rem;
-          color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-        }
-        .bg-grid-colors {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-          gap: 8px;
-        }
-        .bg-swatch {
-          display: flex; align-items: center; gap: 10px;
-          padding: 8px 10px; border-radius: 10px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid var(--glass-border);
-          cursor: pointer; color: var(--fg);
-          font-size: 0.78rem; font-weight: 600;
-          transition: all 0.15s; text-align: left;
-          font-family: inherit;
-        }
+        .color-swatch.active { border-color: white; box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.6); transform: scale(1.05); }
+        .swatch-check { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 900; font-size: 1rem; color: white; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+        .bg-grid-colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+        .bg-swatch { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); cursor: pointer; color: var(--fg); font-size: 0.78rem; font-weight: 600; transition: all 0.15s; text-align: left; font-family: inherit; }
         [data-theme='light'] .bg-swatch { background: rgba(255,255,255,0.75); }
         .bg-swatch:hover { transform: translateY(-1px); background: rgba(139,92,246,0.12); }
-        .bg-swatch.active {
-          border-color: var(--accent-1);
-          box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
-        }
-        .bg-swatch-preview {
-          width: 26px; height: 26px; border-radius: 6px;
-          border: 1px solid rgba(255,255,255,0.2);
-          flex-shrink: 0;
-        }
-        .bg-swatch-name {
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
+        .bg-swatch.active { border-color: var(--accent-1); box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4); }
+        .bg-swatch-preview { width: 26px; height: 26px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); flex-shrink: 0; }
+        .bg-swatch-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .copy-hint {
-          padding: 10px 14px;
-          background: rgba(139, 92, 246, 0.1);
-          border: 1px solid rgba(139, 92, 246, 0.3);
-          border-radius: 10px;
-          font-size: 0.8rem;
-          color: var(--muted);
-          line-height: 1.5;
-        }
+        .copy-hint { padding: 10px 14px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 10px; font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
         .copy-hint strong { color: var(--fg); }
 
-        /* ===== SHARE AS PNG TOGGLE ===== */
-        .share-toggle-panel {
-          padding: 16px 18px;
-          margin-bottom: 18px;
-        }
-        .share-toggle {
-          display: flex; align-items: center; gap: 16px;
-          cursor: pointer;
-          user-select: none;
-        }
+        .share-toggle-panel { padding: 16px 18px; margin-bottom: 18px; }
+        .share-toggle { display: flex; align-items: center; gap: 16px; cursor: pointer; user-select: none; }
         .share-toggle input { display: none; }
-        .share-toggle-track {
-          width: 58px; height: 32px; border-radius: 999px;
-          background: rgba(255,255,255,0.15);
-          border: 1px solid var(--glass-border);
-          position: relative; flex-shrink: 0;
-          transition: background 0.25s;
-        }
+        .share-toggle-track { width: 58px; height: 32px; border-radius: 999px; background: rgba(255,255,255,0.15); border: 1px solid var(--glass-border); position: relative; flex-shrink: 0; transition: background 0.25s; }
         [data-theme='light'] .share-toggle-track { background: rgba(0,0,0,0.15); }
-        .share-toggle input:checked ~ .share-toggle-track {
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          border-color: transparent;
-          box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5);
-        }
-        .share-toggle-thumb {
-          position: absolute; top: 3px; left: 3px;
-          width: 24px; height: 24px; border-radius: 50%;
-          background: white;
-          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-        .share-toggle input:checked ~ .share-toggle-track .share-toggle-thumb {
-          transform: translateX(26px);
-        }
-        .share-toggle-text {
-          display: flex; flex-direction: column; gap: 4px;
-          min-width: 0;
-        }
-        .share-toggle-title {
-          font-size: 0.98rem; font-weight: 800;
-          color: var(--fg);
-        }
-        .share-toggle-sub {
-          font-size: 0.82rem;
-          color: var(--muted);
-          line-height: 1.5;
-        }
+        .share-toggle input:checked ~ .share-toggle-track { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); border-color: transparent; box-shadow: 0 4px 16px rgba(139, 92, 246, 0.5); }
+        .share-toggle-thumb { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: white; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+        .share-toggle input:checked ~ .share-toggle-track .share-toggle-thumb { transform: translateX(26px); }
+        .share-toggle-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .share-toggle-title { font-size: 0.98rem; font-weight: 800; color: var(--fg); }
+        .share-toggle-sub { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
 
-        .toolbar {
-          margin-top: 16px; padding: 14px;
-          background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);
-          border-radius: 14px; display: flex; flex-wrap: wrap; gap: 12px;
-          animation: panelIn 0.35s ease;
-        }
+        .toolbar { margin-top: 16px; padding: 14px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 14px; display: flex; flex-wrap: wrap; gap: 12px; animation: panelIn 0.35s ease; }
         [data-theme='light'] .toolbar { background: rgba(255,255,255,0.5); }
-        .tool-group {
-          display: flex; align-items: center; gap: 6px;
-          padding: 6px 10px; border-radius: 10px;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid var(--glass-border);
-          flex-wrap: wrap;
-        }
+        .tool-group { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); flex-wrap: wrap; }
         [data-theme='light'] .tool-group { background: rgba(255,255,255,0.65); }
-        .tool-label {
-          font-size: 0.68rem; font-weight: 700; color: var(--muted);
-          text-transform: uppercase; letter-spacing: 0.05em;
-          margin-right: 4px;
-        }
-        .tool-btn {
-          min-width: 34px; height: 34px; padding: 0 8px;
-          border-radius: 8px; cursor: pointer;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); font-weight: 600; font-size: 0.82rem;
-          display: inline-flex; align-items: center; justify-content: center;
-          transition: all 0.15s;
-        }
+        .tool-label { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; }
+        .tool-btn { min-width: 34px; height: 34px; padding: 0 8px; border-radius: 8px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); font-weight: 600; font-size: 0.82rem; display: inline-flex; align-items: center; justify-content: center; transition: all 0.15s; }
         [data-theme='light'] .tool-btn { background: rgba(255,255,255,0.9); }
         .tool-btn:hover { transform: translateY(-1px); background: rgba(139, 92, 246, 0.15); }
-        .tool-btn.on {
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; border-color: transparent;
-          box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
-        }
-        .tool-select {
-          padding: 7px 10px; border-radius: 8px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); font-size: 0.82rem; cursor: pointer;
-          font-family: inherit; outline: none;
-        }
+        .tool-btn.on { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; border-color: transparent; box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4); }
+        .tool-select { padding: 7px 10px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); font-size: 0.82rem; cursor: pointer; font-family: inherit; outline: none; }
         [data-theme='light'] .tool-select { background: rgba(255,255,255,0.9); }
         .tool-range { width: 100px; accent-color: var(--accent-1); cursor: pointer; }
 
         .filters { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
         .search-wrap { position: relative; }
-        .search-icon {
-          position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-          opacity: 0.6; font-size: 0.9rem; pointer-events: none;
-        }
-        .search {
-          width: 100%; padding: 12px 40px 12px 40px;
-          border-radius: 12px; background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border); color: var(--fg);
-          font-size: 0.95rem; outline: none; font-family: inherit;
-        }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.6; font-size: 0.9rem; pointer-events: none; }
+        .search { width: 100%; padding: 12px 40px 12px 40px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); font-size: 0.95rem; outline: none; font-family: inherit; }
         [data-theme='light'] .search { background: rgba(255,255,255,0.75); }
         .search:focus { border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12); }
-        .search-clear {
-          position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-          background: transparent; border: none; color: var(--muted);
-          font-size: 1.3rem; cursor: pointer; padding: 0 8px;
-        }
-        .chips {
-          display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px;
-          scrollbar-width: thin; -webkit-overflow-scrolling: touch;
-        }
+        .search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; padding: 0 8px; }
+        .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; -webkit-overflow-scrolling: touch; }
         .chips::-webkit-scrollbar { height: 4px; }
         .chips::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
-        .chip {
-          flex: 0 0 auto; padding: 8px 14px; font-size: 0.83rem;
-          border-radius: 20px; cursor: pointer;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); font-weight: 600; white-space: nowrap;
-          transition: all 0.2s;
-        }
+        .chip { flex: 0 0 auto; padding: 8px 14px; font-size: 0.83rem; border-radius: 20px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); font-weight: 600; white-space: nowrap; transition: all 0.2s; }
         [data-theme='light'] .chip { background: rgba(255,255,255,0.75); }
         .chip:hover { transform: translateY(-1px); background: rgba(139,92,246,0.12); }
-        .chip.active {
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          border-color: transparent; color: white;
-          box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
-        }
+        .chip.active { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); border-color: transparent; color: white; box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4); }
 
-        .section-head {
-          display: flex; justify-content: space-between; align-items: center;
-          gap: 12px; margin: 20px 0 12px; flex-wrap: wrap;
-        }
-        .section-title {
-          margin: 0; font-size: 1.3rem; font-weight: 800;
-          display: flex; align-items: center; gap: 8px;
-        }
-        .toggle-section-btn {
-          padding: 8px 16px; font-size: 0.82rem;
-          border-radius: 999px; cursor: pointer;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); font-weight: 700;
-          transition: all 0.2s; font-family: inherit;
-          position: relative;
-        }
+        .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 20px 0 12px; flex-wrap: wrap; }
+        .section-title { margin: 0; font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .toggle-section-btn { padding: 8px 16px; font-size: 0.82rem; border-radius: 999px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); font-weight: 700; transition: all 0.2s; font-family: inherit; position: relative; }
         [data-theme='light'] .toggle-section-btn { background: rgba(255,255,255,0.75); }
         .toggle-section-btn:hover { transform: translateY(-1px); background: rgba(139,92,246,0.15); }
-        .toggle-section-btn.on {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
-          border-color: rgba(16, 185, 129, 0.5);
-          color: #6ee7b7;
-        }
+        .toggle-section-btn.on { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2)); border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7; }
         .toggle-section-btn.pulse,
-        .section-head .toggle-section-btn {
-          animation: blinkGlow 1.8s ease-in-out infinite;
-        }
+        .section-head .toggle-section-btn { animation: blinkGlow 1.8s ease-in-out infinite; }
         @keyframes blinkGlow {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.55);
-            transform: scale(1);
-          }
-          50% {
-            box-shadow: 0 0 0 10px rgba(139, 92, 246, 0);
-            transform: scale(1.04);
-          }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.55); transform: scale(1); }
+          50% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); transform: scale(1.04); }
         }
 
         .funny-panel { background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(236, 72, 153, 0.08)); }
-        .funny-head {
-          display: flex; justify-content: space-between; align-items: flex-end;
-          gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
-        }
+        .funny-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
         .funny-title { margin: 0 0 4px; font-size: 1.05rem; font-weight: 800; }
         .funny-sub { margin: 0; color: var(--muted); font-size: 0.88rem; }
         .funny-select-wrap { flex-shrink: 0; }
-        .funny-select {
-          padding: 12px 16px; min-width: 240px;
-          border-radius: 12px; cursor: pointer;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); font-family: inherit; font-size: 0.95rem;
-          font-weight: 700; outline: none;
-        }
+        .funny-select { padding: 12px 16px; min-width: 240px; border-radius: 12px; cursor: pointer; background: rgba(255,255,255,0.08); border: 1px solid var(--glass-border); color: var(--fg); font-family: inherit; font-size: 0.95rem; font-weight: 700; outline: none; }
         [data-theme='light'] .funny-select { background: rgba(255,255,255,0.9); }
         .funny-select:focus { border-color: var(--accent-1); box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
-
-        .funny-preview {
-          padding: 16px; border-radius: 14px;
-          background: rgba(0,0,0,0.2);
-          border: 1px solid var(--glass-border);
-          margin-bottom: 16px;
-        }
+        .funny-preview { padding: 16px; border-radius: 14px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); margin-bottom: 16px; }
         [data-theme='light'] .funny-preview { background: rgba(255,255,255,0.6); }
-        .funny-preview-label {
-          display: flex; align-items: center; gap: 8px;
-          font-size: 0.78rem; font-weight: 800;
-          text-transform: uppercase; letter-spacing: 0.06em;
-          color: var(--muted); margin-bottom: 10px;
-        }
+        .funny-preview-label { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
         .funny-emoji { font-size: 1.1rem; }
-        .funny-output {
-          padding: 14px; border-radius: 10px;
-          background: rgba(255,255,255,0.04);
-          border: 1px dashed var(--glass-border);
-          font-size: 1.15rem; font-weight: 600;
-          min-height: 52px; display: flex; align-items: center;
-          cursor: pointer; word-break: break-word;
-          transition: all 0.2s; line-height: 1.4;
-        }
+        .funny-output { padding: 14px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px dashed var(--glass-border); font-size: 1.15rem; font-weight: 600; min-height: 52px; display: flex; align-items: center; cursor: pointer; word-break: break-word; transition: all 0.2s; line-height: 1.4; }
         [data-theme='light'] .funny-output { background: rgba(255,255,255,0.7); }
         .funny-output:hover { background: rgba(139, 92, 246, 0.1); border-color: var(--accent-1); }
         .funny-output.copied { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-5); }
         .funny-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-
-        .funny-grid {
-          display: grid; gap: 8px;
-          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        }
-        .funny-chip {
-          display: flex; align-items: center; gap: 8px;
-          padding: 10px 12px; border-radius: 12px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); cursor: pointer;
-          font-size: 0.82rem; font-weight: 600;
-          transition: all 0.2s; text-align: left;
-          font-family: inherit;
-        }
+        .funny-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        .funny-chip { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--fg); cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all 0.2s; text-align: left; font-family: inherit; }
         [data-theme='light'] .funny-chip { background: rgba(255,255,255,0.7); }
         .funny-chip:hover { transform: translateY(-2px); background: rgba(139,92,246,0.12); }
-        .funny-chip.active {
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; border-color: transparent;
-          box-shadow: 0 4px 18px rgba(139, 92, 246, 0.4);
-        }
+        .funny-chip.active { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; border-color: transparent; box-shadow: 0 4px 18px rgba(139, 92, 246, 0.4); }
         .funny-chip-emoji { font-size: 1.05rem; }
         .funny-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .stats {
-          display: flex; justify-content: center; align-items: center;
-          gap: 10px; color: var(--muted); font-size: 0.85rem;
-          margin: 4px 0 16px; flex-wrap: wrap;
-        }
+        .stats { display: flex; justify-content: center; align-items: center; gap: 10px; color: var(--muted); font-size: 0.85rem; margin: 4px 0 16px; flex-wrap: wrap; }
         .stats strong { color: var(--fg); }
         .dot { opacity: 0.5; }
+        .perf-hint { font-size: 0.75rem; opacity: 0.7; }
 
-        .grid {
-          display: grid; gap: 14px;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        }
-        .card {
-          padding: 14px; display: flex; flex-direction: column; gap: 10px;
-          opacity: 0; transform: translateY(12px);
-          animation: cardIn 0.4s ease forwards;
-          transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
-        }
+        .card { padding: 14px; display: flex; flex-direction: column; gap: 10px; opacity: 0; transform: translateY(12px); animation: cardIn 0.4s ease forwards; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s; height: 100%; }
         @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
-        .card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(139, 92, 246, 0.5);
-          box-shadow: 0 12px 40px rgba(139, 92, 246, 0.25);
-        }
+        .card:hover { transform: translateY(-4px); border-color: rgba(139, 92, 246, 0.5); box-shadow: 0 12px 40px rgba(139, 92, 246, 0.25); }
         .card-head { display: flex; justify-content: space-between; align-items: center; }
-        .card-label {
-          font-size: 0.72rem; font-weight: 700;
-          text-transform: uppercase; letter-spacing: 0.06em;
-          color: var(--muted);
-        }
-        .fav-btn {
-          background: transparent; border: none; cursor: pointer;
-          font-size: 1.15rem; color: var(--muted); padding: 2px 6px;
-          transition: transform 0.2s, color 0.2s;
-        }
+        .card-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+        .fav-btn { background: transparent; border: none; cursor: pointer; font-size: 1.15rem; color: var(--muted); padding: 2px 6px; transition: transform 0.2s, color 0.2s; }
         .fav-btn.on { color: #fbbf24; }
         .fav-btn:hover { transform: scale(1.25); }
-        .card-output {
-          padding: 12px; border-radius: 10px;
-          background: rgba(0,0,0,0.18);
-          border: 1px dashed var(--glass-border);
-          font-size: 1.05rem; word-break: break-word;
-          min-height: 52px; display: flex; align-items: center;
-          cursor: pointer; transition: all 0.2s;
-          line-height: 1.4; overflow: hidden;
-        }
+        .card-output { padding: 12px; border-radius: 10px; background: rgba(0,0,0,0.18); border: 1px dashed var(--glass-border); font-size: 1.05rem; word-break: break-word; min-height: 52px; display: flex; align-items: center; cursor: pointer; transition: all 0.2s; line-height: 1.4; overflow: hidden; flex: 1; }
         [data-theme='light'] .card-output { background: rgba(255,255,255,0.65); }
         .card-output:hover { background: rgba(139, 92, 246, 0.1); border-color: var(--accent-1); }
         .card-output.copied { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-5); }
         .card-actions { display: flex; gap: 8px; }
-        .card-btn {
-          flex: 1; padding: 9px 10px; font-size: 0.82rem;
-          font-weight: 600; border-radius: 10px; cursor: pointer;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid var(--glass-border);
-          color: var(--fg); transition: all 0.2s;
-          font-family: inherit;
-        }
+        .card-btn { flex: 1; padding: 9px 10px; font-size: 0.82rem; font-weight: 600; border-radius: 10px; cursor: pointer; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); color: var(--fg); transition: all 0.2s; font-family: inherit; }
         [data-theme='light'] .card-btn { background: rgba(255,255,255,0.75); }
-        .card-btn:hover {
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; border-color: transparent;
-          transform: translateY(-1px);
-        }
-        .card-btn.copied {
-          background: linear-gradient(135deg, var(--accent-5), var(--accent-3));
-          color: white; border-color: transparent;
-          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
-        }
+        .card-btn:hover:not(:disabled) { background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; border-color: transparent; transform: translateY(-1px); }
+        .card-btn:disabled { cursor: wait; }
+        .card-btn.copied { background: linear-gradient(135deg, var(--accent-5), var(--accent-3)); color: white; border-color: transparent; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5); }
 
-        .empty {
-          grid-column: 1 / -1; text-align: center;
-          padding: 60px 20px; color: var(--muted);
-        }
+        .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
         .empty-icon { font-size: 2.5rem; margin-bottom: 12px; animation: pulse 2s infinite; }
-        @keyframes pulse {
-          0%,100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.15); opacity: 0.7; }
-        }
+        @keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.7; } }
 
         .content { margin-top: 30px; padding: 28px; line-height: 1.75; }
         .content h2 { margin-top: 0; font-size: 1.45rem; }
@@ -2375,185 +2363,85 @@ export default function Page() {
         .content ul, .content ol { padding-left: 20px; }
 
         .steps { display: grid; gap: 14px; margin-top: 20px; }
-        .step {
-          position: relative; padding: 18px 18px 18px 74px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid var(--glass-border);
-          border-radius: 14px; transition: transform 0.2s, border-color 0.2s;
-        }
+        .step { position: relative; padding: 18px 18px 18px 74px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); border-radius: 14px; transition: transform 0.2s, border-color 0.2s; }
         [data-theme='light'] .step { background: rgba(255,255,255,0.6); }
         .step:hover { transform: translateY(-2px); border-color: rgba(139, 92, 246, 0.4); }
-        .step-num {
-          position: absolute; left: 18px; top: 18px;
-          width: 40px; height: 40px; border-radius: 12px;
-          display: grid; place-items: center;
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; font-weight: 900; font-size: 1.1rem;
-          box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-        }
+        .step-num { position: absolute; left: 18px; top: 18px; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; font-weight: 900; font-size: 1.1rem; box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4); }
         .step h3 { margin: 0 0 6px; font-size: 1rem; }
         .step p { margin: 0; font-size: 0.9rem; }
 
-        .features {
-          display: grid; gap: 14px; margin-top: 20px;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        }
-        .feature {
-          padding: 18px; border-radius: 14px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid var(--glass-border);
-          transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-          cursor: default;
-        }
+        .features { display: grid; gap: 14px; margin-top: 20px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+        .feature { padding: 18px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; cursor: default; }
         [data-theme='light'] .feature { background: rgba(255,255,255,0.6); }
-        .feature:hover {
-          transform: translateY(-3px);
-          border-color: rgba(139, 92, 246, 0.5);
-          box-shadow: 0 10px 32px rgba(139, 92, 246, 0.2);
-        }
+        .feature:hover { transform: translateY(-3px); border-color: rgba(139, 92, 246, 0.5); box-shadow: 0 10px 32px rgba(139, 92, 246, 0.2); }
         .feature-icon { font-size: 1.8rem; margin-bottom: 8px; }
         .feature h3 { margin: 0 0 6px; font-size: 1rem; }
         .feature p { margin: 0; font-size: 0.88rem; }
 
         .faq-list { margin-top: 18px; display: grid; gap: 10px; }
-        .faq-item {
-          border: 1px solid var(--glass-border);
-          border-radius: 12px; overflow: hidden;
-          background: rgba(255,255,255,0.04);
-          transition: border-color 0.2s, background 0.2s;
-        }
+        .faq-item { border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.04); transition: border-color 0.2s, background 0.2s; }
         [data-theme='light'] .faq-item { background: rgba(255,255,255,0.6); }
         .faq-item.open { border-color: rgba(139, 92, 246, 0.5); background: rgba(139, 92, 246, 0.06); }
-        .faq-q {
-          width: 100%; text-align: left; padding: 16px 18px;
-          background: transparent; border: none; cursor: pointer;
-          color: var(--fg); font-weight: 700; font-size: 0.95rem;
-          display: flex; justify-content: space-between;
-          align-items: center; gap: 12px;
-          font-family: inherit;
-        }
+        .faq-q { width: 100%; text-align: left; padding: 16px 18px; background: transparent; border: none; cursor: pointer; color: var(--fg); font-weight: 700; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-family: inherit; }
         .faq-icon { font-size: 1.4rem; font-weight: 300; color: var(--accent-1); flex-shrink: 0; }
-        .faq-a {
-          padding: 0 18px 18px; color: var(--muted);
-          font-size: 0.9rem; line-height: 1.7;
-          animation: faqIn 0.25s ease;
-        }
+        .faq-a { padding: 0 18px 18px; color: var(--muted); font-size: 0.9rem; line-height: 1.7; animation: faqIn 0.25s ease; }
         .faq-a p { margin: 0; }
         @keyframes faqIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
         .tools-section { position: relative; }
         .tools-sub { margin: 0 0 18px; }
-        .tools-grid {
-          display: grid; gap: 14px;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        }
-        .tool-card {
-          position: relative; display: flex; align-items: center; gap: 14px;
-          padding: 16px; border-radius: 14px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid var(--glass-border);
-          text-decoration: none; color: var(--fg);
-          transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-                      border-color 0.25s, box-shadow 0.25s,
-                      background 0.25s;
-          overflow: hidden;
-          opacity: 0; transform: translateY(10px);
-          animation: cardIn 0.5s ease forwards;
-        }
+        .tools-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+        .tool-card { position: relative; display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 14px; background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); text-decoration: none; color: var(--fg); transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s, box-shadow 0.25s, background 0.25s; overflow: hidden; opacity: 0; transform: translateY(10px); animation: cardIn 0.5s ease forwards; }
         [data-theme='light'] .tool-card { background: rgba(255,255,255,0.6); }
-        .tool-card::before {
-          content: '';
-          position: absolute; inset: 0;
-          background: radial-gradient(circle at 20% 50%, var(--tool-color), transparent 70%);
-          opacity: 0; transition: opacity 0.35s ease;
-          pointer-events: none;
-        }
-        .tool-card:hover {
-          transform: translateY(-6px) scale(1.02);
-          border-color: var(--tool-color);
-          box-shadow: 0 14px 40px color-mix(in srgb, var(--tool-color) 35%, transparent);
-        }
+        .tool-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 50%, var(--tool-color), transparent 70%); opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
+        .tool-card:hover { transform: translateY(-6px) scale(1.02); border-color: var(--tool-color); box-shadow: 0 14px 40px color-mix(in srgb, var(--tool-color) 35%, transparent); }
         .tool-card:hover::before { opacity: 0.18; }
-        .tool-card:active { transform: translateY(-2px) scale(1); }
-        .tool-card-icon {
-          font-size: 1.8rem; width: 50px; height: 50px;
-          display: grid; place-items: center;
-          border-radius: 12px; flex-shrink: 0;
-          background: color-mix(in srgb, var(--tool-color) 22%, transparent);
-          border: 1px solid color-mix(in srgb, var(--tool-color) 40%, transparent);
-          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-          position: relative; z-index: 1;
-        }
+        .tool-card-icon { font-size: 1.8rem; width: 50px; height: 50px; display: grid; place-items: center; border-radius: 12px; flex-shrink: 0; background: color-mix(in srgb, var(--tool-color) 22%, transparent); border: 1px solid color-mix(in srgb, var(--tool-color) 40%, transparent); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative; z-index: 1; }
         .tool-card:hover .tool-card-icon { transform: scale(1.12) rotate(-6deg); }
         .tool-card-body { flex: 1; min-width: 0; position: relative; z-index: 1; }
-        .tool-card-name {
-          margin: 0 0 4px; font-size: 0.95rem; font-weight: 800;
-          transition: color 0.25s;
-        }
+        .tool-card-name { margin: 0 0 4px; font-size: 0.95rem; font-weight: 800; transition: color 0.25s; }
         .tool-card:hover .tool-card-name { color: var(--tool-color); }
-        .tool-card-desc {
-          margin: 0; font-size: 0.82rem; color: var(--muted);
-          overflow: hidden; text-overflow: ellipsis;
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-        }
-        .tool-card-arrow {
-          font-size: 1.2rem; font-weight: 800;
-          color: var(--tool-color); opacity: 0.6;
-          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s;
-          position: relative; z-index: 1;
-        }
+        .tool-card-desc { margin: 0; font-size: 0.82rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .tool-card-arrow { font-size: 1.2rem; font-weight: 800; color: var(--tool-color); opacity: 0.6; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s; position: relative; z-index: 1; }
         .tool-card:hover .tool-card-arrow { transform: translateX(6px); opacity: 1; }
 
-        .footer {
-          text-align: center; margin-top: 40px;
-          color: var(--muted); font-size: 0.85rem;
-        }
+        .footer { text-align: center; margin-top: 40px; color: var(--muted); font-size: 0.85rem; }
         .footer-links { margin-top: 8px; }
         .footer-links a { color: var(--muted); text-decoration: none; }
         .footer-links a:hover { color: var(--accent-1); }
+        .footer-hint { margin-top: 8px; font-size: 0.78rem; opacity: 0.7; }
+        .footer-hint kbd { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--glass-border); font-family: monospace; }
 
-        .back-to-top, .scroll-bottom {
-          position: fixed; right: 24px;
-          width: 46px; height: 46px; border-radius: 50%;
-          color: white; border: none; cursor: pointer;
-          font-size: 1.2rem; font-weight: 800;
-          z-index: 40; transition: transform 0.2s, box-shadow 0.2s;
-          display: grid; place-items: center;
-        }
-        .back-to-top {
-          bottom: 24px;
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          box-shadow: 0 8px 28px rgba(139, 92, 246, 0.5);
-        }
-        .scroll-bottom {
-          bottom: 80px;
-          background: linear-gradient(135deg, var(--accent-3), var(--accent-5));
-          box-shadow: 0 8px 28px rgba(6, 182, 212, 0.5);
-          animation: bounceDown 2s ease-in-out infinite;
-        }
+        .back-to-top, .scroll-bottom { position: fixed; right: 24px; width: 46px; height: 46px; border-radius: 50%; color: white; border: none; cursor: pointer; font-size: 1.2rem; font-weight: 800; z-index: 40; transition: transform 0.2s, box-shadow 0.2s; display: grid; place-items: center; }
+        .back-to-top { bottom: 24px; background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); box-shadow: 0 8px 28px rgba(139, 92, 246, 0.5); }
+        .scroll-bottom { bottom: 80px; background: linear-gradient(135deg, var(--accent-3), var(--accent-5)); box-shadow: 0 8px 28px rgba(6, 182, 212, 0.5); animation: bounceDown 2s ease-in-out infinite; }
         .back-to-top:hover { transform: translateY(-3px) scale(1.05); }
         .scroll-bottom:hover { transform: translateY(3px) scale(1.05); animation-play-state: paused; }
-        @keyframes bounceDown {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(4px); }
-        }
+        @keyframes bounceDown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 
-        .toast {
-          position: fixed; bottom: 24px; left: 50%;
-          transform: translateX(-50%) translateY(100px);
-          background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-          color: white; font-weight: 700; font-size: 0.9rem;
-          padding: 12px 22px; border-radius: 14px;
-          box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5);
-          opacity: 0; pointer-events: none;
-          transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
-          z-index: 100;
-        }
+        .shortcut-overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: grid; place-items: center; padding: 20px; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .shortcut-modal { max-width: 520px; width: 100%; padding: 24px; max-height: 85vh; overflow-y: auto; }
+        .shortcut-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--glass-border); }
+        .shortcut-head h3 { margin: 0; font-size: 1.15rem; }
+        .shortcut-close { background: transparent; border: none; color: var(--muted); font-size: 1.6rem; cursor: pointer; padding: 0 8px; line-height: 1; }
+        .shortcut-list { display: flex; flex-direction: column; gap: 8px; }
+        .shortcut-row { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; padding: 6px 0; }
+        .shortcut-row kbd { background: rgba(255,255,255,0.08); padding: 4px 9px; border-radius: 6px; border: 1px solid var(--glass-border); font-family: ui-monospace, monospace; font-size: 0.78rem; font-weight: 700; color: var(--fg); min-width: 26px; text-align: center; }
+        [data-theme='light'] .shortcut-row kbd { background: rgba(0,0,0,0.06); }
+        .shortcut-row span:not(.shortcut-desc) { color: var(--muted); font-size: 0.78rem; }
+        .shortcut-desc { margin-left: auto; color: var(--muted); font-size: 0.85rem; }
+        .shortcut-note { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--glass-border); font-size: 0.8rem; color: var(--muted); text-align: center; }
+        .shortcut-note kbd { background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 0.75rem; }
+
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: linear-gradient(135deg, var(--accent-1), var(--accent-2)); color: white; font-weight: 700; font-size: 0.9rem; padding: 12px 22px; border-radius: 14px; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.5); opacity: 0; pointer-events: none; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; z-index: 300; max-width: 90vw; text-align: center; }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast-success { background: linear-gradient(135deg, var(--accent-5), var(--accent-3)); box-shadow: 0 10px 40px rgba(16, 185, 129, 0.5); }
+        .toast-error { background: linear-gradient(135deg, #ef4444, #f97316); box-shadow: 0 10px 40px rgba(239, 68, 68, 0.5); }
+        .toast-info { background: linear-gradient(135deg, var(--accent-3), var(--accent-1)); box-shadow: 0 10px 40px rgba(6, 182, 212, 0.5); }
 
         @media (max-width: 900px) { .header-nav { display: none; } }
         @media (max-width: 720px) {
-          .grid { grid-template-columns: 1fr; gap: 12px; }
           .panel, .content { padding: 16px; }
           .hero { padding: 22px 4px 18px; }
           .header { padding: 8px 10px; }
@@ -2580,8 +2468,6 @@ export default function Page() {
           .share-toggle-title { font-size: 0.92rem; }
           .share-toggle-sub { font-size: 0.76rem; }
         }
-        @media (min-width: 1280px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (min-width: 1680px) { .grid { grid-template-columns: repeat(4, 1fr); } }
 
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
