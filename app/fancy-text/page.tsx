@@ -409,7 +409,7 @@ const OTHER_TOOLS = [
 ];
 
 // ============================================================
-// HELPERS — RICH HTML COPY & CANVAS RENDER
+// HELPERS
 // ============================================================
 
 function buildRichHTML(text: string, textColor: string, bgStyle: string): string {
@@ -488,6 +488,7 @@ async function copyRich(
   }
 }
 
+// FIXED: canvas-based PNG render — now robust, waits for fonts, handles emojis, gradients, and rounding
 async function renderStyledToPNG(
   text: string,
   opts: {
@@ -497,37 +498,76 @@ async function renderStyledToPNG(
     align: 'left' | 'center' | 'right';
   }
 ): Promise<Blob | null> {
+  // Ensure fonts are loaded before measuring text
+  try {
+    if (typeof document !== 'undefined' && (document as any).fonts?.ready) {
+      await (document as any).fonts.ready;
+    }
+  } catch {}
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const padding = 48;
-  const fontSizePx = 36;
+  const baseFontSize = 36;
+  const fontStack = `700 ${baseFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
 
-  ctx.font = `700 ${fontSizePx}px '${opts.fontFamily}', 'Segoe UI', system-ui, sans-serif`;
+  ctx.font = fontStack;
+
   const lines = text.split('\n');
-  const maxLineWidth = Math.max(...lines.map(l => ctx.measureText(l).width), 200);
-  const width = Math.min(Math.max(maxLineWidth + padding * 2, 480), 1600);
-  const height = Math.max(lines.length * fontSizePx * 1.35 + padding * 2, 180);
+  let maxLineWidth = 200;
+  for (const line of lines) {
+    const w = ctx.measureText(line).width;
+    if (w > maxLineWidth) maxLineWidth = w;
+  }
 
-  canvas.width = width * dpr;
-  canvas.height = height * dpr;
+  const width = Math.min(Math.max(maxLineWidth + padding * 2, 480), 1600);
+  const height = Math.max(lines.length * baseFontSize * 1.35 + padding * 2, 180);
+
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
   ctx.scale(dpr, dpr);
 
+  // Draw background (with rounded corners for gradient & solid fills)
   const bg = opts.bgStyle === 'transparent' ? '#0a0a1a' : opts.bgStyle;
-  if (bg.startsWith('linear-gradient')) {
-    const m = bg.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/);
+  const isGradient = bg.startsWith('linear-gradient');
+  const radius = 24;
+
+  ctx.save();
+  // Rounded-rect path
+  ctx.beginPath();
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.moveTo(r, 0);
+  ctx.lineTo(width - r, 0);
+  ctx.quadraticCurveTo(width, 0, width, r);
+  ctx.lineTo(width, height - r);
+  ctx.quadraticCurveTo(width, height, width - r, height);
+  ctx.lineTo(r, height);
+  ctx.quadraticCurveTo(0, height, 0, height - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.clip();
+
+  if (isGradient) {
+    const m = bg.match(/linear-gradient\(\s*(-?\d+(?:\.\d+)?)deg\s*,\s*([^,]+)\s*,\s*([^)]+)\s*\)/);
     if (m) {
-      const [, deg, c1, c2] = m;
-      const angle = (parseFloat(deg) - 90) * (Math.PI / 180);
-      const x1 = width / 2 - Math.cos(angle) * width / 2;
-      const y1 = height / 2 - Math.sin(angle) * height / 2;
-      const x2 = width / 2 + Math.cos(angle) * width / 2;
-      const y2 = height / 2 + Math.sin(angle) * height / 2;
+      const deg = parseFloat(m[1]);
+      const c1 = m[2].trim();
+      const c2 = m[3].trim();
+      const angle = ((deg - 90) * Math.PI) / 180;
+      const cx = width / 2;
+      const cy = height / 2;
+      const half = Math.max(width, height);
+      const x1 = cx - Math.cos(angle) * half;
+      const y1 = cy - Math.sin(angle) * half;
+      const x2 = cx + Math.cos(angle) * half;
+      const y2 = cy + Math.sin(angle) * half;
       const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-      grad.addColorStop(0, c1.trim());
-      grad.addColorStop(1, c2.trim());
+      grad.addColorStop(0, c1);
+      grad.addColorStop(1, c2);
       ctx.fillStyle = grad;
     } else {
       ctx.fillStyle = '#0a0a1a';
@@ -536,23 +576,27 @@ async function renderStyledToPNG(
     ctx.fillStyle = bg;
   }
   ctx.fillRect(0, 0, width, height);
+  ctx.restore();
 
+  // Draw text
   ctx.fillStyle = opts.textColor === 'inherit' ? '#f0f0ff' : opts.textColor;
-  ctx.textBaseline = 'top';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
 
-  let currentFontSize = fontSizePx;
+  // Auto-shrink to fit
+  let currentFontSize = baseFontSize;
   const longestLine = lines.reduce((a, b) => (a.length > b.length ? a : b), '');
   while (
     ctx.measureText(longestLine).width > width - padding * 2 &&
     currentFontSize > 14
   ) {
     currentFontSize -= 1;
-    ctx.font = `700 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, sans-serif`;
+    ctx.font = `700 ${currentFontSize}px '${opts.fontFamily}', 'Segoe UI', system-ui, -apple-system, sans-serif`;
   }
 
   const finalLineH = currentFontSize * 1.35;
   const totalTextH = lines.length * finalLineH;
-  const startY = (height - totalTextH) / 2;
+  const startY = (height - totalTextH) / 2 + finalLineH / 2;
 
   lines.forEach((line, i) => {
     const lineW = ctx.measureText(line).width;
@@ -565,7 +609,9 @@ async function renderStyledToPNG(
     ctx.fillText(line, x, startY + i * finalLineH);
   });
 
-  return new Promise(res => canvas.toBlob(b => res(b), 'image/png', 0.95));
+  return new Promise(res => {
+    canvas.toBlob(b => res(b), 'image/png', 0.95);
+  });
 }
 
 // ============================================================
@@ -635,7 +681,6 @@ export default function Page() {
     setTimeout(() => setToast(''), 2000);
   }, []);
 
-  // ====== COPY (always tries rich, falls back to plain) ======
   const copy = useCallback(
     async (text: string, label: string) => {
       const hasStyle = textColor !== 'inherit' || bgStyle !== 'transparent';
@@ -644,7 +689,7 @@ export default function Page() {
         const rtf = buildRTF(text, textColor, bgStyle);
         const ok = await copyRich(text, html, rtf, text);
         if (ok) {
-          showToast(`✓ ${label} copied with style!`);
+          showToast(`✓ ${label} copied!`);
         } else {
           showToast('✓ Copied!');
         }
@@ -662,22 +707,29 @@ export default function Page() {
     [showToast, textColor, bgStyle]
   );
 
-  // ====== SHARE WITH COLOR/BG ======
+  // FIXED: robust share — always produces a PNG image with colors/bg and shares it
   const shareStyled = useCallback(
     async (text: string, label: string) => {
       try {
-        const hasStyle = textColor !== 'inherit' || bgStyle !== 'transparent';
+        // Always render a PNG so colors & background are preserved
+        const blob = await renderStyledToPNG(text, {
+          textColor,
+          bgStyle,
+          fontFamily,
+          align,
+        });
 
-        if (hasStyle) {
-          const blob = await renderStyledToPNG(text, {
-            textColor,
-            bgStyle,
-            fontFamily,
-            align,
-          });
-          if (blob) {
-            const file = new File([blob], 'fancy-text.png', { type: 'image/png' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (blob) {
+          const file = new File([blob], `fancy-text-${Date.now()}.png`, { type: 'image/png' });
+
+          // Try native share with files
+          if (
+            typeof navigator !== 'undefined' &&
+            typeof (navigator as any).canShare === 'function' &&
+            (navigator as any).canShare({ files: [file] }) &&
+            typeof navigator.share === 'function'
+          ) {
+            try {
               await navigator.share({
                 title: 'Fancy Text',
                 text: label,
@@ -685,19 +737,29 @@ export default function Page() {
               });
               showToast('✓ Shared styled image!');
               return;
+            } catch (err: any) {
+              // If user cancelled, don't fall through to download
+              if (err && (err.name === 'AbortError' || err.name === 'NotAllowedError')) {
+                return;
+              }
             }
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `fancy-text-${label.replace(/\s+/g, '-')}.png`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('✓ Saved styled image');
-            return;
           }
+
+          // Fallback: download the styled PNG
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `fancy-text-${label.replace(/\s+/g, '-').toLowerCase()}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          showToast('✓ Saved as PNG image');
+          return;
         }
 
-        if (navigator.share) {
+        // Last resort: share as plain text
+        if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
           await navigator.share({ title: 'Fancy Text', text });
           showToast('✓ Shared!');
         } else {
@@ -759,8 +821,13 @@ export default function Page() {
     showToast('✓ Cleared');
   }, [showToast]);
 
+  // FIXED: paste inserts at current cursor position, not just at the start
   const pasteFromClipboard = useCallback(async () => {
     try {
+      let pastedText = '';
+      let detectedColor: string | null = null;
+      let detectedBg: string | null = null;
+
       if (navigator.clipboard.read) {
         try {
           const items = await navigator.clipboard.read();
@@ -770,7 +837,7 @@ export default function Page() {
               const html = await blob.text();
               const temp = document.createElement('div');
               temp.innerHTML = html;
-              const text = (temp.textContent || '').trim();
+              pastedText = (temp.textContent || '').trim();
               const styled = temp.querySelector('[style*="color"]') || temp.querySelector('span');
               if (styled) {
                 const cs = (styled as HTMLElement).style.color;
@@ -779,31 +846,57 @@ export default function Page() {
                   if (m) {
                     const hex = '#' + [m[1], m[2], m[3]].map(x => (+x).toString(16).padStart(2, '0')).join('');
                     const found = TEXT_COLORS.find(c => c.value.toLowerCase() === hex.toLowerCase());
-                    if (found) setTextColor(found.value);
+                    if (found) detectedColor = found.value;
                   }
                 }
                 const bs = (styled as HTMLElement).style.background;
                 if (bs) {
                   const found = BG_STYLES.find(b => b.value.toLowerCase() === bs.toLowerCase());
-                  if (found) setBgStyle(found.value);
+                  if (found) detectedBg = found.value;
                 }
               }
-              if (text) {
-                setInput(text);
-                showToast('✓ Pasted with style!');
-                return;
-              }
+              if (pastedText) break;
             }
           }
         } catch {}
       }
-      const t = await navigator.clipboard.readText();
-      setInput(t);
-      showToast('✓ Pasted');
+
+      if (!pastedText) {
+        pastedText = await navigator.clipboard.readText();
+      }
+
+      if (detectedColor) setTextColor(detectedColor);
+      if (detectedBg) setBgStyle(detectedBg);
+
+      // Insert at cursor position in the textarea
+      const ta = textareaRef.current;
+      if (ta) {
+        const start = ta.selectionStart ?? input.length;
+        const end = ta.selectionEnd ?? input.length;
+        const before = input.slice(0, start);
+        const after = input.slice(end);
+        const next = before + pastedText + after;
+        setInput(next);
+        // Restore cursor position after the pasted text on next tick
+        requestAnimationFrame(() => {
+          try {
+            const newPos = start + pastedText.length;
+            ta.focus();
+            ta.setSelectionRange(newPos, newPos);
+          } catch {}
+        });
+      } else {
+        // Fallback: append
+        setInput(prev => prev + pastedText);
+      }
+
+      showToast(
+        detectedColor || detectedBg ? '✓ Pasted with style!' : '✓ Pasted'
+      );
     } catch {
       showToast('Paste failed');
     }
-  }, [showToast]);
+  }, [showToast, input]);
 
   const download = useCallback(() => {
     const blob = new Blob([input], { type: 'text/plain;charset=utf-8' });
@@ -972,7 +1065,7 @@ export default function Page() {
             <div className="hero-pill glass">🚀 {ALL_STYLES.length}+ styles · 28 funny modes · No signup</div>
             <h1 className="hero-title">1000+ <span className="grad-text">Fancy Text</span> &amp; Funny Text Generator</h1>
             <p className="hero-sub">
-              Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more — in any language.
+              Type once · Copy any style · Paste anywhere. Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X, Facebook &amp; more.
             </p>
           </section>
 
@@ -992,24 +1085,23 @@ export default function Page() {
                 className="input"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder="Type or paste your text here... (any language supported, no character limit)"
+                placeholder="Type or paste your text here... (no character limit)"
                 rows={3}
                 style={inputPreviewStyle}
                 spellCheck={false}
-                data-tooltip="Type in any language — no limit"
+                data-tooltip="Type your text here — no character limit"
               />
               <div className="input-meta">
                 <span className="count">{input.length} characters · no limit</span>
                 <div className="input-actions">
-                  <button className="mini-btn" onClick={pasteFromClipboard} title="Paste from clipboard" data-tooltip="Paste from clipboard (keeps colors!)">📥 Paste</button>
-                  <button className="mini-btn" onClick={() => copy(input, 'Text')} title="Copy raw text with style" data-tooltip="Copy raw text with style">📋 Copy</button>
+                  <button className="mini-btn" onClick={pasteFromClipboard} title="Paste from clipboard" data-tooltip="Paste from clipboard">📥 Paste</button>
+                  <button className="mini-btn" onClick={() => copy(input, 'Text')} title="Copy text" data-tooltip="Copy">📋 Copy</button>
                   <button className="mini-btn" onClick={download} title="Download as .txt" data-tooltip="Download as .txt file">💾 Save</button>
                   <button className="mini-btn danger" onClick={clearAll} title="Clear everything" data-tooltip="Clear all text and styles">🗑 Clear</button>
                 </div>
               </div>
             </div>
 
-            {/* COLOR PANEL */}
             <div className="color-panel-wrap">
               <button
                 className={`color-toggle ${showColorPanel ? 'on' : ''}`}
@@ -1060,7 +1152,6 @@ export default function Page() {
                     </div>
                   </div>
 
-                  {/* Info about WhatsApp limitation */}
                   <div className="color-section">
                     <div className="copy-hint" role="note">
                       💡 <strong>Tip:</strong> Rich colors work when pasting into Gmail, Google Docs, Word, Telegram &amp; similar apps. <strong>WhatsApp chat does not support colored text</strong> — use the 🔗 Share button to send a styled image instead.
@@ -1257,8 +1348,8 @@ export default function Page() {
                               <button
                                 className={`card-btn ${isCopied ? 'copied' : ''}`}
                                 onClick={() => { copy(output, style.name); addRecent(style.name); }}
-                                title="Copy this style"
-                                data-tooltip="Copy this style"
+                                title="Copy"
+                                data-tooltip="Copy"
                               >
                                 {isCopied ? '✓ Copied!' : '📋 Copy'}
                               </button>
@@ -1336,7 +1427,7 @@ export default function Page() {
                   <button
                     className={`card-btn ${copiedStyle === 'Funny' ? 'copied' : ''}`}
                     onClick={() => copy(funnyOutput, 'Funny')}
-                    title="Copy funny text"
+                    title="Copy"
                     data-tooltip="Copy"
                   >
                     {copiedStyle === 'Funny' ? '✓ Copied!' : '📋 Copy'}
@@ -1369,7 +1460,7 @@ export default function Page() {
           <section className="content glass" id="how-to">
             <h2>How to Use the Fancy Text Generator (Step-by-Step)</h2>
             <p>
-              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds. It works in <strong>any language</strong> — English, Hindi, Arabic, Chinese, Japanese, Russian, and more.
+              Our <strong>fancy text generator</strong> is designed to be the fastest, most powerful tool of its kind. Whether you&apos;re looking for a <em>cursive Instagram bio</em>, a <em>bold Discord nickname</em>, a <em>funny TikTok caption</em>, or a <em>glitched gaming username</em>, you&apos;ll find a fitting style in under three seconds.
             </p>
             <div className="steps">
               <div className="step">
@@ -1390,7 +1481,7 @@ export default function Page() {
               <div className="step">
                 <div className="step-num">4</div>
                 <h3>Copy or Share with style</h3>
-                <p>Click any style card — the text is copied with your exact colors on the clipboard. Paste it into Gmail, Google Docs, Word, Telegram, or any app that supports rich text — the colors stay! For apps like <strong>WhatsApp chat</strong> that don&apos;t support colored text, use the <strong>🔗 Share</strong> button to send a beautiful PNG image with your colors.</p>
+                <p>Click any style card — the text is copied with your exact colors on the clipboard. Paste it into Gmail, Google Docs, Word, Telegram, or any app that supports rich text. For apps like <strong>WhatsApp chat</strong> that don&apos;t support colored text, use the <strong>🔗 Share</strong> button to send a beautiful PNG image with your colors.</p>
               </div>
               <div className="step">
                 <div className="step-num">5</div>
