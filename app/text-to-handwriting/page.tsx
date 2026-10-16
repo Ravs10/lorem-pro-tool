@@ -567,6 +567,7 @@ export default function Page() {
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
+    finalTranscriptRef.current = text? text + " " : "";
 
     // Store current text as base
     finalTranscriptRef.current = text;
