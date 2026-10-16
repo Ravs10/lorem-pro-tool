@@ -577,25 +577,15 @@ export default function Page() {
     };
 
     recognition.onresult = (event: any) => {
-      let interimTranscript = "";
-      let finalTranscript = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
-        } else {
-          interimTranscript += transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        finalTranscriptRef.current += finalTranscript;
-      }
-
-      // Show live: base + finalized + interim
-      setText(finalTranscriptRef.current + interimTranscript);
-    };
+  let finalText = "";
+  let interimText = "";
+  for (let i = 0; i < event.results.length; i++) {
+    const transcript = event.results[i][0].transcript;
+    if (event.results[i].isFinal) finalText += transcript + " ";
+    else interimText += transcript;
+  }
+  setText(finalTranscriptRef.current + finalText + interimText);
+};
 
     recognition.onerror = (event: any) => {
       // 'no-speech' and 'aborted' are not real errors
