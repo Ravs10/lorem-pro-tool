@@ -1023,19 +1023,19 @@ export default function Page() {
                           {isListening ? "⏹ Stop" : "🎤 Voice"}
                         </button>
                         <button
-                          onClick={speakText}
-                          title={!speechSupported.synthesis ? "Text-to-speech not supported" : isSpeaking ? "Stop speaking" : "Read text aloud"}
-                          disabled={!speechSupported.synthesis}
-                          className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${
-                            !speechSupported.synthesis
-                              ? "bg-gray-200 dark:bg-white/5 text-gray-400 cursor-not-allowed"
-                              : isSpeaking
-                                ? "bg-pink-500 text-white animate-pulse"
-                                : "bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 hover:bg-pink-600 hover:text-white"
-                          }`}
-                        >
-                          {isSpeaking ? "⏹ Stop" : "🔊 Listen"}
-                        </button>
+  onClick={speakText}
+  title={!speechSupported.synthesis? "Text-to-speech not supported" : isSpeaking? "Stop speaking" : "Read text aloud"}
+  disabled={!speechSupported.synthesis}
+  className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full font-bold border-2 transition-all"
+  style={{
+    color: "#ffffff",
+    backgroundColor: isSpeaking? "#dc2626" : "#db2777",
+    borderColor: isSpeaking? "#dc2626" : "#db2777",
+    opacity:!speechSupported.synthesis? 0.5 : 1,
+  }}
+>
+  {isSpeaking? "⏹ Stop" : "🔊 Listen"}
+</button>
                         <button onClick={() => setText("")} className="text-red-500 text-xs hover:underline font-semibold">Clear</button>
                       </div>
                     </div>
