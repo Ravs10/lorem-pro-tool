@@ -259,7 +259,7 @@ function buildAllStyles(): StyleDef[] {
   LINE_STYLES.forEach(([name, fn, cat]) => styles.push({ name, category: cat, fn }));
   FLIP_STYLES.forEach(([name, fn, cat]) => styles.push({ name, category: cat, fn }));
 
-  const combinedMarks = COMBINING_MARKS.slice(0, 15);
+  const combinedMarks = COMBINING_MARKS.slice(0, 30);
   const combinedAlphas = ALPHA_MAPS.slice(0, 8);
   combinedAlphas.forEach(([alphaName, chars, cat]) => {
     const arr = [...chars];
