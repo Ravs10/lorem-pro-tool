@@ -1017,7 +1017,7 @@ export default function Page() {
                               ? "bg-gray-200 dark:bg-white/5 text-gray-400 cursor-not-allowed"
                               : isListening
                                 ? "bg-red-500 text-white animate-pulse"
-                                : "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 hover:bg-violet-600 hover:text-white"
+                                : "bg-white text-violet-700 border-2 border-violet-600 hover:bg-violet-600 hover:text-white"
                           }`}
                         >
                           {isListening ? "⏹ Stop" : "🎤 Voice"}
