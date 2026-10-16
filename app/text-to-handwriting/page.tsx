@@ -476,7 +476,6 @@ export default function Page() {
   const [speechSupported, setSpeechSupported] = useState({ recognition: false, synthesis: false });
 
   const paperRef = useRef<HTMLDivElement>(null);
-  const currentLang = LANGUAGES[langKey];
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef<string>("");
