@@ -3,31 +3,344 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
-// --- MULTILINGUAL DATA (UNCHANGED + EXTENDED) ---
+// --- MULTILINGUAL DATA - 25+ GLOBAL LANGUAGES ---
 const LANGUAGES: any = {
-  english: { label: "English 🇺🇸", fonts: [
-    { name: "Caveat", css: "'Caveat', cursive" },
-    { name: "Patrick Hand", css: "'Patrick Hand', cursive" },
-    { name: "Homemade Apple", css: "'Homemade Apple', cursive" },
-    { name: "Shadows Into Light", css: "'Shadows Into Light', cursive" },
-  ], sample: "Hello friends! This is my handwritten note.\nI made it in just one second." },
-  hindi: { label: "Hindi 🇮🇳 हिन्दी", fonts: [
-    { name: "Kalam", css: "'Kalam', cursive" },
-    { name: "Tiro Devanagari Hindi", css: "'Tiro Devanagari Hindi', serif" },
-    { name: "Baloo 2", css: "'Baloo 2', cursive" },
-  ], sample: "नमस्ते दोस्तों! यह मेरी हस्तलिखित नोट है।\nमैंने इसे एक सेकंड में बनाया।" },
-  bengali: { label: "Bengali বাংলা", fonts: [{ name: "Hind Siliguri", css: "'Hind Siliguri', sans-serif" }], sample: "হ্যালো বন্ধুরা! এটি আমার হাতে লেখা নোট।" },
-  tamil: { label: "Tamil தமிழ்", fonts: [{ name: "Baloo Thambi 2", css: "'Baloo Thambi 2', cursive" }], sample: "வணக்கம் நண்பர்களே! இது என் கையெழுத்து குறிப்பு." },
-  telugu: { label: "Telugu తెలుగు", fonts: [{ name: "Baloo Tammudu 2", css: "'Baloo Tammudu 2', cursive" }], sample: "హలో స్నేహితులారా! ఇది నా చేతివ్రాత నోట్." },
-  arabic: { label: "Arabic العربية", fonts: [{ name: "Cairo", css: "'Cairo', sans-serif" }, { name: "Amiri", css: "'Amiri', serif" }], sample: "مرحبا أصدقائي! هذه ملاحظتي المكتوبة بخط اليد." },
-  urdu: { label: "Urdu اردو", fonts: [{ name: "Gulzar", css: "'Gulzar', serif" }, { name: "Noto Nastaliq Urdu", css: "'Noto Nastaliq Urdu', serif" }], sample: "سلام دوستو! یہ میرا ہاتھ سے لکھا ہوا نوٹ ہے۔" },
-  marathi: { label: "Marathi मराठी", fonts: [{ name: "Kalam", css: "'Kalam', cursive" }, { name: "Baloo 2", css: "'Baloo 2', cursive" }], sample: "नमस्कार मित्रांनो! ही माझी हस्तलिखित टीप आहे." },
+  english: {
+    label: "English 🇺🇸", flag: "🇺🇸",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Patrick Hand", css: "'Patrick Hand', cursive" },
+      { name: "Homemade Apple", css: "'Homemade Apple', cursive" },
+      { name: "Shadows Into Light", css: "'Shadows Into Light', cursive" },
+      { name: "Indie Flower", css: "'Indie Flower', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Great Vibes", css: "'Great Vibes', cursive" },
+      { name: "Sacramento", css: "'Sacramento', cursive" },
+    ],
+    sample: "Hello friends! This is my handwritten note.\nI created it in just one second using AI-powered handwriting generation."
+  },
+  hindi: {
+    label: "Hindi 🇮🇳 हिन्दी", flag: "🇮🇳",
+    fonts: [
+      { name: "Kalam", css: "'Kalam', cursive" },
+      { name: "Tiro Devanagari Hindi", css: "'Tiro Devanagari Hindi', serif" },
+      { name: "Baloo 2", css: "'Baloo 2', cursive" },
+      { name: "Hind", css: "'Hind', sans-serif" },
+      { name: "Poppins Devanagari", css: "'Poppins', sans-serif" },
+    ],
+    sample: "नमस्ते दोस्तों! यह मेरी हस्तलिखित नोट है।\nमैंने इसे एक सेकंड में बनाया।"
+  },
+  bengali: {
+    label: "Bengali 🇧🇩 বাংলা", flag: "🇧🇩",
+    fonts: [
+      { name: "Hind Siliguri", css: "'Hind Siliguri', sans-serif" },
+      { name: "Baloo Da 2", css: "'Baloo Da 2', cursive" },
+      { name: "Atma", css: "'Atma', cursive" },
+    ],
+    sample: "হ্যালো বন্ধুরা! এটি আমার হাতে লেখা নোট।"
+  },
+  tamil: {
+    label: "Tamil 🇮🇳 தமிழ்", flag: "🇮🇳",
+    fonts: [
+      { name: "Baloo Thambi 2", css: "'Baloo Thambi 2', cursive" },
+      { name: "Hind Madurai", css: "'Hind Madurai', sans-serif" },
+      { name: "Catamaran", css: "'Catamaran', sans-serif" },
+    ],
+    sample: "வணக்கம் நண்பர்களே! இது என் கையெழுத்து குறிப்பு."
+  },
+  telugu: {
+    label: "Telugu 🇮🇳 తెలుగు", flag: "🇮🇳",
+    fonts: [
+      { name: "Baloo Tammudu 2", css: "'Baloo Tammudu 2', cursive" },
+      { name: "Hind Guntur", css: "'Hind Guntur', sans-serif" },
+      { name: "Mandali", css: "'Mandali', sans-serif" },
+    ],
+    sample: "హలో స్నేహితులారా! ఇది నా చేతివ్రాత నోట్."
+  },
+  marathi: {
+    label: "Marathi 🇮🇳 मराठी", flag: "🇮🇳",
+    fonts: [
+      { name: "Kalam", css: "'Kalam', cursive" },
+      { name: "Baloo 2", css: "'Baloo 2', cursive" },
+      { name: "Mukta", css: "'Mukta', sans-serif" },
+    ],
+    sample: "नमस्कार मित्रांनो! ही माझी हस्तलिखित टीप आहे."
+  },
+  gujarati: {
+    label: "Gujarati 🇮🇳 ગુજરાતી", flag: "🇮🇳",
+    fonts: [
+      { name: "Hind Vadodara", css: "'Hind Vadodara', sans-serif" },
+      { name: "Baloo Bhai 2", css: "'Baloo Bhai 2', cursive" },
+    ],
+    sample: "નમસ્તે મિત્રો! આ મારી હસ્તલિખિત નોંધ છે."
+  },
+  punjabi: {
+    label: "Punjabi 🇮🇳 ਪੰਜਾਬੀ", flag: "🇮🇳",
+    fonts: [
+      { name: "Baloo Paaji 2", css: "'Baloo Paaji 2', cursive" },
+      { name: "Mukta Mahee", css: "'Mukta Mahee', sans-serif" },
+    ],
+    sample: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਦੋਸਤੋ! ਇਹ ਮੇਰੀ ਹੱਥ ਲਿਖਤ ਨੋਟ ਹੈ।"
+  },
+  kannada: {
+    label: "Kannada 🇮🇳 ಕನ್ನಡ", flag: "🇮🇳",
+    fonts: [
+      { name: "Baloo Tamma 2", css: "'Baloo Tamma 2', cursive" },
+      { name: "Hind Mysuru", css: "'Hind Mysuru', sans-serif" },
+    ],
+    sample: "ನಮಸ್ಕಾರ ಗೆಳೆಯರೇ! ಇದು ನನ್ನ ಕೈಬರಹ ಟಿಪ್ಪಣಿ."
+  },
+  malayalam: {
+    label: "Malayalam 🇮🇳 മലയാളം", flag: "🇮🇳",
+    fonts: [
+      { name: "Baloo Chettan 2", css: "'Baloo Chettan 2', cursive" },
+      { name: "Hind Siliguri Malayalam", css: "'Hind Siliguri', sans-serif" },
+    ],
+    sample: "ഹലോ സുഹൃത്തുക്കളേ! ഇത് എന്റെ കൈയെഴുത്ത് കുറിപ്പാണ്."
+  },
+  odia: {
+    label: "Odia 🇮🇳 ଓଡ଼ିଆ", flag: "🇮🇳",
+    fonts: [
+      { name: "Baloo Bhaina 2", css: "'Baloo Bhaina 2', cursive" },
+    ],
+    sample: "ନମସ୍କାର ବନ୍ଧୁମାନେ! ଏହା ମୋର ହସ୍ତଲିଖିତ ନୋଟ୍ |"
+  },
+  arabic: {
+    label: "Arabic 🇸🇦 العربية", flag: "🇸🇦",
+    fonts: [
+      { name: "Cairo", css: "'Cairo', sans-serif" },
+      { name: "Amiri", css: "'Amiri', serif" },
+      { name: "Tajawal", css: "'Tajawal', sans-serif" },
+      { name: "Lateef", css: "'Lateef', serif" },
+    ],
+    sample: "مرحبا أصدقائي! هذه ملاحظتي المكتوبة بخط اليد."
+  },
+  urdu: {
+    label: "Urdu 🇵🇰 اردو", flag: "🇵🇰",
+    fonts: [
+      { name: "Gulzar", css: "'Gulzar', serif" },
+      { name: "Noto Nastaliq Urdu", css: "'Noto Nastaliq Urdu', serif" },
+      { name: "Lateef", css: "'Lateef', serif" },
+    ],
+    sample: "سلام دوستو! یہ میرا ہاتھ سے لکھا ہوا نوٹ ہے۔"
+  },
+  persian: {
+    label: "Persian 🇮🇷 فارسی", flag: "🇮🇷",
+    fonts: [
+      { name: "Vazirmatn", css: "'Vazirmatn', sans-serif" },
+      { name: "Gulzar", css: "'Gulzar', serif" },
+    ],
+    sample: "سلام دوستان! این یادداشت دست‌نویس من است."
+  },
+  hebrew: {
+    label: "Hebrew 🇮🇱 עברית", flag: "🇮🇱",
+    fonts: [
+      { name: "David Libre", css: "'David Libre', serif" },
+      { name: "Rubik", css: "'Rubik', sans-serif" },
+    ],
+    sample: "שלום חברים! זו ההערה בכתב יד שלי."
+  },
+  russian: {
+    label: "Russian 🇷🇺 Русский", flag: "🇷🇺",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Pacifico", css: "'Pacifico', cursive" },
+      { name: "Comfortaa", css: "'Comfortaa', cursive" },
+    ],
+    sample: "Привет друзья! Это моя рукописная заметка."
+  },
+  ukrainian: {
+    label: "Ukrainian 🇺🇦 Українська", flag: "🇺🇦",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Comfortaa", css: "'Comfortaa', cursive" },
+    ],
+    sample: "Привіт друзі! Це моя рукописна нотатка."
+  },
+  greek: {
+    label: "Greek 🇬🇷 Ελληνικά", flag: "🇬🇷",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Comfortaa", css: "'Comfortaa', cursive" },
+    ],
+    sample: "Γεια σας φίλοι! Αυτή είναι η χειρόγραφη σημείωσή μου."
+  },
+  japanese: {
+    label: "Japanese 🇯🇵 日本語", flag: "🇯🇵",
+    fonts: [
+      { name: "Yomogi", css: "'Yomogi', cursive" },
+      { name: "Zen Kurenaido", css: "'Zen Kurenaido', sans-serif" },
+      { name: "Klee One", css: "'Klee One', cursive" },
+    ],
+    sample: "こんにちは友達！これは私の手書きメモです。"
+  },
+  korean: {
+    label: "Korean 🇰🇷 한국어", flag: "🇰🇷",
+    fonts: [
+      { name: "Gaegu", css: "'Gaegu', cursive" },
+      { name: "Nanum Pen Script", css: "'Nanum Pen Script', cursive" },
+      { name: "Poor Story", css: "'Poor Story', cursive" },
+    ],
+    sample: "안녕 친구들! 이것은 내 손글씨 메모입니다."
+  },
+  chinese: {
+    label: "Chinese 🇨🇳 中文", flag: "🇨🇳",
+    fonts: [
+      { name: "Ma Shan Zheng", css: "'Ma Shan Zheng', cursive" },
+      { name: "Zhi Mang Xing", css: "'Zhi Mang Xing', cursive" },
+      { name: "Long Cang", css: "'Long Cang', cursive" },
+    ],
+    sample: "你好朋友们！这是我的手写笔记。"
+  },
+  thai: {
+    label: "Thai 🇹🇭 ไทย", flag: "🇹🇭",
+    fonts: [
+      { name: "Mali", css: "'Mali', cursive" },
+      { name: "Itim", css: "'Itim', cursive" },
+      { name: "Sarabun", css: "'Sarabun', sans-serif" },
+    ],
+    sample: "สวัสดีเพื่อน ๆ! นี่คือบันทึกลายมือของฉัน"
+  },
+  vietnamese: {
+    label: "Vietnamese 🇻🇳 Tiếng Việt", flag: "🇻🇳",
+    fonts: [
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Pacifico", css: "'Pacifico', cursive" },
+      { name: "Comfortaa", css: "'Comfortaa', cursive" },
+    ],
+    sample: "Xin chào các bạn! Đây là ghi chú viết tay của tôi."
+  },
+  indonesian: {
+    label: "Indonesian 🇮🇩 Bahasa", flag: "🇮🇩",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Indie Flower", css: "'Indie Flower', cursive" },
+    ],
+    sample: "Halo teman-teman! Ini catatan tulisan tangan saya."
+  },
+  malay: {
+    label: "Malay 🇲🇾 Bahasa Melayu", flag: "🇲🇾",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+    ],
+    sample: "Hello kawan-kawan! Ini nota tulisan tangan saya."
+  },
+  filipino: {
+    label: "Filipino 🇵🇭 Tagalog", flag: "🇵🇭",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+    ],
+    sample: "Kumusta mga kaibigan! Ito ang aking sulat-kamay na tala."
+  },
+  spanish: {
+    label: "Spanish 🇪🇸 Español", flag: "🇪🇸",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Pacifico", css: "'Pacifico', cursive" },
+      { name: "Sacramento", css: "'Sacramento', cursive" },
+    ],
+    sample: "¡Hola amigos! Esta es mi nota escrita a mano."
+  },
+  french: {
+    label: "French 🇫🇷 Français", flag: "🇫🇷",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Great Vibes", css: "'Great Vibes', cursive" },
+      { name: "Sacramento", css: "'Sacramento', cursive" },
+    ],
+    sample: "Bonjour les amis ! Ceci est ma note manuscrite."
+  },
+  german: {
+    label: "German 🇩🇪 Deutsch", flag: "🇩🇪",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Comfortaa", css: "'Comfortaa', cursive" },
+    ],
+    sample: "Hallo Freunde! Dies ist meine handschriftliche Notiz."
+  },
+  italian: {
+    label: "Italian 🇮🇹 Italiano", flag: "🇮🇹",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Great Vibes", css: "'Great Vibes', cursive" },
+      { name: "Sacramento", css: "'Sacramento', cursive" },
+    ],
+    sample: "Ciao amici! Questo è il mio appunto scritto a mano."
+  },
+  portuguese: {
+    label: "Portuguese 🇵🇹 Português", flag: "🇵🇹",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Pacifico", css: "'Pacifico', cursive" },
+    ],
+    sample: "Olá amigos! Esta é minha nota escrita à mão."
+  },
+  dutch: {
+    label: "Dutch 🇳🇱 Nederlands", flag: "🇳🇱",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+    ],
+    sample: "Hallo vrienden! Dit is mijn handgeschreven notitie."
+  },
+  polish: {
+    label: "Polish 🇵🇱 Polski", flag: "🇵🇱",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Comfortaa", css: "'Comfortaa', cursive" },
+    ],
+    sample: "Cześć przyjaciele! To moja odręczna notatka."
+  },
+  swedish: {
+    label: "Swedish 🇸🇪 Svenska", flag: "🇸🇪",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+    ],
+    sample: "Hej vänner! Detta är min handskrivna anteckning."
+  },
+  turkish: {
+    label: "Turkish 🇹🇷 Türkçe", flag: "🇹🇷",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+      { name: "Pacifico", css: "'Pacifico', cursive" },
+    ],
+    sample: "Merhaba arkadaşlar! Bu benim el yazısı notum."
+  },
+  swahili: {
+    label: "Swahili 🇰🇪 Kiswahili", flag: "🇰🇪",
+    fonts: [
+      { name: "Caveat", css: "'Caveat', cursive" },
+      { name: "Dancing Script", css: "'Dancing Script', cursive" },
+    ],
+    sample: "Habari marafiki! Hii ni noti yangu ya mkono."
+  },
+  nepali: {
+    label: "Nepali 🇳🇵 नेपाली", flag: "🇳🇵",
+    fonts: [
+      { name: "Kalam", css: "'Kalam', cursive" },
+      { name: "Mukta", css: "'Mukta', sans-serif" },
+    ],
+    sample: "नमस्ते साथीहरू! यो मेरो हस्तलिखित नोट हो।"
+  },
 };
 
 const PENS = [
   { name: "Blue", color: "#1e40af" }, { name: "Black", color: "#111827" },
-  { name: "Red", color: "#dc2626" }, { name: "Green", color: "#047857" }, { name: "Purple", color: "#7c3aed" },
-  { name: "Orange", color: "#ea580c" }, { name: "Pink", color: "#db2777" }, { name: "Teal", color: "#0d9488" },
+  { name: "Red", color: "#dc2626" }, { name: "Green", color: "#047857" },
+  { name: "Purple", color: "#7c3aed" }, { name: "Orange", color: "#ea580c" },
+  { name: "Pink", color: "#db2777" }, { name: "Teal", color: "#0d9488" },
+  { name: "Brown", color: "#78350f" }, { name: "Navy", color: "#1e3a8a" },
+  { name: "Maroon", color: "#7f1d1d" }, { name: "Indigo", color: "#4338ca" },
 ];
 
 const PEN_TYPES = [
@@ -36,6 +349,7 @@ const PEN_TYPES = [
   { id: "gel", name: "✒️ Gel" },
   { id: "pencil", name: "✏️ Pencil" },
   { id: "marker", name: "🖍️ Marker" },
+  { id: "calligraphy", name: "🖌️ Calligraphy" },
 ];
 
 const PAPERS = [
@@ -47,6 +361,8 @@ const PAPERS = [
   { id: "letter", name: "Letter ✉️" },
   { id: "diary", name: "Diary 📔" },
   { id: "music", name: "Music 🎵" },
+  { id: "legal", name: "Legal ⚖️" },
+  { id: "notebook", name: "Notebook 📒" },
 ];
 
 const TEMPLATES = [
@@ -56,17 +372,37 @@ const TEMPLATES = [
   { id: "notes", name: "Study Notes", icon: "📚", text: "Topic: [Chapter Name]\n\n• Key Point 1\n• Key Point 2\n• Key Point 3\n\nImportant: Remember to revise!" },
   { id: "recipe", name: "Recipe Card", icon: "🍳", text: "Recipe: [Dish Name]\n\nIngredients:\n- Item 1\n- Item 2\n\nSteps:\n1. First step...\n2. Second step..." },
   { id: "todo", name: "To-Do List", icon: "✅", text: "Today's Tasks:\n\n☐ Task 1\n☐ Task 2\n☐ Task 3\n\nPriority: High!" },
+  { id: "poem", name: "Poem", icon: "🌹", text: "Roses are red,\nViolets are blue,\nHandwriting is beautiful,\nAnd so are you." },
+  { id: "invitation", name: "Invitation", icon: "🎉", text: "You're Invited!\n\nJoin us for a celebration\nDate: [Date]\nTime: [Time]\nVenue: [Location]" },
 ];
 
 const FAQS = [
-  { q: "Is this Text to Handwriting Generator free?", a: "Yes, 100% free. No signup, no watermark, unlimited PNG & PDF downloads. Your text never leaves your browser." },
-  { q: "Which languages are supported?", a: "English, Hindi, Bengali, Tamil, Telugu, Marathi, Arabic, Urdu and more. Each language uses its own native handwriting font." },
-  { q: "How to download as PDF?", a: "Type your text > Select font, pen & paper > Click PDF Download. You will get a high-quality A4 PDF." },
-  { q: "Can I use it for assignments?", a: "You can use it for practice, notes, quotes and design. For school work, always check your teacher's rules first." },
-  { q: "Is my data safe?", a: "Yes. Conversion happens 100% in your browser. We do not store, track or upload your text." },
-  { q: "Can I create my own signature?", a: "Yes! Use Signature Mode to generate personalized signatures with various handwriting styles, pen pressures and ink effects." },
-  { q: "Does it support multi-page documents?", a: "Absolutely. Long texts automatically split into multiple A4 pages with proper page breaks. PDF export handles all pages." },
-  { q: "What are keyboard shortcuts?", a: "Ctrl+S: Download PDF, Ctrl+P: Download PNG, Ctrl+K: Clear text, Ctrl+D: Toggle dark mode, Ctrl+Z: Reset all settings." },
+  { q: "Is this Text to Handwriting Generator completely free?", a: "Yes, 100% free forever. No signup, no watermark, unlimited PNG & PDF downloads. Your text never leaves your browser — complete privacy guaranteed." },
+  { q: "How many languages are supported?", a: "We support 35+ global languages including English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Arabic, Urdu, Persian, Hebrew, Russian, Ukrainian, Greek, Japanese, Korean, Chinese, Thai, Vietnamese, Indonesian, Malay, Filipino, Spanish, French, German, Italian, Portuguese, Dutch, Polish, Swedish, Turkish, Swahili, and Nepali." },
+  { q: "How do I download as PDF?", a: "Simply type your text, select your preferred font, pen and paper style, then click the PDF Download button. You will receive a high-quality A4 PDF file instantly." },
+  { q: "Can I use this for school assignments?", a: "This tool is perfect for practice, notes, quotes, and design projects. However, always check your school's or teacher's rules about using generated handwriting for actual submissions." },
+  { q: "Is my data safe and private?", a: "Absolutely. All conversion happens 100% in your browser using client-side JavaScript. We do not store, track, upload, or share your text with anyone. Your privacy is our top priority." },
+  { q: "Can I create my own signature?", a: "Yes! Enable Signature Mode in the Advanced tab to generate personalized signatures with various handwriting styles, pen pressures, and ink effects." },
+  { q: "Does it support multi-page documents?", a: "Yes. Long texts automatically split into multiple A4 pages with proper page breaks. The PDF export handles all pages seamlessly." },
+  { q: "What keyboard shortcuts are available?", a: "Ctrl+S: Download PDF | Ctrl+P: Download PNG | Ctrl+K: Clear text | Ctrl+D: Toggle dark mode | Ctrl+Z: Reset all settings | Ctrl+/: Show shortcuts" },
+  { q: "Can I use voice input to write text?", a: "Yes! Click the microphone button in the text area to use your voice. We support speech recognition in 30+ languages using your browser's built-in Web Speech API." },
+  { q: "Can I listen to my text being read aloud?", a: "Yes! Click the speaker button to hear your text read aloud using text-to-speech. You can also share your creation on WhatsApp, Facebook, Twitter, LinkedIn, and more." },
+];
+
+// --- OTHER USEFUL TOOLS ---
+const OTHER_TOOLS = [
+  { icon: "📝", name: "Text to Image", desc: "Convert text into beautiful images", color: "from-blue-500 to-cyan-500" },
+  { icon: "🔤", name: "Fancy Text Generator", desc: "Stylish fonts for social media", color: "from-pink-500 to-rose-500" },
+  { icon: "🔠", name: "Case Converter", desc: "UPPER, lower, Title, Sentence", color: "from-violet-500 to-purple-500" },
+  { icon: "📊", name: "Word Counter", desc: "Count words, chars, sentences", color: "from-green-500 to-emerald-500" },
+  { icon: "🔐", name: "Password Generator", desc: "Strong secure passwords", color: "from-red-500 to-orange-500" },
+  { icon: "📱", name: "QR Code Generator", desc: "Create QR codes instantly", color: "from-indigo-500 to-blue-500" },
+  { icon: "🎨", name: "Color Picker", desc: "Pick colors from any image", color: "from-yellow-500 to-amber-500" },
+  { icon: "📄", name: "PDF Merger", desc: "Combine multiple PDFs", color: "from-teal-500 to-cyan-500" },
+  { icon: "🖼️", name: "Image Compressor", desc: "Reduce image file size", color: "from-fuchsia-500 to-pink-500" },
+  { icon: "✂️", name: "Background Remover", desc: "Remove image backgrounds", color: "from-lime-500 to-green-500" },
+  { icon: "📅", name: "Age Calculator", desc: "Calculate exact age", color: "from-sky-500 to-blue-500" },
+  { icon: "🔗", name: "URL Shortener", desc: "Shorten long URLs", color: "from-purple-500 to-indigo-500" },
 ];
 
 // Toast Component
@@ -86,6 +422,17 @@ const Toast = ({ message, type, onClose }: any) => {
     </div>
   );
 };
+
+// AdSense Component - Google AdSense friendly
+const AdSlot = ({ slot, format = "auto", label = "Advertisement", dark }: any) => (
+  <div className={`my-6 rounded-2xl overflow-hidden border-2 border-dashed ${dark ? "border-white/10 bg-white/[0.02]" : "border-gray-200 bg-gray-50/50"}`}>
+    <div className={`text-[10px] uppercase tracking-widest text-center py-1 font-semibold ${dark ? "text-white/30" : "text-gray-400"}`}>{label}</div>
+    <div className="min-h-[100px] flex items-center justify-center text-xs opacity-40 px-4 py-8">
+      {/* Google AdSense code goes here */}
+      <ins className="adsbygoogle" style={{ display: "block" }} data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot={slot} data-ad-format={format} data-full-width-responsive="true" />
+    </div>
+  </div>
+);
 
 export default function Page() {
   const [langKey, setLangKey] = useState("english");
@@ -123,16 +470,30 @@ export default function Page() {
   const [signatureStyle, setSignatureStyle] = useState(0);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [wordGoal, setWordGoal] = useState(500);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [langSearch, setLangSearch] = useState("");
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
 
   const paperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const currentLang = LANGUAGES[langKey];
   const currentFont = currentLang.fonts[fontIdx] || currentLang.fonts[0];
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
   const charCount = text.length;
   const readingTime = Math.ceil(wordCount / 200);
+  const speakingTime = Math.ceil(wordCount / 130);
   const pageCount = Math.max(1, Math.ceil(text.length / 1800));
+
+  const filteredLangs = useMemo(() => {
+    const q = langSearch.toLowerCase();
+    return Object.keys(LANGUAGES).filter(k =>
+      !q || LANGUAGES[k].label.toLowerCase().includes(q) || k.toLowerCase().includes(q)
+    );
+  }, [langSearch]);
 
   const showToast = useCallback((msg: string, type = "info") => {
     setToast({ msg, type });
@@ -142,12 +503,82 @@ export default function Page() {
     setLangKey(k);
     setFontIdx(0);
     setText(LANGUAGES[k].sample);
+    setShowLangDropdown(false);
+    setLangSearch("");
     showToast(`Switched to ${LANGUAGES[k].label}`, "info");
   };
 
   const applyTemplate = (tpl: any) => {
     setText(tpl.text);
     showToast(`Applied ${tpl.name} template`, "success");
+  };
+
+  // --- VOICE INPUT (Speech-to-Text) ---
+  const startListening = () => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      showToast("Voice input not supported in this browser", "error");
+      return;
+    }
+    const recognition = new SR();
+    recognition.lang = getSpeechLang(langKey);
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onresult = (e: any) => {
+      let transcript = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript;
+      }
+      setText(prev => prev + " " + transcript);
+    };
+    recognition.onerror = () => { setIsListening(false); showToast("Voice input error", "error"); };
+    recognition.onend = () => setIsListening(false);
+    recognition.start();
+    recognitionRef.current = recognition;
+    setIsListening(true);
+    showToast("Listening... Speak now", "info");
+  };
+
+  const stopListening = () => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+    showToast("Voice input stopped", "info");
+  };
+
+  // --- TEXT-TO-SPEECH ---
+  const speakText = () => {
+    if (!("speechSynthesis" in window)) {
+      showToast("Text-to-speech not supported", "error");
+      return;
+    }
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = getSpeechLang(langKey);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+    showToast("Reading text aloud...", "info");
+  };
+
+  const getSpeechLang = (k: string) => {
+    const map: any = {
+      english: "en-US", hindi: "hi-IN", bengali: "bn-IN", tamil: "ta-IN", telugu: "te-IN",
+      marathi: "mr-IN", gujarati: "gu-IN", punjabi: "pa-IN", kannada: "kn-IN", malayalam: "ml-IN",
+      odia: "or-IN", arabic: "ar-SA", urdu: "ur-PK", persian: "fa-IR", hebrew: "he-IL",
+      russian: "ru-RU", ukrainian: "uk-UA", greek: "el-GR", japanese: "ja-JP", korean: "ko-KR",
+      chinese: "zh-CN", thai: "th-TH", vietnamese: "vi-VN", indonesian: "id-ID", malay: "ms-MY",
+      filipino: "fil-PH", spanish: "es-ES", french: "fr-FR", german: "de-DE", italian: "it-IT",
+      portuguese: "pt-PT", dutch: "nl-NL", polish: "pl-PL", swedish: "sv-SE", turkish: "tr-TR",
+      swahili: "sw-KE", nepali: "ne-NP",
+    };
+    return map[k] || "en-US";
   };
 
   const getPaperStyle = () => {
@@ -157,8 +588,10 @@ export default function Page() {
     else if (paper.id === "aged") base.background = "#fdf6e3";
     else if (paper.id === "sticky") base.background = "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)";
     else if (paper.id === "letter") base.background = "#fffef9";
-    else if (paper.id === "diary") { base.background = `repeating-linear-gradient(transparent, transparent 31px, #d1d5db 32px), #fffbf5`; }
-    else if (paper.id === "music") { base.background = `repeating-linear-gradient(transparent, transparent 19px, #9ca3af 20px, transparent 21px, transparent 29px, #9ca3af 30px), #fff`; }
+    else if (paper.id === "diary") base.background = `repeating-linear-gradient(transparent, transparent 31px, #d1d5db 32px), #fffbf5`;
+    else if (paper.id === "music") base.background = `repeating-linear-gradient(transparent, transparent 19px, #9ca3af 20px, transparent 21px, transparent 29px, #9ca3af 30px), #fff`;
+    else if (paper.id === "legal") base.background = `repeating-linear-gradient(90deg, transparent, transparent 39px, #fecaca 40px), #fffbeb`;
+    else if (paper.id === "notebook") base.background = `repeating-linear-gradient(transparent, transparent 27px, #bfdbfe 28px), linear-gradient(90deg, transparent 39px, #fca5a5 40px, transparent 41px), #fff`;
     else base.background = "#fff";
 
     if (bgTexture === "coffee") base.backgroundImage = `${base.backgroundImage || ""}, radial-gradient(circle at 20% 30%, rgba(120,72,20,0.15) 0%, transparent 20%), radial-gradient(circle at 80% 70%, rgba(120,72,20,0.1) 0%, transparent 15%)`;
@@ -183,6 +616,9 @@ export default function Page() {
     } else if (penType.id === "marker") {
       base.textShadow = `0 0 3px ${pen.color}80`;
       base.fontWeight = 600;
+    } else if (penType.id === "calligraphy") {
+      base.textShadow = `1px 1px 0 ${pen.color}40, -1px -1px 0 ${pen.color}20`;
+      base.fontWeight = 500;
     } else {
       base.textShadow = `0 0.5px 0.5px ${pen.color}30`;
     }
@@ -199,7 +635,7 @@ export default function Page() {
       a.download = `handwriting-${langKey}-${Date.now()}.png`;
       a.href = c.toDataURL("image/png");
       a.click();
-      showToast("PNG downloaded!", "success");
+      showToast("PNG downloaded successfully!", "success");
     } catch (e) { showToast("Download failed", "error"); }
     setIsDownloading(false);
   };
@@ -215,7 +651,7 @@ export default function Page() {
       const h = (c.height * w) / c.width;
       pdf.addImage(c.toDataURL("image/png"), "PNG", 0, 0, w, h);
       pdf.save(`handwriting-${langKey}-${Date.now()}.pdf`);
-      showToast("PDF downloaded!", "success");
+      showToast("PDF downloaded successfully!", "success");
     } catch (e) { showToast("Download failed", "error"); }
     setIsDownloading(false);
   };
@@ -223,7 +659,7 @@ export default function Page() {
   const copyText = async () => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
-    showToast("Text copied!", "success");
+    showToast("Text copied to clipboard!", "success");
     setTimeout(() => setCopied(false), 1500);
   };
 
@@ -232,7 +668,25 @@ export default function Page() {
     setFontSize(28); setLineHeight(1.8); setLetterSpacing(0.5); setInkOpacity(1);
     setTilt(0); setAlignment("left"); setInkTexture(true); setStrokePressure(1);
     setRotation(0); setMarginX(0); setMarginY(0); setBgTexture("none");
-    showToast("Settings reset", "info");
+    showToast("All settings reset", "info");
+  };
+
+  // --- SOCIAL SHARE ---
+  const shareTo = (platform: string) => {
+    const shareText = `Check out my handwritten note created with Handwriting Generator PRO! ✍️`;
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    let shareUrl = "";
+    switch (platform) {
+      case "whatsapp": shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + url)}`; break;
+      case "facebook": shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+      case "twitter": shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`; break;
+      case "linkedin": shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`; break;
+      case "telegram": shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`; break;
+      case "reddit": shareUrl = `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(shareText)}`; break;
+      case "email": shareUrl = `mailto:?subject=Check this out&body=${encodeURIComponent(shareText + " " + url)}`; break;
+      case "copy": navigator.clipboard.writeText(url); showToast("Link copied to clipboard!", "success"); return;
+    }
+    window.open(shareUrl, "_blank", "width=600,height=500");
   };
 
   // Keyboard shortcuts
@@ -264,11 +718,13 @@ export default function Page() {
   };
 
   const tabs = [
-    { id: "text", label: "✏️ Text", icon: "📝" },
-    { id: "style", label: "🎨 Style", icon: "🖋️" },
-    { id: "paper", label: "📄 Paper", icon: "📃" },
-    { id: "advanced", label: "⚙️ Pro", icon: "🚀" },
+    { id: "text", label: "Text", icon: "📝" },
+    { id: "style", label: "Style", icon: "🖋️" },
+    { id: "paper", label: "Paper", icon: "📃" },
+    { id: "advanced", label: "Pro", icon: "🚀" },
   ];
+
+  const isRTL = ["arabic", "urdu", "persian", "hebrew"].includes(langKey);
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${dark ? "bg-[#0a0a0f] text-white" : "bg-gradient-to-br from-[#f8f7ff] via-[#fef9ff] to-[#f0f9ff] text-gray-900"}`}>
@@ -291,6 +747,7 @@ export default function Page() {
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
               {wordCount} Words • {charCount} Chars • ~{readingTime}m read
             </span>
+            <button onClick={() => setShowShare(true)} title="Share" className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center text-lg hover:scale-110 transition-all ${dark ? "bg-white/10" : "bg-gray-100"}`}>📤</button>
             <button onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts (Ctrl+/)" className={`hidden md:flex w-10 h-10 rounded-full items-center justify-center text-lg hover:scale-110 transition-all ${dark ? "bg-white/10" : "bg-gray-100"}`}>⌨️</button>
             <button onClick={() => setDark(!dark)} className={`w-10 h-10 rounded-full flex items-center justify-center text-xl hover:scale-110 hover:rotate-12 transition-all ${dark ? "bg-white/10" : "bg-gray-100"}`}>{dark ? "☀️" : "🌙"}</button>
           </div>
@@ -304,8 +761,16 @@ export default function Page() {
             Convert Typed Text into{" "}
             <span className="bg-gradient-to-r from-violet-600 to-pink-500 bg-clip-text text-transparent">Realistic Handwriting</span>
           </h2>
-          <p className="text-sm md:text-base opacity-70 max-w-2xl mx-auto">8+ languages • 10+ fonts • 5 pen types • PNG & PDF download — 100% Free, No Signup Required</p>
+          <p className="text-sm md:text-base opacity-70 max-w-3xl mx-auto">35+ languages • 30+ fonts • 6 pen types • Voice input • Text-to-speech • PNG & PDF download — 100% Free, No Signup Required</p>
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
+            {["🌍 35+ Languages", "🎨 30+ Fonts", "🎤 Voice Input", "🔊 Text-to-Speech", "📤 Social Share", "🔒 Privacy First"].map((b, i) => (
+              <span key={i} className={`text-xs px-3 py-1 rounded-full font-semibold ${dark ? "bg-white/10" : "bg-white shadow border"}`}>{b}</span>
+            ))}
+          </div>
         </div>
+
+        {/* Top Ad Slot */}
+        <AdSlot slot="1234567890" label="Advertisement" dark={dark} />
 
         <div className="grid lg:grid-cols-[400px_1fr] gap-6">
           {/* CONTROLS */}
@@ -327,28 +792,51 @@ export default function Page() {
                 <>
                   <div className="animate-fadeIn">
                     <div className="flex justify-between items-center mb-2">
-                      <label className="text-sm font-bold">🌍 Language / भाषा</label>
-                      <span className="text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full font-bold">{currentLang.label}</span>
+                      <label className="text-sm font-bold">🌍 Language</label>
+                      <span className="text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full font-bold">{currentLang.flag} {currentLang.label.split(" ")[0]}</span>
                     </div>
-                    <select value={langKey} onChange={(e) => changeLang(e.target.value)} className={`w-full p-3 rounded-xl border font-semibold outline-none focus:ring-2 focus:ring-violet-500 transition-all ${dark ? "bg-black/40 border-white/10" : "bg-gray-50 border-gray-200"}`}>
-                      {Object.keys(LANGUAGES).map(k => <option key={k} value={k}>{LANGUAGES[k].label}</option>)}
-                    </select>
+                    <div className="relative">
+                      <button onClick={() => setShowLangDropdown(!showLangDropdown)} className={`w-full p-3 rounded-xl border font-semibold outline-none focus:ring-2 focus:ring-violet-500 transition-all flex justify-between items-center ${dark ? "bg-black/40 border-white/10" : "bg-gray-50 border-gray-200"}`}>
+                        <span>{currentLang.label}</span>
+                        <span className={`transition-transform ${showLangDropdown ? "rotate-180" : ""}`}>▼</span>
+                      </button>
+                      {showLangDropdown && (
+                        <div className={`absolute z-50 mt-2 w-full max-h-80 overflow-y-auto custom-scroll rounded-xl shadow-2xl border ${dark ? "bg-[#1a1a2e] border-white/10" : "bg-white border-gray-200"}`}>
+                          <div className="p-2 sticky top-0 bg-inherit border-b border-gray-100 dark:border-white/10">
+                            <input type="text" value={langSearch} onChange={(e) => setLangSearch(e.target.value)} placeholder="Search language..." className={`w-full p-2 rounded-lg text-sm outline-none ${dark ? "bg-black/40" : "bg-gray-100"}`} autoFocus />
+                          </div>
+                          {filteredLangs.map(k => (
+                            <button key={k} onClick={() => changeLang(k)} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-all flex justify-between items-center ${langKey === k ? "bg-violet-50 dark:bg-violet-900/40 font-bold" : ""}`}>
+                              <span>{LANGUAGES[k].label}</span>
+                              {langKey === k && <span className="text-violet-600">✓</span>}
+                            </button>
+                          ))}
+                          {filteredLangs.length === 0 && <div className="p-4 text-center text-sm opacity-60">No languages found</div>}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="animate-fadeIn">
                     <div className="flex justify-between items-center mb-2">
                       <label className="text-sm font-bold">✏️ Your Text</label>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
+                        <button onClick={isListening ? stopListening : startListening} title={isListening ? "Stop voice input" : "Start voice input"} className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${isListening ? "bg-red-500 text-white animate-pulse" : "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 hover:bg-violet-600 hover:text-white"}`}>
+                          {isListening ? "⏹ Stop" : "🎤 Voice"}
+                        </button>
+                        <button onClick={speakText} title="Read aloud" className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${isSpeaking ? "bg-pink-500 text-white" : "bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 hover:bg-pink-600 hover:text-white"}`}>
+                          {isSpeaking ? "⏹ Stop" : "🔊 Listen"}
+                        </button>
                         <button onClick={() => setText("")} className="text-red-500 text-xs hover:underline font-semibold">Clear</button>
-                        <span className="text-xs opacity-50">|</span>
-                        <button onClick={copyText} className="text-violet-500 text-xs hover:underline font-semibold">{copied ? "✅ Copied" : "Copy"}</button>
                       </div>
                     </div>
-                    <textarea ref={textareaRef} value={text} onChange={(e) => setText(e.target.value)} rows={6} dir={langKey === "arabic" || langKey === "urdu" ? "rtl" : "ltr"} placeholder="Yahan likho..." className={`w-full rounded-2xl p-4 text-[15px] outline-none resize-none focus:ring-2 focus:ring-violet-500 transition-all ${dark ? "bg-black/40 border-white/10" : "bg-gray-50 border"}`} />
+                    <textarea ref={textareaRef} value={text} onChange={(e) => setText(e.target.value)} rows={6} dir={isRTL ? "rtl" : "ltr"} placeholder="Type or paste your text here..." className={`w-full rounded-2xl p-4 text-[15px] outline-none resize-none focus:ring-2 focus:ring-violet-500 transition-all ${dark ? "bg-black/40 border-white/10" : "bg-gray-50 border"}`} />
                     <div className="flex justify-between items-center mt-2">
                       <button onClick={() => setText(currentLang.sample)} className="text-[11px] px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 font-medium hover:bg-violet-600 hover:text-white transition-all">↺ Load Sample</button>
                       <div className="flex gap-2 text-[11px] opacity-60">
                         <span>📖 {readingTime}m read</span>
+                        <span>•</span>
+                        <span>🔊 {speakingTime}m speak</span>
                         <span>•</span>
                         <span>📄 {pageCount} page{pageCount > 1 ? "s" : ""}</span>
                       </div>
@@ -374,7 +862,7 @@ export default function Page() {
               {activeTab === "style" && (
                 <>
                   <div className="animate-fadeIn">
-                    <label className="text-sm font-bold block mb-2">🖋️ Handwriting Style</label>
+                    <label className="text-sm font-bold block mb-2">🖋️ Handwriting Style ({currentLang.fonts.length} available)</label>
                     <div className="grid grid-cols-2 gap-2">
                       {currentLang.fonts.map((f: any, i: number) => (
                         <button key={i} onClick={() => setFontIdx(i)} style={{ fontFamily: f.css }} className={`py-2.5 px-3 rounded-xl text-[17px] border-2 transition-all hover:-translate-y-0.5 hover:shadow-md ${fontIdx === i ? "border-violet-600 bg-violet-50 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 scale-[1.02]" : dark ? "border-white/10 bg-white/5" : "border-gray-100 bg-gray-50"}`}>{f.name}</button>
@@ -392,7 +880,7 @@ export default function Page() {
                   </div>
 
                   <div className="animate-fadeIn">
-                    <label className="text-sm font-bold block mb-2">🎨 Pen Color</label>
+                    <label className="text-sm font-bold block mb-2">🎨 Pen Color ({PENS.length} options)</label>
                     <div className="flex flex-wrap gap-2.5">
                       {PENS.map(p => (
                         <button key={p.name} title={p.name} onClick={() => { setPen(p); showToast(`${p.name} pen selected`, "info"); }} style={{ background: p.color }} className={`w-9 h-9 rounded-full hover:scale-125 transition-all ${pen.color === p.color ? "ring-[3px] ring-offset-2 ring-violet-500 scale-110" : ""}`} />
@@ -438,7 +926,7 @@ export default function Page() {
               {activeTab === "paper" && (
                 <>
                   <div className="animate-fadeIn">
-                    <label className="text-sm font-bold block mb-2">📄 Paper Style</label>
+                    <label className="text-sm font-bold block mb-2">📄 Paper Style ({PAPERS.length} options)</label>
                     <div className="grid grid-cols-2 gap-2">
                       {PAPERS.map(p => (
                         <button key={p.id} onClick={() => setPaper(p)} className={`py-2.5 rounded-xl text-sm font-semibold border-2 hover:scale-[1.03] transition-all ${paper.id === p.id ? "border-violet-600 bg-violet-600 text-white shadow-lg" : dark ? "border-white/10" : "border-gray-200"}`}>{p.name}</button>
@@ -521,7 +1009,7 @@ export default function Page() {
                         <div className="grid grid-cols-3 gap-2">
                           {["'Caveat', cursive", "'Homemade Apple', cursive", "'Shadows Into Light', cursive"].map((f, i) => (
                             <button key={i} onClick={() => setSignatureStyle(i)} style={{ fontFamily: f }} className={`py-2 rounded-lg text-sm border-2 transition-all ${signatureStyle === i ? "border-violet-600 bg-violet-50 dark:bg-violet-900/40" : dark ? "border-white/10" : "border-gray-200"}`}>
-                              {signatureName.split(" ")[0] || "Sig"}
+                              {signatureName.split(" ")[0] || "Signature"}
                             </button>
                           ))}
                         </div>
@@ -540,17 +1028,22 @@ export default function Page() {
             <div className="p-5 pt-0 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={downloadPNG} disabled={isDownloading} className="py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 relative overflow-hidden group">
-                  <span className="relative z-10">{isDownloading ? "⏳..." : "📷 PNG"}</span>
+                  <span className="relative z-10">{isDownloading ? "⏳ Processing..." : "📷 Download PNG"}</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-violet-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
                 <button onClick={downloadPDF} disabled={isDownloading} className="py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 relative overflow-hidden group">
-                  <span className="relative z-10">{isDownloading ? "⏳..." : "📄 PDF"}</span>
+                  <span className="relative z-10">{isDownloading ? "⏳ Processing..." : "📄 Download PDF"}</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-rose-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               </div>
-              <button onClick={copyText} className={`w-full py-3 rounded-2xl font-bold border-2 border-dashed transition-all hover:bg-violet-50 dark:hover:bg-violet-900/20 ${dark ? "border-white/20" : ""}`}>
-                {copied ? "✅ Copied!" : "📋 Copy Text (Ctrl+C)"}
-              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={copyText} className={`py-3 rounded-2xl font-bold border-2 border-dashed transition-all hover:bg-violet-50 dark:hover:bg-violet-900/20 text-sm ${dark ? "border-white/20" : ""}`}>
+                  {copied ? "✅ Copied!" : "📋 Copy Text"}
+                </button>
+                <button onClick={() => setShowShare(true)} className={`py-3 rounded-2xl font-bold border-2 border-dashed transition-all hover:bg-pink-50 dark:hover:bg-pink-900/20 text-sm ${dark ? "border-white/20" : ""}`}>
+                  📤 Share
+                </button>
+              </div>
             </div>
           </div>
 
@@ -559,7 +1052,7 @@ export default function Page() {
             <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
               <h2 className="font-bold text-lg flex items-center gap-2">👀 Live Preview <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></h2>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white dark:bg-white/10 shadow border dark:border-white/10">A4 • {paper.name} • {currentLang.label.split(" ")[0]}</span>
+                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-white dark:bg-white/10 shadow border dark:border-white/10">A4 • {paper.name} • {currentLang.flag} {currentLang.label.split(" ")[0]}</span>
                 <div className="flex items-center gap-1 bg-white dark:bg-white/10 rounded-full px-2 py-1 shadow border dark:border-white/10">
                   <button onClick={() => setZoom(z => Math.max(50, z - 10))} className="w-6 h-6 rounded-full hover:bg-violet-100 dark:hover:bg-violet-900/40 text-sm">−</button>
                   <span className="text-xs font-bold w-10 text-center">{zoom}%</span>
@@ -572,8 +1065,9 @@ export default function Page() {
               <div ref={paperRef} style={{ ...getPaperStyle(), transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, transformOrigin: "top center", padding: `${32 + marginY}px ${32 + marginX}px` }} className="relative w-full min-h-[700px] rounded-[4px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] overflow-hidden transition-all duration-300">
                 {paper.id === "ruled" && showMarginLine && <div className="absolute left-[60px] top-0 bottom-0 w-[2px] bg-red-300/70" />}
                 {paper.id === "diary" && showMarginLine && <div className="absolute left-[50px] top-0 bottom-0 w-[2px] bg-red-300/70" />}
-                <div dir={langKey === "arabic" || langKey === "urdu" ? "rtl" : "ltr"} style={textStyle} className={`whitespace-pre-wrap break-words transition-all duration-300 ${animateText ? "animate-writeIn" : ""} ${paper.id === "ruled" || paper.id === "diary" ? "md:pl-8" : ""}`}>
-                  {text || "Yahan tumhara handwritten text dikhega..."}
+                {paper.id === "notebook" && showMarginLine && <div className="absolute left-[45px] top-0 bottom-0 w-[2px] bg-red-400/70" />}
+                <div dir={isRTL ? "rtl" : "ltr"} style={textStyle} className={`whitespace-pre-wrap break-words transition-all duration-300 ${animateText ? "animate-writeIn" : ""} ${paper.id === "ruled" || paper.id === "diary" || paper.id === "notebook" ? "md:pl-8" : ""}`}>
+                  {text || "Your handwritten text will appear here..."}
                 </div>
 
                 {showSignature && (
@@ -591,7 +1085,7 @@ export default function Page() {
 
             {/* Feature Badges */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-              {[["⚡", "Instant", "No Signup", "from-yellow-400 to-orange-500"], ["🌍", "8+ Languages", "Native Fonts", "from-blue-400 to-cyan-500"], ["🎨", "10+ Fonts", "5 Pen Types", "from-violet-400 to-pink-500"], ["🔒", "100% Private", "Browser Only", "from-green-400 to-emerald-500"]].map(([i, t, s, g]) => (
+              {[["⚡", "Instant", "No Signup", "from-yellow-400 to-orange-500"], ["🌍", "35+ Languages", "Global Support", "from-blue-400 to-cyan-500"], ["🎨", "30+ Fonts", "6 Pen Types", "from-violet-400 to-pink-500"], ["🔒", "100% Private", "Browser Only", "from-green-400 to-emerald-500"]].map(([i, t, s, g]) => (
                 <div key={t} className={`group p-4 rounded-2xl text-center hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden ${dark ? "bg-white/5 border border-white/10" : "bg-white border"}`}>
                   <div className={`absolute inset-0 bg-gradient-to-br ${g} opacity-0 group-hover:opacity-10 transition-opacity`} />
                   <div className="text-3xl group-hover:scale-125 transition-transform">{i}</div>
@@ -600,65 +1094,97 @@ export default function Page() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
 
-            {/* SEO CONTENT */}
-            <div className="mt-8 space-y-4">
-              <div className={`rounded-2xl overflow-hidden border transition-all hover:shadow-lg ${dark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
-                <button onClick={() => setShowGuide(!showGuide)} className="w-full flex justify-between items-center p-5 font-bold text-left hover:bg-violet-50/50 dark:hover:bg-violet-900/20 transition-all">
-                  <span className="flex items-center gap-2">📖 How to Use? - Complete User Guide</span>
-                  <span className={`text-xs bg-violet-600 text-white px-2 py-1 rounded-full transition-transform ${showGuide ? "rotate-180" : ""}`}>{showGuide ? "▲" : "▼"}</span>
-                </button>
-                {showGuide && (
-                  <div className="p-5 pt-0 text-sm leading-relaxed space-y-3 opacity-90 animate-slideDown">
-                    <p><b className="text-violet-600">Step 1 — Language & Text:</b> Apni language select karo (Hindi, English, Bengali, Tamil, Telugu, Marathi, Arabic, Urdu) aur text box me apna text type ya paste karo. Quick Templates se letter, diary, notes instantly load kar sakte ho.</p>
-                    <p><b className="text-violet-600">Step 2 — Style Customization:</b> Handwriting font, pen type (Ballpoint, Fountain, Gel, Pencil, Marker), pen color, alignment, size, line spacing, letter spacing, ink darkness aur tilt ko adjust karo. Har change live preview me turant dikhega.</p>
-                    <p><b className="text-violet-600">Step 3 — Paper Selection:</b> Ruled, Plain, Grid, Aged, Sticky, Letter, Diary ya Music paper choose karo. Background textures (coffee stain, crumple) bhi add kar sakte ho realistic look ke liye.</p>
-                    <p><b className="text-violet-600">Step 4 — Pro Features:</b> Ink texture effects, writing animation, multi-page mode, stroke pressure, rotation aur signature mode use karo advanced realism ke liye.</p>
-                    <p><b className="text-violet-600">Step 5 — Download:</b> Live Preview dekho. Pasand aaye to <b>PNG</b> ya <b>PDF</b> button se download karo. Keyboard shortcuts: Ctrl+S (PDF), Ctrl+P (PNG), Ctrl+K (Clear), Ctrl+D (Dark mode), Ctrl+Z (Reset).</p>
-                    <p className="p-3 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-800"><b>💡 Pro Tip:</b> Real handwriting jaisa natural look chahiye to Ink Darkness ko 0.85, Tilt ko 0.5°, Stroke Pressure ko 1.2x aur Ink Texture ON rakho. Fountain pen + Ruled paper + Caveat font = best combo!</p>
-                  </div>
-                )}
-              </div>
+        {/* Middle Ad Slot */}
+        <AdSlot slot="2345678901" label="Advertisement" dark={dark} />
 
-              <div className={`rounded-2xl overflow-hidden border transition-all hover:shadow-lg ${dark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
-                <button onClick={() => setShowAbout(!showAbout)} className="w-full flex justify-between items-center p-5 font-bold text-left hover:bg-violet-50/50 dark:hover:bg-violet-900/20 transition-all">
-                  <span className="flex items-center gap-2">ℹ️ What is Text to Handwriting Generator?</span>
-                  <span className={`text-xs bg-violet-600 text-white px-2 py-1 rounded-full transition-transform ${showAbout ? "rotate-180" : ""}`}>{showAbout ? "▲" : "▼"}</span>
-                </button>
-                {showAbout && (
-                  <div className="p-5 pt-0 text-sm leading-relaxed space-y-3 opacity-90 animate-slideDown">
-                    <p><b>Text to Handwriting Generator</b> ek advanced free online tool hai jo typed text ko aise dikhata hai jaise haath se likha gaya ho. Ye students, teachers, content creators, designers aur professionals ke liye banaya gaya hai.</p>
-                    <p>Isme tum <b>Hindi, English, Bengali, Tamil, Telugu, Marathi, Arabic aur Urdu</b> me realistic handwriting generate kar sakte ho. Har language ke liye native fonts use hote hain, isliye output bilkul natural lagta hai — jaise kisi ne actually likha ho.</p>
-                    <p><b>Realism Features:</b> Multiple pen types (fountain, ballpoint, gel, pencil, marker) har ek ka apna unique ink effect deta hai. Ink texture, stroke pressure, tilt aur darkness controls se tum perfect handwritten look create kar sakte ho.</p>
-                    <p><b>Use Cases:</b> Study notes, assignments practice, quotes, greeting cards, worksheets, diary entries, formal letters, signature creation, recipe cards, to-do lists aur creative design projects.</p>
-                    <p><b>Privacy First:</b> Sab kuch tumhare browser me hota hai — koi server upload nahi, koi data storage nahi, koi tracking nahi. Tumhara text 100% private rehta hai.</p>
-                  </div>
-                )}
-              </div>
-
-              <div className={`rounded-2xl overflow-hidden border ${dark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
-                <div className="p-5 pb-2"><h3 className="font-bold text-lg">❓ Frequently Asked Questions (FAQ)</h3></div>
-                <div className="p-5 pt-2 space-y-2">
-                  {FAQS.map((f, i) => (
-                    <div key={i} className={`rounded-xl border overflow-hidden transition-all ${dark ? "border-white/10" : "border-gray-100"} ${openFaq === i ? "shadow-md" : ""}`}>
-                      <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex justify-between items-center p-4 text-left font-semibold text-sm hover:bg-violet-50/50 dark:hover:bg-violet-900/20 transition-all">
-                        <span>{f.q}</span>
-                        <span className={`text-violet-600 font-bold transition-transform ${openFaq === i ? "rotate-180" : ""}`}>{openFaq === i ? "−" : "+"}</span>
-                      </button>
-                      {openFaq === i && <p className="px-4 pb-4 text-sm opacity-80 leading-relaxed animate-slideDown">{f.a}</p>}
-                    </div>
-                  ))}
+        {/* OTHER USEFUL TOOLS SECTION */}
+        <section className="mt-12">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-black mb-2">
+              🛠️ Other <span className="bg-gradient-to-r from-violet-600 to-pink-500 bg-clip-text text-transparent">Useful Tools</span>
+            </h2>
+            <p className="text-sm opacity-70 max-w-2xl mx-auto">Explore our collection of free online tools to boost your productivity and creativity</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {OTHER_TOOLS.map((tool, i) => (
+              <div key={i} className={`group p-5 rounded-2xl border transition-all duration-300 cursor-pointer hover:-translate-y-2 hover:shadow-2xl relative overflow-hidden ${dark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
+                <div className={`absolute inset-0 bg-gradient-to-br ${tool.color} opacity-0 group-hover:opacity-10 transition-opacity`} />
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${tool.color} flex items-center justify-center text-2xl shadow-lg group-hover:scale-110 group-hover:rotate-6 transition-all mb-3`}>
+                  {tool.icon}
                 </div>
+                <h3 className="font-bold text-sm mb-1">{tool.name}</h3>
+                <p className="text-xs opacity-60">{tool.desc}</p>
+                <div className="mt-3 text-xs font-bold text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity">Try Now →</div>
               </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SEO CONTENT */}
+        <div className="mt-12 space-y-4">
+          <div className={`rounded-2xl overflow-hidden border transition-all hover:shadow-lg ${dark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
+            <button onClick={() => setShowGuide(!showGuide)} className="w-full flex justify-between items-center p-5 font-bold text-left hover:bg-violet-50/50 dark:hover:bg-violet-900/20 transition-all">
+              <span className="flex items-center gap-2">📖 Complete User Guide — How to Use This Tool</span>
+              <span className={`text-xs bg-violet-600 text-white px-2 py-1 rounded-full transition-transform ${showGuide ? "rotate-180" : ""}`}>{showGuide ? "▲" : "▼"}</span>
+            </button>
+            {showGuide && (
+              <div className="p-5 pt-0 text-sm leading-relaxed space-y-3 opacity-90 animate-slideDown">
+                <p><b className="text-violet-600">Step 1 — Select Your Language:</b> Choose from 35+ global languages including English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Arabic, Urdu, Persian, Hebrew, Russian, Japanese, Korean, Chinese, Thai, Vietnamese, Spanish, French, German, Italian, Portuguese, and many more. Use the search box to quickly find your language.</p>
+                <p><b className="text-violet-600">Step 2 — Enter Your Text:</b> Type or paste your text directly, or use the 🎤 Voice Input button to dictate using your microphone. The 🔊 Listen button reads your text aloud using text-to-speech. Quick Templates instantly load letters, diary entries, notes, recipes, to-do lists, poems, and invitations.</p>
+                <p><b className="text-violet-600">Step 3 — Customize Style:</b> Select from 30+ handwriting fonts, 6 pen types (Ballpoint, Fountain, Gel, Pencil, Marker, Calligraphy), 12 pen colors, and adjust font size, line spacing, letter spacing, ink darkness, tilt, and text alignment. Every change reflects instantly in the live preview.</p>
+                <p><b className="text-violet-600">Step 4 — Choose Paper:</b> Pick from 10 paper styles including Ruled, Plain, Grid, Aged, Sticky, Letter, Diary, Music, Legal, and Notebook. Add realistic background textures like coffee stains, crumpled paper, or aged stains. Adjust margins for perfect positioning.</p>
+                <p><b className="text-violet-600">Step 5 — Pro Features:</b> Enable ink texture effects for realism, writing animation for presentations, multi-page mode for long documents, stroke pressure control, rotation, word goal tracking, and signature mode for personalized signatures.</p>
+                <p><b className="text-violet-600">Step 6 — Download & Share:</b> Preview your creation, then download as high-quality PNG or A4 PDF. Share directly to WhatsApp, Facebook, Twitter/X, LinkedIn, Telegram, Reddit, or email using the social share button. Keyboard shortcuts: Ctrl+S (PDF), Ctrl+P (PNG), Ctrl+K (Clear), Ctrl+D (Dark mode), Ctrl+Z (Reset), Ctrl+/ (Shortcuts).</p>
+                <p className="p-3 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-800"><b>💡 Pro Tip:</b> For the most realistic handwriting, use Ink Darkness at 0.85, Tilt at 0.5°, Stroke Pressure at 1.2x, and keep Ink Texture ON. Try the combination of Fountain pen + Ruled paper + Caveat font for the most natural look!</p>
+              </div>
+            )}
+          </div>
+
+          <div className={`rounded-2xl overflow-hidden border transition-all hover:shadow-lg ${dark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
+            <button onClick={() => setShowAbout(!showAbout)} className="w-full flex justify-between items-center p-5 font-bold text-left hover:bg-violet-50/50 dark:hover:bg-violet-900/20 transition-all">
+              <span className="flex items-center gap-2">ℹ️ What is Text to Handwriting Generator?</span>
+              <span className={`text-xs bg-violet-600 text-white px-2 py-1 rounded-full transition-transform ${showAbout ? "rotate-180" : ""}`}>{showAbout ? "▲" : "▼"}</span>
+            </button>
+            {showAbout && (
+              <div className="p-5 pt-0 text-sm leading-relaxed space-y-3 opacity-90 animate-slideDown">
+                <p><b>Text to Handwriting Generator PRO</b> is an advanced free online tool that transforms typed text into realistic handwritten notes. It is designed for students, teachers, content creators, designers, professionals, and anyone who wants to create beautiful handwritten content without actually writing by hand.</p>
+                <p><b>Global Language Support:</b> We support 35+ languages including English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia, Arabic, Urdu, Persian, Hebrew, Russian, Ukrainian, Greek, Japanese, Korean, Chinese, Thai, Vietnamese, Indonesian, Malay, Filipino, Spanish, French, German, Italian, Portuguese, Dutch, Polish, Swedish, Turkish, Swahili, and Nepali. Each language uses native fonts for authentic output.</p>
+                <p><b>Realism Features:</b> Multiple pen types (fountain, ballpoint, gel, pencil, marker, calligraphy) each with unique ink effects. Advanced controls for ink texture, stroke pressure, tilt, darkness, and background textures create a truly authentic handwritten appearance.</p>
+                <p><b>Voice & Speech:</b> Use the 🎤 Voice Input button to dictate text in 35+ languages using Web Speech API. The 🔊 Text-to-Speech feature reads your text aloud for proofreading or accessibility.</p>
+                <p><b>Sharing & Export:</b> Download your creations as high-quality PNG images or A4 PDF documents. Share instantly to WhatsApp, Facebook, Twitter/X, LinkedIn, Telegram, Reddit, or email.</p>
+                <p><b>Use Cases:</b> Study notes, assignments practice, quotes, greeting cards, worksheets, diary entries, formal letters, signature creation, recipe cards, to-do lists, poems, invitations, and creative design projects.</p>
+                <p><b>Privacy First:</b> All processing happens 100% in your browser using client-side JavaScript. We do not store, track, upload, or share your text with anyone. Your privacy is our top priority.</p>
+              </div>
+            )}
+          </div>
+
+          <div className={`rounded-2xl overflow-hidden border ${dark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"}`}>
+            <div className="p-5 pb-2"><h3 className="font-bold text-lg">❓ Frequently Asked Questions (FAQ)</h3></div>
+            <div className="p-5 pt-2 space-y-2">
+              {FAQS.map((f, i) => (
+                <div key={i} className={`rounded-xl border overflow-hidden transition-all ${dark ? "border-white/10" : "border-gray-100"} ${openFaq === i ? "shadow-md" : ""}`}>
+                  <button onClick={() => setOpenFaq(openFaq === i ? null : i)} className="w-full flex justify-between items-center p-4 text-left font-semibold text-sm hover:bg-violet-50/50 dark:hover:bg-violet-900/20 transition-all">
+                    <span>{f.q}</span>
+                    <span className={`text-violet-600 font-bold transition-transform ${openFaq === i ? "rotate-180" : ""}`}>{openFaq === i ? "−" : "+"}</span>
+                  </button>
+                  {openFaq === i && <p className="px-4 pb-4 text-sm opacity-80 leading-relaxed animate-slideDown">{f.a}</p>}
+                </div>
+              ))}
             </div>
           </div>
         </div>
+
+        {/* Bottom Ad Slot */}
+        <AdSlot slot="3456789012" label="Advertisement" dark={dark} />
       </main>
 
       {/* Footer */}
       <footer className={`mt-12 py-8 border-t text-center text-sm opacity-70 ${dark ? "border-white/10" : "border-gray-200"}`}>
-        <p className="font-semibold">✍️ Handwriting Generator PRO — Made with ❤️ for creators</p>
-        <p className="text-xs mt-2">100% Free • No Signup • Privacy First • 8+ Languages • PNG & PDF Export</p>
+        <p className="font-semibold">✍️ Handwriting Generator PRO — Made with ❤️ for creators worldwide</p>
+        <p className="text-xs mt-2">100% Free • No Signup • Privacy First • 35+ Languages • Voice Input • PNG & PDF Export</p>
       </footer>
 
       {/* Shortcuts Modal */}
@@ -681,11 +1207,41 @@ export default function Page() {
         </div>
       )}
 
+      {/* Share Modal */}
+      {showShare && (
+        <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn" onClick={() => setShowShare(false)}>
+          <div className={`max-w-md w-full rounded-3xl p-6 shadow-2xl animate-slideUp ${dark ? "bg-[#1a1a2e]" : "bg-white"}`} onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-xl">📤 Share This Tool</h3>
+              <button onClick={() => setShowShare(false)} className="w-8 h-8 rounded-full hover:bg-gray-100 dark:hover:bg-white/10">✕</button>
+            </div>
+            <p className="text-sm opacity-70 mb-4">Share this free handwriting generator with your friends and colleagues!</p>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { id: "whatsapp", name: "WhatsApp", icon: "💬", color: "bg-green-500" },
+                { id: "facebook", name: "Facebook", icon: "📘", color: "bg-blue-600" },
+                { id: "twitter", name: "Twitter/X", icon: "🐦", color: "bg-black" },
+                { id: "linkedin", name: "LinkedIn", icon: "💼", color: "bg-blue-700" },
+                { id: "telegram", name: "Telegram", icon: "✈️", color: "bg-sky-500" },
+                { id: "reddit", name: "Reddit", icon: "🤖", color: "bg-orange-500" },
+                { id: "email", name: "Email", icon: "✉️", color: "bg-gray-600" },
+                { id: "copy", name: "Copy Link", icon: "🔗", color: "bg-violet-600" },
+              ].map(s => (
+                <button key={s.id} onClick={() => shareTo(s.id)} className={`${s.color} text-white p-3 rounded-2xl flex flex-col items-center gap-1 hover:scale-110 transition-all shadow-lg`}>
+                  <span className="text-2xl">{s.icon}</span>
+                  <span className="text-[10px] font-bold">{s.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast */}
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam&family=Patrick+Hand&family=Shadows+Into+Light&family=Homemade+Apple&family=Tiro+Devanagari+Hindi&family=Baloo+2&family=Baloo+Thambi+2&family=Baloo+Tammudu+2&family=Hind+Siliguri&family=Cairo&family=Amiri&family=Gulzar&family=Noto+Nastaliq+Urdu&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam&family=Patrick+Hand&family=Shadows+Into+Light&family=Homemade+Apple&family=Indie+Flower&family=Dancing+Script:wght@500;700&family=Great+Vibes&family=Sacramento&family=Pacifico&family=Comfortaa&family=Tiro+Devanagari+Hindi&family=Baloo+2&family=Baloo+Bhai+2&family=Baloo+Bhaina+2&family=Baloo+Da+2&family=Baloo+Paaji+2&family=Baloo+Tamma+2&family=Baloo+Tammudu+2&family=Baloo+Thambi+2&family=Baloo+Chettan+2&family=Hind&family=Hind+Guntur&family=Hind+Madurai&family=Hind+Mysuru&family=Hind+Siliguri&family=Hind+Vadodara&family=Mukta&family=Mukta+Mahee&family=Mandali&family=Catamaran&family=Atma&family=Cairo&family=Amiri&family=Tajawal&family=Lateef&family=Gulzar&family=Noto+Nastaliq+Urdu&family=Vazirmatn&family=David+Libre&family=Rubik&family=Yomogi&family=Zen+Kurenaido&family=Klee+One&family=Gaegu&family=Nanum+Pen+Script&family=Poor+Story&family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&family=Long+Cang&family=Mali&family=Itim&family=Sarabun&family=Poppins:wght@400;600&display=swap');
         
         @keyframes gradient { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
         @keyframes float { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-30px) scale(1.1)} }
