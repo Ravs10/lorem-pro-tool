@@ -1041,7 +1041,13 @@ export default function Page() {
                     </div>
                     <textarea ref={textareaRef} value={text} onChange={(e) => setText(e.target.value)} rows={6} dir={isRTL ? "rtl" : "ltr"} placeholder="Type or paste your text here..." className={`w-full rounded-2xl p-4 text-[15px] outline-none resize-none focus:ring-2 focus:ring-violet-500 transition-all ${dark ? "bg-black/40 border-white/10" : "bg-gray-50 border"}`} />
                     <div className="flex justify-between items-center mt-2">
-                      <button onClick={() => setText(currentLang.sample)} className="text-[11px] px-2.5 py-1 rounded-full bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-300 font-medium hover:bg-violet-600 hover:text-white transition-all">↺ Load Sample</button>
+                      <button
+  onClick={() => setText(currentLang.sample)}
+  className="text-[12px] px-3 py-1.5 rounded-full font-bold border-2 border-violet-600 bg-white hover:bg-violet-600 hover:text-white transition-all shadow-sm"
+  style={{ color: "#6d28d9", backgroundColor: "#ffffff" }}
+>
+  ↺ Load Sample
+</button>
                       <div className="flex gap-2 text-[11px] opacity-60">
                         <span>📖 {readingTime}m read</span>
                         <span>•</span>
