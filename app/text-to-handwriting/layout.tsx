@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Text to Handwriting Generator - Convert Text to Handwriting Online Free",
   description: "Free Text to Handwriting Generator. Convert typed text into realistic handwritten notes in English, Hindi, Bengali, Tamil, Telugu, Arabic & more. Download as PNG & PDF. No signup.",
-  keywords: ["text to handwriting", "handwriting generator", "text to handwriting converter", "handwriting maker", "hindi handwriting generator", "convert text to handwriting pdf"],
+  keywords: ["text to handwriting", "handwriting generator", "text to handwriting converter", "handwriting maker", "hindi handwriting generator", "convert text to handwriting pdf", "lorem pro tool", "lipsum pro", "Lorem Ipsum Generator"],
   openGraph: {
     title: "Text to Handwriting Generator - Free Online Tool",
     description: "Convert any text into beautiful handwriting in 10+ languages. Download PNG & PDF.",
