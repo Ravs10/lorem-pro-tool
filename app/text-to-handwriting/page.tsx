@@ -476,29 +476,7 @@ export default function Page() {
   const [speechSupported, setSpeechSupported] = useState({ recognition: false, synthesis: false });
 
   const paperRef = useRef<HTMLDivElement>(null);
-// 👇👇 YAHAN SE PASTE KARO - Fix 1 Wala Code 👇👇
-const [isSpeaking, setIsSpeaking] = useState(false);
-
-const speakText = () => {
-  if (!text.trim()) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = LANGUAGES[langKey]?.speechCode || "en-US";
-  utterance.rate = 0.9;
-  utterance.pitch = 1;
-  utterance.onstart = () => setIsSpeaking(true);
-  utterance.onend = () => setIsSpeaking(false);
-  utterance.onerror = () => setIsSpeaking(false);
-  window.speechSynthesis.speak(utterance);
-};
-
-const stopSpeaking = () => {
-  window.speechSynthesis.cancel();
-  setIsSpeaking(false);
-};
-// 👆👆 YAHAN TAK PASTE KARO 👆👆
-
-const currentLang = LANGUAGES[langKey];
+  const currentLang = LANGUAGES[langKey];
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef<string>("");
