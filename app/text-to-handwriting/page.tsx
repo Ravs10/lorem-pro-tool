@@ -3,10 +3,10 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 
-// --- MULTILINGUAL DATA - 25+ GLOBAL LANGUAGES ---
+// --- MULTILINGUAL DATA - 35+ GLOBAL LANGUAGES ---
 const LANGUAGES: any = {
   english: {
-    label: "English 🇺🇸", flag: "🇺🇸",
+    label: "English 🇺🇸", flag: "🇺🇸", speechCode: "en-US",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Patrick Hand", css: "'Patrick Hand', cursive" },
@@ -20,7 +20,7 @@ const LANGUAGES: any = {
     sample: "Hello friends! This is my handwritten note.\nI created it in just one second using AI-powered handwriting generation."
   },
   hindi: {
-    label: "Hindi 🇮🇳 हिन्दी", flag: "🇮🇳",
+    label: "Hindi 🇮🇳 हिन्दी", flag: "🇮🇳", speechCode: "hi-IN",
     fonts: [
       { name: "Kalam", css: "'Kalam', cursive" },
       { name: "Tiro Devanagari Hindi", css: "'Tiro Devanagari Hindi', serif" },
@@ -31,7 +31,7 @@ const LANGUAGES: any = {
     sample: "नमस्ते दोस्तों! यह मेरी हस्तलिखित नोट है।\nमैंने इसे एक सेकंड में बनाया।"
   },
   bengali: {
-    label: "Bengali 🇧🇩 বাংলা", flag: "🇧🇩",
+    label: "Bengali 🇧🇩 বাংলা", flag: "🇧🇩", speechCode: "bn-IN",
     fonts: [
       { name: "Hind Siliguri", css: "'Hind Siliguri', sans-serif" },
       { name: "Baloo Da 2", css: "'Baloo Da 2', cursive" },
@@ -40,7 +40,7 @@ const LANGUAGES: any = {
     sample: "হ্যালো বন্ধুরা! এটি আমার হাতে লেখা নোট।"
   },
   tamil: {
-    label: "Tamil 🇮🇳 தமிழ்", flag: "🇮🇳",
+    label: "Tamil 🇮🇳 தமிழ்", flag: "🇮🇳", speechCode: "ta-IN",
     fonts: [
       { name: "Baloo Thambi 2", css: "'Baloo Thambi 2', cursive" },
       { name: "Hind Madurai", css: "'Hind Madurai', sans-serif" },
@@ -49,7 +49,7 @@ const LANGUAGES: any = {
     sample: "வணக்கம் நண்பர்களே! இது என் கையெழுத்து குறிப்பு."
   },
   telugu: {
-    label: "Telugu 🇮🇳 తెలుగు", flag: "🇮🇳",
+    label: "Telugu 🇮🇳 తెలుగు", flag: "🇮🇳", speechCode: "te-IN",
     fonts: [
       { name: "Baloo Tammudu 2", css: "'Baloo Tammudu 2', cursive" },
       { name: "Hind Guntur", css: "'Hind Guntur', sans-serif" },
@@ -58,7 +58,7 @@ const LANGUAGES: any = {
     sample: "హలో స్నేహితులారా! ఇది నా చేతివ్రాత నోట్."
   },
   marathi: {
-    label: "Marathi 🇮🇳 मराठी", flag: "🇮🇳",
+    label: "Marathi 🇮🇳 मराठी", flag: "🇮🇳", speechCode: "mr-IN",
     fonts: [
       { name: "Kalam", css: "'Kalam', cursive" },
       { name: "Baloo 2", css: "'Baloo 2', cursive" },
@@ -67,7 +67,7 @@ const LANGUAGES: any = {
     sample: "नमस्कार मित्रांनो! ही माझी हस्तलिखित टीप आहे."
   },
   gujarati: {
-    label: "Gujarati 🇮🇳 ગુજરાતી", flag: "🇮🇳",
+    label: "Gujarati 🇮🇳 ગુજરાતી", flag: "🇮🇳", speechCode: "gu-IN",
     fonts: [
       { name: "Hind Vadodara", css: "'Hind Vadodara', sans-serif" },
       { name: "Baloo Bhai 2", css: "'Baloo Bhai 2', cursive" },
@@ -75,7 +75,7 @@ const LANGUAGES: any = {
     sample: "નમસ્તે મિત્રો! આ મારી હસ્તલિખિત નોંધ છે."
   },
   punjabi: {
-    label: "Punjabi 🇮🇳 ਪੰਜਾਬੀ", flag: "🇮🇳",
+    label: "Punjabi 🇮🇳 ਪੰਜਾਬੀ", flag: "🇮🇳", speechCode: "pa-IN",
     fonts: [
       { name: "Baloo Paaji 2", css: "'Baloo Paaji 2', cursive" },
       { name: "Mukta Mahee", css: "'Mukta Mahee', sans-serif" },
@@ -83,7 +83,7 @@ const LANGUAGES: any = {
     sample: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ ਦੋਸਤੋ! ਇਹ ਮੇਰੀ ਹੱਥ ਲਿਖਤ ਨੋਟ ਹੈ।"
   },
   kannada: {
-    label: "Kannada 🇮🇳 ಕನ್ನಡ", flag: "🇮🇳",
+    label: "Kannada 🇮🇳 ಕನ್ನಡ", flag: "🇮🇳", speechCode: "kn-IN",
     fonts: [
       { name: "Baloo Tamma 2", css: "'Baloo Tamma 2', cursive" },
       { name: "Hind Mysuru", css: "'Hind Mysuru', sans-serif" },
@@ -91,22 +91,19 @@ const LANGUAGES: any = {
     sample: "ನಮಸ್ಕಾರ ಗೆಳೆಯರೇ! ಇದು ನನ್ನ ಕೈಬರಹ ಟಿಪ್ಪಣಿ."
   },
   malayalam: {
-    label: "Malayalam 🇮🇳 മലയാളം", flag: "🇮🇳",
+    label: "Malayalam 🇮🇳 മലയാളം", flag: "🇮🇳", speechCode: "ml-IN",
     fonts: [
       { name: "Baloo Chettan 2", css: "'Baloo Chettan 2', cursive" },
-      { name: "Hind Siliguri Malayalam", css: "'Hind Siliguri', sans-serif" },
     ],
     sample: "ഹലോ സുഹൃത്തുക്കളേ! ഇത് എന്റെ കൈയെഴുത്ത് കുറിപ്പാണ്."
   },
   odia: {
-    label: "Odia 🇮🇳 ଓଡ଼ିଆ", flag: "🇮🇳",
-    fonts: [
-      { name: "Baloo Bhaina 2", css: "'Baloo Bhaina 2', cursive" },
-    ],
+    label: "Odia 🇮🇳 ଓଡ଼ିଆ", flag: "🇮🇳", speechCode: "or-IN",
+    fonts: [{ name: "Baloo Bhaina 2", css: "'Baloo Bhaina 2', cursive" }],
     sample: "ନମସ୍କାର ବନ୍ଧୁମାନେ! ଏହା ମୋର ହସ୍ତଲିଖିତ ନୋଟ୍ |"
   },
   arabic: {
-    label: "Arabic 🇸🇦 العربية", flag: "🇸🇦",
+    label: "Arabic 🇸🇦 العربية", flag: "🇸🇦", speechCode: "ar-SA",
     fonts: [
       { name: "Cairo", css: "'Cairo', sans-serif" },
       { name: "Amiri", css: "'Amiri', serif" },
@@ -116,7 +113,7 @@ const LANGUAGES: any = {
     sample: "مرحبا أصدقائي! هذه ملاحظتي المكتوبة بخط اليد."
   },
   urdu: {
-    label: "Urdu 🇵🇰 اردو", flag: "🇵🇰",
+    label: "Urdu 🇵🇰 اردو", flag: "🇵🇰", speechCode: "ur-PK",
     fonts: [
       { name: "Gulzar", css: "'Gulzar', serif" },
       { name: "Noto Nastaliq Urdu", css: "'Noto Nastaliq Urdu', serif" },
@@ -125,7 +122,7 @@ const LANGUAGES: any = {
     sample: "سلام دوستو! یہ میرا ہاتھ سے لکھا ہوا نوٹ ہے۔"
   },
   persian: {
-    label: "Persian 🇮🇷 فارسی", flag: "🇮🇷",
+    label: "Persian 🇮🇷 فارسی", flag: "🇮🇷", speechCode: "fa-IR",
     fonts: [
       { name: "Vazirmatn", css: "'Vazirmatn', sans-serif" },
       { name: "Gulzar", css: "'Gulzar', serif" },
@@ -133,7 +130,7 @@ const LANGUAGES: any = {
     sample: "سلام دوستان! این یادداشت دست‌نویس من است."
   },
   hebrew: {
-    label: "Hebrew 🇮🇱 עברית", flag: "🇮🇱",
+    label: "Hebrew 🇮🇱 עברית", flag: "🇮🇱", speechCode: "he-IL",
     fonts: [
       { name: "David Libre", css: "'David Libre', serif" },
       { name: "Rubik", css: "'Rubik', sans-serif" },
@@ -141,7 +138,7 @@ const LANGUAGES: any = {
     sample: "שלום חברים! זו ההערה בכתב יד שלי."
   },
   russian: {
-    label: "Russian 🇷🇺 Русский", flag: "🇷🇺",
+    label: "Russian 🇷🇺 Русский", flag: "🇷🇺", speechCode: "ru-RU",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Pacifico", css: "'Pacifico', cursive" },
@@ -150,7 +147,7 @@ const LANGUAGES: any = {
     sample: "Привет друзья! Это моя рукописная заметка."
   },
   ukrainian: {
-    label: "Ukrainian 🇺🇦 Українська", flag: "🇺🇦",
+    label: "Ukrainian 🇺🇦 Українська", flag: "🇺🇦", speechCode: "uk-UA",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Comfortaa", css: "'Comfortaa', cursive" },
@@ -158,7 +155,7 @@ const LANGUAGES: any = {
     sample: "Привіт друзі! Це моя рукописна нотатка."
   },
   greek: {
-    label: "Greek 🇬🇷 Ελληνικά", flag: "🇬🇷",
+    label: "Greek 🇬🇷 Ελληνικά", flag: "🇬🇷", speechCode: "el-GR",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Comfortaa", css: "'Comfortaa', cursive" },
@@ -166,7 +163,7 @@ const LANGUAGES: any = {
     sample: "Γεια σας φίλοι! Αυτή είναι η χειρόγραφη σημείωσή μου."
   },
   japanese: {
-    label: "Japanese 🇯🇵 日本語", flag: "🇯🇵",
+    label: "Japanese 🇯🇵 日本語", flag: "🇯🇵", speechCode: "ja-JP",
     fonts: [
       { name: "Yomogi", css: "'Yomogi', cursive" },
       { name: "Zen Kurenaido", css: "'Zen Kurenaido', sans-serif" },
@@ -175,7 +172,7 @@ const LANGUAGES: any = {
     sample: "こんにちは友達！これは私の手書きメモです。"
   },
   korean: {
-    label: "Korean 🇰🇷 한국어", flag: "🇰🇷",
+    label: "Korean 🇰🇷 한국어", flag: "🇰🇷", speechCode: "ko-KR",
     fonts: [
       { name: "Gaegu", css: "'Gaegu', cursive" },
       { name: "Nanum Pen Script", css: "'Nanum Pen Script', cursive" },
@@ -184,7 +181,7 @@ const LANGUAGES: any = {
     sample: "안녕 친구들! 이것은 내 손글씨 메모입니다."
   },
   chinese: {
-    label: "Chinese 🇨🇳 中文", flag: "🇨🇳",
+    label: "Chinese 🇨🇳 中文", flag: "🇨🇳", speechCode: "zh-CN",
     fonts: [
       { name: "Ma Shan Zheng", css: "'Ma Shan Zheng', cursive" },
       { name: "Zhi Mang Xing", css: "'Zhi Mang Xing', cursive" },
@@ -193,7 +190,7 @@ const LANGUAGES: any = {
     sample: "你好朋友们！这是我的手写笔记。"
   },
   thai: {
-    label: "Thai 🇹🇭 ไทย", flag: "🇹🇭",
+    label: "Thai 🇹🇭 ไทย", flag: "🇹🇭", speechCode: "th-TH",
     fonts: [
       { name: "Mali", css: "'Mali', cursive" },
       { name: "Itim", css: "'Itim', cursive" },
@@ -202,7 +199,7 @@ const LANGUAGES: any = {
     sample: "สวัสดีเพื่อน ๆ! นี่คือบันทึกลายมือของฉัน"
   },
   vietnamese: {
-    label: "Vietnamese 🇻🇳 Tiếng Việt", flag: "🇻🇳",
+    label: "Vietnamese 🇻🇳 Tiếng Việt", flag: "🇻🇳", speechCode: "vi-VN",
     fonts: [
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
       { name: "Pacifico", css: "'Pacifico', cursive" },
@@ -211,7 +208,7 @@ const LANGUAGES: any = {
     sample: "Xin chào các bạn! Đây là ghi chú viết tay của tôi."
   },
   indonesian: {
-    label: "Indonesian 🇮🇩 Bahasa", flag: "🇮🇩",
+    label: "Indonesian 🇮🇩 Bahasa", flag: "🇮🇩", speechCode: "id-ID",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -220,7 +217,7 @@ const LANGUAGES: any = {
     sample: "Halo teman-teman! Ini catatan tulisan tangan saya."
   },
   malay: {
-    label: "Malay 🇲🇾 Bahasa Melayu", flag: "🇲🇾",
+    label: "Malay 🇲🇾 Bahasa Melayu", flag: "🇲🇾", speechCode: "ms-MY",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -228,7 +225,7 @@ const LANGUAGES: any = {
     sample: "Hello kawan-kawan! Ini nota tulisan tangan saya."
   },
   filipino: {
-    label: "Filipino 🇵🇭 Tagalog", flag: "🇵🇭",
+    label: "Filipino 🇵🇭 Tagalog", flag: "🇵🇭", speechCode: "fil-PH",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -236,7 +233,7 @@ const LANGUAGES: any = {
     sample: "Kumusta mga kaibigan! Ito ang aking sulat-kamay na tala."
   },
   spanish: {
-    label: "Spanish 🇪🇸 Español", flag: "🇪🇸",
+    label: "Spanish 🇪🇸 Español", flag: "🇪🇸", speechCode: "es-ES",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -246,7 +243,7 @@ const LANGUAGES: any = {
     sample: "¡Hola amigos! Esta es mi nota escrita a mano."
   },
   french: {
-    label: "French 🇫🇷 Français", flag: "🇫🇷",
+    label: "French 🇫🇷 Français", flag: "🇫🇷", speechCode: "fr-FR",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -256,7 +253,7 @@ const LANGUAGES: any = {
     sample: "Bonjour les amis ! Ceci est ma note manuscrite."
   },
   german: {
-    label: "German 🇩🇪 Deutsch", flag: "🇩🇪",
+    label: "German 🇩🇪 Deutsch", flag: "🇩🇪", speechCode: "de-DE",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -265,7 +262,7 @@ const LANGUAGES: any = {
     sample: "Hallo Freunde! Dies ist meine handschriftliche Notiz."
   },
   italian: {
-    label: "Italian 🇮🇹 Italiano", flag: "🇮🇹",
+    label: "Italian 🇮🇹 Italiano", flag: "🇮🇹", speechCode: "it-IT",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -275,7 +272,7 @@ const LANGUAGES: any = {
     sample: "Ciao amici! Questo è il mio appunto scritto a mano."
   },
   portuguese: {
-    label: "Portuguese 🇵🇹 Português", flag: "🇵🇹",
+    label: "Portuguese 🇵🇹 Português", flag: "🇵🇹", speechCode: "pt-PT",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -284,7 +281,7 @@ const LANGUAGES: any = {
     sample: "Olá amigos! Esta é minha nota escrita à mão."
   },
   dutch: {
-    label: "Dutch 🇳🇱 Nederlands", flag: "🇳🇱",
+    label: "Dutch 🇳🇱 Nederlands", flag: "🇳🇱", speechCode: "nl-NL",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -292,7 +289,7 @@ const LANGUAGES: any = {
     sample: "Hallo vrienden! Dit is mijn handgeschreven notitie."
   },
   polish: {
-    label: "Polish 🇵🇱 Polski", flag: "🇵🇱",
+    label: "Polish 🇵🇱 Polski", flag: "🇵🇱", speechCode: "pl-PL",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Comfortaa", css: "'Comfortaa', cursive" },
@@ -300,7 +297,7 @@ const LANGUAGES: any = {
     sample: "Cześć przyjaciele! To moja odręczna notatka."
   },
   swedish: {
-    label: "Swedish 🇸🇪 Svenska", flag: "🇸🇪",
+    label: "Swedish 🇸🇪 Svenska", flag: "🇸🇪", speechCode: "sv-SE",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -308,7 +305,7 @@ const LANGUAGES: any = {
     sample: "Hej vänner! Detta är min handskrivna anteckning."
   },
   turkish: {
-    label: "Turkish 🇹🇷 Türkçe", flag: "🇹🇷",
+    label: "Turkish 🇹🇷 Türkçe", flag: "🇹🇷", speechCode: "tr-TR",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -317,7 +314,7 @@ const LANGUAGES: any = {
     sample: "Merhaba arkadaşlar! Bu benim el yazısı notum."
   },
   swahili: {
-    label: "Swahili 🇰🇪 Kiswahili", flag: "🇰🇪",
+    label: "Swahili 🇰🇪 Kiswahili", flag: "🇰🇪", speechCode: "sw-KE",
     fonts: [
       { name: "Caveat", css: "'Caveat', cursive" },
       { name: "Dancing Script", css: "'Dancing Script', cursive" },
@@ -325,7 +322,7 @@ const LANGUAGES: any = {
     sample: "Habari marafiki! Hii ni noti yangu ya mkono."
   },
   nepali: {
-    label: "Nepali 🇳🇵 नेपाली", flag: "🇳🇵",
+    label: "Nepali 🇳🇵 नेपाली", flag: "🇳🇵", speechCode: "ne-NP",
     fonts: [
       { name: "Kalam", css: "'Kalam', cursive" },
       { name: "Mukta", css: "'Mukta', sans-serif" },
@@ -385,8 +382,10 @@ const FAQS = [
   { q: "Can I create my own signature?", a: "Yes! Enable Signature Mode in the Advanced tab to generate personalized signatures with various handwriting styles, pen pressures, and ink effects." },
   { q: "Does it support multi-page documents?", a: "Yes. Long texts automatically split into multiple A4 pages with proper page breaks. The PDF export handles all pages seamlessly." },
   { q: "What keyboard shortcuts are available?", a: "Ctrl+S: Download PDF | Ctrl+P: Download PNG | Ctrl+K: Clear text | Ctrl+D: Toggle dark mode | Ctrl+Z: Reset all settings | Ctrl+/: Show shortcuts" },
-  { q: "Can I use voice input to write text?", a: "Yes! Click the microphone button in the text area to use your voice. We support speech recognition in 30+ languages using your browser's built-in Web Speech API." },
-  { q: "Can I listen to my text being read aloud?", a: "Yes! Click the speaker button to hear your text read aloud using text-to-speech. You can also share your creation on WhatsApp, Facebook, Twitter, LinkedIn, and more." },
+  { q: "Can I use voice input to write text?", a: "Yes! Click the microphone button in the text area to use your voice. We support speech recognition in 35+ languages using your browser's built-in Web Speech API. Click again to stop listening." },
+  { q: "Can I listen to my text being read aloud?", a: "Yes! Click the speaker button to hear your text read aloud using text-to-speech. Click the stop button to halt playback. You can also share your creation on WhatsApp, Facebook, Twitter, LinkedIn, and more." },
+  { q: "What background textures are available?", a: "You can apply coffee stains, crumpled paper effects, and aged paper stains to any paper style. These textures add realistic character to your handwritten notes." },
+  { q: "Which browsers are supported?", a: "All modern browsers including Chrome, Edge, Firefox, Safari, and Opera. Voice features work best in Chrome and Edge. For the best experience, use the latest version of Chrome." },
 ];
 
 // --- OTHER USEFUL TOOLS ---
@@ -423,12 +422,11 @@ const Toast = ({ message, type, onClose }: any) => {
   );
 };
 
-// AdSense Component - Google AdSense friendly
+// AdSense Component
 const AdSlot = ({ slot, format = "auto", label = "Advertisement", dark }: any) => (
   <div className={`my-6 rounded-2xl overflow-hidden border-2 border-dashed ${dark ? "border-white/10 bg-white/[0.02]" : "border-gray-200 bg-gray-50/50"}`}>
     <div className={`text-[10px] uppercase tracking-widest text-center py-1 font-semibold ${dark ? "text-white/30" : "text-gray-400"}`}>{label}</div>
     <div className="min-h-[100px] flex items-center justify-center text-xs opacity-40 px-4 py-8">
-      {/* Google AdSense code goes here */}
       <ins className="adsbygoogle" style={{ display: "block" }} data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot={slot} data-ad-format={format} data-full-width-responsive="true" />
     </div>
   </div>
@@ -475,10 +473,12 @@ export default function Page() {
   const [showShare, setShowShare] = useState(false);
   const [langSearch, setLangSearch] = useState("");
   const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState({ recognition: false, synthesis: false });
 
   const paperRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
+  const finalTranscriptRef = useRef<string>("");
 
   const currentLang = LANGUAGES[langKey];
   const currentFont = currentLang.fonts[fontIdx] || currentLang.fonts[0];
@@ -487,9 +487,10 @@ export default function Page() {
   const readingTime = Math.ceil(wordCount / 200);
   const speakingTime = Math.ceil(wordCount / 130);
   const pageCount = Math.max(1, Math.ceil(text.length / 1800));
+  const isRTL = ["arabic", "urdu", "persian", "hebrew"].includes(langKey);
 
   const filteredLangs = useMemo(() => {
-    const q = langSearch.toLowerCase();
+    const q = langSearch.toLowerCase().trim();
     return Object.keys(LANGUAGES).filter(k =>
       !q || LANGUAGES[k].label.toLowerCase().includes(q) || k.toLowerCase().includes(q)
     );
@@ -498,6 +499,40 @@ export default function Page() {
   const showToast = useCallback((msg: string, type = "info") => {
     setToast({ msg, type });
   }, []);
+
+  // Check browser speech support on mount
+  useEffect(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    setSpeechSupported({
+      recognition: !!SR,
+      synthesis: "speechSynthesis" in window,
+    });
+  }, []);
+
+  // Cleanup: stop speech when component unmounts
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.abort(); } catch (e) {}
+      }
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  // Auto-stop voice recognition when language changes
+  useEffect(() => {
+    if (isListening && recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (e) {}
+      setIsListening(false);
+    }
+    // Auto-cancel speech on language change
+    if (isSpeaking && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  }, [langKey]);
 
   const changeLang = (k: string) => {
     setLangKey(k);
@@ -513,92 +548,248 @@ export default function Page() {
     showToast(`Applied ${tpl.name} template`, "success");
   };
 
-  // --- VOICE INPUT (Speech-to-Text) ---
+  // --- VOICE INPUT (Speech-to-Text) - FIXED ---
   const startListening = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) {
-      showToast("Voice input not supported in this browser", "error");
+      showToast("Voice input not supported in this browser. Try Chrome or Edge.", "error");
       return;
     }
+
+    // Stop any ongoing speech synthesis
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+
     const recognition = new SR();
-    recognition.lang = getSpeechLang(langKey);
+    recognition.lang = currentLang.speechCode || "en-US";
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.onresult = (e: any) => {
-      let transcript = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        transcript += e.results[i][0].transcript;
-      }
-      setText(prev => prev + " " + transcript);
+    recognition.maxAlternatives = 1;
+
+    // Store current text as base
+    finalTranscriptRef.current = text;
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      showToast("🎤 Listening... Speak now. Click again to stop.", "info");
     };
-    recognition.onerror = () => { setIsListening(false); showToast("Voice input error", "error"); };
-    recognition.onend = () => setIsListening(false);
-    recognition.start();
-    recognitionRef.current = recognition;
-    setIsListening(true);
-    showToast("Listening... Speak now", "info");
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + " ";
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        finalTranscriptRef.current += finalTranscript;
+      }
+
+      // Show live: base + finalized + interim
+      setText(finalTranscriptRef.current + interimTranscript);
+    };
+
+    recognition.onerror = (event: any) => {
+      // 'no-speech' and 'aborted' are not real errors
+      if (event.error !== "no-speech" && event.error !== "aborted") {
+        showToast(`Voice error: ${event.error}`, "error");
+      }
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+    } catch (e) {
+      showToast("Failed to start voice input", "error");
+      setIsListening(false);
+    }
   };
 
   const stopListening = () => {
-    recognitionRef.current?.stop();
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
+      recognitionRef.current = null;
+    }
     setIsListening(false);
     showToast("Voice input stopped", "info");
   };
 
-  // --- TEXT-TO-SPEECH ---
+  const toggleListening = () => {
+    if (isListening) stopListening();
+    else startListening();
+  };
+
+  // --- TEXT-TO-SPEECH - FIXED ---
   const speakText = () => {
     if (!("speechSynthesis" in window)) {
-      showToast("Text-to-speech not supported", "error");
+      showToast("Text-to-speech not supported in this browser", "error");
       return;
     }
+
+    // If already speaking, stop it
     if (isSpeaking) {
       window.speechSynthesis.cancel();
       setIsSpeaking(false);
+      showToast("Speech stopped", "info");
       return;
     }
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = getSpeechLang(langKey);
+
+    // Stop any voice recognition
+    if (isListening && recognitionRef.current) {
+      try { recognitionRef.current.abort(); } catch (e) {}
+      setIsListening(false);
+    }
+
+    const cleanText = text.trim();
+    if (!cleanText) {
+      showToast("No text to speak", "error");
+      return;
+    }
+
+    // Cancel any pending speech first
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = currentLang.speechCode || "en-US";
     utterance.rate = 1;
     utterance.pitch = 1;
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-    setIsSpeaking(true);
-    showToast("Reading text aloud...", "info");
-  };
+    utterance.volume = 1;
 
-  const getSpeechLang = (k: string) => {
-    const map: any = {
-      english: "en-US", hindi: "hi-IN", bengali: "bn-IN", tamil: "ta-IN", telugu: "te-IN",
-      marathi: "mr-IN", gujarati: "gu-IN", punjabi: "pa-IN", kannada: "kn-IN", malayalam: "ml-IN",
-      odia: "or-IN", arabic: "ar-SA", urdu: "ur-PK", persian: "fa-IR", hebrew: "he-IL",
-      russian: "ru-RU", ukrainian: "uk-UA", greek: "el-GR", japanese: "ja-JP", korean: "ko-KR",
-      chinese: "zh-CN", thai: "th-TH", vietnamese: "vi-VN", indonesian: "id-ID", malay: "ms-MY",
-      filipino: "fil-PH", spanish: "es-ES", french: "fr-FR", german: "de-DE", italian: "it-IT",
-      portuguese: "pt-PT", dutch: "nl-NL", polish: "pl-PL", swedish: "sv-SE", turkish: "tr-TR",
-      swahili: "sw-KE", nepali: "ne-NP",
+    // Try to select a matching voice
+    const voices = window.speechSynthesis.getVoices();
+    const matchingVoice = voices.find(v => v.lang === utterance.lang) ||
+                          voices.find(v => v.lang.startsWith(utterance.lang.split("-")[0]));
+    if (matchingVoice) utterance.voice = matchingVoice;
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+      showToast("🔊 Reading text aloud...", "info");
     };
-    return map[k] || "en-US";
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = (e: any) => {
+      if (e.error !== "canceled" && e.error !== "interrupted") {
+        showToast("Speech playback error", "error");
+      }
+      setIsSpeaking(false);
+    };
+
+    window.speechSynthesis.speak(utterance);
   };
 
+  // Load voices (needed in some browsers)
+  useEffect(() => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+  }, []);
+
+  // Stop speaking when text changes externally (optional safeguard)
+  useEffect(() => {
+    if (isSpeaking && "speechSynthesis" in window) {
+      // Only cancel if user edits text during playback
+      // This prevents weird behavior
+    }
+  }, [text]);
+
+  // --- PAPER STYLE + BACKGROUND TEXTURE - FIXED ---
   const getPaperStyle = () => {
-    const base: any = {};
-    if (paper.id === "ruled") base.background = `repeating-linear-gradient(transparent, transparent 43px, #93c5fd 44px), #fff`;
-    else if (paper.id === "grid") { base.backgroundImage = `linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px)`; base.backgroundSize = "24px 24px"; base.backgroundColor = "#fff"; }
-    else if (paper.id === "aged") base.background = "#fdf6e3";
-    else if (paper.id === "sticky") base.background = "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)";
-    else if (paper.id === "letter") base.background = "#fffef9";
-    else if (paper.id === "diary") base.background = `repeating-linear-gradient(transparent, transparent 31px, #d1d5db 32px), #fffbf5`;
-    else if (paper.id === "music") base.background = `repeating-linear-gradient(transparent, transparent 19px, #9ca3af 20px, transparent 21px, transparent 29px, #9ca3af 30px), #fff`;
-    else if (paper.id === "legal") base.background = `repeating-linear-gradient(90deg, transparent, transparent 39px, #fecaca 40px), #fffbeb`;
-    else if (paper.id === "notebook") base.background = `repeating-linear-gradient(transparent, transparent 27px, #bfdbfe 28px), linear-gradient(90deg, transparent 39px, #fca5a5 40px, transparent 41px), #fff`;
-    else base.background = "#fff";
+    const style: any = {};
 
-    if (bgTexture === "coffee") base.backgroundImage = `${base.backgroundImage || ""}, radial-gradient(circle at 20% 30%, rgba(120,72,20,0.15) 0%, transparent 20%), radial-gradient(circle at 80% 70%, rgba(120,72,20,0.1) 0%, transparent 15%)`;
-    else if (bgTexture === "crumple") base.backgroundImage = `${base.backgroundImage || ""}, repeating-linear-gradient(45deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 2px, transparent 2px, transparent 4px)`;
-    else if (bgTexture === "stain") base.backgroundImage = `${base.backgroundImage || ""}, radial-gradient(ellipse at 70% 40%, rgba(139,90,43,0.12) 0%, transparent 40%)`;
+    // Base paper patterns
+    switch (paper.id) {
+      case "ruled":
+        style.backgroundColor = "#ffffff";
+        style.backgroundImage = `repeating-linear-gradient(to bottom, transparent 0px, transparent 43px, #93c5fd 43px, #93c5fd 44px)`;
+        break;
+      case "grid":
+        style.backgroundColor = "#ffffff";
+        style.backgroundImage = `linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)`;
+        style.backgroundSize = "24px 24px";
+        break;
+      case "aged":
+        style.background = "linear-gradient(135deg, #fdf6e3 0%, #f5e6c8 100%)";
+        break;
+      case "sticky":
+        style.background = "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)";
+        break;
+      case "letter":
+        style.background = "linear-gradient(180deg, #fffef9 0%, #fefce8 100%)";
+        break;
+      case "diary":
+        style.backgroundColor = "#fffbf5";
+        style.backgroundImage = `repeating-linear-gradient(to bottom, transparent 0px, transparent 31px, #d1d5db 31px, #d1d5db 32px)`;
+        break;
+      case "music":
+        style.backgroundColor = "#ffffff";
+        style.backgroundImage = `repeating-linear-gradient(to bottom, transparent 0px, transparent 19px, #9ca3af 19px, #9ca3af 20px, transparent 20px, transparent 29px, #9ca3af 29px, #9ca3af 30px)`;
+        break;
+      case "legal":
+        style.backgroundColor = "#fffbeb";
+        style.backgroundImage = `repeating-linear-gradient(to right, transparent 0px, transparent 39px, #fecaca 39px, #fecaca 40px)`;
+        break;
+      case "notebook":
+        style.backgroundColor = "#ffffff";
+        style.backgroundImage = `repeating-linear-gradient(to bottom, transparent 0px, transparent 27px, #bfdbfe 27px, #bfdbfe 28px)`;
+        break;
+      default:
+        style.backgroundColor = "#ffffff";
+    }
 
-    return base;
+    // Apply texture overlays ON TOP of base pattern
+    // Using multiple background layers
+    if (bgTexture === "coffee") {
+      // Coffee stain rings - realistic circular stains
+      const coffeeOverlay = `
+        radial-gradient(circle at 15% 20%, rgba(101, 67, 33, 0.18) 0%, rgba(101, 67, 33, 0.12) 8%, transparent 15%),
+        radial-gradient(circle at 85% 75%, rgba(101, 67, 33, 0.15) 0%, rgba(101, 67, 33, 0.08) 6%, transparent 12%),
+        radial-gradient(ellipse at 50% 50%, rgba(120, 72, 20, 0.06) 0%, transparent 30%),
+        radial-gradient(circle at 70% 15%, rgba(139, 90, 43, 0.10) 0%, transparent 10%)
+      `;
+      style.backgroundImage = `${coffeeOverlay}, ${style.backgroundImage || "none"}`;
+    } else if (bgTexture === "crumple") {
+      // Crumpled paper effect - crossing diagonal lines
+      const crumpleOverlay = `
+        repeating-linear-gradient(45deg, rgba(0,0,0,0.04) 0px, rgba(0,0,0,0.04) 1px, transparent 1px, transparent 6px),
+        repeating-linear-gradient(-45deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 8px),
+        repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 12px)
+      `;
+      style.backgroundImage = `${crumpleOverlay}, ${style.backgroundImage || "none"}`;
+    } else if (bgTexture === "stain") {
+      // Aged brownish stains
+      const stainOverlay = `
+        radial-gradient(ellipse 30% 20% at 25% 35%, rgba(139, 90, 43, 0.15) 0%, transparent 100%),
+        radial-gradient(ellipse 25% 15% at 75% 65%, rgba(120, 72, 20, 0.12) 0%, transparent 100%),
+        radial-gradient(ellipse 20% 12% at 50% 85%, rgba(101, 67, 33, 0.10) 0%, transparent 100%),
+        radial-gradient(ellipse 15% 10% at 15% 75%, rgba(139, 90, 43, 0.08) 0%, transparent 100%)
+      `;
+      style.backgroundImage = `${stainOverlay}, ${style.backgroundImage || "none"}`;
+    }
+
+    return style;
   };
 
   const getPenEffect = () => {
@@ -724,8 +915,6 @@ export default function Page() {
     { id: "advanced", label: "Pro", icon: "🚀" },
   ];
 
-  const isRTL = ["arabic", "urdu", "persian", "hebrew"].includes(langKey);
-
   return (
     <div className={`min-h-screen transition-colors duration-500 ${dark ? "bg-[#0a0a0f] text-white" : "bg-gradient-to-br from-[#f8f7ff] via-[#fef9ff] to-[#f0f9ff] text-gray-900"}`}>
       {/* Animated Background Orbs */}
@@ -769,13 +958,11 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Top Ad Slot */}
         <AdSlot slot="1234567890" label="Advertisement" dark={dark} />
 
         <div className="grid lg:grid-cols-[400px_1fr] gap-6">
           {/* CONTROLS */}
           <div className={`rounded-[24px] overflow-hidden h-fit lg:sticky lg:top-20 shadow-xl ${dark ? "bg-white/[0.06] border border-white/10" : "bg-white border"}`}>
-            {/* Tabs */}
             <div className="flex border-b border-gray-100 dark:border-white/10">
               {tabs.map(t => (
                 <button key={t.id} onClick={() => setActiveTab(t.id as any)} className={`flex-1 py-3 text-xs font-bold transition-all relative ${activeTab === t.id ? "text-violet-600" : "opacity-60 hover:opacity-100"}`}>
@@ -821,10 +1008,32 @@ export default function Page() {
                     <div className="flex justify-between items-center mb-2">
                       <label className="text-sm font-bold">✏️ Your Text</label>
                       <div className="flex gap-2 items-center">
-                        <button onClick={isListening ? stopListening : startListening} title={isListening ? "Stop voice input" : "Start voice input"} className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${isListening ? "bg-red-500 text-white animate-pulse" : "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 hover:bg-violet-600 hover:text-white"}`}>
+                        <button
+                          onClick={toggleListening}
+                          title={!speechSupported.recognition ? "Voice input not supported in this browser" : isListening ? "Stop voice input" : "Start voice input"}
+                          disabled={!speechSupported.recognition}
+                          className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${
+                            !speechSupported.recognition
+                              ? "bg-gray-200 dark:bg-white/5 text-gray-400 cursor-not-allowed"
+                              : isListening
+                                ? "bg-red-500 text-white animate-pulse"
+                                : "bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 hover:bg-violet-600 hover:text-white"
+                          }`}
+                        >
                           {isListening ? "⏹ Stop" : "🎤 Voice"}
                         </button>
-                        <button onClick={speakText} title="Read aloud" className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${isSpeaking ? "bg-pink-500 text-white" : "bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 hover:bg-pink-600 hover:text-white"}`}>
+                        <button
+                          onClick={speakText}
+                          title={!speechSupported.synthesis ? "Text-to-speech not supported" : isSpeaking ? "Stop speaking" : "Read text aloud"}
+                          disabled={!speechSupported.synthesis}
+                          className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold transition-all ${
+                            !speechSupported.synthesis
+                              ? "bg-gray-200 dark:bg-white/5 text-gray-400 cursor-not-allowed"
+                              : isSpeaking
+                                ? "bg-pink-500 text-white animate-pulse"
+                                : "bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 hover:bg-pink-600 hover:text-white"
+                          }`}
+                        >
                           {isSpeaking ? "⏹ Stop" : "🔊 Listen"}
                         </button>
                         <button onClick={() => setText("")} className="text-red-500 text-xs hover:underline font-semibold">Clear</button>
@@ -843,7 +1052,6 @@ export default function Page() {
                     </div>
                   </div>
 
-                  {/* Templates */}
                   <div className="animate-fadeIn">
                     <label className="text-sm font-bold block mb-2">📋 Quick Templates</label>
                     <div className="grid grid-cols-2 gap-2">
@@ -937,10 +1145,25 @@ export default function Page() {
                   <div className="animate-fadeIn">
                     <label className="text-sm font-bold block mb-2">🎨 Background Texture</label>
                     <div className="grid grid-cols-2 gap-2">
-                      {[["none", "✨ None"], ["coffee", "☕ Coffee"], ["crumple", "📰 Crumple"], ["stain", "🍂 Stain"]].map(([id, name]) => (
-                        <button key={id} onClick={() => setBgTexture(id as any)} className={`py-2 rounded-xl text-xs font-semibold border-2 transition-all hover:scale-105 ${bgTexture === id ? "border-violet-600 bg-violet-600 text-white" : dark ? "border-white/10" : "border-gray-200"}`}>{name}</button>
+                      {[
+                        { id: "none", name: "✨ None" },
+                        { id: "coffee", name: "☕ Coffee Stain" },
+                        { id: "crumple", name: "📰 Crumpled" },
+                        { id: "stain", name: "🍂 Aged Stain" },
+                      ].map(t => (
+                        <button
+                          key={t.id}
+                          onClick={() => {
+                            setBgTexture(t.id as any);
+                            showToast(t.id === "none" ? "Texture removed" : `${t.name} applied`, "info");
+                          }}
+                          className={`py-2 rounded-xl text-xs font-semibold border-2 transition-all hover:scale-105 ${bgTexture === t.id ? "border-violet-600 bg-violet-600 text-white" : dark ? "border-white/10" : "border-gray-200"}`}
+                        >
+                          {t.name}
+                        </button>
                       ))}
                     </div>
+                    <p className="text-[10px] opacity-50 mt-2">✨ Texture is applied as an overlay on any paper style</p>
                   </div>
 
                   <div className="animate-fadeIn space-y-3">
@@ -997,7 +1220,6 @@ export default function Page() {
                     </div>
                   </div>
 
-                  {/* Signature Mode */}
                   <div className="animate-fadeIn">
                     <label className="flex items-center justify-between text-sm font-bold cursor-pointer mb-2">
                       <span>✒️ Signature Mode</span>
@@ -1024,7 +1246,6 @@ export default function Page() {
               )}
             </div>
 
-            {/* Download Buttons */}
             <div className="p-5 pt-0 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={downloadPNG} disabled={isDownloading} className="py-3.5 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-600 text-white font-bold shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 relative overflow-hidden group">
@@ -1062,11 +1283,24 @@ export default function Page() {
             </div>
 
             <div className="overflow-auto max-h-[80vh] custom-scroll rounded-lg">
-              <div ref={paperRef} style={{ ...getPaperStyle(), transform: `scale(${zoom / 100}) rotate(${rotation}deg)`, transformOrigin: "top center", padding: `${32 + marginY}px ${32 + marginX}px` }} className="relative w-full min-h-[700px] rounded-[4px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] overflow-hidden transition-all duration-300">
+              <div
+                ref={paperRef}
+                style={{
+                  ...getPaperStyle(),
+                  transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                  transformOrigin: "top center",
+                  padding: `${32 + marginY}px ${32 + marginX}px`,
+                }}
+                className="relative w-full min-h-[700px] rounded-[4px] shadow-[0_20px_60px_rgba(0,0,0,0.2)] overflow-hidden transition-all duration-300"
+              >
                 {paper.id === "ruled" && showMarginLine && <div className="absolute left-[60px] top-0 bottom-0 w-[2px] bg-red-300/70" />}
                 {paper.id === "diary" && showMarginLine && <div className="absolute left-[50px] top-0 bottom-0 w-[2px] bg-red-300/70" />}
                 {paper.id === "notebook" && showMarginLine && <div className="absolute left-[45px] top-0 bottom-0 w-[2px] bg-red-400/70" />}
-                <div dir={isRTL ? "rtl" : "ltr"} style={textStyle} className={`whitespace-pre-wrap break-words transition-all duration-300 ${animateText ? "animate-writeIn" : ""} ${paper.id === "ruled" || paper.id === "diary" || paper.id === "notebook" ? "md:pl-8" : ""}`}>
+                <div
+                  dir={isRTL ? "rtl" : "ltr"}
+                  style={textStyle}
+                  className={`whitespace-pre-wrap break-words transition-all duration-300 ${animateText ? "animate-writeIn" : ""} ${paper.id === "ruled" || paper.id === "diary" || paper.id === "notebook" ? "md:pl-8" : ""}`}
+                >
                   {text || "Your handwritten text will appear here..."}
                 </div>
 
@@ -1083,7 +1317,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* Feature Badges */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
               {[["⚡", "Instant", "No Signup", "from-yellow-400 to-orange-500"], ["🌍", "35+ Languages", "Global Support", "from-blue-400 to-cyan-500"], ["🎨", "30+ Fonts", "6 Pen Types", "from-violet-400 to-pink-500"], ["🔒", "100% Private", "Browser Only", "from-green-400 to-emerald-500"]].map(([i, t, s, g]) => (
                 <div key={t} className={`group p-4 rounded-2xl text-center hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 cursor-pointer relative overflow-hidden ${dark ? "bg-white/5 border border-white/10" : "bg-white border"}`}>
@@ -1097,10 +1330,9 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Middle Ad Slot */}
         <AdSlot slot="2345678901" label="Advertisement" dark={dark} />
 
-        {/* OTHER USEFUL TOOLS SECTION */}
+        {/* OTHER USEFUL TOOLS */}
         <section className="mt-12">
           <div className="text-center mb-6">
             <h2 className="text-2xl md:text-3xl font-black mb-2">
@@ -1133,12 +1365,13 @@ export default function Page() {
             {showGuide && (
               <div className="p-5 pt-0 text-sm leading-relaxed space-y-3 opacity-90 animate-slideDown">
                 <p><b className="text-violet-600">Step 1 — Select Your Language:</b> Choose from 35+ global languages including English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Arabic, Urdu, Persian, Hebrew, Russian, Japanese, Korean, Chinese, Thai, Vietnamese, Spanish, French, German, Italian, Portuguese, and many more. Use the search box to quickly find your language.</p>
-                <p><b className="text-violet-600">Step 2 — Enter Your Text:</b> Type or paste your text directly, or use the 🎤 Voice Input button to dictate using your microphone. The 🔊 Listen button reads your text aloud using text-to-speech. Quick Templates instantly load letters, diary entries, notes, recipes, to-do lists, poems, and invitations.</p>
+                <p><b className="text-violet-600">Step 2 — Enter Your Text:</b> Type or paste your text directly, or click 🎤 Voice to dictate using your microphone. Click again to stop. The 🔊 Listen button reads your text aloud using text-to-speech. Click ⏹ Stop to halt playback. Quick Templates instantly load letters, diary entries, notes, recipes, to-do lists, poems, and invitations.</p>
                 <p><b className="text-violet-600">Step 3 — Customize Style:</b> Select from 30+ handwriting fonts, 6 pen types (Ballpoint, Fountain, Gel, Pencil, Marker, Calligraphy), 12 pen colors, and adjust font size, line spacing, letter spacing, ink darkness, tilt, and text alignment. Every change reflects instantly in the live preview.</p>
-                <p><b className="text-violet-600">Step 4 — Choose Paper:</b> Pick from 10 paper styles including Ruled, Plain, Grid, Aged, Sticky, Letter, Diary, Music, Legal, and Notebook. Add realistic background textures like coffee stains, crumpled paper, or aged stains. Adjust margins for perfect positioning.</p>
-                <p><b className="text-violet-600">Step 5 — Pro Features:</b> Enable ink texture effects for realism, writing animation for presentations, multi-page mode for long documents, stroke pressure control, rotation, word goal tracking, and signature mode for personalized signatures.</p>
-                <p><b className="text-violet-600">Step 6 — Download & Share:</b> Preview your creation, then download as high-quality PNG or A4 PDF. Share directly to WhatsApp, Facebook, Twitter/X, LinkedIn, Telegram, Reddit, or email using the social share button. Keyboard shortcuts: Ctrl+S (PDF), Ctrl+P (PNG), Ctrl+K (Clear), Ctrl+D (Dark mode), Ctrl+Z (Reset), Ctrl+/ (Shortcuts).</p>
+                <p><b className="text-violet-600">Step 4 — Choose Paper & Texture:</b> Pick from 10 paper styles including Ruled, Plain, Grid, Aged, Sticky, Letter, Diary, Music, Legal, and Notebook. Apply background textures (Coffee Stain, Crumpled, Aged Stain) as overlays for realistic character. Adjust margins for perfect positioning.</p>
+                <p><b className="text-violet-600">Step 5 — Pro Features:</b> Enable ink texture effects, writing animation, multi-page mode, stroke pressure control, rotation, word goal tracking, and signature mode.</p>
+                <p><b className="text-violet-600">Step 6 — Download & Share:</b> Preview your creation, then download as high-quality PNG or A4 PDF. Share directly to WhatsApp, Facebook, Twitter/X, LinkedIn, Telegram, Reddit, or email. Keyboard shortcuts: Ctrl+S (PDF), Ctrl+P (PNG), Ctrl+K (Clear), Ctrl+D (Dark mode), Ctrl+Z (Reset), Ctrl+/ (Shortcuts).</p>
                 <p className="p-3 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-800"><b>💡 Pro Tip:</b> For the most realistic handwriting, use Ink Darkness at 0.85, Tilt at 0.5°, Stroke Pressure at 1.2x, and keep Ink Texture ON. Try the combination of Fountain pen + Ruled paper + Caveat font for the most natural look!</p>
+                <p className="p-3 rounded-xl bg-gradient-to-r from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 border border-blue-200 dark:border-blue-800"><b>🎤 Voice Tips:</b> Voice input works best in Chrome and Edge. Click 🎤 Voice to start, speak clearly, and click ⏹ Stop when done. The language automatically matches your selected language. Text-to-speech uses your system's built-in voices — for best results, install more voices in your OS settings.</p>
               </div>
             )}
           </div>
@@ -1153,7 +1386,7 @@ export default function Page() {
                 <p><b>Text to Handwriting Generator PRO</b> is an advanced free online tool that transforms typed text into realistic handwritten notes. It is designed for students, teachers, content creators, designers, professionals, and anyone who wants to create beautiful handwritten content without actually writing by hand.</p>
                 <p><b>Global Language Support:</b> We support 35+ languages including English, Hindi, Bengali, Tamil, Telugu, Marathi, Gujarati, Punjabi, Kannada, Malayalam, Odia, Arabic, Urdu, Persian, Hebrew, Russian, Ukrainian, Greek, Japanese, Korean, Chinese, Thai, Vietnamese, Indonesian, Malay, Filipino, Spanish, French, German, Italian, Portuguese, Dutch, Polish, Swedish, Turkish, Swahili, and Nepali. Each language uses native fonts for authentic output.</p>
                 <p><b>Realism Features:</b> Multiple pen types (fountain, ballpoint, gel, pencil, marker, calligraphy) each with unique ink effects. Advanced controls for ink texture, stroke pressure, tilt, darkness, and background textures create a truly authentic handwritten appearance.</p>
-                <p><b>Voice & Speech:</b> Use the 🎤 Voice Input button to dictate text in 35+ languages using Web Speech API. The 🔊 Text-to-Speech feature reads your text aloud for proofreading or accessibility.</p>
+                <p><b>Voice & Speech:</b> Use the 🎤 Voice Input button to dictate text in 35+ languages using Web Speech API. Click again to stop. The 🔊 Text-to-Speech feature reads your text aloud for proofreading or accessibility.</p>
                 <p><b>Sharing & Export:</b> Download your creations as high-quality PNG images or A4 PDF documents. Share instantly to WhatsApp, Facebook, Twitter/X, LinkedIn, Telegram, Reddit, or email.</p>
                 <p><b>Use Cases:</b> Study notes, assignments practice, quotes, greeting cards, worksheets, diary entries, formal letters, signature creation, recipe cards, to-do lists, poems, invitations, and creative design projects.</p>
                 <p><b>Privacy First:</b> All processing happens 100% in your browser using client-side JavaScript. We do not store, track, upload, or share your text with anyone. Your privacy is our top priority.</p>
@@ -1177,11 +1410,9 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Bottom Ad Slot */}
         <AdSlot slot="3456789012" label="Advertisement" dark={dark} />
       </main>
 
-      {/* Footer */}
       <footer className={`mt-12 py-8 border-t text-center text-sm opacity-70 ${dark ? "border-white/10" : "border-gray-200"}`}>
         <p className="font-semibold">✍️ Handwriting Generator PRO — Made with ❤️ for creators worldwide</p>
         <p className="text-xs mt-2">100% Free • No Signup • Privacy First • 35+ Languages • Voice Input • PNG & PDF Export</p>
@@ -1237,7 +1468,6 @@ export default function Page() {
         </div>
       )}
 
-      {/* Toast */}
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
 
       <style jsx global>{`
