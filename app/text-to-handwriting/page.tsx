@@ -983,17 +983,16 @@ export default function Page() {
                       <span className="text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full font-bold">{currentLang.flag} {currentLang.label.split(" ")[0]}</span>
                     </div>
                     <div className="relative">
-                      <button onClick={() => setShowLangDropdown(!showLangDropdown)} className={`w-full p-3 rounded-xl border font-semibold outline-none focus:ring-2 focus:ring-violet-500 transition-all flex justify-between items-center ${dark ? "bg-black/40 border-white/10" : "bg-gray-50 border-gray-200"}`}>
-                        <span>{currentLang.label}</span>
+                      <button onClick={() => setShowLangDropdown(!showLangDropdown)} className="w-full p-3 rounded-xl border-2 font-bold outline-none flex justify-between items-center" style={{ color: "#111827", backgroundColor: "#ffffff", borderColor: "#7c3aed" }}>
                         <span className={`transition-transform ${showLangDropdown ? "rotate-180" : ""}`}>▼</span>
                       </button>
                       {showLangDropdown && (
                         <div className={`absolute z-50 mt-2 w-full max-h-80 overflow-y-auto custom-scroll rounded-xl shadow-2xl border ${dark ? "bg-[#1a1a2e] border-white/10" : "bg-white border-gray-200"}`}>
                           <div className="p-2 sticky top-0 bg-inherit border-b border-gray-100 dark:border-white/10">
-                            <input type="text" value={langSearch} onChange={(e) => setLangSearch(e.target.value)} placeholder="Search language..." className={`w-full p-2 rounded-lg text-sm outline-none ${dark ? "bg-black/40" : "bg-gray-100"}`} autoFocus />
+                           <input type="text" value={langSearch} onChange={(e) => setLangSearch(e.target.value)} placeholder="Search language..." className="w-full p-2 rounded-lg text-sm outline-none border" style={{ color: "#111827", backgroundColor: "#ffffff", borderColor: "#d1d5db" }} autoFocus />
                           </div>
                           {filteredLangs.map(k => (
-                            <button key={k} onClick={() => changeLang(k)} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-violet-50 dark:hover:bg-violet-900/30 transition-all flex justify-between items-center ${langKey === k ? "bg-violet-50 dark:bg-violet-900/40 font-bold" : ""}`}>
+                            <button key={k} onClick={() => changeLang(k)} className="w-full text-left px-4 py-2.5 text-sm transition-all flex justify-between items-center" style={{ color: "#111827", backgroundColor: langKey === k? "#ede9fe" : "#ffffff", fontWeight: langKey === k? 700 : 400 }}>
                               <span>{LANGUAGES[k].label}</span>
                               {langKey === k && <span className="text-violet-600">✓</span>}
                             </button>
