@@ -983,7 +983,7 @@ export default function Page() {
                       <span className="text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full font-bold">{currentLang.flag} {currentLang.label.split(" ")[0]}</span>
                     </div>
                     <div className="relative">
-                      <button onClick={() => setShowLangDropdown(!showLangDropdown)} className="w-full p-3 rounded-xl border-2 font-bold outline-none flex justify-between items-center" style={{ color: "#111827", backgroundColor: "#ffffff", borderColor: "#7c3aed" }}>
+                      <button onClick={() => setShowLangDropdown(!showLangDropdown)} className={`w-full p-3 rounded-xl border font-semibold outline-none focus:ring-2 focus:ring-violet-500 transition-all flex justify-between items-center ${dark? "bg-black/40 border-white/10" : "bg-gray-50 border-gray-200"}`}>
                         <span className={`transition-transform ${showLangDropdown ? "rotate-180" : ""}`}>▼</span>
                       </button>
                       {showLangDropdown && (
