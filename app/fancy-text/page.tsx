@@ -621,77 +621,72 @@ async function renderStyledToPNG(
 // HOOKS
 // ============================================================
 
-// ✅ FIXED: useUndoableState — supports updater function, uses refs to avoid stale closures
-function useUndoableState(initial: string) {
-  const [history, setHistory] = useState<string[]>([initial]);
-  const [index, setIndex] = useState(0);
-  const lastPush = useRef(0);
-  const historyRef = useRef(history);
-  const indexRef = useRef(index);
+// ✅ FULLY FIXED: single atomic reducer — no stale refs, no parallel state updates,
+// no index drift. Both `history` and `index` always stay consistent.
+type HistoryState = { history: string[]; index: number };
 
-  useEffect(() => { historyRef.current = history; }, [history]);
-  useEffect(() => { indexRef.current = index; }, [index]);
+function useUndoableState(initial: string) {
+  const [state, setState] = useState<HistoryState>({ history: [initial], index: 0 });
+  const lastPush = useRef(0);
 
   const set = useCallback(
     (next: string | ((prev: string) => string), opts?: { immediate?: boolean }) => {
-      const cur = historyRef.current[indexRef.current] ?? '';
-      const resolved = typeof next === 'function' ? next(cur) : next;
-
       const now = Date.now();
-      const isDebouncedTyping = !opts?.immediate && now - lastPush.current < 400;
-
-      if (isDebouncedTyping) {
-        setHistory(h => {
-          const copy = h.slice(0, indexRef.current + 1);
-          copy[indexRef.current] = resolved;
-          return copy;
-        });
-        return;
-      }
-
+      const isDebounced = !opts?.immediate && now - lastPush.current < 400;
       lastPush.current = now;
 
-      setHistory(h => {
-        const trimmed = h.slice(0, indexRef.current + 1);
-        if (trimmed[trimmed.length - 1] === resolved) return trimmed;
-        const nextHist = [...trimmed, resolved];
-        if (nextHist.length > 100) nextHist.shift();
-        return nextHist;
+      setState((prev) => {
+        const cur = prev.history[prev.index] ?? '';
+        const resolved = typeof next === 'function' ? next(cur) : next;
+
+        // Debounced typing path: overwrite current slot only
+        if (isDebounced) {
+          if (cur === resolved) return prev;
+          const newHistory = prev.history.slice();
+          newHistory[prev.index] = resolved;
+          return { history: newHistory, index: prev.index };
+        }
+
+        // Immediate path (toolbar, paste, transform): no-op if unchanged
+        if (cur === resolved) return prev;
+
+        const trimmed = prev.history.slice(0, prev.index + 1);
+        const newHistory = [...trimmed, resolved];
+        if (newHistory.length > 100) newHistory.shift();
+        const newIndex = newHistory.length - 1;
+        return { history: newHistory, index: newIndex };
       });
-      setIndex(i => Math.min(i + 1, 99));
     },
     []
   );
 
   const undo = useCallback(() => {
-    setIndex(i => (i <= 0 ? i : i - 1));
+    setState((prev) => {
+      const newIndex = prev.index > 0 ? prev.index - 1 : 0;
+      if (newIndex === prev.index) return prev;
+      return { history: prev.history, index: newIndex };
+    });
   }, []);
 
   const redo = useCallback(() => {
-    setIndex(i => {
-      const maxIdx = historyRef.current.length - 1;
-      return i >= maxIdx ? i : i + 1;
+    setState((prev) => {
+      const maxIdx = prev.history.length - 1;
+      const newIndex = prev.index < maxIdx ? prev.index + 1 : maxIdx;
+      if (newIndex === prev.index) return prev;
+      return { history: prev.history, index: newIndex };
     });
   }, []);
 
   const reset = useCallback((v: string) => {
-    setHistory([v]);
-    setIndex(0);
     lastPush.current = 0;
+    setState({ history: [v], index: 0 });
   }, []);
 
-  const canUndo = index > 0;
-  const canRedo = index < history.length - 1;
+  const value = state.history[state.index] ?? '';
+  const canUndo = state.index > 0;
+  const canRedo = state.index < state.history.length - 1;
 
-  return {
-    value: history[index] ?? '',
-    set,
-    undo,
-    redo,
-    reset,
-    canUndo,
-    canRedo,
-  };
+  return { value, set, undo, redo, reset, canUndo, canRedo };
 }
 
 function useDebounced<T>(value: T, delay = 150): T {
@@ -935,15 +930,16 @@ export default function Page() {
     setRecent(p => [name, ...p.filter(n => n !== name)].slice(0, 12));
   }, []);
 
-  // ✅ FIXED: applyTransform — uses functional updater, no stale closure
   const applyTransform = useCallback((type: string) => {
     inputState.set(
       (s) => {
+        if (!s) return s;
         switch (type) {
           case 'upper': return s.toUpperCase();
           case 'lower': return s.toLowerCase();
           case 'title': return s.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-          case 'sentence': return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+          case 'sentence':
+            return s.length === 0 ? s : s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
           case 'camel':
             return s.trim().split(/[\s_\-.]+/).filter(Boolean)
               .map((w, i) => i === 0 ? w.toLowerCase() : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
@@ -1038,7 +1034,7 @@ export default function Page() {
         const end = ta.selectionEnd ?? input.length;
         const before = input.slice(0, start);
         const after = input.slice(end);
-        inputState.set(prev => before + pastedText + after, { immediate: true });
+        inputState.set(before + pastedText + after, { immediate: true });
         requestAnimationFrame(() => {
           try {
             const newPos = start + pastedText.length;
@@ -1047,7 +1043,7 @@ export default function Page() {
           } catch {}
         });
       } else {
-        inputState.set(prev => prev + pastedText, { immediate: true });
+        inputState.set((prev) => prev + pastedText, { immediate: true });
       }
       showToast(detectedColor || detectedBg ? '✓ Pasted with style!' : '✓ Pasted', 'success');
     } catch {
