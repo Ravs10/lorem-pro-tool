@@ -1019,6 +1019,7 @@ export default function Page() {
                                 ? "bg-red-500 text-white animate-pulse"
                                 : "bg-white text-violet-700 border-2 border-violet-600 hover:bg-violet-600 hover:text-white"
                           }`}
+                          style={{ color: isListening? "#ffffff" : "#6d28d9", backgroundColor: isListening? "#ef4444" : "#ffffff" }}
                         >
                           {isListening ? "⏹ Stop" : "🎤 Voice"}
                         </button>
