@@ -454,7 +454,11 @@ return(
 <p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>More tools coming soon - Stay tuned!</p>
 </div>
     {/* SEO CONTENT + FAQ SCHEMA - STRONGEST SEO */}
-  <SeoContent />
+{page==="home" && (
+  <div style={{background:"#fff", marginTop:20, borderRadius:20}}>
+    <SeoContent />
+  </div>
+)}
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
