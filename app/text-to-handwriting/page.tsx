@@ -564,7 +564,7 @@ export default function Page() {
 
     const recognition = new SR();
     recognition.lang = currentLang.speechCode || "en-US";
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     finalTranscriptRef.current = text? text + " " : "";
