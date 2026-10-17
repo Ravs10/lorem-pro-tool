@@ -453,6 +453,34 @@ return(
 </div>
 <p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>More tools coming soon - Stay tuned!</p>
 </div>
+    {/* SEO CONTENT + FAQ SCHEMA - STRONGEST SEO */}
+  <SeoContent />
+  <script
+    type="application/ld+json"
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is Lorem Ipsum Generator free?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes, 100% free. No login, no signup, no watermark, unlimited generation." }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I generate Lorem Ipsum in Hindi?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. We support Hindi and 76 other languages including Bengali, Tamil, Telugu, Marathi, Urdu, Spanish, Arabic, French, German, and more." }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I download the generated text?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown." }
+          }
+        ]
+      })
+    }}
+  />
   {/*<footer style={{background:"#000",color:"#fff",padding:20,marginTop:24,textAlign:"center"}}>
 <div style={{fontWeight:900,fontSize:14}}>© 2026 LoremPro - {LANGS.length} Languages</div>
 <div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:12,justifyContent:"center",fontSize:12}}>
