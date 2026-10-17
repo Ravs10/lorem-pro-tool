@@ -1,21 +1,29 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-function Section({ title, children, defaultOpen = false }: any) {
+function Section({ title, children, defaultOpen = false, forceOpen }: any) {
   const [open, setOpen] = useState(defaultOpen);
+
+  // Show All / Hide All ko kaam karane ke liye - sabse important fix
+  useEffect(() => {
+    if (forceOpen !== undefined) setOpen(forceOpen);
+  }, [forceOpen]);
+
   return (
     <div className="mb-3 overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-black hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors duration-300 hover:bg-slate-50"
-      >
-        <h2 className="text-[16px] font-bold text-slate-900">{title}</h2>
-        <span
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black text-white text-lg transition-transform duration-300 ${open ? "rotate-45" : "rotate-0"}`}
+      <h3 className="m-0">
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors duration-300 hover:bg-slate-50"
         >
-          +
-        </span>
-      </button>
+          <span className="text-[16px] font-bold text-slate-900">{title}</span>
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black text-white text-lg transition-transform duration-300 ${open ? "rotate-45" : "rotate-0"}`}
+          >
+            +
+          </span>
+        </button>
+      </h3>
       <div
         className={`grid transition-all duration-500 ease-in-out ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
       >
@@ -42,19 +50,18 @@ export default function SeoContent() {
         </button>
       </div>
 
-      {/* Jab Show All ON hoga, tabhi sab khulega - iske liye hum key use kar rahe hain */}
-      <div key={String(showAll)}>
-        <Section title="What is Lorem Ipsum? The Ultimate Guide to Dummy Text" defaultOpen={true}>
+      <div>
+        <Section title="What is Lorem Ipsum? The Ultimate Guide to Dummy Text" defaultOpen={true} forceOpen={showAll ? true : undefined}>
           <p className="mb-3">Lorem Ipsum is placeholder text used by designers, developers, and publishers to fill a layout before the final content is ready. It allows you to focus on visual design, typography, spacing, and user experience without getting distracted by readable content.</p>
           <p>Lorem Pro Tool takes this classic concept to the next level by offering it in 77 native languages, not just Latin. Our free generator helps you generate sentences, paragraphs, words, and lists instantly. No login, no signup, 100% free forever.</p>
         </Section>
 
-        <Section title="History of Lorem Ipsum - Where Did It Come From?">
+        <Section title="History of Lorem Ipsum - Where Did It Come From?" forceOpen={showAll ? true : undefined}>
           <p className="mb-3">Lorem Ipsum comes from a Latin text written by Cicero in 45 BC, called &quot;de Finibus Bonorum et Malorum&quot;. The famous line &quot;Lorem ipsum dolor sit amet...&quot; is a scrambled version of that original text.</p>
           <p>In the 1960s, Letraset popularized it for print design, and in the 1990s, Aldus PageMaker made it standard for digital design. Today, it is the world standard for placeholder text.</p>
         </Section>
 
-        <Section title="Why Use Lorem Pro Tool? 77 Languages, 4 Modes">
+        <Section title="Why Use Lorem Pro Tool? 77 Languages, 4 Modes" forceOpen={showAll ? true : undefined}>
           <p className="mb-3">Most generators only give you English or Latin. Lorem Pro Tool gives you native dummy text in Hindi, English, Spanish, Arabic, French, German, Chinese, Japanese, Bengali, Tamil, Telugu, Marathi, Urdu, Portuguese, Russian, Italian, Korean, Turkish, and 59 more languages.</p>
           <ul className="list-disc pl-5 space-y-1">
             <li><b>Sentence Mode:</b> For headings, taglines, button text</li>
@@ -64,7 +71,7 @@ export default function SeoContent() {
           </ul>
         </Section>
 
-        <Section title="How To Use Lorem Ipsum Generator - Step By Step">
+        <Section title="How To Use Lorem Ipsum Generator - Step By Step" forceOpen={showAll ? true : undefined}>
           <ol className="list-decimal pl-5 space-y-2">
             <li><b>Select Language:</b> Choose from 77 languages from dropdown.</li>
             <li><b>Select Mode:</b> Choose Sentence, Paragraph, Word, or List.</li>
@@ -73,11 +80,11 @@ export default function SeoContent() {
           </ol>
         </Section>
 
-        <Section title="Lorem Ipsum in Hindi - हिंदी डमी टेक्स्ट">
+        <Section title="Lorem Ipsum in Hindi - हिंदी डमी टेक्स्ट" forceOpen={showAll ? true : undefined}>
           <p>Hindi is one of the most searched languages for dummy text in India. Our Hindi generator gives you natural Hindi sentences that look like real content. Perfect for Indian designers building websites for Hindi audience, government portals, news sites, and local businesses.</p>
         </Section>
 
-        <Section title="Best Practices for Using Dummy Text in Design">
+        <Section title="Best Practices for Using Dummy Text in Design" forceOpen={showAll ? true : undefined}>
           <ul className="list-disc pl-5 space-y-1">
             <li>Always test with real language. If final site will be in Spanish, test with Spanish dummy text.</li>
             <li>Check for text overflow. German words are longer, Arabic is RTL, Chinese is compact.</li>
@@ -86,17 +93,17 @@ export default function SeoContent() {
           </ul>
         </Section>
 
-        <Section title="More Free Tools From Lorem Pro">
+        <Section title="More Free Tools From Lorem Pro" forceOpen={showAll ? true : undefined}>
           <p>Try our <a href="/case-converter" className="text-blue-600 underline">Case Converter</a>, <a href="/password-generator" className="text-blue-600 underline">Password Generator</a>, <a href="/fancy-text" className="text-blue-600 underline">Fancy Text Generator</a>, <a href="/fake-data-generator" className="text-blue-600 underline">Fake Data Generator</a>, <a href="/placeholder-qr-generator" className="text-blue-600 underline">Placeholder QR Generator</a>, <a href="/image-to-text" className="text-blue-600 underline">Image to Text</a>, <a href="/text-to-handwriting" className="text-blue-600 underline">Text to Handwriting</a>, <a href="/remove-duplicates" className="text-blue-600 underline">Remove Duplicates</a>. All tools are free, no login required.</p>
         </Section>
 
-        <Section title="Frequently Asked Questions (FAQ)">
+        <Section title="Frequently Asked Questions (FAQ)" forceOpen={showAll ? true : undefined}>
           <div className="space-y-3">
-            <div><h3 className="font-bold text-slate-900">Is Lorem Ipsum Generator free?</h3><p>Yes, 100% free. No login, no signup, no watermark.</p></div>
-            <div><b>Can I generate Lorem Ipsum in Hindi?</b><p>Yes. We support Hindi and 76 other languages.</p></div>
-            <div><b>How many words can I generate?</b><p>You can generate up to 100 paragraphs, sentences, or lists in one click.</p></div>
-            <div><b>Can I download the generated text?</b><p>Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown.</p></div>
-            <div><b>Is Lorem Ipsum good for SEO?</b><p>No, it is for design testing only. Never publish it live.</p></div>
+            <div><h4 className="font-bold text-slate-900">Is Lorem Ipsum Generator free?</h4><p>Yes, 100% free. No login, no signup, no watermark.</p></div>
+            <div><h4 className="font-bold text-slate-900">Can I generate Lorem Ipsum in Hindi?</h4><p>Yes. We support Hindi and 76 other languages.</p></div>
+            <div><h4 className="font-bold text-slate-900">How many words can I generate?</h4><p>You can generate up to 100 paragraphs, sentences, or lists in one click.</p></div>
+            <div><h4 className="font-bold text-slate-900">Can I download the generated text?</h4><p>Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown.</p></div>
+            <div><h4 className="font-bold text-slate-900">Is Lorem Ipsum good for SEO?</h4><p>No, it is for design testing only. Never publish it live.</p></div>
           </div>
         </Section>
       </div>
