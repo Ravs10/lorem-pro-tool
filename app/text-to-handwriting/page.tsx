@@ -969,12 +969,12 @@ export default function Page() {
                 <>
                   <div className="animate-fadeIn">
   <div className="flex justify-between items-center mb-2">
-    <label className="text-sm font-bold">🌍 Language</label>
-    <span className="text-xs bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-2 py-0.5 rounded-full font-bold">{currentLang.flag} {currentLang.label.split(" ")[0]}</span>
+    <label className="text-sm font-bold text-gray-900 dark:text-white">🌍 Language</label>
+    <span className="text-xs bg-violet-600 text-white px-2.5 py-1 rounded-full font-bold shadow-sm">{currentLang.label.split(" - ")[0]}</span>
   </div>
   <div className="relative">
-    <button onClick={() => setShowLangDropdown(!showLangDropdown)} className={`w-full p-3 rounded-xl border font-semibold outline-none focus:ring-2 focus:ring-violet-500 transition-all flex justify-between items-center ${dark ? "bg-black/40 border-white/10 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`}>
-      <span>{currentLang.flag} {currentLang.label}</span>
+    <button onClick={() => setShowLangDropdown(!showLangDropdown)} className={`w-full p-3 rounded-xl border font-semibold outline-none focus:ring-2 focus:ring-violet-500 transition-all flex justify-between items-center ${dark ? "bg-[#1a1a2e] border-white/20 text-white" : "bg-white border-gray-300 text-gray-900 shadow-sm"}`}>
+      <span>{currentLang.label}</span>
       <span className={`transition-transform ${showLangDropdown ? "rotate-180" : ""}`}>▼</span>
     </button>
     {showLangDropdown && (
