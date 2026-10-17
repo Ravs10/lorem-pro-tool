@@ -1,4 +1,5 @@
 "use client"
+import SeoContent from "./components/SeoContent";
 import {useState,useEffect} from "react"
 import { createClient } from '@supabase/supabase-js'
 const supabase = createClient('https://YOUR_PROJECT.supabase.co', 'YOUR_ANON_KEY')
