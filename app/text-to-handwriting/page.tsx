@@ -479,7 +479,9 @@ export default function Page() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
   const finalTranscriptRef = useRef<string>("");
-
+  const listeningRef = useRef(false);
+  const baseTextRef = useRef("");
+  
   const currentLang = LANGUAGES[langKey];
   const currentFont = currentLang.fonts[fontIdx] || currentLang.fonts[0];
   const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
