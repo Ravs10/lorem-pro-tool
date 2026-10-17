@@ -569,9 +569,6 @@ export default function Page() {
     recognition.maxAlternatives = 1;
     finalTranscriptRef.current = text? text + " " : "";
 
-    // Store current text as base
-    finalTranscriptRef.current = text;
-
     recognition.onstart = () => {
       setIsListening(true);
       showToast("🎤 Listening... Speak now. Click again to stop.", "info");
