@@ -9,7 +9,7 @@ function Section({ title, children, defaultOpen = false }: any) {
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors duration-300 hover:bg-slate-50"
       >
-        <span className="text-[16px] font-bold text-slate-900">{title}</span>
+        <h2 className="text-[16px] font-bold text-slate-900">{title}</h2>
         <span
           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black text-white text-lg transition-transform duration-300 ${open ? "rotate-45" : "rotate-0"}`}
         >
