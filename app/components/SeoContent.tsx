@@ -1,61 +1,107 @@
-export default function SeoContent() {
+"use client";
+import { useState } from "react";
+
+function Section({ title, children, defaultOpen = false }: any) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="max-w-4xl mx-auto px-4 py-10 text-slate-700 leading-relaxed">
-      <h2 className="text-3xl font-bold text-slate-900 mb-4">What is Lorem Ipsum? The Ultimate Guide to Dummy Text</h2>
-      <p className="mb-4">Lorem Ipsum is placeholder text used by designers, developers, and publishers to fill a layout before the final content is ready. It allows you to focus on visual design, typography, spacing, and user experience without getting distracted by readable content. Lorem Pro Tool takes this classic concept to the next level by offering it in 77 native languages, not just Latin.</p>
-      <p className="mb-4">If you are building a website, app, brochure, or presentation, you need dummy text that looks real. Our free Lorem Ipsum Generator helps you generate sentences, paragraphs, words, and lists instantly. No login, no signup, 100% free forever.</p>
+    <div className="mb-3 overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-black hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors duration-300 hover:bg-slate-50"
+      >
+        <span className="text-[16px] font-bold text-slate-900">{title}</span>
+        <span
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black text-white text-lg transition-transform duration-300 ${open ? "rotate-45" : "rotate-0"}`}
+        >
+          +
+        </span>
+      </button>
+      <div
+        className={`grid transition-all duration-500 ease-in-out ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+      >
+        <div className="overflow-hidden">
+          <div className="px-4 pb-4 text-slate-700 leading-relaxed text-[14px]">{children}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">History of Lorem Ipsum - Where Did It Come From?</h2>
-      <p className="mb-4">Lorem Ipsum comes from a Latin text written by Cicero in 45 BC, called &quot;de Finibus Bonorum et Malorum&quot;. The famous starting line &quot;Lorem ipsum dolor sit amet...&quot; is a scrambled version of that original text. In the 1960s, Letraset popularized it for print design, and in the 1990s, Aldus PageMaker made it standard for digital design. Today, it is the world standard for placeholder text.</p>
-      <p className="mb-4">Why is it still used? Because readable English distracts the viewer. If you put real English text in a mockup, people will read the text instead of judging the design. Lorem Ipsum looks like real text but is not distracting, so clients focus on layout, fonts, and colors.</p>
+export default function SeoContent() {
+  const [showAll, setShowAll] = useState(false);
 
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">Why Use Lorem Pro Tool? 77 Languages, 4 Modes</h2>
-      <p className="mb-4">Most generators only give you English or Latin. Lorem Pro Tool is different. It gives you native dummy text in Hindi, English, Spanish, Arabic, French, German, Chinese, Japanese, Bengali, Tamil, Telugu, Marathi, Urdu, Portuguese, Russian, Italian, Korean, Turkish, and 59 more languages.</p>
-      <p className="mb-4">This is critical for multilingual websites. If you are designing a Hindi website, Latin text will not show you the real line height, font rendering, or word length. You need Hindi dummy text. Same for Arabic (Right-to-Left), Chinese, or Bengali. Our tool solves this problem.</p>
-      
-      <h3 className="text-xl font-bold text-slate-900 mt-6 mb-2">1. Sentence Mode</h3>
-      <p className="mb-4">Perfect for headings, taglines, button text, and short captions. Generate 1 to 100 sentences in one click. Use it to test how your headline font looks in different languages.</p>
-      <h3 className="text-xl font-bold text-slate-900 mt-6 mb-2">2. Paragraph Mode</h3>
-      <p className="mb-4">Best for blog posts, articles, about pages, and long-form content. Generate realistic paragraphs to test your layout, reading experience, and column width.</p>
-      <h3 className="text-xl font-bold text-slate-900 mt-6 mb-2">3. Word Mode</h3>
-      <p className="mb-4">Useful for testing search boxes, labels, navigation menus, and character limits. Generate exact number of words for precise UI testing.</p>
-      <h3 className="text-xl font-bold text-slate-900 mt-6 mb-2">4. List Mode</h3>
-      <p className="mb-4">Ideal for bullet points, features, pricing tables, and to-do lists. Generate clean lists that you can directly copy into your design.</p>
-
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">How To Use Lorem Ipsum Generator - Step By Step</h2>
-      <ol className="list-decimal pl-6 mb-4 space-y-2">
-        <li><strong>Select Language:</strong> Choose from 77 languages from the dropdown. For example, select Hindi for a Hindi website.</li>
-        <li><strong>Select Mode:</strong> Choose Sentence, Paragraph, Word, or List.</li>
-        <li><strong>Select Count:</strong> Use the slider or counter to select 1 to 100. Live counter will show you words and characters.</li>
-        <li><strong>Generate & Copy:</strong> Click Generate, then Copy or Download in 8 formats - TXT, HTML, PDF, DOC, JSON, CSV, Markdown, and more.</li>
-      </ol>
-
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">Lorem Ipsum in Hindi - हिंदी डमी टेक्स्ट</h2>
-      <p className="mb-4">Hindi is one of the most searched languages for dummy text in India. Our Hindi Lorem Ipsum generator gives you natural Hindi sentences that look like real content. It is perfect for Indian designers building websites for Hindi audience, government portals, news sites, and local businesses. You can generate Hindi paragraphs for testing fonts like Noto Sans Devanagari, Tiro Devanagari, and Mangal.</p>
-
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">Best Practices for Using Dummy Text in Design</h2>
-      <ul className="list-disc pl-6 mb-4 space-y-2">
-        <li>Always test with real language. If final site will be in Spanish, test with Spanish dummy text.</li>
-        <li>Check for text overflow. German words are longer, Arabic is RTL, Chinese is compact. Test all cases.</li>
-        <li>Use Paragraph mode for blog layouts and Sentence mode for hero sections.</li>
-        <li>Do not use Lorem Ipsum in production. Replace it before launch, otherwise Google will index dummy text.</li>
-        <li>Use our <a href="/word-counter" className="text-blue-600 underline">Word Counter</a> to check exact word count, and <a href="/character-counter" className="text-blue-600 underline">Character Counter</a> for meta titles.</li>
-      </ul>
-
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">More Free Tools From Lorem Pro</h2>
-      <p className="mb-4">Lorem Pro is not just a dummy text tool. It is a complete free toolkit for creators. Try our <a href="/case-converter" className="text-blue-600 underline">Case Converter</a> for UPPER / lower / Title Case, <a href="/password-generator" className="text-blue-600 underline">Password Generator</a> for strong passwords, <a href="/fancy-text" className="text-blue-600 underline">Fancy Text Generator</a> for stylish Instagram bio, <a href="/fake-data-generator" className="text-blue-600 underline">Fake Data Generator</a> for testing, <a href="/placeholder-qr-generator" className="text-blue-600 underline">Placeholder QR Generator</a>, <a href="/image-to-text" className="text-blue-600 underline">Image to Text</a>, <a href="/text-to-handwriting" className="text-blue-600 underline">Text to Handwriting</a>, <a href="/remove-duplicates" className="text-blue-600 underline">Remove Duplicates</a>, and <a href="/avatar" className="text-blue-600 underline">Avatar Generator</a>. All tools are free, no login required.</p>
-
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-3">Frequently Asked Questions (FAQ)</h2>
-      <div className="space-y-4">
-        <div><h3 className="font-bold text-slate-900">Is Lorem Ipsum Generator free?</h3><p>Yes, 100% free. No login, no signup, no watermark, unlimited generation.</p></div>
-        <div><h3 className="font-bold text-slate-900">Can I generate Lorem Ipsum in Hindi?</h3><p>Yes. We support Hindi and 76 other languages including Bengali, Tamil, Telugu, Marathi, Urdu, Spanish, Arabic, French, German, and more.</p></div>
-        <div><h3 className="font-bold text-slate-900">How many words can I generate?</h3><p>You can generate up to 100 paragraphs, sentences, or lists in one click. Use the live counter to see exact words and characters.</p></div>
-        <div><h3 className="font-bold text-slate-900">Can I download the generated text?</h3><p>Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown.</p></div>
-        <div><h3 className="font-bold text-slate-900">Is Lorem Ipsum good for SEO?</h3><p>Lorem Ipsum is for design testing only. Never publish it live. Replace it with real content before launching, otherwise Google may treat it as thin content.</p></div>
-        <div><h3 className="font-bold text-slate-900">What is the difference between Sentence, Paragraph, Word and List modes?</h3><p>Sentence is for headings, Paragraph for articles, Word for UI labels, and List for bullet points. Each mode is optimized for different design needs.</p></div>
+  return (
+    <section className="max-w-4xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-black text-slate-900">📖 Complete Guide</h2>
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="rounded-full bg-black px-4 py-2 text-[12px] font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-slate-800 active:scale-95"
+        >
+          {showAll ? "Hide All ▲" : "Show All ▼"}
+        </button>
       </div>
 
-      <p className="mt-8 text-sm text-slate-500">Last Updated: October 2026 | Lorem Pro Tool - Free Tools for Designers, Developers & Creators.</p>
+      {/* Jab Show All ON hoga, tabhi sab khulega - iske liye hum key use kar rahe hain */}
+      <div key={String(showAll)}>
+        <Section title="What is Lorem Ipsum? The Ultimate Guide to Dummy Text" defaultOpen={true}>
+          <p className="mb-3">Lorem Ipsum is placeholder text used by designers, developers, and publishers to fill a layout before the final content is ready. It allows you to focus on visual design, typography, spacing, and user experience without getting distracted by readable content.</p>
+          <p>Lorem Pro Tool takes this classic concept to the next level by offering it in 77 native languages, not just Latin. Our free generator helps you generate sentences, paragraphs, words, and lists instantly. No login, no signup, 100% free forever.</p>
+        </Section>
+
+        <Section title="History of Lorem Ipsum - Where Did It Come From?">
+          <p className="mb-3">Lorem Ipsum comes from a Latin text written by Cicero in 45 BC, called &quot;de Finibus Bonorum et Malorum&quot;. The famous line &quot;Lorem ipsum dolor sit amet...&quot; is a scrambled version of that original text.</p>
+          <p>In the 1960s, Letraset popularized it for print design, and in the 1990s, Aldus PageMaker made it standard for digital design. Today, it is the world standard for placeholder text.</p>
+        </Section>
+
+        <Section title="Why Use Lorem Pro Tool? 77 Languages, 4 Modes">
+          <p className="mb-3">Most generators only give you English or Latin. Lorem Pro Tool gives you native dummy text in Hindi, English, Spanish, Arabic, French, German, Chinese, Japanese, Bengali, Tamil, Telugu, Marathi, Urdu, Portuguese, Russian, Italian, Korean, Turkish, and 59 more languages.</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li><b>Sentence Mode:</b> For headings, taglines, button text</li>
+            <li><b>Paragraph Mode:</b> For blog posts, articles, about pages</li>
+            <li><b>Word Mode:</b> For search boxes, labels, menus</li>
+            <li><b>List Mode:</b> For bullet points, features, pricing tables</li>
+          </ul>
+        </Section>
+
+        <Section title="How To Use Lorem Ipsum Generator - Step By Step">
+          <ol className="list-decimal pl-5 space-y-2">
+            <li><b>Select Language:</b> Choose from 77 languages from dropdown.</li>
+            <li><b>Select Mode:</b> Choose Sentence, Paragraph, Word, or List.</li>
+            <li><b>Select Count:</b> Use slider to select 1 to 100.</li>
+            <li><b>Generate & Copy:</b> Click Generate, then Copy or Download in 8 formats.</li>
+          </ol>
+        </Section>
+
+        <Section title="Lorem Ipsum in Hindi - हिंदी डमी टेक्स्ट">
+          <p>Hindi is one of the most searched languages for dummy text in India. Our Hindi generator gives you natural Hindi sentences that look like real content. Perfect for Indian designers building websites for Hindi audience, government portals, news sites, and local businesses.</p>
+        </Section>
+
+        <Section title="Best Practices for Using Dummy Text in Design">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Always test with real language. If final site will be in Spanish, test with Spanish dummy text.</li>
+            <li>Check for text overflow. German words are longer, Arabic is RTL, Chinese is compact.</li>
+            <li>Do not use Lorem Ipsum in production. Replace it before launch.</li>
+            <li>Use our <a href="/word-counter" className="text-blue-600 underline">Word Counter</a> to check exact word count.</li>
+          </ul>
+        </Section>
+
+        <Section title="More Free Tools From Lorem Pro">
+          <p>Try our <a href="/case-converter" className="text-blue-600 underline">Case Converter</a>, <a href="/password-generator" className="text-blue-600 underline">Password Generator</a>, <a href="/fancy-text" className="text-blue-600 underline">Fancy Text Generator</a>, <a href="/fake-data-generator" className="text-blue-600 underline">Fake Data Generator</a>, <a href="/placeholder-qr-generator" className="text-blue-600 underline">Placeholder QR Generator</a>, <a href="/image-to-text" className="text-blue-600 underline">Image to Text</a>, <a href="/text-to-handwriting" className="text-blue-600 underline">Text to Handwriting</a>, <a href="/remove-duplicates" className="text-blue-600 underline">Remove Duplicates</a>. All tools are free, no login required.</p>
+        </Section>
+
+        <Section title="Frequently Asked Questions (FAQ)">
+          <div className="space-y-3">
+            <div><b>Is Lorem Ipsum Generator free?</b><p>Yes, 100% free. No login, no signup, no watermark.</p></div>
+            <div><b>Can I generate Lorem Ipsum in Hindi?</b><p>Yes. We support Hindi and 76 other languages.</p></div>
+            <div><b>How many words can I generate?</b><p>You can generate up to 100 paragraphs, sentences, or lists in one click.</p></div>
+            <div><b>Can I download the generated text?</b><p>Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown.</p></div>
+            <div><b>Is Lorem Ipsum good for SEO?</b><p>No, it is for design testing only. Never publish it live.</p></div>
+          </div>
+        </Section>
+      </div>
+
+      <p className="mt-4 text-center text-[12px] text-slate-500">Last Updated: October 2026 | Lorem Pro Tool - Free Tools for Designers, Developers & Creators.</p>
     </section>
   );
 }
