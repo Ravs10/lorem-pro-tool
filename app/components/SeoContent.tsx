@@ -92,7 +92,7 @@ export default function SeoContent() {
 
         <Section title="Frequently Asked Questions (FAQ)">
           <div className="space-y-3">
-            <div><b>Is Lorem Ipsum Generator free?</b><p>Yes, 100% free. No login, no signup, no watermark.</p></div>
+            <div><h3 className="font-bold text-slate-900">Is Lorem Ipsum Generator free?</h3><p>Yes, 100% free. No login, no signup, no watermark.</p></div>
             <div><b>Can I generate Lorem Ipsum in Hindi?</b><p>Yes. We support Hindi and 76 other languages.</p></div>
             <div><b>How many words can I generate?</b><p>You can generate up to 100 paragraphs, sentences, or lists in one click.</p></div>
             <div><b>Can I download the generated text?</b><p>Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown.</p></div>
