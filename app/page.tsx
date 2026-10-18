@@ -133,7 +133,7 @@ const gen=()=>{
  let r=""
  if(mode==="SENTENCE"){ const a=[]; for(let i=0;i<cnt;i++) a.push(fixSentence(base[i%base.length], lang)); r=a.join(" ") }
  if(mode==="PARAGRAPH"){ const paras=[]; for(let p=0;p<cnt;p++){ const len=2+(p%3); const s=[]; for(let j=0;j<len;j++) s.push(fixSentence(base[(p*len+j)%base.length], lang)); paras.push(s.join(" ")); } r=paras.join("\n\n") }
- if(mode==="WORD"){ const all=base.join(" ").split(" "); const a=[]; for(let i=0;i<cnt;i++) a.push(all[i%all.length]); r=a.join(" ") }
+ if(mode==="WORD"){ const all=base.join(" ").replace(/[.!?।॥。۔།,;:()"\-]/g,"").split(/\s+/).filter(Boolean); const a=[]; for(let i=0;i<cnt;i++) a.push(all[i%all.length]); r=a.join(" ") }
  if(mode==="LIST"){ const a=[]; for(let i=0;i<cnt;i++) a.push(`• ${fixSentence(base[i%base.length], lang)}`); r=a.join("\n") }
  setOut(r)
 }
