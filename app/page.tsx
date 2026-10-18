@@ -29,8 +29,8 @@ const LANGS=[
 ]
 
 const DB:any={
-"HI":["स्वस्थ जीवन के लिए योग जरूरी है","सुबह टहलना फिट रखता है","फल इम्युनिटी बढ़ाते हैं","पानी खूब पियो","हरी सब्जियां अच्छी हैं","रोज व्यायाम शरीर को मजबूत बनाता है","अच्छी नींद सेहत के लिए जरूरी है","तनाव कम करने के लिए ध्यान करें","सुबह जल्दी उठना फायदेमंद है","घर का खाना सबसे अच्छा होता है","धूप में टहलना विटामिन डी देता है","ज्यादा चीनी से बचें","नियमित जांच करवाएं","साफ पानी पिएं","मोबाइल कम चलाएं","खाना चबाकर खाएं","रोज फल खाएं","दौड़ना दिल के लिए अच्छा है","गहरी सांस लेना शांत करता है","सकारात्मक सोच रखें","समय पर सोएं","पानी की कमी से बचें","हल्का भोजन करें","रोज टहलें","मन शांत रखें","शरीर को आराम दें","ताजी हवा में घूमें","नियमित योग करें","स्वस्थ आदतें अपनाएं","खुश रहें और मुस्कुराएं"],
-"EN":["Healthy life needs yoga for fitness","Morning walk keeps body active","Fresh fruits boost immunity naturally","Drink plenty of water daily","Green vegetables are very healthy","Daily exercise makes body strong","Good sleep is essential for health","Meditate to reduce stress","Waking up early is beneficial","Home food is the best food","Sunlight gives vitamin D","Avoid excess sugar","Get regular health checkups","Drink clean water","Use mobile less","Chew food properly","Eat fruits every day","Running is good for heart","Deep breathing calms mind","Stay positive always","Sleep on time","Avoid dehydration","Eat light food","Walk daily","Keep mind calm","Give body rest","Walk in fresh air","Do yoga regularly","Adopt healthy habits","Stay happy and smile"],
+"HI":["स्वस्थ जीवन के लिए योग जरूरी है","कृत्रिम बुद्धिमत्ता दुनिया बदल रही है","शिक्षा ही सफलता की कुंजी है","ईमानदारी व्यापार की सबसे अच्छी नीति है","प्रकृति सुंदर और शांत है","क्रिकेट भारत में सबसे पसंदीदा खेल है","ताजा फल सेहत के लिए अच्छे हैं","सुबह टहलना फिट रखता है","इंटरनेट ने दुनिया को जोड़ दिया है","किताबें हमें ज्ञान देती हैं","ग्राहक की खुशी सबसे जरूरी है","पेड़ हमें ऑक्सीजन देते हैं","फल इम्युनिटी बढ़ाते हैं","स्मार्टफोन ने जीवन आसान कर दिया है","शिक्षक छात्रों को सही रास्ता दिखाते हैं","टीम वर्क से सफलता मिलती है","यात्रा हमें नई संस्कृति सिखाती है","दौड़ना दिल के लिए अच्छा है","घर का खाना सबसे अच्छा होता है","कोडिंग भविष्य की भाषा है","मेहनत हमेशा रंग लाती है","समय का प्रबंधन उत्पादकता बढ़ाता है","पहाड़ शांत और भव्य होते हैं","योग मन और शरीर को स्वस्थ रखता है","तनाव कम करने के लिए ध्यान करें","साइबर सुरक्षा हमारे डेटा की रक्षा करती है","विज्ञान हमें दुनिया के बारे में सिखाता है","गुणवत्ता वाला उत्पाद हमेशा जीतता है","साफ वातावरण हमें स्वस्थ रखता है","मुस्कुराना दिन को सुंदर बनाता है"],
+"EN":["Healthy life needs yoga for fitness","Artificial intelligence is changing the world","Education is the key to success","Honesty is best policy in business","Nature is beautiful and peaceful","Cricket is loved in India","Fresh fruits are good for health","Morning walk keeps body active","Internet connects people across the globe","Books give us knowledge and wisdom","Customer satisfaction is most important","Trees give us oxygen and shade","Fresh fruits boost immunity naturally","Smartphones have made life easier","Teachers guide students to right path","Teamwork leads to success","Travel teaches us new cultures","Running is good for heart","Home food is the best food","Coding is the language of future","Hard work always pays off","Time management increases productivity","Mountains are calm and majestic","Yoga keeps mind and body healthy","Meditate to reduce stress","Cybersecurity protects our personal data","Science teaches us about the world","Quality product always wins","Clean environment keeps us healthy","Smiling makes day beautiful"],
 "OR":["ସୁସ୍ଥ ଜୀବନ ପାଇଁ ଯୋଗ ଜରୁରୀ","ସକାଳେ ବୁଲିବା ଭଲ","ଫଳ ଭଲ","ପାଣି ପିଅ"], "BN":["সুস্থ জীবনের জন্য যোগ জরুরি","সকালে হাঁটা ভালো","ফল ভালো","জল খাও"],
 "TE":["ఆరోగ్యానికి యోగా అవసరం","ఉదయం నడక మంచిది","పండ్లు మంచివి"], "TA":["ஆரோக்கியத்திற்கு யோகா தேவை","காலை நடை நல்லது","பழங்கள் நல்லது"],
 "KN":["ಆರೋಗ್ಯಕ್ಕೆ ಯೋಗ ಬೇಕು","ಬೆಳಗಿನ ನಡಿಗೆ ಒಳ್ಳೆಯದು"], "ML":["ആരോഗ്യത്തിന് യോഗ വേണം","രാവിലെ നടത്തം നല്ലതാണ്"],
@@ -70,34 +70,53 @@ const DB:any={
 "KU":["Tenduristî bi yoga heye","Meşa sibehê baş e"], "BO":["བདེ་ཐང་ལ་ཡོ་ག་དགོས།","སྔ་དྲོའི་འཆམ་འགྲོ་ལེགས།"],
 "DZ":["གཟུགས་གཞི་ལུ་ཡོ་ག་དགོ།","དྲོ་པའི་འཆམ་འགྲོ་ལེགས།"]
 }
-// FIX 3 - Har language ke liye 30 alag sentences
-// Pehle wale original sentences same rakhe, ab har language ko 30 tak expand karenge
-const HEALTH_TOPICS = [
-  "Daily exercise makes body strong","Good sleep is essential for health","Meditate to reduce stress",
-  "Waking up early is beneficial","Home food is the best food","Sunlight gives vitamin D",
-  "Avoid excess sugar","Get regular health checkups","Drink clean water","Use mobile less",
-  "Chew food properly","Eat fruits every day","Running is good for heart",
-  "Deep breathing calms mind","Stay positive always","Sleep on time",
-  "Avoid dehydration","Eat light food","Walk daily","Keep mind calm",
-  "Give body rest","Walk in fresh air","Do yoga regularly","Adopt healthy habits",
-  "Stay happy and smile","Drink warm water in morning","Eat green leafy vegetables",
-  "Avoid junk food","Take stairs instead of lift","Spend time with family"
+// FIX DOT - Har language ka sahi ending punctuation
+const PUNCT:any = {
+  HI:"।", MR:"।", NE:"।", BN:"।", AS:"।", OR:"।",
+  UR:"۔", AR:"۔", FA:"۔", PS:"۔", SD:"۔", KU:"۔",
+  ZH:"。", JA:"。", TH:".", LO:".",
+  HE:".", BO:"།", DZ:"།",
+};
+const getPunct = (lang:string)=> PUNCT[lang] || ".";
+const fixSentence = (s:string, lang:string)=>{
+  let t = s.trim();
+  const p = getPunct(lang);
+  if(/[.!?।。۔།]$/.test(t)) return t;
+  return t + p;
+};
+// FIX TOPICS - 10 Topics, sirf Health nahi
+const ALL_TOPICS = [
+  "Daily exercise makes body strong","Good sleep is essential for health","Meditate to reduce stress","Drink clean water","Eat green leafy vegetables","Avoid junk food",
+  "Waking up early is beneficial","Home food is the best food","Sunlight gives vitamin D","Avoid excess sugar","Get regular health checkups","Deep breathing calms mind",
+  "Artificial intelligence is changing the world","Internet connects people across the globe","Smartphones have made life easier","Cloud computing stores data safely","Coding is the language of future","Robots help in factories and hospitals",
+  "Social media connects friends and family","Cybersecurity protects our personal data","Electric vehicles are future of transport","5G internet is very fast","Computers make work easy and fast","Technology saves time and money",
+  "Education is the key to success","Books give us knowledge and wisdom","Teachers guide students to right path","Learning never stops in life","Reading daily improves vocabulary","Hard work always pays off",
+  "School is second home for children","Science teaches us about the world","Mathematics sharpens our mind","Good habits make a good student","Exams test our preparation","Knowledge is real power",
+  "Honesty is best policy in business","Customer satisfaction is most important","Teamwork leads to success","Planning is key to business growth","Digital marketing helps small business","Quality product always wins",
+  "Time management increases productivity","Saving money is good habit","New ideas create new business","Hard work builds a brand","Communication is key in office","Leadership inspires the team",
+  "Nature is beautiful and peaceful","Trees give us oxygen and shade","Rain makes earth green","Mountains are calm and majestic","Travel teaches us new cultures","Beaches are best for relaxation",
+  "Rivers are lifeline of our country","Sunrise looks beautiful in mountains","Birds sing sweet songs in morning","Forests protect wildlife","Clean environment keeps us healthy","Exploring new places is fun",
+  "Cricket is loved in India","Football teaches teamwork","Running daily keeps us fit","Yoga keeps mind and body healthy",
+  "Fresh fruits are good for health","Home cooked food is tasty and healthy","Drinking milk makes bones strong","Breakfast is most important meal",
+  "Family time is precious","Helping others makes us happy","Smiling makes day beautiful","Discipline leads to success"
 ];
 LANGS.forEach(([c]:any)=>{
   if(!DB[c]) DB[c]=["Native content for "+c,"Second sentence native for "+c];
-  // Agar 30 se kam hai to unique sentences se 30 tak bharo
   const base = [...DB[c]];
+  DB[c] = base.map((s:string)=>fixSentence(s,c));
   let i = 0;
   while(DB[c].length < 30){
-    const topic = HEALTH_TOPICS[i % HEALTH_TOPICS.length];
-    const original = base[i % base.length];
-    // Har sentence alag hoga: original + topic + number
-    const candidate = DB[c].length < 15 ? `${original} - ${topic}` : `${topic} - Tip ${DB[c].length+1} for ${c}`;
+    const a = base[i % base.length];
+    const b = base[(i+1) % base.length];
+    const topic = ALL_TOPICS[(i*7) % ALL_TOPICS.length];
+    const candidate = DB[c].length < 15
+      ? fixSentence(`${a} and ${b}`, c)
+      : fixSentence(`${a} - ${topic}`, c);
     if(!DB[c].includes(candidate)) DB[c].push(candidate);
     i++;
-    if(i>100) break; // safety
+    if(i>200) break;
   }
-  DB[c] = DB[c].slice(0,30); // Exactly 30
+  DB[c] = DB[c].slice(0,30);
 });
 
 export default function Page(){
@@ -109,8 +128,6 @@ const [mode,setMode]=useState("SENTENCE")
 const [copied,setCopied]=useState(false)
 const [showDL,setShowDL]=useState(false)
 const [isDisabled,setIsDisabled]=useState(false)
-
-// FIX 6 - SEO Meta Tags (use client me metadata export nahi hota, isliye useEffect se)
 useEffect(()=>{
   document.title = "Lorem Ipsum Generator - 77 Languages Free Tool | LoremPro";
   const setMeta = (name:string, content:string, attr="name")=>{
@@ -128,28 +145,24 @@ useEffect(()=>{
   if(!canon){ canon=document.createElement("link"); canon.setAttribute("rel","canonical"); document.head.appendChild(canon); }
   canon.setAttribute("href","https://lorem-pro-tool.run4ravish.workers.dev/");
 },[]);
-
 useEffect(()=>{supabase.from("tools").select("is_enabled").eq("slug","lorem-ipsum-generator").single().then(({data})=>{if(data && data.is_enabled===false) setIsDisabled(true)})},[])
 const gen=()=>{
  if(cnt===0){setOut("");return}
  const base=DB[lang]
  let r=""
- if(mode==="SENTENCE"){ const a=[]; for(let i=0;i<cnt;i++) a.push(base[i%base.length]); r=a.join(" ") }
- if(mode==="PARAGRAPH"){ const paras=[]; for(let p=0;p<cnt;p++){ const len=2+(p%3); const s=[]; for(let j=0;j<len;j++) s.push(base[(p*len+j)%base.length]); paras.push(s.join(" ")); } r=paras.join("\n\n") }
+ if(mode==="SENTENCE"){ const a=[]; for(let i=0;i<cnt;i++) a.push(fixSentence(base[i%base.length], lang)); r=a.join(" ") }
+ if(mode==="PARAGRAPH"){ const paras=[]; for(let p=0;p<cnt;p++){ const len=2+(p%3); const s=[]; for(let j=0;j<len;j++) s.push(fixSentence(base[(p*len+j)%base.length], lang)); paras.push(s.join(" ")); } r=paras.join("\n\n") }
  if(mode==="WORD"){ const all=base.join(" ").split(" "); const a=[]; for(let i=0;i<cnt;i++) a.push(all[i%all.length]); r=a.join(" ") }
- if(mode==="LIST"){ const a=[]; for(let i=0;i<cnt;i++) a.push(`• ${base[i%base.length]}`); r=a.join("\n") }
+ if(mode==="LIST"){ const a=[]; for(let i=0;i<cnt;i++) a.push(`• ${fixSentence(base[i%base.length], lang)}`); r=a.join("\n") }
  setOut(r)
 }
 useEffect(()=>{gen()},[lang,cnt,mode])
-
 const words = out.trim()?out.trim().split(/\s+/).length:0
 const chars = out.length
 const charsNoSpace = out.replace(/\s/g,"").length
 const sentences = out.trim()?out.split(/[.!?।]/).filter(s=>s.trim().length>2).length:0
 const paras = out.trim()?out.split("\n\n").filter(b=>b.trim()).length:0
 const reading = Math.max(1,Math.ceil(words/200))
-
-// FIX 1 - Asli 8 Download Formats
 const makePDF = (text:string)=>{
   const esc = text.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)").replace(/\n/g," ").slice(0,3000);
   const content = `BT /F1 12 Tf 50 750 Td (${esc}) Tj ET`;
@@ -186,7 +199,6 @@ const doDownload=(type:string)=>{
  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`lorem-${lang}.${ext}`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
  setShowDL(false)
 }
-
 const Wrap=({t,children}:any)=><div style={{background:"#fff",borderRadius:20,padding:20,color:"#000",lineHeight:1.8}}><button onClick={()=>setPage("menu")} style={{padding:"8px 16px",borderRadius:999,border:"2px solid #000",background:"#fff",fontWeight:800}}>← Back to Menu</button><h1 style={{fontSize:22,margin:"10px 0"}}>{t}</h1><div style={{fontSize:14}}>{children}</div></div>
 if(isDisabled){return <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#f3f4f6"}}><div style={{background:"white",padding:40,borderRadius:24,textAlign:"center"}}><h1>🔴 Tool Disabled</h1><p>Admin ne isko OFF kiya hai</p></div></div>}
 return(
@@ -206,13 +218,8 @@ return(
   @keyframes blogPulse{ 0%{ box-shadow: 0 0 0 0 rgba(255,106,0,0.6); } 70%{ box-shadow: 0 0 0 12px rgba(255,106,0,0); } 100%{ box-shadow: 0 0 0 0 rgba(255,106,0,0); } }
   @keyframes blogShine{ 0%{ filter: brightness(1); } 50%{ filter: brightness(1.25); } 100%{ filter: brightness(1); } }
 `}</style>
-
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} className="hover-btn" style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
-
-{/* HOME H1 - Sirf Home par dikhega */}
 {page==="home" && <h1 style={{color:"#fff", fontSize:22, textAlign:"center", margin:"0 0 12px 0", padding:"0 12px"}}>Lorem Ipsum Generator - 77 Languages Free Tool</h1>}
-
-{/* MENU */}
 {page==="menu" && (
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
 <h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
@@ -225,9 +232,7 @@ return(
 </div>
 </div>
 )}
-
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
-
 {page==="home"&&<div style={{background:"#fff",borderRadius:20,padding:14}}>
 <select value={lang} onChange={e=>setLang(e.target.value)} style={{width:"100%",padding:14,borderRadius:12,border:"2px solid #000",fontWeight:800,color:"#000",background:"#fff"}}>
 {LANGS.map(([c,n]:any)=><option key={c} value={c}>{n}</option>)}
@@ -243,7 +248,6 @@ return(
 </div>
 </div>
 <button onClick={gen} className="hover-btn" style={{width:"100%",background:"#000",color:"#fff",padding:14,borderRadius:12,marginTop:12,fontWeight:900,border:"none",fontSize:15}}>GENERATE {lang} - {cnt} {mode}</button>
-
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:12}}>
 <div style={{background:"#dbeafe",padding:10,borderRadius:12,textAlign:"center",border:"2px solid #000"}}><div style={{fontSize:18,fontWeight:900,color:"#000"}}>{words}</div><div style={{fontSize:9,fontWeight:800,color:"#000"}}>WORDS</div></div>
 <div style={{background:"#fef9c3",padding:10,borderRadius:12,textAlign:"center",border:"2px solid #000"}}><div style={{fontSize:18,fontWeight:900,color:"#000"}}>{chars}</div><div style={{fontSize:9,fontWeight:800,color:"#000"}}>CHARS</div></div>
@@ -254,14 +258,11 @@ return(
 <div style={{background:"#fff",padding:8,borderRadius:10,textAlign:"center",border:"1px dashed #000",fontSize:11,fontWeight:700,color:"#000"}}>No Space: {charsNoSpace}</div>
 <div style={{background:"#fff",padding:8,borderRadius:10,textAlign:"center",border:"1px dashed #000",fontSize:11,fontWeight:700,color:"#000"}}>Reading: {reading} min</div>
 </div>
-
 <div style={{border:"2px solid #000",borderRadius:12,padding:14,marginTop:12,minHeight:90,background:"#fff",color:"#000",fontSize:14,whiteSpace:"pre-wrap",fontWeight:600,lineHeight:mode==="SENTENCE"?1.4:1.8}}>{out||"Counter 0 hai - 1-100 daalo"}</div>
-
 <div style={{display:"flex",gap:8,marginTop:10}}>
 <button onClick={()=>{if(!out) return; navigator.clipboard.writeText(out); setCopied(true); setTimeout(()=>setCopied(false),2000)}} className="hover-btn" style={{flex:1,background:copied?"#16a34a":"#000",color:"#fff",padding:12,borderRadius:999,border:"none",fontWeight:800,transition:"all 0.3s"}}>{copied?"Copied ✅ - Green!":"Copy Text"}</button>
 <button onClick={()=>{setOut(""); setCnt(0)}} className="hover-btn" style={{background:"#fff",color:"#000",padding:12,borderRadius:999,border:"2px solid #000",fontWeight:800}}>Clear</button>
 </div>
-
 <div style={{marginTop:12,position:"relative"}}>
 <button onClick={()=>setShowDL(!showDL)} className="hover-btn" style={{width:"100%",padding:14,borderRadius:12,background:"linear-gradient(90deg,#f43f5e,#8b5cf6,#3b82f6)",color:"#fff",border:"2px solid #000",fontWeight:900}}>📥 DOWNLOAD 8 Types {showDL?"▲":"▼"}</button>
 {showDL&&<div style={{position:"absolute",top:"56px",left:0,right:0,background:"#fff",border:"2px solid #000",borderRadius:14,zIndex:20,overflow:"hidden"}}>
@@ -269,8 +270,6 @@ return(
 </div>}
 </div>
 </div>}
-
-{/* OTHER USEFUL TOOLS - 6 DUMMY LINKS */}
 <div style={{marginTop:20,background:"#fff",border:"2px solid #000",borderRadius:16,padding:14}}>
 <h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools</h3>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
@@ -307,16 +306,12 @@ return(
 </div>
 <p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>More tools coming soon - Stay tuned!</p>
 </div>
-
-{/* SEO CONTENT + FAQ SCHEMA - STRONGEST SEO */}
 {page==="home" && (
   <div style={{background:"#fff", marginTop:20, borderRadius:20}}>
     <SeoContent />
   </div>
 )}
-
 </div>
-
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
