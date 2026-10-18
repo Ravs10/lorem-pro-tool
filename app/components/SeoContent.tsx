@@ -2,12 +2,85 @@
 import { useState } from "react"
 
 export default function SeoContent() {
-  const [showAll, setShowAll] = useState(false)
+  const [open, setOpen] = useState({
+    what: true,
+    history: false,
+    why: false,
+    how: false,
+    hindi: false,
+    best: false,
+    tools: false,
+    faq: false,
+  })
+
+  const toggleOne = (key: string) => {
+    setOpen((prev: any) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const showAll = () => {
+    setOpen({
+      what: true,
+      history: true,
+      why: true,
+      how: true,
+      hindi: true,
+      best: true,
+      tools: true,
+      faq: true,
+    })
+  }
+
+  const hideAll = () => {
+    setOpen({
+      what: false,
+      history: false,
+      why: false,
+      how: false,
+      hindi: false,
+      best: false,
+      tools: false,
+      faq: false,
+    })
+  }
+
+  const allOpen = Object.values(open).every((v) => v === true)
+
+  const Head = ({ title, k }: any) => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: 10,
+        marginTop: 20,
+        borderBottom: "1px solid #eee",
+        paddingBottom: 6,
+      }}
+    >
+      <h3 style={{ margin: 0, fontSize: 17 }}>{title}</h3>
+      <button
+        onClick={() => toggleOne(k)}
+        style={{
+          padding: "5px 12px",
+          borderRadius: 999,
+          border: "2px solid #000",
+          background: open[k] ? "#000" : "#fff",
+          color: open[k] ? "#fff" : "#000",
+          fontWeight: 800,
+          fontSize: 11,
+          cursor: "pointer",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {open[k] ? "Hide ▲" : "Show ▼"}
+      </button>
+    </div>
+  )
 
   return (
     <div style={{ padding: 20, color: "#000", lineHeight: 1.8 }}>
 
-      {/* HEADER + SHOW ALL / HIDE ALL */}
+      {/* TOP - COMPLETE GUIDE + SHOW ALL / HIDE ALL */}
       <div
         style={{
           display: "flex",
@@ -21,50 +94,49 @@ export default function SeoContent() {
           Complete Guide
         </h2>
         <button
-          onClick={() => setShowAll(!showAll)}
+          onClick={() => (allOpen ? hideAll() : showAll())}
           style={{
             padding: "8px 16px",
             borderRadius: 999,
             border: "2px solid #000",
-            background: showAll ? "#000" : "#fff",
-            color: showAll ? "#fff" : "#000",
+            background: allOpen ? "#000" : "#fff",
+            color: allOpen ? "#fff" : "#000",
             fontWeight: 800,
             fontSize: 12,
             cursor: "pointer",
             whiteSpace: "nowrap",
           }}
         >
-          {showAll ? "Hide All ▲" : "Show All ▼"}
+          {allOpen ? "Hide All ▲" : "Show All ▼"}
         </button>
       </div>
 
-      {/* 1. WHAT IS LOREM IPSUM - Hamesha dikhega */}
-      <h3 style={{ marginTop: 20 }}>
-        What is Lorem Ipsum?
-      </h3>
-      <p style={{ fontSize: 14 }}>
-        Lorem Ipsum is dummy placeholder text used by designers, developers, and content creators to fill layouts before real content is ready.
-      </p>
-      <p style={{ fontSize: 14 }}>
-        It looks like real text but has no meaning, so readers focus on design instead of words.
-      </p>
-      <p style={{ fontSize: 14 }}>
-        LoremPro is the world&apos;s most advanced Lorem Ipsum Generator.
-      </p>
-      <p style={{ fontSize: 14 }}>
-        It supports 77 languages with native, meaningful sentences - not boring Latin.
-      </p>
-      <p style={{ fontSize: 14 }}>
-        You can generate Sentence, Paragraph, Word, and List modes in one click, copy it, and download it in 8 formats - 100% free, no login.
-      </p>
-
-      {/* BAaki SAARA CONTENT - Sirf Show All par dikhega */}
-      {showAll && (
+      {/* 1. WHAT IS LOREM IPSUM */}
+      <Head title="What is Lorem Ipsum?" k="what" />
+      {open.what && (
         <div>
+          <p style={{ fontSize: 14 }}>
+            Lorem Ipsum is dummy placeholder text used by designers, developers, and content creators to fill layouts before real content is ready.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            It looks like real text but has no meaning, so readers focus on design instead of words.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            LoremPro is the world&apos;s most advanced Lorem Ipsum Generator.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            It supports 77 languages with native, meaningful sentences - not boring Latin.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            You can generate Sentence, Paragraph, Word, and List modes in one click, copy it, and download it in 8 formats - 100% free, no login.
+          </p>
+        </div>
+      )}
 
-          <h3 style={{ marginTop: 20 }}>
-            History of Lorem Ipsum
-          </h3>
+      {/* 2. HISTORY */}
+      <Head title="History of Lorem Ipsum" k="history" />
+      {open.history && (
+        <div>
           <p style={{ fontSize: 14 }}>
             Lorem Ipsum is more than 500 years old.
           </p>
@@ -83,10 +155,13 @@ export default function SeoContent() {
           <p style={{ fontSize: 14 }}>
             It helps designers test fonts, layouts, and spacing without waiting for real content.
           </p>
+        </div>
+      )}
 
-          <h3 style={{ marginTop: 20 }}>
-            Why Use Lorem Ipsum Generator?
-          </h3>
+      {/* 3. WHY USE */}
+      <Head title="Why Use Lorem Ipsum Generator?" k="why" />
+      {open.why && (
+        <div>
           <p style={{ fontSize: 14 }}>
             Using a generator saves time and makes your design look professional.
           </p>
@@ -113,10 +188,13 @@ export default function SeoContent() {
               <b>100% Free:</b> No login, no signup, no watermark.
             </li>
           </ul>
+        </div>
+      )}
 
-          <h3 style={{ marginTop: 20 }}>
-            How To Use - Step By Step
-          </h3>
+      {/* 4. HOW TO USE */}
+      <Head title="How To Use - Step By Step" k="how" />
+      {open.how && (
+        <div>
           <ol style={{ fontSize: 14 }}>
             <li>
               <b>Step 1:</b> Select your language from dropdown (Default: Hindi).
@@ -134,10 +212,13 @@ export default function SeoContent() {
               <b>Step 5:</b> Click Copy Text or Download in 8 formats.
             </li>
           </ol>
+        </div>
+      )}
 
-          <h3 style={{ marginTop: 20 }}>
-            Lorem Ipsum in Hindi - हिन्दी में
-          </h3>
+      {/* 5. HINDI */}
+      <Head title="Lorem Ipsum in Hindi - हिन्दी में" k="hindi" />
+      {open.hindi && (
+        <div>
           <p style={{ fontSize: 14 }}>
             Hindi me Lorem Ipsum generate karna ab bahut aasaan hai.
           </p>
@@ -150,10 +231,13 @@ export default function SeoContent() {
           <p style={{ fontSize: 14 }}>
             Aap Hindi ke saath-saath Bengali, Tamil, Telugu, Marathi, Punjabi, Urdu aur 70 aur bhashaon me bhi text bana sakte hain.
           </p>
+        </div>
+      )}
 
-          <h3 style={{ marginTop: 20 }}>
-            Best Practices
-          </h3>
+      {/* 6. BEST PRACTICES */}
+      <Head title="Best Practices" k="best" />
+      {open.best && (
+        <div>
           <ul style={{ fontSize: 14 }}>
             <li>
               Use PARAGRAPH mode for full page mockups.
@@ -168,21 +252,26 @@ export default function SeoContent() {
               Always check word count for SEO before using in real design.
             </li>
           </ul>
+        </div>
+      )}
 
-          <h3 style={{ marginTop: 20 }}>
-            More Free Tools
-          </h3>
+      {/* 7. MORE TOOLS */}
+      <Head title="More Free Tools" k="tools" />
+      {open.tools && (
+        <div>
           <p style={{ fontSize: 14 }}>
             LoremPro ke saath-saath aap hamare dusre free tools bhi use kar sakte hain - Word Counter, Case Converter, Image to Text, QR Generator, Password Generator, aur Age Calculator.
           </p>
           <p style={{ fontSize: 14 }}>
             Saare tools 100% free hain aur bina login ke chalte hain.
           </p>
+        </div>
+      )}
 
-          <h3 style={{ marginTop: 20 }}>
-            Frequently Asked Questions (FAQ)
-          </h3>
-
+      {/* 8. FAQ */}
+      <Head title="Frequently Asked Questions (FAQ)" k="faq" />
+      {open.faq && (
+        <div>
           <h4>
             Is Lorem Ipsum Generator free?
           </h4>
@@ -217,13 +306,12 @@ export default function SeoContent() {
           <p style={{ fontSize: 14 }}>
             We support 77 languages - the world&apos;s largest collection for a Lorem Ipsum Generator.
           </p>
-
-          <p style={{ fontSize: 12, color: "#666", marginTop: 20 }}>
-            Last Updated: October 2026 | Made with ❤️ in India
-          </p>
-
         </div>
       )}
+
+      <p style={{ fontSize: 12, color: "#666", marginTop: 20 }}>
+        Last Updated: October 2026 | Made with ❤️ in India
+      </p>
 
     </div>
   )
