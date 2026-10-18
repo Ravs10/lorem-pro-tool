@@ -72,7 +72,6 @@ const DB:any={
 }
 LANGS.forEach(([c]:any)=>{if(!DB[c] || DB[c].length<2){DB[c]=DB[c]||["Native content for "+c,"Second sentence native for "+c]}})
 
-
 const ARTICLES = [
   {
     id: 1,
@@ -188,8 +187,13 @@ return(
 <div style={{background:"#6366f1",minHeight:"100vh",fontFamily:"system-ui"}}>
 
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
+
+{/* HOME H1 - Sirf Home par dikhega */}
+{page==="home" && <h1 style={{color:"#fff", fontSize:22, textAlign:"center", margin:"0 0 12px 0", padding:"0 12px"}}>Lorem Ipsum Generator - 77 Languages Free Tool</h1>}
+
+{/* MENU - Sirf Menu dabane par khulega, Home par band rahega - YEHI MAIN FIX HAI */}
+{page==="menu" && (
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
-{page==="home" && <h1 style={{color:"#fff", fontSize:22, textAlign:"center", margin:"0 0 12px 0"}}>Lorem Ipsum Generator - 77 Languages Free Tool</h1>}
 <h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
 {[
@@ -201,7 +205,10 @@ return(
 <div style={{marginTop:12,border:"2px solid #000",borderRadius:12,padding:8,maxHeight:350,overflowY:"auto",display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}}>
 {LANGS.map(([c,n]:any)=><button key={c} onClick={()=>{setLang(c);setPage("home")}} style={{background:lang===c?"#000":"#f3f4f6",color:lang===c?"#fff":"#000",padding:8,borderRadius:8,fontSize:11,fontWeight:700,border:"none",textAlign:"left"}}>{n}</button>)}
 </div>
-</div>} 
+</div>
+)}
+
+<div style={{maxWidth:720,margin:"auto",padding:12}}>
 
 {page==="about"&&<Wrap t="About Us">
 <p><b>LoremPro</b> is the world's most advanced Lorem Ipsum Generator, built for developers, designers, and content creators worldwide.</p>
@@ -446,19 +453,22 @@ return(
 </a>
 <a href="/age-calculator" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center"}}>
 <div style={{fontSize:20}}>🎂</div>
-          
-  <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Age Calculator</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Age Calculator</div>
 <div style={{fontSize:9,color:"#555"}}>Find your age</div>
 </a>
 </div>
 <p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>More tools coming soon - Stay tuned!</p>
 </div>
-    {/* SEO CONTENT + FAQ SCHEMA - STRONGEST SEO */}
+
+{/* SEO CONTENT + FAQ SCHEMA - STRONGEST SEO */}
 {page==="home" && (
   <div style={{background:"#fff", marginTop:20, borderRadius:20}}>
     <SeoContent />
   </div>
 )}
+
+</div>
+
   <script
     type="application/ld+json"
     dangerouslySetInnerHTML={{
@@ -485,18 +495,4 @@ return(
       })
     }}
   />
-  {/*<footer style={{background:"#000",color:"#fff",padding:20,marginTop:24,textAlign:"center"}}>
-<div style={{fontWeight:900,fontSize:14}}>© 2026 LoremPro - {LANGS.length} Languages</div>
-<div style={{marginTop:10,display:"flex",flexWrap:"wrap",gap:12,justifyContent:"center",fontSize:12}}>
-<button onClick={()=>setPage("about")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>About</button>
-<button onClick={()=>setPage("contact")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>Contact</button>
-<button onClick={()=>setPage("privacy")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>Privacy Policy</button>
-<button onClick={()=>setPage("disclaimer")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>Disclaimer</button>
-<button onClick={()=>setPage("how")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>How to Use</button>
-<button onClick={()=>setPage("hire")} style={{background:"none",border:"none",color:"#fff",textDecoration:"underline"}}>Hire Me</button>
-</div>
-<div style={{marginTop:12,fontSize:10,opacity:0.7}}>Made with ❤️ in Raebareli, UP, India | All Native Languages | No English Fallback | Words:{words} Chars:{chars} Tested ✅</div>
-</footer>
-*/} 
-  
 </div>)}
