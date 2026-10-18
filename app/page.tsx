@@ -70,7 +70,6 @@ const DB:any={
 "KU":["Tenduristî bi yoga heye","Meşa sibehê baş e"], "BO":["བདེ་ཐང་ལ་ཡོ་ག་དགོས།","སྔ་དྲོའི་འཆམ་འགྲོ་ལེགས།"],
 "DZ":["གཟུགས་གཞི་ལུ་ཡོ་ག་དགོ།","དྲོ་པའི་འཆམ་འགྲོ་ལེགས།"]
 }
-// FIX DOT - Har language ka sahi ending punctuation
 const PUNCT:any = {
   HI:"।", MR:"।", NE:"।", BN:"।", AS:"।", OR:"।",
   UR:"۔", AR:"۔", FA:"۔", PS:"۔", SD:"۔", KU:"۔",
@@ -81,10 +80,9 @@ const getPunct = (lang:string)=> PUNCT[lang] || ".";
 const fixSentence = (s:string, lang:string)=>{
   let t = s.trim();
   const p = getPunct(lang);
-  if(/[.!?।。۔།]$/.test(t)) return t;
+  if(/[.!?।।。۔།]$/.test(t)) return t;
   return t + p;
 };
-// FIX TOPICS - 10 Topics, sirf Health nahi
 const ALL_TOPICS = [
   "Daily exercise makes body strong","Good sleep is essential for health","Meditate to reduce stress","Drink clean water","Eat green leafy vegetables","Avoid junk food",
   "Waking up early is beneficial","Home food is the best food","Sunlight gives vitamin D","Avoid excess sugar","Get regular health checkups","Deep breathing calms mind",
@@ -128,23 +126,6 @@ const [mode,setMode]=useState("SENTENCE")
 const [copied,setCopied]=useState(false)
 const [showDL,setShowDL]=useState(false)
 const [isDisabled,setIsDisabled]=useState(false)
-useEffect(()=>{
-  document.title = "Lorem Ipsum Generator - 77 Languages Free Tool | LoremPro";
-  const setMeta = (name:string, content:string, attr="name")=>{
-    let el:any = document.querySelector(`meta[${attr}="${name}"]`);
-    if(!el){ el=document.createElement("meta"); el.setAttribute(attr,name); document.head.appendChild(el); }
-    el.setAttribute("content",content);
-  };
-  setMeta("description","Free Lorem Ipsum Generator in 77 Languages. Generate Sentence, Paragraph, Word & List in Hindi, English, Spanish, French, German, Arabic & more. 100% Free, No Login.");
-  setMeta("keywords","lorem ipsum generator, lorem ipsum hindi, dummy text generator, 77 languages lorem ipsum, placeholder text generator");
-  setMeta("og:title","Lorem Ipsum Generator - 77 Languages Free Tool", "property");
-  setMeta("og:description","Generate Lorem Ipsum in 77 Languages - Hindi, English, Spanish, French, German & more. Free, Fast, No Login.", "property");
-  setMeta("og:type","website", "property");
-  setMeta("robots","index, follow");
-  let canon:any = document.querySelector('link[rel="canonical"]');
-  if(!canon){ canon=document.createElement("link"); canon.setAttribute("rel","canonical"); document.head.appendChild(canon); }
-  canon.setAttribute("href","https://lorem-pro-tool.run4ravish.workers.dev/");
-},[]);
 useEffect(()=>{supabase.from("tools").select("is_enabled").eq("slug","lorem-ipsum-generator").single().then(({data})=>{if(data && data.is_enabled===false) setIsDisabled(true)})},[])
 const gen=()=>{
  if(cnt===0){setOut("");return}
