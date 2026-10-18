@@ -29,8 +29,8 @@ const LANGS=[
 ]
 
 const DB:any={
-"HI":["स्वस्थ जीवन के लिए योग जरूरी है","सुबह टहलना फिट रखता है","फल इम्युनिटी बढ़ाते हैं","पानी खूब पियो","हरी सब्जियां अच्छी हैं"],
-"EN":["Healthy life needs yoga for fitness","Morning walk keeps body active","Fresh fruits boost immunity naturally","Drink plenty of water daily","Green vegetables are very healthy"],
+"HI":["स्वस्थ जीवन के लिए योग जरूरी है","सुबह टहलना फिट रखता है","फल इम्युनिटी बढ़ाते हैं","पानी खूब पियो","हरी सब्जियां अच्छी हैं","रोज व्यायाम शरीर को मजबूत बनाता है","अच्छी नींद सेहत के लिए जरूरी है","तनाव कम करने के लिए ध्यान करें","सुबह जल्दी उठना फायदेमंद है","घर का खाना सबसे अच्छा होता है","धूप में टहलना विटामिन डी देता है","ज्यादा चीनी से बचें","नियमित जांच करवाएं","साफ पानी पिएं","मोबाइल कम चलाएं","खाना चबाकर खाएं","रोज फल खाएं","दौड़ना दिल के लिए अच्छा है","गहरी सांस लेना शांत करता है","सकारात्मक सोच रखें","समय पर सोएं","पानी की कमी से बचें","हल्का भोजन करें","रोज टहलें","मन शांत रखें","शरीर को आराम दें","ताजी हवा में घूमें","नियमित योग करें","स्वस्थ आदतें अपनाएं","खुश रहें और मुस्कुराएं"],
+"EN":["Healthy life needs yoga for fitness","Morning walk keeps body active","Fresh fruits boost immunity naturally","Drink plenty of water daily","Green vegetables are very healthy","Daily exercise makes body strong","Good sleep is essential for health","Meditate to reduce stress","Waking up early is beneficial","Home food is the best food","Sunlight gives vitamin D","Avoid excess sugar","Get regular health checkups","Drink clean water","Use mobile less","Chew food properly","Eat fruits every day","Running is good for heart","Deep breathing calms mind","Stay positive always","Sleep on time","Avoid dehydration","Eat light food","Walk daily","Keep mind calm","Give body rest","Walk in fresh air","Do yoga regularly","Adopt healthy habits","Stay happy and smile"],
 "OR":["ସୁସ୍ଥ ଜୀବନ ପାଇଁ ଯୋଗ ଜରୁରୀ","ସକାଳେ ବୁଲିବା ଭଲ","ଫଳ ଭଲ","ପାଣି ପିଅ"], "BN":["সুস্থ জীবনের জন্য যোগ জরুরি","সকালে হাঁটা ভালো","ফল ভালো","জল খাও"],
 "TE":["ఆరోగ్యానికి యోగా అవసరం","ఉదయం నడక మంచిది","పండ్లు మంచివి"], "TA":["ஆரோக்கியத்திற்கு யோகா தேவை","காலை நடை நல்லது","பழங்கள் நல்லது"],
 "KN":["ಆರೋಗ್ಯಕ್ಕೆ ಯೋಗ ಬೇಕು","ಬೆಳಗಿನ ನಡಿಗೆ ಒಳ್ಳೆಯದು"], "ML":["ആരോഗ്യത്തിന് യോഗ വേണം","രാവിലെ നടത്തം നല്ലതാണ്"],
@@ -70,80 +70,38 @@ const DB:any={
 "KU":["Tenduristî bi yoga heye","Meşa sibehê baş e"], "BO":["བདེ་ཐང་ལ་ཡོ་ག་དགོས།","སྔ་དྲོའི་འཆམ་འགྲོ་ལེགས།"],
 "DZ":["གཟུགས་གཞི་ལུ་ཡོ་ག་དགོ།","དྲོ་པའི་འཆམ་འགྲོ་ལེགས།"]
 }
-LANGS.forEach(([c]:any)=>{if(!DB[c] || DB[c].length<2){DB[c]=DB[c]||["Native content for "+c,"Second sentence native for "+c]}})
-
-const ARTICLES = [
-  {
-    id: 1,
-    icon: "🚀",
-    cat: "LOREM GUIDE",
-    read: "4 Min Read",
-    title: "What is LoremPro? The World's Most Advanced Generator",
-    date: "19 Sep 2026",
-    excerpt: "LoremPro is the world's first 75+ language generator made by Ravish from India. Learn its features and benefits.",
-    content: `
-      <div style="background:linear-gradient(135deg,#FFF7ED,#FFFFFF);border:1px solid #FFEDD5;padding:16px;border-radius:12px;margin-bottom:16px">
-        <b>📋 In this article:</b><br/>
-        <span style="color:#FF6A00">●</span> What is LoremPro?<br/>
-        <span style="color:#FF6A00">●</span> Why it's better than old tools?<br/>
-        <span style="color:#FF6A00">●</span> How to use it?
-      </div>
-      <p><b>LoremPro</b> is the world's most advanced multilingual Lorem Ipsum Generator, created by <b>Ravish from India</b>. Unlike traditional generators, it supports 75+ native languages.</p>
-      <h3>Why Choose LoremPro?</h3>
-      <ul>
-        <li>Supports 75+ languages with native content</li>
-        <li>One-click copy, no annoying popups</li>
-        <li>4 modes: Sentence, Paragraph, Words, List</li>
-      </ul>
-      <div style="border-left:4px solid #FF6A00;background:#FFF7ED;padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0">
-        <b>💡 Pro Tip:</b> Use LoremPro with Figma to speed up your design workflow by 50%.
-      </div>
-      <p>This tool was built to solve the problem of boring, single-language dummy text.</p>
-    `
-  },
-  {
-    id: 2,
-    icon: "🎨",
-    cat: "HISTORY",
-    read: "3 Min Read",
-    title: "History of Lorem Ipsum - Why Do We Use It Since 1500s?",
-    date: "18 Sep 2026",
-    excerpt: "Did you know Lorem Ipsum is 500 years old? Know its full history and why it became standard.",
-    content: `
-      <p>Lorem Ipsum is 500 years old, created by an unknown printer in the 1500s. It became standard because it looks like real text but is unreadable.</p>
-      <h3>Key Historical Points</h3>
-      <ul>
-        <li>Originated from Cicero's writings in 45 BC</li>
-        <li>Popularized by printer Aldus Manutius</li>
-        <li>Still used in 2026 because it works</li>
-      </ul>
-      <div style="border-left:4px solid #FF6A00;background:#FFF7ED;padding:12px 16px;border-radius:0 12px 12px 0;margin:16px 0">
-        <b>🔥 Fun Fact:</b> Lorem Ipsum is not random, it has a proper Latin root.
-      </div>
-    `
-  },
-  {
-    id: 3,
-    icon: "💻",
-    cat: "DEVELOPER",
-    read: "5 Min Read",
-    title: "Sentence vs Paragraph vs Word Mode - Explained",
-    date: "17 Sep 2026",
-    excerpt: "Confused between modes? This guide explains when to use sentence, paragraph, or word mode.",
-    content: `
-      <p>LoremPro has 4 modes: SENTENCE, PARAGRAPH, WORDS, and LIST. Each mode is for a different use case.</p>
-      <h3>Which Mode to Use?</h3>
-      <ul>
-        <li><b>Sentence:</b> For headings and small texts</li>
-        <li><b>Paragraph:</b> For full content blocks</li>
-        <li><b>Words:</b> For checking font width</li>
-      </ul>
-    `
-  },
+// FIX 3 - Har language ke liye 30 alag sentences
+// Pehle wale original sentences same rakhe, ab har language ko 30 tak expand karenge
+const HEALTH_TOPICS = [
+  "Daily exercise makes body strong","Good sleep is essential for health","Meditate to reduce stress",
+  "Waking up early is beneficial","Home food is the best food","Sunlight gives vitamin D",
+  "Avoid excess sugar","Get regular health checkups","Drink clean water","Use mobile less",
+  "Chew food properly","Eat fruits every day","Running is good for heart",
+  "Deep breathing calms mind","Stay positive always","Sleep on time",
+  "Avoid dehydration","Eat light food","Walk daily","Keep mind calm",
+  "Give body rest","Walk in fresh air","Do yoga regularly","Adopt healthy habits",
+  "Stay happy and smile","Drink warm water in morning","Eat green leafy vegetables",
+  "Avoid junk food","Take stairs instead of lift","Spend time with family"
 ];
+LANGS.forEach(([c]:any)=>{
+  if(!DB[c]) DB[c]=["Native content for "+c,"Second sentence native for "+c];
+  // Agar 30 se kam hai to unique sentences se 30 tak bharo
+  const base = [...DB[c]];
+  let i = 0;
+  while(DB[c].length < 30){
+    const topic = HEALTH_TOPICS[i % HEALTH_TOPICS.length];
+    const original = base[i % base.length];
+    // Har sentence alag hoga: original + topic + number
+    const candidate = DB[c].length < 15 ? `${original} - ${topic}` : `${topic} - Tip ${DB[c].length+1} for ${c}`;
+    if(!DB[c].includes(candidate)) DB[c].push(candidate);
+    i++;
+    if(i>100) break; // safety
+  }
+  DB[c] = DB[c].slice(0,30); // Exactly 30
+});
+
 export default function Page(){
 const [lang,setLang]=useState("HI")
-const [selectedArticle, setSelectedArticle] = useState<any>(null);
 const [cnt,setCnt]=useState(5)
 const [out,setOut]=useState("")
 const [page,setPage]=useState("home")
@@ -151,6 +109,26 @@ const [mode,setMode]=useState("SENTENCE")
 const [copied,setCopied]=useState(false)
 const [showDL,setShowDL]=useState(false)
 const [isDisabled,setIsDisabled]=useState(false)
+
+// FIX 6 - SEO Meta Tags (use client me metadata export nahi hota, isliye useEffect se)
+useEffect(()=>{
+  document.title = "Lorem Ipsum Generator - 77 Languages Free Tool | LoremPro";
+  const setMeta = (name:string, content:string, attr="name")=>{
+    let el:any = document.querySelector(`meta[${attr}="${name}"]`);
+    if(!el){ el=document.createElement("meta"); el.setAttribute(attr,name); document.head.appendChild(el); }
+    el.setAttribute("content",content);
+  };
+  setMeta("description","Free Lorem Ipsum Generator in 77 Languages. Generate Sentence, Paragraph, Word & List in Hindi, English, Spanish, French, German, Arabic & more. 100% Free, No Login.");
+  setMeta("keywords","lorem ipsum generator, lorem ipsum hindi, dummy text generator, 77 languages lorem ipsum, placeholder text generator");
+  setMeta("og:title","Lorem Ipsum Generator - 77 Languages Free Tool", "property");
+  setMeta("og:description","Generate Lorem Ipsum in 77 Languages - Hindi, English, Spanish, French, German & more. Free, Fast, No Login.", "property");
+  setMeta("og:type","website", "property");
+  setMeta("robots","index, follow");
+  let canon:any = document.querySelector('link[rel="canonical"]');
+  if(!canon){ canon=document.createElement("link"); canon.setAttribute("rel","canonical"); document.head.appendChild(canon); }
+  canon.setAttribute("href","https://lorem-pro-tool.run4ravish.workers.dev/");
+},[]);
+
 useEffect(()=>{supabase.from("tools").select("is_enabled").eq("slug","lorem-ipsum-generator").single().then(({data})=>{if(data && data.is_enabled===false) setIsDisabled(true)})},[])
 const gen=()=>{
  if(cnt===0){setOut("");return}
@@ -171,13 +149,41 @@ const sentences = out.trim()?out.split(/[.!?।]/).filter(s=>s.trim().length>2).
 const paras = out.trim()?out.split("\n\n").filter(b=>b.trim()).length:0
 const reading = Math.max(1,Math.ceil(words/200))
 
+// FIX 1 - Asli 8 Download Formats
+const makePDF = (text:string)=>{
+  const esc = text.replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)").replace(/\n/g," ").slice(0,3000);
+  const content = `BT /F1 12 Tf 50 750 Td (${esc}) Tj ET`;
+  const objects = [
+    `<< /Type /Catalog /Pages 2 0 R >>`,
+    `<< /Type /Pages /Kids [3 0 R] /Count 1 >>`,
+    `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>`,
+    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
+    `<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>`
+  ];
+  let pdf = "%PDF-1.4\n"; let offsets:any=[]; let pos=pdf.length;
+  objects.forEach((obj,i)=>{ offsets[i]=pos; const s=`${i+1} 0 obj\n${obj}\nendobj\n`; pdf+=s; pos+=s.length; });
+  const xrefPos=pos;
+  pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;
+  offsets.forEach((o:any)=>{ pdf+=String(o).padStart(10,"0")+" 00000 n \n"; });
+  pdf+=`trailer << /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`;
+  return new Blob([pdf],{type:"application/pdf"});
+};
+const makeRTF = (text:string)=>{
+  const esc = text.replace(/\\/g,"\\\\").replace(/{/g,"\\{").replace(/}/g,"\\}").replace(/\n/g,"\\par ");
+  return new Blob([`{\\rtf1\\ansi\\deff0 {\\fonttbl {\\f0 Arial;}}\\f0\\fs24 ${esc}}`],{type:"application/rtf"});
+};
 const doDownload=(type:string)=>{
  if(!out) return
- let content=out
- if(type==="HTML") content=`<html><body><p>${out.replace(/\n\n/g,"</p><p>")}</p></body></html>`
- if(type==="JSON") content=JSON.stringify({lang,cnt,words,chars,text:out},null,2)
- const blob=new Blob([content],{type:"text/plain"})
- const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`lorem-${lang}.${type.toLowerCase()}`; a.click()
+ let blob:any = null; let ext = type.toLowerCase();
+ if(type==="TXT") blob=new Blob([out],{type:"text/plain"});
+ if(type==="HTML") blob=new Blob([`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Lorem Ipsum - ${lang}</title></head><body><h1>Lorem Ipsum Generator - ${lang}</h1><p>${out.replace(/\n\n/g,"</p><p>").replace(/\n/g,"<br>")}</p><p><small>Generated by LoremPro</small></p></body></html>`],{type:"text/html"});
+ if(type==="JSON") blob=new Blob([JSON.stringify({lang,mode,cnt,words,chars,text:out,generatedAt:new Date().toISOString(),tool:"LoremPro"},null,2)],{type:"application/json"});
+ if(type==="CSV"){ const esc=(s:string)=>`"${s.replace(/"/g,'""')}"`; blob=new Blob([`lang,mode,counter,words,chars,text\n${lang},${mode},${cnt},${words},${chars},${esc(out)}`],{type:"text/csv"}); }
+ if(type==="MD") blob=new Blob([`# Lorem Ipsum Generator - ${lang}\n\n**Mode:** ${mode} | **Count:** ${cnt} | **Words:** ${words} | **Chars:** ${chars}\n\n${out}\n\n---\nGenerated by LoremPro`],{type:"text/markdown"});
+ if(type==="JS") blob=new Blob([`// LoremPro - ${lang} - ${mode}\nexport const loremText = ${JSON.stringify(out)};\nexport const meta = { lang: "${lang}", mode: "${mode}", count: ${cnt}, words: ${words}, chars: ${chars} };`],{type:"text/javascript"});
+ if(type==="RTF") blob=makeRTF(out);
+ if(type==="PDF") blob=makePDF(out);
+ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`lorem-${lang}.${ext}`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
  setShowDL(false)
 }
 
@@ -195,6 +201,10 @@ return(
   .lang-btn:hover{transform:scale(1.03)}
   .tool-card{transition:transform 0.2s ease, box-shadow 0.2s ease !important}
   .tool-card:hover{transform:translateY(-3px) scale(1.02); box-shadow:0 10px 22px rgba(0,0,0,0.15)}
+  .blog-btn{animation: blogPulse 1.5s infinite, blogShine 2.5s infinite; box-shadow: 0 0 0 0 rgba(255,106,0,0.6);}
+  .blog-btn:hover{transform: translateY(-3px) scale(1.05) !important; box-shadow: 0 12px 25px rgba(255,106,0,0.5) !important;}
+  @keyframes blogPulse{ 0%{ box-shadow: 0 0 0 0 rgba(255,106,0,0.6); } 70%{ box-shadow: 0 0 0 12px rgba(255,106,0,0); } 100%{ box-shadow: 0 0 0 0 rgba(255,106,0,0); } }
+  @keyframes blogShine{ 0%{ filter: brightness(1); } 50%{ filter: brightness(1.25); } 100%{ filter: brightness(1); } }
 `}</style>
 
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} className="hover-btn" style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
@@ -202,14 +212,13 @@ return(
 {/* HOME H1 - Sirf Home par dikhega */}
 {page==="home" && <h1 style={{color:"#fff", fontSize:22, textAlign:"center", margin:"0 0 12px 0", padding:"0 12px"}}>Lorem Ipsum Generator - 77 Languages Free Tool</h1>}
 
-{/* MENU - Sirf Menu dabane par khulega, Home par band rahega - YEHI MAIN FIX HAI */}
-{/* CHANGED: About, Contact, Privacy, Disclaimer, How to Use, Hire Me, Article hataye - Sirf Generator + Blog rakha */}
+{/* MENU */}
 {page==="menu" && (
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
 <h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
 <button onClick={()=>setPage("home")} className="menu-btn" style={{padding:14,borderRadius:12,background:"#000",color:"#fff",border:"2px solid #000",fontWeight:800,fontSize:13}}>🏠 Generator</button>
-<a href="https://lorem-pro-tool.run4ravish.workers.dev/blog" target="_blank" rel="noopener noreferrer" className="menu-btn" style={{padding:14,borderRadius:12,background:"#fff",color:"#000",border:"2px solid #000",fontWeight:800,fontSize:13,textDecoration:"none",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center"}}>📰 Blog</a>
+<a href="https://lorem-pro-tool.run4ravish.workers.dev/blog" target="_blank" rel="noopener noreferrer" className="blog-btn" style={{padding:14,borderRadius:12,background:"linear-gradient(90deg,#FF6A00,#FF3D00,#FF9800)",color:"#fff",border:"2px solid #000",fontWeight:900,fontSize:13,textDecoration:"none",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:6,position:"relative",overflow:"hidden"}}>📰 Blog <span style={{background:"#fff",color:"#FF3D00",fontSize:9,padding:"2px 6px",borderRadius:999,fontWeight:900}}>NEW</span></a>
 </div>
 <div style={{marginTop:12,border:"2px solid #000",borderRadius:12,padding:8,maxHeight:350,overflowY:"auto",display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:6}}>
 {LANGS.map(([c,n]:any)=><button key={c} onClick={()=>{setLang(c);setPage("home")}} className="lang-btn" style={{background:lang===c?"#000":"#f3f4f6",color:lang===c?"#fff":"#000",padding:8,borderRadius:8,fontSize:11,fontWeight:700,border:"none",textAlign:"left"}}>{n}</button>)}
