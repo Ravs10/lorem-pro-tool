@@ -189,7 +189,7 @@ return(
 
 <div style={{textAlign:"right", margin:"8px 0"}}><button onClick={()=>setPage(page==="menu"?"home":"menu")} style={{padding:"8px 14px", borderRadius:"20px", border:"1px solid #fff", background:"#000", color:"#fff", fontWeight:"700"}}>☰ Menu</button></div>
 <div style={{maxWidth:720,margin:"auto",padding:12}}>
-{page==="menu"&&<div style={{background:"#fff",borderRadius:20,padding:16}}>
+{page==="home" && <h1 style={{color:"#fff", fontSize:22, textAlign:"center", margin:"0 0 12px 0"}}>Lorem Ipsum Generator - 77 Languages Free Tool</h1>}
 <h2 style={{color:"#000",marginTop:0}}>Menu - {LANGS.length} Languages</h2>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8}}>
 {[
