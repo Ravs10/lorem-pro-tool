@@ -1,114 +1,230 @@
-"use client";
-import { useState, useEffect } from "react";
-
-function Section({ title, children, defaultOpen = false, forceOpen }: any) {
-  const [open, setOpen] = useState(defaultOpen);
-
-  // Show All / Hide All ko kaam karane ke liye - sabse important fix
-  useEffect(() => {
-    if (forceOpen !== undefined) setOpen(forceOpen);
-  }, [forceOpen]);
-
-  return (
-    <div className="mb-3 overflow-hidden rounded-xl border-2 border-slate-200 bg-white shadow-sm transition-all duration-300 hover:border-black hover:shadow-[0_8px_20px_rgba(0,0,0,0.08)]">
-      <h3 className="m-0">
-        <button
-          onClick={() => setOpen(!open)}
-          className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left transition-colors duration-300 hover:bg-slate-50"
-        >
-          <span className="text-[16px] font-bold text-slate-900">{title}</span>
-          <span
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black text-white text-lg transition-transform duration-300 ${open ? "rotate-45" : "rotate-0"}`}
-          >
-            +
-          </span>
-        </button>
-      </h3>
-      <div
-        className={`grid transition-all duration-500 ease-in-out ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
-      >
-        <div className="overflow-hidden">
-          <div className="px-4 pb-4 text-slate-700 leading-relaxed text-[14px]">{children}</div>
-        </div>
-      </div>
-    </div>
-  );
-}
+"use client"
+import { useState } from "react"
 
 export default function SeoContent() {
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(false)
 
   return (
-    <section className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-black text-slate-900">📖 Complete Guide</h2>
+    <div style={{ padding: 20, color: "#000", lineHeight: 1.8 }}>
+
+      {/* HEADER + SHOW ALL / HIDE ALL */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 10,
+          flexWrap: "wrap",
+        }}
+      >
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>
+          Complete Guide
+        </h2>
         <button
           onClick={() => setShowAll(!showAll)}
-          className="rounded-full bg-black px-4 py-2 text-[12px] font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-slate-800 active:scale-95"
+          style={{
+            padding: "8px 16px",
+            borderRadius: 999,
+            border: "2px solid #000",
+            background: showAll ? "#000" : "#fff",
+            color: showAll ? "#fff" : "#000",
+            fontWeight: 800,
+            fontSize: 12,
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
         >
           {showAll ? "Hide All ▲" : "Show All ▼"}
         </button>
       </div>
 
-      <div>
-        <Section title="What is Lorem Ipsum? The Ultimate Guide to Dummy Text" defaultOpen={true} forceOpen={showAll ? true : undefined}>
-          <p className="mb-3">Lorem Ipsum is placeholder text used by designers, developers, and publishers to fill a layout before the final content is ready. It allows you to focus on visual design, typography, spacing, and user experience without getting distracted by readable content.</p>
-          <p>Lorem Pro Tool takes this classic concept to the next level by offering it in 77 native languages, not just Latin. Our free generator helps you generate sentences, paragraphs, words, and lists instantly. No login, no signup, 100% free forever.</p>
-        </Section>
+      {/* 1. WHAT IS LOREM IPSUM - Hamesha dikhega */}
+      <h3 style={{ marginTop: 20 }}>
+        What is Lorem Ipsum?
+      </h3>
+      <p style={{ fontSize: 14 }}>
+        Lorem Ipsum is dummy placeholder text used by designers, developers, and content creators to fill layouts before real content is ready.
+      </p>
+      <p style={{ fontSize: 14 }}>
+        It looks like real text but has no meaning, so readers focus on design instead of words.
+      </p>
+      <p style={{ fontSize: 14 }}>
+        LoremPro is the world&apos;s most advanced Lorem Ipsum Generator.
+      </p>
+      <p style={{ fontSize: 14 }}>
+        It supports 77 languages with native, meaningful sentences - not boring Latin.
+      </p>
+      <p style={{ fontSize: 14 }}>
+        You can generate Sentence, Paragraph, Word, and List modes in one click, copy it, and download it in 8 formats - 100% free, no login.
+      </p>
 
-        <Section title="History of Lorem Ipsum - Where Did It Come From?" forceOpen={showAll ? true : undefined}>
-          <p className="mb-3">Lorem Ipsum comes from a Latin text written by Cicero in 45 BC, called &quot;de Finibus Bonorum et Malorum&quot;. The famous line &quot;Lorem ipsum dolor sit amet...&quot; is a scrambled version of that original text.</p>
-          <p>In the 1960s, Letraset popularized it for print design, and in the 1990s, Aldus PageMaker made it standard for digital design. Today, it is the world standard for placeholder text.</p>
-        </Section>
+      {/* BAaki SAARA CONTENT - Sirf Show All par dikhega */}
+      {showAll && (
+        <div>
 
-        <Section title="Why Use Lorem Pro Tool? 77 Languages, 4 Modes" forceOpen={showAll ? true : undefined}>
-          <p className="mb-3">Most generators only give you English or Latin. Lorem Pro Tool gives you native dummy text in Hindi, English, Spanish, Arabic, French, German, Chinese, Japanese, Bengali, Tamil, Telugu, Marathi, Urdu, Portuguese, Russian, Italian, Korean, Turkish, and 59 more languages.</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><b>Sentence Mode:</b> For headings, taglines, button text</li>
-            <li><b>Paragraph Mode:</b> For blog posts, articles, about pages</li>
-            <li><b>Word Mode:</b> For search boxes, labels, menus</li>
-            <li><b>List Mode:</b> For bullet points, features, pricing tables</li>
+          <h3 style={{ marginTop: 20 }}>
+            History of Lorem Ipsum
+          </h3>
+          <p style={{ fontSize: 14 }}>
+            Lorem Ipsum is more than 500 years old.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            It originated from Cicero&apos;s writings in 45 BC.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            In the 1500s, an unknown printer scrambled it to make a type specimen book.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            Since then, it became the standard dummy text for printing, and later for web design.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            Today in 2026, Lorem Ipsum is still used because it works.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            It helps designers test fonts, layouts, and spacing without waiting for real content.
+          </p>
+
+          <h3 style={{ marginTop: 20 }}>
+            Why Use Lorem Ipsum Generator?
+          </h3>
+          <p style={{ fontSize: 14 }}>
+            Using a generator saves time and makes your design look professional.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            Instead of typing random words, you get perfect placeholder text instantly.
+          </p>
+          <ul style={{ fontSize: 14 }}>
+            <li>
+              <b>77 Languages:</b> Hindi, English, Spanish, French, German, Arabic, Bengali, Tamil, Telugu, Marathi, Urdu, and 66 more.
+            </li>
+            <li>
+              <b>4 Modes:</b> Sentence, Paragraph, Word, List - for every use case.
+            </li>
+            <li>
+              <b>Counter 0-100:</b> Generate up to 100 items at once.
+            </li>
+            <li>
+              <b>Live Counters:</b> Words, Characters, Sentences, Paragraphs, Reading Time.
+            </li>
+            <li>
+              <b>8 Download Types:</b> TXT, HTML, JSON, CSV, MD, JS, RTF, PDF.
+            </li>
+            <li>
+              <b>100% Free:</b> No login, no signup, no watermark.
+            </li>
           </ul>
-        </Section>
 
-        <Section title="How To Use Lorem Ipsum Generator - Step By Step" forceOpen={showAll ? true : undefined}>
-          <ol className="list-decimal pl-5 space-y-2">
-            <li><b>Select Language:</b> Choose from 77 languages from dropdown.</li>
-            <li><b>Select Mode:</b> Choose Sentence, Paragraph, Word, or List.</li>
-            <li><b>Select Count:</b> Use slider to select 1 to 100.</li>
-            <li><b>Generate & Copy:</b> Click Generate, then Copy or Download in 8 formats.</li>
+          <h3 style={{ marginTop: 20 }}>
+            How To Use - Step By Step
+          </h3>
+          <ol style={{ fontSize: 14 }}>
+            <li>
+              <b>Step 1:</b> Select your language from dropdown (Default: Hindi).
+            </li>
+            <li>
+              <b>Step 2:</b> Select Mode - SENTENCE, PARAGRAPH, WORD, or LIST.
+            </li>
+            <li>
+              <b>Step 3:</b> Set Counter 0 to 100 with slider or number box.
+            </li>
+            <li>
+              <b>Step 4:</b> Click GENERATE - text generates automatically.
+            </li>
+            <li>
+              <b>Step 5:</b> Click Copy Text or Download in 8 formats.
+            </li>
           </ol>
-        </Section>
 
-        <Section title="Lorem Ipsum in Hindi - हिंदी डमी टेक्स्ट" forceOpen={showAll ? true : undefined}>
-          <p>Hindi is one of the most searched languages for dummy text in India. Our Hindi generator gives you natural Hindi sentences that look like real content. Perfect for Indian designers building websites for Hindi audience, government portals, news sites, and local businesses.</p>
-        </Section>
+          <h3 style={{ marginTop: 20 }}>
+            Lorem Ipsum in Hindi - हिन्दी में
+          </h3>
+          <p style={{ fontSize: 14 }}>
+            Hindi me Lorem Ipsum generate karna ab bahut aasaan hai.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            LoremPro Hindi me native, meaningful sentences deta hai - jaise &quot;Swasth jeevan ke liye yoga zaroori hai&quot;.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            Ye designers aur developers ke liye best hai jo Hindi websites, apps aur posters banate hain.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            Aap Hindi ke saath-saath Bengali, Tamil, Telugu, Marathi, Punjabi, Urdu aur 70 aur bhashaon me bhi text bana sakte hain.
+          </p>
 
-        <Section title="Best Practices for Using Dummy Text in Design" forceOpen={showAll ? true : undefined}>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Always test with real language. If final site will be in Spanish, test with Spanish dummy text.</li>
-            <li>Check for text overflow. German words are longer, Arabic is RTL, Chinese is compact.</li>
-            <li>Do not use Lorem Ipsum in production. Replace it before launch.</li>
-            <li>Use our <a href="/word-counter" className="text-blue-600 underline">Word Counter</a> to check exact word count.</li>
+          <h3 style={{ marginTop: 20 }}>
+            Best Practices
+          </h3>
+          <ul style={{ fontSize: 14 }}>
+            <li>
+              Use PARAGRAPH mode for full page mockups.
+            </li>
+            <li>
+              Use SENTENCE mode for headings and cards.
+            </li>
+            <li>
+              Use WORD mode to test font width and titles.
+            </li>
+            <li>
+              Always check word count for SEO before using in real design.
+            </li>
           </ul>
-        </Section>
 
-        <Section title="More Free Tools From Lorem Pro" forceOpen={showAll ? true : undefined}>
-          <p>Try our <a href="/case-converter" className="text-blue-600 underline">Case Converter</a>, <a href="/password-generator" className="text-blue-600 underline">Password Generator</a>, <a href="/fancy-text" className="text-blue-600 underline">Fancy Text Generator</a>, <a href="/fake-data-generator" className="text-blue-600 underline">Fake Data Generator</a>, <a href="/placeholder-qr-generator" className="text-blue-600 underline">Placeholder QR Generator</a>, <a href="/image-to-text" className="text-blue-600 underline">Image to Text</a>, <a href="/text-to-handwriting" className="text-blue-600 underline">Text to Handwriting</a>, <a href="/remove-duplicates" className="text-blue-600 underline">Remove Duplicates</a>. All tools are free, no login required.</p>
-        </Section>
+          <h3 style={{ marginTop: 20 }}>
+            More Free Tools
+          </h3>
+          <p style={{ fontSize: 14 }}>
+            LoremPro ke saath-saath aap hamare dusre free tools bhi use kar sakte hain - Word Counter, Case Converter, Image to Text, QR Generator, Password Generator, aur Age Calculator.
+          </p>
+          <p style={{ fontSize: 14 }}>
+            Saare tools 100% free hain aur bina login ke chalte hain.
+          </p>
 
-        <Section title="Frequently Asked Questions (FAQ)" forceOpen={showAll ? true : undefined}>
-          <div className="space-y-3">
-            <div><h4 className="font-bold text-slate-900">Is Lorem Ipsum Generator free?</h4><p>Yes, 100% free. No login, no signup, no watermark.</p></div>
-            <div><h4 className="font-bold text-slate-900">Can I generate Lorem Ipsum in Hindi?</h4><p>Yes. We support Hindi and 76 other languages.</p></div>
-            <div><h4 className="font-bold text-slate-900">How many words can I generate?</h4><p>You can generate up to 100 paragraphs, sentences, or lists in one click.</p></div>
-            <div><h4 className="font-bold text-slate-900">Can I download the generated text?</h4><p>Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown.</p></div>
-            <div><h4 className="font-bold text-slate-900">Is Lorem Ipsum good for SEO?</h4><p>No, it is for design testing only. Never publish it live.</p></div>
-          </div>
-        </Section>
-      </div>
+          <h3 style={{ marginTop: 20 }}>
+            Frequently Asked Questions (FAQ)
+          </h3>
 
-      <p className="mt-4 text-center text-[12px] text-slate-500">Last Updated: October 2026 | Lorem Pro Tool - Free Tools for Designers, Developers & Creators.</p>
-    </section>
-  );
+          <h4>
+            Is Lorem Ipsum Generator free?
+          </h4>
+          <p style={{ fontSize: 14 }}>
+            Yes, 100% free. No login, no signup, no watermark, unlimited generation.
+          </p>
+
+          <h4>
+            Can I generate Lorem Ipsum in Hindi?
+          </h4>
+          <p style={{ fontSize: 14 }}>
+            Yes. We support Hindi and 76 other languages including Bengali, Tamil, Telugu, Marathi, Urdu, Spanish, Arabic, French, German, and more.
+          </p>
+
+          <h4>
+            Can I download the generated text?
+          </h4>
+          <p style={{ fontSize: 14 }}>
+            Yes. You can download in 8 formats including TXT, HTML, PDF, DOC, JSON, CSV, and Markdown.
+          </p>
+
+          <h4>
+            Can I use generated text for commercial projects?
+          </h4>
+          <p style={{ fontSize: 14 }}>
+            Yes. You can use it anywhere for free for personal or commercial projects. No attribution required.
+          </p>
+
+          <h4>
+            How many languages are supported?
+          </h4>
+          <p style={{ fontSize: 14 }}>
+            We support 77 languages - the world&apos;s largest collection for a Lorem Ipsum Generator.
+          </p>
+
+          <p style={{ fontSize: 12, color: "#666", marginTop: 20 }}>
+            Last Updated: October 2026 | Made with ❤️ in India
+          </p>
+
+        </div>
+      )}
+
+    </div>
+  )
 }
