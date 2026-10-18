@@ -141,7 +141,7 @@ useEffect(()=>{gen()},[lang,cnt,mode])
 const words = out.trim()?out.trim().split(/\s+/).length:0
 const chars = out.length
 const charsNoSpace = out.replace(/\s/g,"").length
-const sentences = out.trim()?out.split(/[.!?।]/).filter(s=>s.trim().length>2).length:0
+const sentences = mode==="WORD" ? 0 : (out.trim()?out.split(/[.!?।]/).filter(s=>s.trim().length>2).length:0)
 const paras = out.trim()?out.split("\n\n").filter(b=>b.trim()).length:0
 const reading = Math.max(1,Math.ceil(words/200))
 // FIX PDF - Helvetica me Hindi/Arabic/Chinese nahi tha, isliye browser Print se PDF banayenge - sab 77 language sahi
@@ -260,7 +260,7 @@ return(
 <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:12}}>
 <div style={{background:"#dbeafe",padding:10,borderRadius:12,textAlign:"center",border:"2px solid #000"}}><div style={{fontSize:18,fontWeight:900,color:"#000"}}>{words}</div><div style={{fontSize:9,fontWeight:800,color:"#000"}}>WORDS</div></div>
 <div style={{background:"#fef9c3",padding:10,borderRadius:12,textAlign:"center",border:"2px solid #000"}}><div style={{fontSize:18,fontWeight:900,color:"#000"}}>{chars}</div><div style={{fontSize:9,fontWeight:800,color:"#000"}}>CHARS</div></div>
-<div style={{background:"#dcfce7",padding:10,borderRadius:12,textAlign:"center",border:"2px solid #000"}}><div style={{fontSize:18,fontWeight:900,color:"#000"}}>{sentences||paras}</div><div style={{fontSize:9,fontWeight:800,color:"#000"}}>SENT</div></div>
+<div style={{background:"#dcfce7",padding:10,borderRadius:12,textAlign:"center",border:"2px solid #000"}}><div style={{fontSize:18,fontWeight:900,color:"#000"}}>{sentences}</div><div style={{fontSize:9,fontWeight:800,color:"#000"}}>SENT</div></div>
 <div style={{background:"#fce7f3",padding:10,borderRadius:12,textAlign:"center",border:"2px solid #000"}}><div style={{fontSize:18,fontWeight:900,color:"#000"}}>{paras}</div><div style={{fontSize:9,fontWeight:800,color:"#000"}}>PARA</div></div>
 </div>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:8,marginTop:8}}>
