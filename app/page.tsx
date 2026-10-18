@@ -414,7 +414,7 @@ return(
 </div>}
 </div>
 </div>}
-</div>
+
 {/* OTHER USEFUL TOOLS - 6 DUMMY LINKS */}
 <div style={{marginTop:20,background:"#fff",border:"2px solid #000",borderRadius:16,padding:14}}>
 <h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools</h3>
