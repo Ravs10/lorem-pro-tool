@@ -1,20 +1,20 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Fake Data Generator - Free Fake Name, Email, Mobile, Address in 30 Languages | Lorem Pro',
+  title: 'Fake Data Generator - Free Fake Name, Email, Mobile, Address in 20 Languages | Lorem Pro',
   description: 'Free Fake Data Generator by Lorem Pro. Generate 1-1000 fake name, email, mobile, address, city, PAN, Aadhaar in Hindi, Bhojpuri, Tamil, Telugu, English, Chinese, Japanese & 30 languages. For developers, testers, students. 100% Free, No Login.',
   keywords: ['fake data generator','fake name generator','fake email generator','fake mobile number generator','dummy data generator','test data generator','mock data generator','fake address generator','bhojpuri fake data','hindi fake data','lorem pro', 'lorem pro tool', 'Lorem Ipsum Generator'],
   authors: [{ name: 'Lorem Pro' }],
   alternates: { canonical: 'https://lorempro.in/fake-data-generator' },
   openGraph: {
-    title: 'Fake Data Generator - 30 Languages Free Tool | Lorem Pro',
+    title: 'Fake Data Generator - 20 Languages Free Tool | Lorem Pro',
     description: 'Generate 1 to 1000 fake records in Hindi, Bhojpuri, English, Chinese, Japanese. JSON, CSV, SQL export. 100% Free, No Login.',
     url: 'https://lorem-pro-tool.run4ravish.workers.dev/fake-data-generator',
     siteName: 'Lorem Pro',
     type: 'website',
     locale: 'en_IN',
   },
-  twitter: { card: 'summary_large_image', title: 'Fake Data Generator - 30 Languages Free', description: 'Generate fake name, email, mobile, address in 30 languages. Free tool by Lorem Pro.' },
+  twitter: { card: 'summary_large_image', title: 'Fake Data Generator - 20 Languages Free', description: 'Generate fake name, email, mobile, address in 30 languages. Free tool by Lorem Pro.' },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } }
 }
 
