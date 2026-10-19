@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 import { useState, useEffect } from 'react';
-
+import SeoContent from './SeoContent';
 // 🔐 MASTER RECOVERY KEY - SIRF AAPKO PATA HONI CHAHIYE
 // Isko apne hisab se change kar do, ye kisi ko mat batao
 const MASTER_RECOVERY_KEY = 'LOREM2025@SIDHAULI';
@@ -277,6 +277,7 @@ return (
             </div>
           </div>
         )}
+              <SeoContent />
       </main>
     
     </div>
