@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://lorem-pro-tool.run4ravish.workers.dev"),
   title: "Free Password Generator (2026) - Strong, Random & Secure | Lorem Pro Tool",
   description: "Generate strong, random passwords instantly. Customize length (6-64), symbols, numbers, uppercase & lowercase. No logs, no tracking. Free & secure.",
-  keywords: ["password generator", "strong password generator", "secure password generator", "random password generator", "free password generator", "best password generator 2026", "online password generator", "Lorem Ipsum Generator", "lorem pro", "lipsum pro"],
+  keywords: ["password generator", "strong password generator", "secure password generator", "random password generator", "free password generator", "best password generator 2026", "online password generator"],
   authors: [{ name: "Lorem Pro Tool" }],
   robots: { index: true, follow: true },
   alternates: {
