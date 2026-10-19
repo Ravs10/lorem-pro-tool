@@ -27,7 +27,6 @@ const LANGS=[
 ["SK","Slovenčina"],["SL","Slovenščina"],["SQ","Shqip"],["BO","བོད་ཡིག - Tibet"],
 ["DZ","རྫོང་ཁ - Bhutan"]
 ]
-
 const DB:any={
 "HI":["स्वस्थ जीवन के लिए योग जरूरी है","कृत्रिम बुद्धिमत्ता दुनिया बदल रही है","शिक्षा ही सफलता की कुंजी है","ईमानदारी व्यापार की सबसे अच्छी नीति है","प्रकृति सुंदर और शांत है","क्रिकेट भारत में सबसे पसंदीदा खेल है","ताजा फल सेहत के लिए अच्छे हैं","सुबह टहलना फिट रखता है","इंटरनेट ने दुनिया को जोड़ दिया है","किताबें हमें ज्ञान देती हैं","ग्राहक की खुशी सबसे जरूरी है","पेड़ हमें ऑक्सीजन देते हैं","फल इम्युनिटी बढ़ाते हैं","स्मार्टफोन ने जीवन आसान कर दिया है","शिक्षक छात्रों को सही रास्ता दिखाते हैं","टीम वर्क से सफलता मिलती है","यात्रा हमें नई संस्कृति सिखाती है","दौड़ना दिल के लिए अच्छा है","घर का खाना सबसे अच्छा होता है","कोडिंग भविष्य की भाषा है","मेहनत हमेशा रंग लाती है","समय का प्रबंधन उत्पादकता बढ़ाता है","पहाड़ शांत और भव्य होते हैं","योग मन और शरीर को स्वस्थ रखता है","तनाव कम करने के लिए ध्यान करें","साइबर सुरक्षा हमारे डेटा की रक्षा करती है","विज्ञान हमें दुनिया के बारे में सिखाता है","गुणवत्ता वाला उत्पाद हमेशा जीतता है","साफ वातावरण हमें स्वस्थ रखता है","मुस्कुराना दिन को सुंदर बनाता है"],
 "EN":["Healthy life needs yoga for fitness","Artificial intelligence is changing the world","Education is the key to success","Honesty is best policy in business","Nature is beautiful and peaceful","Cricket is loved in India","Fresh fruits are good for health","Morning walk keeps body active","Internet connects people across the globe","Books give us knowledge and wisdom","Customer satisfaction is most important","Trees give us oxygen and shade","Fresh fruits boost immunity naturally","Smartphones have made life easier","Teachers guide students to right path","Teamwork leads to success","Travel teaches us new cultures","Running is good for heart","Home food is the best food","Coding is the language of future","Hard work always pays off","Time management increases productivity","Mountains are calm and majestic","Yoga keeps mind and body healthy","Meditate to reduce stress","Cybersecurity protects our personal data","Science teaches us about the world","Quality product always wins","Clean environment keeps us healthy","Smiling makes day beautiful"],
@@ -70,6 +69,10 @@ const DB:any={
 "KU":["Tenduristî bi yoga heye","Meşa sibehê baş e"], "BO":["བདེ་ཐང་ལ་ཡོ་ག་དགོས།","སྔ་དྲོའི་འཆམ་འགྲོ་ལེགས།"],
 "DZ":["གཟུགས་གཞི་ལུ་ཡོ་ག་དགོ།","དྲོ་པའི་འཆམ་འགྲོ་ལེགས།"]
 }
+const AND_WORD:any = {
+  EN:" and ", HI:" और ", OR:" ଏବଂ ", BN:" এবং ", TE:" మరియు ", TA:" மற்றும் ", KN:" ಮತ್ತು ", ML:" மற்றும் ", MR:" आणि ", GU:" અને ", PA:" ਅਤੇ ", UR:" اور ", AS:" আৰু ", NE:" र ", SI:" සහ ", MY:" နှင့် ", TH:" และ ", LO:" ແລະ ", KM:" និង ", VI:" và ", ID:" dan ", TL:" at ", ZH:" 和 ", JA:" と ", KO:" 그리고 ", AR:" و ", FA:" و ", HE:" ו ", TR:" ve ", FR:" et ", DE:" und ", ES:" y ", PT:" e ", IT:" e ", NL:" en ", PL:" i ", RU:" и ", UK:" і ", EL:" και ", CS:" a ", RO:" și ", HU:" és ", SV:" och ", DA:" og ", FI:" ja ", NO:" og ", SW:" na ", AM:" እና ", HA:" da ", AF:" en ", SQ:" dhe ", HR:" i ", SR:" и ", BG:" и ", SK:" a ", SL:" in ", LT:" ir ", LV:" un ", ET:" ja ", MT:" u ", GA:" agus ", CY:" a ", EU:" eta ", CA:" i ", GL:" e ", IS:" og ", MK:" и ", HY:" և ", KA:" და ", AZ:" və ", KK:" және ", UZ:" va ", PS:" او ", SD:" ۽ ", KU:" û ", BO:" དང་ ", DZ:" དང་ "
+};
+const getAnd = (lang:string)=> AND_WORD[lang] || " ";
 const PUNCT:any = {
   HI:"।", MR:"।", NE:"।", BN:"।", AS:"।", OR:"।",
   UR:"۔", AR:"۔", FA:"۔", PS:"۔", SD:"۔", KU:"۔",
@@ -80,43 +83,27 @@ const getPunct = (lang:string)=> PUNCT[lang] || ".";
 const fixSentence = (s:string, lang:string)=>{
   let t = s.trim();
   const p = getPunct(lang);
-  if(/[.!?।।。۔།]$/.test(t)) return t;
+  if(/[.!?।॥。۔།]$/.test(t)) return t;
   return t + p;
 };
-const ALL_TOPICS = [
-  "Daily exercise makes body strong","Good sleep is essential for health","Meditate to reduce stress","Drink clean water","Eat green leafy vegetables","Avoid junk food",
-  "Waking up early is beneficial","Home food is the best food","Sunlight gives vitamin D","Avoid excess sugar","Get regular health checkups","Deep breathing calms mind",
-  "Artificial intelligence is changing the world","Internet connects people across the globe","Smartphones have made life easier","Cloud computing stores data safely","Coding is the language of future","Robots help in factories and hospitals",
-  "Social media connects friends and family","Cybersecurity protects our personal data","Electric vehicles are future of transport","5G internet is very fast","Computers make work easy and fast","Technology saves time and money",
-  "Education is the key to success","Books give us knowledge and wisdom","Teachers guide students to right path","Learning never stops in life","Reading daily improves vocabulary","Hard work always pays off",
-  "School is second home for children","Science teaches us about the world","Mathematics sharpens our mind","Good habits make a good student","Exams test our preparation","Knowledge is real power",
-  "Honesty is best policy in business","Customer satisfaction is most important","Teamwork leads to success","Planning is key to business growth","Digital marketing helps small business","Quality product always wins",
-  "Time management increases productivity","Saving money is good habit","New ideas create new business","Hard work builds a brand","Communication is key in office","Leadership inspires the team",
-  "Nature is beautiful and peaceful","Trees give us oxygen and shade","Rain makes earth green","Mountains are calm and majestic","Travel teaches us new cultures","Beaches are best for relaxation",
-  "Rivers are lifeline of our country","Sunrise looks beautiful in mountains","Birds sing sweet songs in morning","Forests protect wildlife","Clean environment keeps us healthy","Exploring new places is fun",
-  "Cricket is loved in India","Football teaches teamwork","Running daily keeps us fit","Yoga keeps mind and body healthy",
-  "Fresh fruits are good for health","Home cooked food is tasty and healthy","Drinking milk makes bones strong","Breakfast is most important meal",
-  "Family time is precious","Helping others makes us happy","Smiling makes day beautiful","Discipline leads to success"
-];
 LANGS.forEach(([c]:any)=>{
   if(!DB[c]) DB[c]=["Native content for "+c,"Second sentence native for "+c];
   const base = [...DB[c]];
   DB[c] = base.map((s:string)=>fixSentence(s,c));
   let i = 0;
   while(DB[c].length < 30){
-    const a = base[i % base.length];
-    const b = base[(i+1) % base.length];
-    const topic = ALL_TOPICS[(i*7) % ALL_TOPICS.length];
-    const candidate = DB[c].length < 15
-      ? fixSentence(`${a} and ${b}`, c)
-      : fixSentence(`${a} - ${topic}`, c);
+    const a = base[i % base.length].replace(/[.!?।॥。۔།]$/,"").trim();
+    const b = base[(i+1) % base.length].replace(/[.!?।॥。۔།]$/,"").trim();
+    const c2 = base[(i+2) % base.length].replace(/[.!?।॥。۔།]$/,"").trim();
+    const candidate = DB[c].length % 2 === 0
+      ? fixSentence(`${a}${getAnd(c)}${b}`, c)
+      : fixSentence(`${b}${getAnd(c)}${c2}`, c);
     if(!DB[c].includes(candidate)) DB[c].push(candidate);
     i++;
     if(i>200) break;
   }
   DB[c] = DB[c].slice(0,30);
 });
-
 export default function Page(){
 const [lang,setLang]=useState("HI")
 const [cnt,setCnt]=useState(5)
@@ -144,7 +131,6 @@ const charsNoSpace = out.replace(/\s/g,"").length
 const sentences = mode==="WORD" ? 0 : (out.trim()?out.split(/[.!?।]/).filter(s=>s.trim().length>2).length:0)
 const paras = out.trim()?out.split("\n\n").filter(b=>b.trim()).length:0
 const reading = Math.max(1,Math.ceil(words/200))
-// FIX PDF - Helvetica me Hindi/Arabic/Chinese nahi tha, isliye browser Print se PDF banayenge - sab 77 language sahi
 const isRTL = (l:string)=> ["AR","UR","FA","PS","SD","KU","HE"].includes(l);
 const makePDF = (text:string, langCode:string)=>{
   const rtl = isRTL(langCode);
@@ -155,13 +141,12 @@ const makePDF = (text:string, langCode:string)=>{
   w.document.write(html); w.document.close(); w.focus();
   setTimeout(()=>{ w.print(); }, 300);
 };
-// FIX RTF - RTL + har script ka sahi font
 const makeRTF = (text:string, langCode:string)=>{
   const rtl = isRTL(langCode);
   const isCJK = ["ZH","JA","KO"].includes(langCode);
   const isArabicScript = ["AR","UR","FA","PS","SD","KU"].includes(langCode);
   const isHebrew = langCode==="HE";
-  let fontIdx = 0; // 0 = Indic / default
+  let fontIdx = 0;
   if(isArabicScript) fontIdx = 1;
   else if(isCJK) fontIdx = 2;
   else if(isHebrew) fontIdx = 3;
