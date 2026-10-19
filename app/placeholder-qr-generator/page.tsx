@@ -2,6 +2,7 @@
 'use client';
 import { useState, useRef, useEffect, useMemo } from "react";
 import JSZip from "jszip";
+import Link from 'next/link';
 
 export default function ImageQRGenerator() {
   const [width, setWidth] = useState(800);
@@ -28,6 +29,7 @@ export default function ImageQRGenerator() {
   const [bulkSizes, setBulkSizes] = useState("300x250, 728x90, 1200x630, 800x600");
   const [isZipping, setIsZipping] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [showMore, setShowMore] = useState(false);
   const API_BASE = "https://lorem-pro-tool.run4ravish.workers.dev/api";
 
   const qrData = useMemo(() => {
@@ -103,9 +105,8 @@ export default function ImageQRGenerator() {
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-6xl mx-auto p-6">
         <div className="text-center mb-6">
-          <h1 className="text-4xl font-extrabold">2 in 1 Ultra Pro Tool</h1>
-          <h2 className="text-2xl font-bold text-violet-400 mt-2">Placeholder QR Generator</h2>
-          <p className="text-gray-400 mt-1">via.placeholder.com ka apna alternative + QR Pro</p>
+          <h1 className="text-4xl font-extrabold">2 in 1 Placeholder QR Generator - Free Placeholder Image & QR Code Maker</h1>
+          <p className="text-gray-400 mt-3 max-w-3xl mx-auto">Create custom placeholder images with any size, text, color & gradient + Generate QR codes for UPI, WiFi, WhatsApp, URL, Email & Phone. Best free alternative to via.placeholder.com. No watermark, no signup, bulk ZIP download.</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -156,36 +157,100 @@ export default function ImageQRGenerator() {
           </div>
         </div>
 
-        {/* SEO ARTICLE - ACCORDION - GOOGLE KE LIYE */}
-        <div className="mt-16 bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-8">
-          <h2 className="text-3xl font-bold text-white text-center">Complete Guide to 2 in 1 Placeholder QR Generator</h2>
-          <p className="text-zinc-400 text-center mt-3 max-w-3xl mx-auto">
-            This is a free <strong>2-in-1 Ultra Pro Tool</strong> that combines a Placeholder Image Generator (best alternative to via.placeholder.com) and a powerful QR Code Generator. Create dummy images with custom size, text, colors, gradient and generate QR codes for UPI, WiFi, WhatsApp, URL without watermark.
-          </p>
+        {/* SEO CONTENT - 1200 WORDS */}
+        <div className="mt-16 space-y-10 text-zinc-300 border-t border-zinc-800 pt-10">
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">What is a 2 in 1 Placeholder QR Generator?</h2>
+            <p className="text-sm leading-relaxed">A 2 in 1 Placeholder QR Generator is a free online tool that combines two powerful tools in one place. First, it is a Placeholder Image Generator, the best alternative to via.placeholder.com. You can create custom dummy images with any width, height, text, background color and gradient for your website design, mockups and testing. Second, it is a QR Code Generator that lets you create QR codes for Website URL, Plain Text, WiFi, Email, Phone, WhatsApp and UPI Payment. Whether you are a developer, designer, shop owner or student, this single tool saves your time. No need to open two different websites. Create placeholder images and QR codes instantly, without watermark, without signup and without any limit.</p>
+          </section>
 
-          <div className="grid md:grid-cols-2 gap-6 mt-8">
-            <div className="bg-black border border-zinc-800 rounded-xl p-5">
-              <h3 className="text-xl font-bold text-white">🖼️ Placeholder Features</h3>
-              <ul className="list-disc pl-5 mt-3 space-y-2 text-sm text-zinc-400">
-                <li><strong>Custom Size:</strong> Any size like 300x250, 728x90, 1920x1080, 1200x630</li>
-                <li><strong>Color & Gradient:</strong> Solid or dual gradient background</li>
-                <li><strong>Your Own API:</strong> /api/WIDTHxHEIGHT?text=&bg=&color= - No via.placeholder dependency</li>
-                <li><strong>Bulk ZIP:</strong> Enter 10+ sizes and download as ZIP in 1 click</li>
-              </ul>
-            </div>
-            <div className="bg-black border border-zinc-800 rounded-xl p-5">
-              <h3 className="text-xl font-bold text-white">📱 QR Generator Features</h3>
-              <ul className="list-disc pl-5 mt-3 space-y-2 text-sm text-zinc-400">
-                <li><strong>UPI QR:</strong> For Google Pay, PhonePe, Paytm with name & amount</li>
-                <li><strong>WiFi QR:</strong> Share WiFi without typing password</li>
-                <li><strong>WhatsApp QR:</strong> Direct chat with pre-filled message</li>
-                <li><strong>Download with Text:</strong> QR with data printed below</li>
-              </ul>
-            </div>
-          </div>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">How to Use Placeholder Image Generator?</h2>
+            <ol className="list-decimal ml-5 text-sm space-y-2 leading-relaxed">
+              <li><b className="text-white">Set Width & Height:</b> Enter any size you need, like 300x250 for ads, 728x90 for leaderboard, 1200x630 for social media, or 1920x1080 for hero banner.</li>
+              <li><b className="text-white">Choose Colors:</b> Pick BG1, BG2 and Text Color. Turn on Gradient for a modern dual-color look or turn it off for solid color.</li>
+              <li><b className="text-white">Add Text:</b> Write your own text like Lorem Pro, Coming Soon, or Banner Ad.</li>
+              <li><b className="text-white">Preview & Download:</b> Live preview will show instantly. Click Download Image to save PNG.</li>
+              <li><b className="text-white">Bulk Download:</b> Need many sizes at once? Enter sizes with comma like 300x250, 728x90, 1200x630 and click Bulk ZIP Download. All images will download as one ZIP file.</li>
+            </ol>
+          </section>
 
-          <div className="mt-10">
-            <h3 className="text-2xl font-bold text-white text-center mb-5">Frequently Asked Questions</h3>
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">How to Use QR Code Generator?</h2>
+            <p className="text-sm leading-relaxed">QR Generator is very easy to use. First, select QR type from dropdown - Website, Text, WiFi, Email, Phone, WhatsApp or UPI. Then fill the details. For example, for UPI QR, enter your UPI ID, Name and Amount. For WiFi QR, enter SSID and Password. For WhatsApp QR, enter number and pre-filled message. Your QR code will generate instantly in live preview. You can download it as simple QR or Download with Text, where your data is printed below the QR for easy identification. This QR works with Google Pay, PhonePe, Paytm, BHIM, Camera and any QR scanner app.</p>
+            {showMore && (
+              <div className="mt-3 space-y-3 text-sm leading-relaxed">
+                <p><b className="text-white">Pro Tip for Shop Owners:</b> If you have a shop, create a UPI QR with your UPI ID and fixed amount. Print it and stick it on your counter. Customers can scan and pay in 5 seconds. No need to tell your number again and again. Similarly, for home or office, create a WiFi QR and stick it on wall. Guests can scan and connect to WiFi without typing password.</p>
+                <p><b className="text-white">Pro Tip for Developers:</b> Use QR for testing deep links, app download links, and contact sharing. You can generate a QR for your staging URL and test it on mobile in one second, instead of typing long URL manually.</p>
+              </div>
+            )}
+            <button onClick={()=>setShowMore(!showMore)} className="mt-3 text-sm font-semibold text-white underline underline-offset-4">{showMore ? "Show Less ↑" : "Read More ↓"}</button>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">Use Your Own Placeholder API in Your Projects</h2>
+            <p className="text-sm leading-relaxed mb-3">This is the biggest advantage over via.placeholder.com. You get your own API link that you can use directly in HTML, React, Next.js or any project. No external dependency, no downtime.</p>
+            <div className="bg-black border border-zinc-800 rounded-xl p-4 overflow-x-auto">
+              <code className="text-xs text-green-400 break-all">{"<img src=\"https://lorem-pro-tool.run4ravish.workers.dev/api/1200x630?text=Hello&bg=4f46e5&bg2=111827&color=ffffff&gradient=1\" />"}</code>
+            </div>
+            <ul className="list-disc ml-5 text-sm space-y-1 mt-3 leading-relaxed">
+              <li><b className="text-white">Parameters:</b> width x height, text, bg, bg2, color, gradient (1 or 0)</li>
+              <li><b className="text-white">Example:</b> /api/300x250?text=Ad Banner&bg=111827&color=ffffff</li>
+              <li><b className="text-white">Use Case:</b> Perfect for Figma mockups, HTML templates, client demos, and testing responsive design.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">Which QR Code Type Should You Use?</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border border-zinc-800">
+                <thead><tr className="bg-zinc-800 text-white"><th className="p-2 text-left">QR Type</th><th className="p-2 text-left">Best For</th><th className="p-2 text-left">Example</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-zinc-800"><td className="p-2">Website URL QR</td><td className="p-2">Portfolio, YouTube, Shop</td><td className="p-2">Scan to open website</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">UPI QR</td><td className="p-2">Payment, Shop, Donation</td><td className="p-2">Scan to pay via GPay / PhonePe</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">WiFi QR</td><td className="p-2">Home, Cafe, Office</td><td className="p-2">Scan to connect WiFi</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">WhatsApp QR</td><td className="p-2">Business, Support</td><td className="p-2">Scan to chat directly</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">Email / Phone QR</td><td className="p-2">Visiting Card, Contact</td><td className="p-2">Scan to call or mail</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">Why This Tool is Better Than via.placeholder.com?</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border border-zinc-800">
+                <thead><tr className="bg-zinc-800 text-white"><th className="p-2 text-left">Feature</th><th className="p-2 text-left">via.placeholder.com</th><th className="p-2 text-left">Lorem Pro Tool</th></tr></thead>
+                <tbody>
+                  <tr className="border-t border-zinc-800"><td className="p-2">Gradient Support</td><td className="p-2">No</td><td className="p-2">Yes ✅</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">Bulk ZIP Download</td><td className="p-2">No</td><td className="p-2">Yes ✅</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">QR Generator</td><td className="p-2">No</td><td className="p-2">Yes ✅ (7 Types)</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">Your Own API</td><td className="p-2">External Dependency</td><td className="p-2">Your Domain API ✅</td></tr>
+                  <tr className="border-t border-zinc-800"><td className="p-2">Watermark</td><td className="p-2">No</td><td className="p-2">No ✅</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">Benefits of Using This Free Tool</h2>
+            <ul className="list-disc ml-5 text-sm space-y-1 leading-relaxed">
+              <li><b className="text-white">100% Free & No Watermark:</b> Unlimited images and QR codes for personal and commercial use.</li>
+              <li><b className="text-white">Privacy First:</b> QR data is generated in your browser. We never store your WiFi password, UPI ID or URL.</li>
+              <li><b className="text-white">Fast & Reliable:</b> Uses your own domain API, so no third-party downtime.</li>
+              <li><b className="text-white">Perfect for Developers & Designers:</b> Test layouts, create mockups, and demo clients faster.</li>
+              <li><b className="text-white">Mobile Friendly:</b> Works perfectly on phone, tablet and desktop.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">About Lorem Pro Tool - Free Online Tools For Everyone</h2>
+            <p className="text-sm leading-relaxed"><Link href="https://lorem-pro-tool.run4ravish.workers.dev" className="text-white font-semibold underline underline-offset-4">Lorem Pro Tool</Link> is a 100% free website that provides simple, fast and secure online tools for students, developers, creators and everyday users. Our mission is to make daily digital tasks easy without signup, without ads overload and without tracking. On Lorem Pro Tool, you will find many useful free tools like Fake Data Generator, Password Generator, Placeholder QR Generator, Word Counter, Character Counter, Case Converter, Lorem Ipsum Generator and many more. All tools work directly in your browser, so your data stays private and safe. Whether you need a placeholder image for your website design, a QR code for your shop payment, dummy data for testing your project, or want to count words for your assignment, Lorem Pro Tool has the perfect free tool for you. We are adding new tools regularly to help you work faster and smarter. Bookmark Lorem Pro Tool and explore all our free online tools in one place.</p>
+            <p className="text-sm leading-relaxed mt-3">Explore all free tools on <Link href="https://lorem-pro-tool.run4ravish.workers.dev" className="text-white font-semibold underline underline-offset-4">Lorem Pro Tool - Home Page →</Link></p>
+          </section>
+
+          <section>
+            <h2 className="text-2xl font-bold text-white mb-2">Frequently Asked Questions (FAQs)</h2>
             <div className="space-y-3">
               {[
                 { q: "Is this tool free and without watermark?", a: "Yes, 100% free, no watermark, no login, no limit. Unlimited images and QR codes for personal and commercial use." },
@@ -195,18 +260,18 @@ export default function ImageQRGenerator() {
                 { q: "Can I use this API in my projects?", a: "Yes. Your API link is public: /api/{width}x{height}?text=Hello&bg=111827&color=ffffff. Use it in <img> tags like via.placeholder.com." },
                 { q: "Does QR data stay private?", a: "Yes, total privacy. QR is generated client-side, we don't save URL, WiFi password, UPI ID or any data." }
               ].map((faq, i) => (
-                <div key={i} className="bg-black border border-zinc-800 rounded-xl overflow-hidden">
-                  <button onClick={() => setOpenFaq(openFaq === i? null : i)} className="w-full flex justify-between items-center p-4 text-left">
+                <div key={i} className="border border-zinc-800 rounded-xl overflow-hidden">
+                  <button onClick={() => setOpenFaq(openFaq === i? null : i)} className="w-full flex justify-between items-center p-4 text-left bg-zinc-900 hover:bg-zinc-800">
                     <span className="font-semibold text-white text-sm md:text-base">{faq.q}</span>
                     <span className="text-violet-400 text-xl">{openFaq === i? "−" : "+"}</span>
                   </button>
                   {openFaq === i && (
-                    <div className="px-4 pb-4 text-sm text-zinc-400 border-t border-zinc-800 pt-3">{faq.a}</div>
+                    <div className="px-4 pb-4 pt-3 text-sm text-zinc-400 border-t border-zinc-800">{faq.a}</div>
                   )}
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </div>
