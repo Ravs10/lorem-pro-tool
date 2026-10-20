@@ -11,20 +11,6 @@ export const metadata: Metadata = {
     "free case converter", "online case converter", "case converter tool", 
     "lorem pro tool", "lorem pro tool case converter" 
   ],
-  authors: [{ name: "Advanced Case Converter" }],
-  creator: "Advanced Case Converter",
-  publisher: "Advanced Case Converter",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
   openGraph: {
     title: "Advanced Case Converter - 14+ Text Case Tools Free",
     description: "Convert text to 14+ cases instantly. UPPERCASE, lowercase, Title Case, camelCase, PascalCase, snake_case & more. Free & Private.",
@@ -32,11 +18,20 @@ export const metadata: Metadata = {
     siteName: "Lorem Pro Tool",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "https://lorem-pro-tool.run4ravish.workers.dev/case-converter/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Advanced Case Converter - 14+ Text Case Tools",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Advanced Case Converter - Free 14+ Case Tools",
     description: "Free tool to convert text to UPPERCASE, lowercase, Title Case, camelCase, snake_case and 9 more formats.",
+    images: ["https://lorem-pro-tool.run4ravish.workers.dev/case-converter/opengraph-image.png"],
   },
   alternates: {
     canonical: "https://lorem-pro-tool.run4ravish.workers.dev/case-converter",
