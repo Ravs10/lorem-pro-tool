@@ -8,7 +8,8 @@ export const metadata: Metadata = {
     "uppercase converter", "lowercase converter", "title case converter",
     "camelCase converter", "PascalCase converter", "snake_case converter",
     "kebab-case converter", "constant case converter", "text converter",
-    "free case converter", "online case converter", "case converter tool"
+    "free case converter", "online case converter", "case converter tool", 
+    "lorem pro tool", "lorem pro tool case converter" 
   ],
   authors: [{ name: "Advanced Case Converter" }],
   creator: "Advanced Case Converter",
@@ -27,16 +28,8 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Advanced Case Converter - 14+ Text Case Tools Free",
     description: "Convert text to 14+ cases instantly. UPPERCASE, lowercase, Title Case, camelCase, PascalCase, snake_case & more. Free & Private.",
-    url: "https://yourdomain.com/case-converter",
-    siteName: "Advanced Case Converter",
-    images: [
-      {
-        url: "/og-case-converter.png",
-        width: 1200,
-        height: 630,
-        alt: "Advanced Case Converter Tool",
-      },
-    ],
+    url: "https://lorem-pro-tool.run4ravish.workers.dev/case-converter",
+    siteName: "Lorem Pro Tool",
     locale: "en_US",
     type: "website",
   },
@@ -44,15 +37,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Advanced Case Converter - Free 14+ Case Tools",
     description: "Free tool to convert text to UPPERCASE, lowercase, Title Case, camelCase, snake_case and 9 more formats.",
-    images: ["/og-case-converter.png"],
-    creator: "@yourhandle",
   },
   alternates: {
-    canonical: "https://yourdomain.com/case-converter",
-    languages: {
-      "en-US": "https://yourdomain.com/case-converter",
-      "hi-IN": "https://yourdomain.com/hi/case-converter",
-    },
+    canonical: "https://lorem-pro-tool.run4ravish.workers.dev/case-converter",
   },
   category: "Utilities",
 };
