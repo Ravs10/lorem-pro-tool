@@ -37,22 +37,15 @@ function normalizeForCompare(
   normalizeSpaces: boolean
 ) {
   let s = line;
-
-  // Normalize multiple spaces and tabs into a single space
   if (normalizeSpaces) {
     s = s.replace(/[ \t]+/g, " ");
   }
-
-  // Remove leading and trailing spaces when enabled
   if (trim) {
     s = s.trim();
   }
-
-  // Ignore case when case-sensitive mode is disabled
   if (!caseSensitive) {
     s = s.toLowerCase();
   }
-
   return s;
 }
 
@@ -100,7 +93,6 @@ export default function RemoveDuplicateProPage() {
   }, [output, removed])
   const duplicatePercent = useMemo(() =>!stats.totalLines?0:Math.round((removed.length/stats.totalLines)*100), [removed, stats])
 
-  // TESTED PROCESS - ALL MODES WORKING
   const process = () => {
     let result: string[] = []
     let removedList: string[] = []
@@ -116,7 +108,6 @@ export default function RemoveDuplicateProPage() {
         for(const l of lines){ const isBlank=!l.trim(); if(isBlank&&prevBlank) continue; collapsed.push(l); prevBlank=isBlank }
         lines=collapsed
       }
-      // Create items with unique blank handling
       const all = lines.map((line, idx) => {
         const isBlank =!line.trim()
         const key = isBlank && blankMode==="keep"? `__blank_${idx}` : normalizeForCompare(line, caseSensitive, trimSpaces, normalizeSpaces)
@@ -175,7 +166,6 @@ export default function RemoveDuplicateProPage() {
           }
         }
         result = rev.reverse()
-        // Rebuild groups for last mode
         groupMap = new Map()
         const allKeys = [...result,...removedList].map(l => normalizeForCompare(l, caseSensitive, trimSpaces, normalizeSpaces))
         allKeys.forEach(k => { if(!k.startsWith("__blank_")) groupMap.set(k, (groupMap.get(k) || 0) + 1) })
@@ -210,7 +200,6 @@ export default function RemoveDuplicateProPage() {
         else { removedList.push(token); groupMap.set(matchKey, (groupMap.get(matchKey)||1)+1) }
       }
       const finalOutput = out.join("");
-
 setOutput(
   normalizeSpaces
     ? finalOutput.replace(/[ \t]+/g, " ")
@@ -246,7 +235,6 @@ setOutput(
     const seen: { key: string }[] = []
     const dup = new Set<number>()
     const lines = mode==="para"? input.split(/\n\s*\n/) : input.split("\n")
-    // apply same blank logic for highlight
     let filtered = lines
     if (blankMode==="remove") filtered = lines.filter(l=>l.trim()!=="")
     if (blankMode==="collapse") {
@@ -254,7 +242,6 @@ setOutput(
       for(const l of lines){ const isBlank=!l.trim(); if(isBlank&&prevBlank) continue; collapsed.push(l); prevBlank=isBlank }
       filtered = collapsed
     }
-    // We highlight based on original input index
     const originalLines = input.split("\n")
     const seenOrig: { key: string }[] = []
     originalLines.forEach((line, idx) => {
@@ -342,24 +329,24 @@ setOutput(
   "@graph": [
     {
       "@type": "WebPage",
-      "@id": "https://yourdomain.com/remove-duplicates#webpage",
-      url: "https://yourdomain.com/remove-duplicates",
+      "@id": "https://lorem-pro-tool.run4ravish.workers.dev/remove-duplicates#webpage",
+      url: "https://lorem-pro-tool.run4ravish.workers.dev/remove-duplicates",
       name: "Remove Duplicates Online Free - Remove Duplicate Lines in Seconds",
       description: "Remove duplicates online free. Delete duplicate lines, words, CSV & paragraphs with fuzzy match, normalize spaces, highlight & diff.",
-      isPartOf: { "@id": "https://yourdomain.com/#website" },
+      isPartOf: { "@id": "https://lorem-pro-tool.run4ravish.workers.dev/#website" },
       inLanguage: "en-US",
     },
     {
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: "https://yourdomain.com/" },
-        { "@type": "ListItem", position: 2, name: "Remove Duplicates", item: "https://yourdomain.com/remove-duplicates" },
+        { "@type": "ListItem", position: 1, name: "Home", item: "https://lorem-pro-tool.run4ravish.workers.dev/" },
+        { "@type": "ListItem", position: 2, name: "Remove Duplicates", item: "https://lorem-pro-tool.run4ravish.workers.dev/remove-duplicates" },
       ],
     },
     {
       "@type": "WebApplication",
       name: "Remove Duplicates Online Free",
-      url: "https://yourdomain.com/remove-duplicates",
+      url: "https://lorem-pro-tool.run4ravish.workers.dev/remove-duplicates",
       applicationCategory: "UtilitiesApplication",
       operatingSystem: "Any",
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -386,6 +373,14 @@ setOutput(
         { "@type": "HowToStep", position: 4, name: "Copy or Download", text: "Copy result or download as TXT, CSV or JSON." },
       ],
     },
+    {
+      "@type": "Article",
+      headline: "The Ultimate Guide to Removing Duplicates Online",
+      description: "Learn why duplicate data hurts productivity and how to clean it with advanced deduplication techniques.",
+      author: { "@type": "Organization", name: "Lorem Pro Tool" },
+      publisher: { "@type": "Organization", name: "Lorem Pro Tool" },
+      mainEntityOfPage: "https://lorem-pro-tool.run4ravish.workers.dev/remove-duplicates"
+    }
   ],
 }
 
@@ -521,6 +516,57 @@ setOutput(
                 <div className="font-mono text-xs text-rose-300">{removed.map((r,i)=><div key={i} className="border-b border-white/5 py-1">{r||"(blank)"}</div>)}</div>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* ========= SEO CONTENT - 1200+ WORDS - STRONGER SEO ========= */}
+        <div className="mt-16 glass-strong rounded-[28px] p-6 sm:p-10">
+          <h2 className="text-3xl font-bold">The Ultimate Guide to Removing Duplicates Online</h2>
+          <p className="mt-4 text-slate-300 text-[15px] leading-7">
+            Duplicate data is one of the most common and frustrating problems for writers, developers, marketers, students, and data analysts. Whether you are cleaning an email list, removing repeated lines from code, deduplicating keywords for SEO, or fixing a CSV file, duplicate entries waste time, increase file size, and cause errors. Our <strong>Remove Duplicates Online Free tool by Lorem Pro Tool</strong> solves this in seconds, directly in your browser, without uploading your data to any server.
+          </p>
+
+          <div className="mt-10 grid sm:grid-cols-2 gap-8 text-[14.5px] leading-7 text-slate-300">
+            <div>
+              <h3 className="text-xl font-bold text-white">What is a Duplicate Line Remover?</h3>
+              <p className="mt-3">A duplicate line remover is a text processing utility that scans your content line-by-line and filters out repeated lines. The core logic is simple: keep the first occurrence and remove the rest. However, a professional tool goes beyond exact matching. Our tool supports <strong>case-sensitive matching</strong>, <strong>trim spaces</strong>, <strong>normalize spaces</strong>, and even <strong>fuzzy matching using Levenshtein distance</strong>. This means `Apple` and ` apple ` can be treated as the same if you enable trim and case-insensitive mode, and `Apple` vs `Applle` can be treated as duplicate with 85% fuzzy threshold.</p>
+              
+              <h3 className="mt-8 text-xl font-bold text-white">Why Duplicate Data is Dangerous?</h3>
+              <ul className="mt-3 list-disc pl-5 space-y-2">
+                <li><strong>SEO Penalty:</strong> Duplicate keywords or meta descriptions can cause keyword cannibalization.</li>
+                <li><strong>Email Marketing:</strong> Sending duplicate emails to the same user hurts deliverability and looks unprofessional.</li>
+                <li><strong>Programming:</strong> Duplicate entries in arrays, config files, or logs cause bugs and increase memory usage.</li>
+                <li><strong>Data Analysis:</strong> In Excel or CSV, duplicates distort counts, averages, and pivot tables.</li>
+                <li><strong>Productivity Loss:</strong> Manually finding duplicates in 10,000 lines is impossible. Automation is essential.</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-white">Advanced Features Explained</h3>
+              <p className="mt-3"><strong>1. Keep First vs Keep Last:</strong> Keep First preserves the earliest occurrence (Apple, Banana, Apple → Apple, Banana). Keep Last preserves the latest (Apple, Banana, Apple → Banana, Apple). Use Keep Last when your list is chronological and you want the most recent entry.</p>
+              <p className="mt-3"><strong>2. Blank Line Handling:</strong> We offer three modes: Keep (preserve all empty lines), Remove (delete all blanks), and Collapse (convert multiple consecutive blanks into one). This is critical when cleaning code or paragraphs.</p>
+              <p className="mt-3"><strong>3. Fuzzy Match:</strong> This is our most powerful feature. Powered by Levenshtein algorithm, it detects typos and near-duplicates. For example, at 0.85 threshold, `gmail.com` and `gmai.com` will be flagged as duplicates. Adjust the slider from 0.5 (very fuzzy) to 1.0 (exact only).</p>
+              <p className="mt-3"><strong>4. Highlight & Diff View:</strong> Highlight shows live DUP badges in your input box before cleaning. Diff view shows a GitHub-style comparison where removed lines are red strikethrough and kept lines are green. No other free tool offers this combination.</p>
+            </div>
+          </div>
+
+          <div className="mt-10">
+            <h3 className="text-xl font-bold text-white">Use Cases for Different Modes</h3>
+            <div className="mt-4 grid sm:grid-cols-4 gap-4 text-[13.5px]">
+              <div className="glass rounded-2xl p-4"><h4 className="font-bold">Lines Mode</h4><p className="mt-2 text-slate-400">Best for email lists, log files, keyword lists, to-do lists. Removes duplicate lines exactly.</p></div>
+              <div className="glass rounded-2xl p-4"><h4 className="font-bold">Words Mode</h4><p className="mt-2 text-slate-400">Removes duplicate words while preserving spaces and punctuation. Great for cleaning articles or prompts.</p></div>
+              <div className="glass rounded-2xl p-4"><h4 className="font-bold">CSV Mode</h4><p className="mt-2 text-slate-400">Split by comma, semicolon, or newline. Ideal for deduplicating tags, SKUs, or CSV columns.</p></div>
+              <div className="glass rounded-2xl p-4"><h4 className="font-bold">Paragraph Mode</h4><p className="mt-2 text-slate-400">Split by double newline. Remove duplicate paragraphs from long articles or Lorem Ipsum blocks.</p></div>
+            </div>
+          </div>
+
+          <div className="mt-10 text-[14.5px] leading-7 text-slate-300">
+            <h3 className="text-xl font-bold text-white">How to Use This Tool for Maximum Efficiency (HowTo for SEO)</h3>
+            <p className="mt-3"><strong>Step 1: Paste or Import.</strong> Paste your text or drag & drop a .txt, .csv, .json file. The tool works with up to 1 million characters locally.</p>
+            <p className="mt-2"><strong>Step 2: Configure Settings.</strong> For most users: Case Sensitive OFF, Trim Spaces ON, Blank Mode Remove, Occurrence First. For typo cleaning: Enable Fuzzy Match at 0.85.</p>
+            <p className="mt-2"><strong>Step 3: Auto Clean.</strong> No button needed. The tool processes in real-time. Watch stats: Original, Unique, Removed, Duplicate %, Groups.</p>
+            <p className="mt-2"><strong>Step 4: Export.</strong> Copy to clipboard or download as TXT for general use, CSV for Excel/Sheets, or JSON for developers. All done 100% offline for privacy.</p>
+            <p className="mt-6">This tool is part of <strong>Lorem Pro Tool - lorem-pro-tool.run4ravish.workers.dev</strong>, a suite of free utilities including Lorem Ipsum Generator, Fake Data Generator, Word Counter, and more. We built it because we needed a duplicate remover that actually works with fuzzy logic, highlight, and diff - not just a basic filter. Now it is free for everyone, no signup, no ads interrupting your workflow, and fully private.</p>
           </div>
         </div>
 
