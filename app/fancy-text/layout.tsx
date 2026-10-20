@@ -3,9 +3,9 @@ import type { Metadata, Viewport } from 'next';
 const SITE_URL = 'https://lorem-pro-tool.run4ravish.workers.dev';
 const PAGE_URL = `${SITE_URL}/fancy-text`;
 const SITE_NAME = 'FancyText Generator';
-const SITE_TITLE = 'Fancy Text Generator — 500+ Stylish Fonts, Funny Text & Cool Unicode Styles (Free)';
+const SITE_TITLE = 'Fancy Text Generator — 1000+ Stylish Fonts, Funny Text & Cool Unicode Styles (Free)';
 const SITE_DESCRIPTION =
-  'Free fancy text generator with 500+ stylish fonts, 28 funny text styles, and cool Unicode characters. Instantly copy & paste fancy letters for Instagram, TikTok, Discord, Twitter/X, WhatsApp bios & posts. No signup, no ads, unlimited use.';
+  'Free fancy text generator with 1000+ stylish fonts, 28 funny text styles, and cool Unicode characters. Instantly copy & paste fancy letters for Instagram, TikTok, Discord, Twitter/X, WhatsApp bios & posts. No signup, no ads, unlimited use.';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     'uwu text generator', 'zalgo text', 'glitch text', 'leet speak', '1337 text',
     'pirate text', 'robot text', 'strikethrough text', 'aesthetic fonts',
     'decorative text', 'fancy text with colors', 'colored text generator', 'lorem pro tool', 'Lorem Ipsum Generator', 'lipsum pro', 
-    'share fancy text as image', 'fancy text keyboard shortcuts', 'undo redo text editor',
+    'share fancy text as image', 'fancy text keyboard shortcuts', 'undo redo text editor', "lorem pro tool fancy text generator" 
   ],
   authors: [{ name: SITE_NAME, url: PAGE_URL }],
   creator: SITE_NAME,
@@ -62,9 +62,9 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: `${SITE_URL}/og-image.png`,
+        url: `${SITE_URL}/og-fancy.png`,
         width: 1200, height: 630,
-        alt: 'Fancy Text Generator — 500+ Stylish Fonts & Funny Text',
+        alt: 'Fancy Text Generator — 1000+ Stylish Fonts & Funny Text',
         type: 'image/png',
       },
     ],
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: [`${SITE_URL}/og-image.png`],
+    images: [`${SITE_URL}/og-fancy.png`],
   },
   robots: {
     index: true, follow: true,
@@ -161,7 +161,7 @@ const jsonLd = {
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
       aggregateRating: { '@type': 'AggregateRating', ratingValue: '4.9', ratingCount: '1284', bestRating: '5', worstRating: '1' },
       featureList: [
-        '500+ fancy text styles', 'Funny text generator (28 modes)',
+        '1000+ fancy text styles', 'Funny text generator (28 modes)',
         'Bold, italic, cursive, gothic, bubble fonts',
         'Custom text colors and gradient backgrounds',
         'Share as PNG image with colors', 'Undo and Redo (up to 100 steps)',
@@ -169,7 +169,7 @@ const jsonLd = {
         'Favorites and recent history', 'Copy & paste with colors (HTML/RTF)',
         'Download as .txt', 'Works with Instagram, TikTok, Discord, WhatsApp, Twitter/X',
       ],
-      screenshot: `${SITE_URL}/og-image.png`,
+      screenshot: `${SITE_URL}/og-fancy.png`,
     },
     {
       '@type': 'FAQPage',
@@ -181,11 +181,11 @@ const jsonLd = {
     {
       '@type': 'HowTo',
       name: 'How to Use the Fancy Text Generator',
-      description: 'Generate, customize, and share 500+ fancy text styles and funny text in a few seconds.',
+      description: 'Generate, customize, and share 1000+ fancy text styles and funny text in a few seconds.',
       totalTime: 'PT1M',
       step: [
         { '@type': 'HowToStep', position: 1, name: 'Type your text', text: 'Type or paste your text into the input box. There is no character limit.' },
-        { '@type': 'HowToStep', position: 2, name: 'Choose a style', text: 'Browse 500+ fancy text styles by category or search, or pick a Funny Text style from the dropdown.' },
+        { '@type': 'HowToStep', position: 2, name: 'Choose a style', text: 'Browse 1000+ fancy text styles by category or search, or pick a Funny Text style from the dropdown.' },
         { '@type': 'HowToStep', position: 3, name: 'Customize color', text: 'Open the Color & Background panel to pick from 16 text colors and 12 background styles.' },
         { '@type': 'HowToStep', position: 4, name: 'Choose share mode', text: 'Toggle Share as PNG image ON to send a colored image, or leave OFF to share plain fancy text.' },
         { '@type': 'HowToStep', position: 5, name: 'Copy or Share', text: 'Click any style card to copy, or use the Share button. Rich colors are preserved on the clipboard.' },
