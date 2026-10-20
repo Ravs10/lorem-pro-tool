@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     "online duplicate remover",
     "unique line filter",
     "lorem pro tool", 
+    "lorem pro tool remove duplicates", 
     "text deduplicator tool"
   ],
   authors: [{ name: "Lorem Pro Tool" }],
