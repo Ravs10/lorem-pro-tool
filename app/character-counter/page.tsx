@@ -402,6 +402,7 @@ export default function Page() {
         </header>
 
         <main className="max-w-[1280px] mx-auto grid lg:grid-cols-[1.15fr_380px] gap-4 p-4">
+          <h1 className="sr-only">Character Counter & Word Counter - Free Online Tool - Textlyzer PRO</h1>
           <section className={`rounded-[22px] border p-3 md:p-4 shadow-xl editor-wrap ${surface}`}>
             <div className={`flex flex-wrap items-center gap-1.5 p-2 rounded-[14px] mb-3 border ${dark? "bg-[#0e0f1a] border-white/10" : "bg-[#f7f8ff] border-black/5"}`}>
               <span className="text-[10px] opacity-50 font-bold px-1">FORMAT</span>
@@ -485,7 +486,7 @@ export default function Page() {
               <button onClick={()=>setSlug(title.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]+/g,"-").replace(/^-|-$/g,""))} className="w-full py-2.5 rounded-full bg-[#5b5bff] hover:bg-[#6d6dff] text-white text-xs font-bold transition-all">Generate Slug from Title</button>
               <div className="rounded-[12px] border p-3 bg-white text-black shadow-inner">
                 <div className="text-[13px] text-[#1a0dab] truncate">{title||"Your Title Preview - Google SERP"}</div>
-                <div className="text-[11px] text-[#006621]">https://textlyzer.app/{slug||"character-counter"}</div>
+                <div className="text-[11px] text-[#006621]">https://lorem-pro-tool.run4ravish.workers.dev/{slug||"character-counter"}</div>
                 <div className="text-[12px] text-[#545454] line-clamp-2">{desc||"Your meta description preview will appear here."}</div>
               </div>
             </div>}
@@ -542,7 +543,6 @@ export default function Page() {
             <button className={button} onClick={()=>setShowGuide(!showGuide)}>{showGuide?"Hide Guide":"Show Guide"}</button>
           </div>
 
-          {/* FAQ Schema for Google Rich Results */}
           <script type="application/ld+json" dangerouslySetInnerHTML={{__html: JSON.stringify({
             "@context":"https://schema.org",
             "@type":"FAQPage",
@@ -609,7 +609,7 @@ export default function Page() {
               <p><strong>Related searches:</strong> character counter, word counter, letter counter, character count online, word count tool, Hindi word counter, duplicate line remover, SEO title checker, meta description length checker, text analyzer, reading time calculator, speaking time calculator, slug generator, free online text tools.</p>
             </article>
           </div>}
-          <p className="text-[11px] opacity-40 mt-8 text-center">© 2026 Textlyzer PRO • Free Character Counter • Word Counter • SEO Analyzer • Duplicate Remover • Textlyzer.app</p>
+          <p className="text-[11px] opacity-40 mt-8 text-center">© 2026 Textlyzer PRO • Free Character Counter • Word Counter • SEO Analyzer • Duplicate Remover • lorem-pro-tool.run4ravish.workers.dev</p>
         </section>
       </div>
     </div>
