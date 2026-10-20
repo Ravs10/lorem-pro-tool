@@ -23,6 +23,8 @@ export const metadata: Metadata = {
     "slug generator",
     "reading time calculator",
     "text analyzer",
+    "lorem pro tool", 
+    "Lorem Pro Tool character counter", 
     "textlyzer"
   ],
   authors: [{ name: "Textlyzer" }],
