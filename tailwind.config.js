@@ -8,8 +8,8 @@ module.exports = {
     extend: {
       colors: {
         // Velora Brand
-        brand: "tomato",
-        dark: "gold",
+        brand: "#FF7A1A",
+        dark: "#FF7A1A",
         dark2: "#15151F",
         light: "#FFE5D0",
         // Palette Tool Export - yaha se tu tool se jo bhi copy karega, yaha paste karna
