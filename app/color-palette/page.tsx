@@ -177,19 +177,6 @@ export default function ColorPaletteProFull() {
           ))}
         </div>
 
-        {/* CLICKABLE LIVE TEST */}
-        <div className="mt-10 bg-dark border border-white/[0.07] rounded-[20px] p-5">
-          <h3 className="font-bold text-[16px]">Tailwind Live Test - Click to Copy</h3>
-          <p className="text-[12px] text-white/40 mt-1">Ab box pe click karo to color code copy hoga</p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <button onClick={()=>copy("#FF7A1A")} className="bg-brand text-white p-4 rounded-full text-[13px] font-bold hover:scale-105 transition">bg-brand {copied==="#FF7A1A"?"✓":""}</button>
-            <button onClick={()=>copy("#0A0A14")} className="bg-dark text-light p-4 rounded-xl text-[13px] border border-white/10 hover:scale-105 transition">bg-dark + text-light {copied==="#0A0A14"?"✓":""}</button>
-            <button onClick={()=>copy("#FF7A1A")} className="bg-palette-1 p-4 rounded-xl text-[13px] text-black font-bold hover:scale-105 transition">palette-1 {copied==="#FF7A1A" && palette[0]==="#FF7A1A" ? "✓" : ""}</button>
-            <button onClick={()=>copy("#0A0A14")} className="bg-palette-2 text-white p-4 rounded-xl text-[13px] border border-white/10 hover:scale-105 transition">palette-2</button>
-            <button onClick={()=>copy("#FFE5D0")} className="bg-palette-4 text-black p-4 rounded-xl text-[13px] hover:scale-105 transition">palette-4</button>
-          </div>
-        </div>
-
         <div className="grid md:grid-cols-2 gap-4 mt-10">
           <div className="bg-[#15151F] border border-white/[0.07] rounded-[20px] p-5">
             <h3 className="font-bold text-[16px]">Gradient Generator</h3>
