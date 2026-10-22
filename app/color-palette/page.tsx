@@ -136,27 +136,27 @@ export default function ColorPaletteProFull() {
   return (
     <div className="min-h-screen bg-[#0A0A14] text-white overflow-x-hidden">
       <div className="max-w-[1100px] mx-auto pt-4 px-3">
-        <div className="bg-[#14141F]/90 border border-white/[0.07] rounded-[14px] px-4 py-3 flex justify-between items-center">
-          <span className="font-black tracking-widest text-[13px]">LOREM PRO • PALETTE 10/10 FIXED</span>
-          <a href="/" className="bg-[#FF7A1A] px-4 py-2 rounded-full text-[12px] font-bold">Back</a>
+        <div className="bg-brand border border-white/[0.07] rounded-[14px] px-4 py-3 flex justify-between items-center">
+          <span className="font-black tracking-widest text-[13px] text-white">LOREM PRO • PALETTE 10/10 FIXED</span>
+          <a href="/" className="bg-black px-4 py-2 rounded-full text-[12px] font-bold text-white">Back</a>
         </div>
       </div>
 
       <section className="max-w-[1100px] mx-auto px-4 py-6">
-        <h1 className="text-[32px] md:text-[48px] font-extrabold leading-[0.9] text-center">Color Palette <span className="text-[#FF7A1A]">Studio</span></h1>
+        <h1 className="text-[32px] md:text-[48px] font-extrabold leading-[0.9] text-center">Color Palette <span className="text-brand">Studio</span></h1>
         <div className="max-w-[728px] mx-auto mt-6 bg-[#15151F] border border-dashed border-white/10 rounded-xl h-[90px] flex items-center justify-center text-white/20 text-[12px]">Ad Slot Top</div>
 
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <select value={mode} onChange={e=>setMode(e.target.value)} className="bg-[#15151F] border border-white/10 rounded-full px-4 py-2 text-[13px]"><option value="random">Random</option><option value="monochromatic">Monochromatic</option><option value="analogous">Analogous</option><option value="complementary">Complementary</option><option value="triadic">Triadic</option><option value="shades">Shades</option></select>
           <select value={blindMode} onChange={e=>setBlindMode(e.target.value)} className="bg-[#15151F] border border-white/10 rounded-full px-4 py-2 text-[13px]"><option value="normal">Normal</option><option value="deuteranopia">Deuteranopia</option><option value="protanopia">Protanopia</option><option value="tritanopia">Tritanopia</option></select>
-          <button onClick={generate} className="bg-[#FF7A1A] px-6 py-2 rounded-full font-bold text-[13px]">Generate</button>
+          <button onClick={generate} className="bg-brand px-6 py-2 rounded-full font-bold text-[13px] text-white">Generate</button>
           <button onClick={()=>fileInputRef.current?.click()} className="bg-white text-black px-6 py-2 rounded-full font-bold text-[13px]">Image → Palette</button>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImage} className="hidden" /><canvas ref={canvasRef} className="hidden" />
         </div>
 
         <div className="max-w-[560px] mx-auto mt-4 flex gap-2">
           <input value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="AI: sunset desert, ocean..." className="flex-1 bg-[#15151F] border border-white/10 rounded-full px-4 py-2.5 text-[13px] outline-none" />
-          <button onClick={generateFromAI} className="bg-[#15151F] border border-[#FF7A1A]/30 text-[#FF7A1A] px-5 py-2.5 rounded-full font-bold text-[13px]">AI Generate</button>
+          <button onClick={generateFromAI} className="bg-[#15151F] border border-brand/30 text-brand px-5 py-2.5 rounded-full font-bold text-[13px]">AI Generate</button>
         </div>
 
         <div className="mt-8 grid grid-cols-2 md:grid-cols-5 gap-3">
@@ -169,7 +169,7 @@ export default function ColorPaletteProFull() {
                 </div>
               </div>
               <div className="bg-[#15151F] p-3 flex justify-between items-center">
-                <button onClick={()=>copy(color)} className="font-mono text-[13px] font-bold hover:text-[#FF7A1A]">{color.toUpperCase()}</button>
+                <button onClick={()=>copy(color)} className="font-mono text-[13px] font-bold hover:text-brand">{color.toUpperCase()}</button>
                 <input type="color" value={color} onChange={e=>{ const np=[...palette]; np[i]=e.target.value; setPalette(np); }} className="w-6 h-6 rounded bg-transparent cursor-pointer" title="Pick color (Eyedropper fallback)" />
               </div>
               {copied===color && <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black text-white text-[11px] px-3 py-1 rounded-full">Copied!</div>}
@@ -177,20 +177,16 @@ export default function ColorPaletteProFull() {
           ))}
         </div>
 
-        {/* ✅✅ YAHAN ADD KIYA HAI - TAILWIND LIVE TEST - bg-brand use ho raha hai */}
+        {/* CLICKABLE LIVE TEST */}
         <div className="mt-10 bg-dark border border-white/[0.07] rounded-[20px] p-5">
-          <h3 className="font-bold text-[16px]">Tailwind Live Test - Brand Colors</h3>
-          <p className="text-[12px] text-white/40 mt-1">Ye check karne ke liye hai ki tailwind.config.js kaam kar raha hai ya nahi</p>
+          <h3 className="font-bold text-[16px]">Tailwind Live Test - Click to Copy</h3>
+          <p className="text-[12px] text-white/40 mt-1">Ab box pe click karo to color code copy hoga</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <div className="bg-brand text-white p-4 rounded-full text-[13px] font-bold">
-              bg-brand
-            </div>
-            <div className="bg-dark text-light p-4 rounded-xl text-[13px] border border-white/10">
-              bg-dark + text-light
-            </div>
-            <div className="bg-palette-1 p-4 rounded-xl text-[13px] text-black font-bold">palette-1</div>
-            <div className="bg-palette-2 text-white p-4 rounded-xl text-[13px] border border-white/10">palette-2</div>
-            <div className="bg-palette-4 text-black p-4 rounded-xl text-[13px]">palette-4</div>
+            <button onClick={()=>copy("#FF7A1A")} className="bg-brand text-white p-4 rounded-full text-[13px] font-bold hover:scale-105 transition">bg-brand {copied==="#FF7A1A"?"✓":""}</button>
+            <button onClick={()=>copy("#0A0A14")} className="bg-dark text-light p-4 rounded-xl text-[13px] border border-white/10 hover:scale-105 transition">bg-dark + text-light {copied==="#0A0A14"?"✓":""}</button>
+            <button onClick={()=>copy("#FF7A1A")} className="bg-palette-1 p-4 rounded-xl text-[13px] text-black font-bold hover:scale-105 transition">palette-1 {copied==="#FF7A1A" && palette[0]==="#FF7A1A" ? "✓" : ""}</button>
+            <button onClick={()=>copy("#0A0A14")} className="bg-palette-2 text-white p-4 rounded-xl text-[13px] border border-white/10 hover:scale-105 transition">palette-2</button>
+            <button onClick={()=>copy("#FFE5D0")} className="bg-palette-4 text-black p-4 rounded-xl text-[13px] hover:scale-105 transition">palette-4</button>
           </div>
         </div>
 
@@ -206,17 +202,17 @@ export default function ColorPaletteProFull() {
             <h3 className="font-bold text-[16px]">Contrast Checker</h3>
             <div className="flex gap-3 mt-4"><div><p className="text-[11px] text-white/50">Background</p><input type="color" value={contrast.bg} onChange={e=>setContrast({...contrast,bg:e.target.value})} className="w-12 h-12 rounded-lg bg-transparent" /></div><div><p className="text-[11px] text-white/50">Text</p><input type="color" value={contrast.text} onChange={e=>setContrast({...contrast,text:e.target.value})} className="w-12 h-12 rounded-lg bg-transparent" /></div></div>
             <div className="mt-4 rounded-xl p-4 text-center font-bold" style={{backgroundColor: contrast.bg, color: contrast.text}}>Sample Text Aa</div>
-            <p className="mt-3 text-[12px]">Ratio: <span className="font-bold text-[#FF7A1A]">{getContrast(contrast.bg, contrast.text)}:1</span> {Number(getContrast(contrast.bg, contrast.text))>=4.5 ? "✅ Pass" : "❌ Fail"}</p>
+            <p className="mt-3 text-[12px]">Ratio: <span className="font-bold text-brand">{getContrast(contrast.bg, contrast.text)}:1</span> {Number(getContrast(contrast.bg, contrast.text))>=4.5 ? "✅ Pass" : "❌ Fail"}</p>
           </div>
         </div>
 
         <div className="mt-8 grid md:grid-cols-3 gap-3">
           <div className="bg-[#15151F] rounded-xl p-4 border border-white/5"><p className="text-[11px] text-white/40 tracking-widest">TAILWIND</p><pre className="mt-2 text-[11px] overflow-x-auto text-white/60 whitespace-pre-wrap">{tailwindCode}</pre><button onClick={()=>copy(tailwindCode)} className="mt-3 bg-white text-black text-[11px] font-bold px-4 py-1.5 rounded-full hover:scale-105 transition">Copy Tailwind {copied===tailwindCode?"✓":""}</button></div>
           <div className="bg-[#15151F] rounded-xl p-4 border border-white/5"><p className="text-[11px] text-white/40 tracking-widest">CSS VARIABLES</p><pre className="mt-2 text-[11px] overflow-x-auto text-white/60 whitespace-pre-wrap">{cssCode}</pre><button onClick={()=>copy(cssCode)} className="mt-3 bg-white text-black text-[11px] font-bold px-4 py-1.5 rounded-full hover:scale-105 transition">Copy CSS Vars {copied===cssCode?"✓":""}</button></div>
-          <div className="bg-[#15151F] rounded-xl p-4 border border-white/5"><p className="text-[11px] text-white/40 tracking-widest">SHARE LINK</p><p className="mt-2 text-[11px] text-white/60 break-all">{typeof window!=="undefined" ? window.location.href : ""}</p><button onClick={()=>typeof window!=="undefined" && copy(window.location.href)} className="mt-3 bg-[#FF7A1A] text-black text-[11px] font-bold px-4 py-1.5 rounded-full hover:scale-105 transition">Copy Link {copied=== (typeof window!=="undefined" ? window.location.href : "") ?"✓":""}</button></div>
+          <div className="bg-[#15151F] rounded-xl p-4 border border-white/5"><p className="text-[11px] text-white/40 tracking-widest">SHARE LINK</p><p className="mt-2 text-[11px] text-white/60 break-all">{typeof window!=="undefined" ? window.location.href : ""}</p><button onClick={()=>typeof window!=="undefined" && copy(window.location.href)} className="mt-3 bg-brand text-white text-[11px] font-bold px-4 py-1.5 rounded-full hover:scale-105 transition">Copy Link {copied=== (typeof window!=="undefined" ? window.location.href : "") ?"✓":""}</button></div>
         </div>
 
-        {copied && copied.length>20 && <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-[#FF7A1A] text-black font-bold text-[13px] px-6 py-3 rounded-full shadow-xl z-50">Copied to clipboard!</div>}
+        {copied && copied.length>20 && <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-brand text-white font-bold text-[13px] px-6 py-3 rounded-full shadow-xl z-50">Copied to clipboard!</div>}
 
         {history.length>0 && (<div className="mt-6"><p className="text-[12px] text-white/40 tracking-widest mb-2">HISTORY</p><div className="flex gap-2 overflow-x-auto pb-2">{history.map((h,idx)=><button key={idx} onClick={()=>setPalette(h)} className="flex shrink-0 rounded-full overflow-hidden border border-white/10 hover:scale-105 transition">{h.map((c,i)=><div key={i} className="w-6 h-8" style={{backgroundColor:c}}></div>)}</button>)}</div></div>)}
 
