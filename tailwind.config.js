@@ -8,7 +8,7 @@ module.exports = {
     extend: {
       colors: {
         // Velora Brand
-        brand: "#FF7A1A",
+        brand: "tomato",
         dark: "#0A0A14",
         dark2: "#15151F",
         light: "#FFE5D0",
