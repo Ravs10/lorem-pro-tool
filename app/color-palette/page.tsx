@@ -170,13 +170,28 @@ export default function PaletteStudio() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: aiPrompt }),
       });
-      const data = await res.json();
-      if (Array.isArray(data.colors) && data.colors.length >= 3) {
-        setPalette(data.colors.slice(0, SIZE));
-        saveHistory(data.colors.slice(0, SIZE));
-        toastMsg(data.source === "ai" ? "AI palette ready" : "Fallback palette ready");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.colors) && data.colors.length >= 3) {
+          setPalette(data.colors.slice(0, SIZE));
+          saveHistory(data.colors.slice(0, SIZE));
+          toastMsg(data.source === "ai" ? "AI palette ready" : "Fallback palette ready");
+          return;
+        }
       }
-    } catch { toastMsg("AI failed"); }
+      throw new Error("api failed");
+    } catch {
+      // FALLBACK - works offline, no API needed
+      const p = aiPrompt.toLowerCase(); let pal: string[] = [];
+      if(p.includes("sunset")||p.includes("desert")) pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
+      else if(p.includes("ocean")||p.includes("sea")) pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
+      else if(p.includes("forest")||p.includes("nature")) pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
+      else if(p.includes("neon")||p.includes("cyber")) pal=["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
+      else if(p.includes("pastel")) pal=["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
+      else pal=[randomHex(),randomHex(),randomHex(),randomHex(),randomHex()];
+      setPalette(pal); saveHistory(pal);
+      toastMsg("AI offline - showing matched palette");
+    }
     finally { setAiLoading(false); }
   };
 
@@ -212,9 +227,12 @@ export default function PaletteStudio() {
   const tailwind4 = useMemo(
     () => `@theme {\n${palette.map((c, i) => `  --color-p${i + 1}: ${c};`).join("\n")}\n}`,
     [palette]);
-  const gradientCss = useMemo(
-    () => `background: linear-gradient(90deg, ${gradient.c1}, ${gradient.c2});`,
+  const gradientCssValue = useMemo(
+    () => `linear-gradient(90deg, ${gradient.c1}, ${gradient.c2})`,
     [gradient]);
+  const gradientCss = useMemo(
+    () => `background: ${gradientCssValue};`,
+    [gradientCssValue]);
   const contrastRatioVal = useMemo(
     () => +contrastRatio(contrast.bg, contrast.text).toFixed(2),
     [contrast]);
@@ -340,7 +358,7 @@ export default function PaletteStudio() {
                 onChange={(e) => setGradient({ ...gradient, c2: e.target.value })}
                 className="h-12 w-12 rounded-lg bg-transparent" />
             </div>
-            <div className="mt-3 h-20 rounded-xl" style={{ background: gradientCss }} />
+            <div className="mt-3 h-20 rounded-xl" style={{ background: gradientCssValue }} />
             <pre className="mt-2 select-all text-[11px] text-white/50">{gradientCss}</pre>
             <button onClick={() => copy(gradientCss)}
               className="mt-2 rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-black">
@@ -461,5 +479,5 @@ export default function PaletteStudio() {
         </div>
       )}
     </div>
-  );
+  )
 }
