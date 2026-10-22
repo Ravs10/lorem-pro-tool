@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 
-// --- HELPERS ---
 const randomHex = () => "#" + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');
 
 const hexToHsl = (hex: string) => {
@@ -29,52 +28,39 @@ export default function ColorPalettePro() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Shareable URL
   useEffect(()=>{
     const params = new URLSearchParams(window.location.search);
     const p = params.get("palette");
     if(p){ setPalette(p.split("-").map(c=>"#"+c)); }
     const saved = localStorage.getItem("palette_history");
-    if(saved) setHistory(JSON.parse(saved));
+    if(saved) try{ setHistory(JSON.parse(saved)); }catch{}
   },[]);
 
   const saveHistory = (pal: string[]) => {
     const newHist = [pal, ...history].slice(0,10);
     setHistory(newHist);
-    localStorage.setItem("palette_history", JSON.stringify(newHist));
-    const url = `${window.location.pathname}?palette=${pal.map(c=>c.replace("#","")).join("-")}`;
-    window.history.replaceState({}, "", url);
+    try{ localStorage.setItem("palette_history", JSON.stringify(newHist)); }catch{}
+    try{
+      const url = `${window.location.pathname}?palette=${pal.map(c=>c.replace("#","")).join("-")}`;
+      window.history.replaceState({}, "", url);
+    }catch{}
   };
 
   const generate = () => {
     let newPal: string[] = [];
     const base = palette[0] || randomHex();
     const hsl = hexToHsl(base);
-    
-    if(mode==="random"){
-      newPal = palette.map((c,i)=> locked[i] ? c : randomHex());
-    } else if(mode==="monochromatic"){
-      newPal = [0,1,2,3,4].map(i=> locked[i] ? palette[i] : hslToHex(hsl.h, hsl.s, Math.max(10, Math.min(90, 20 + i*15))));
-    } else if(mode==="analogous"){
-      newPal = [ -60, -30, 0, 30, 60 ].map((off,i)=> locked[i] ? palette[i] : hslToHex((hsl.h+off+360)%360, hsl.s, hsl.l));
-    } else if(mode==="complementary"){
-      newPal = [0, 0, 180, 180, 180].map((off,i)=> {
-        if(locked[i]) return palette[i];
-        if(i<2) return hslToHex(hsl.h, hsl.s, i===0?hsl.l:Math.max(20,hsl.l-20));
-        return hslToHex((hsl.h+180)%360, hsl.s, 20 + (i-2)*20);
-      });
-    } else if(mode==="triadic"){
-      newPal = [0,120,240,0,120].map((off,i)=> locked[i] ? palette[i] : hslToHex((hsl.h+off)%360, hsl.s, 30 + i*10));
-    } else if(mode==="shades"){
-      newPal = [0,1,2,3,4].map(i=> locked[i] ? palette[i] : hslToHex(hsl.h, 10 + i*20, hsl.l));
-    }
-    setPalette(newPal);
-    saveHistory(newPal);
+    if(mode==="random"){ newPal = palette.map((c,i)=> locked[i] ? c : randomHex()); }
+    else if(mode==="monochromatic"){ newPal = [0,1,2,3,4].map(i=> locked[i] ? palette[i] : hslToHex(hsl.h, hsl.s, Math.max(10, Math.min(90, 20 + i*15)))); }
+    else if(mode==="analogous"){ newPal = [-60,-30,0,30,60].map((off,i)=> locked[i] ? palette[i] : hslToHex((hsl.h+off+360)%360, hsl.s, hsl.l)); }
+    else if(mode==="complementary"){ newPal = [0,0,180,180,180].map((off,i)=>{ if(locked[i]) return palette[i]; if(i<2) return hslToHex(hsl.h, hsl.s, i===0?hsl.l:Math.max(20,hsl.l-20)); return hslToHex((hsl.h+180)%360, hsl.s, 20 + (i-2)*20); }); }
+    else if(mode==="triadic"){ newPal = [0,120,240,0,120].map((off,i)=> locked[i] ? palette[i] : hslToHex((hsl.h+off)%360, hsl.s, 30 + i*10)); }
+    else if(mode==="shades"){ newPal = [0,1,2,3,4].map(i=> locked[i] ? palette[i] : hslToHex(hsl.h, 10 + i*20, hsl.l)); }
+    setPalette(newPal); saveHistory(newPal);
   };
 
   const copy = (text: string) => { navigator.clipboard.writeText(text); setCopied(text); setTimeout(()=>setCopied(null),1200); };
 
-  // K-Means Dominant Color (better than random)
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if(!file) return;
     const img = new Image(); img.src = URL.createObjectURL(file);
@@ -88,14 +74,12 @@ export default function ColorPalettePro() {
       }
       const sorted = Array.from(map.entries()).sort((a,b)=>b[1]-a[1]).slice(0,5);
       const cols = sorted.map(([k])=>{ const [r,g,b]=k.split("-").map(Number); return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`; });
-      if(cols.length>=3){ setPalette(cols.length===5?cols:[...cols, randomHex(), randomHex()]); saveHistory(cols); }
+      if(cols.length>=3){ const finalPal = cols.length===5?cols:[...cols, randomHex(), randomHex()]; setPalette(finalPal); saveHistory(finalPal); }
     };
   };
 
-  // AI Prompt to Palette (keyword based, no API)
   const generateFromAI = () => {
-    const p = aiPrompt.toLowerCase();
-    let pal: string[] = [];
+    const p = aiPrompt.toLowerCase(); let pal: string[] = [];
     if(p.includes("sunset")||p.includes("desert")) pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
     else if(p.includes("ocean")||p.includes("sea")) pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
     else if(p.includes("forest")||p.includes("nature")) pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
@@ -105,22 +89,23 @@ export default function ColorPalettePro() {
     setPalette(pal); saveHistory(pal);
   };
 
-  // Eyedropper API
   const openEyedropper = async (index: number) => {
     // @ts-ignore
-    if(!window.EyeDropper){ alert("Eyedropper not supported in this browser"); return; }
-    // @ts-ignore
-    const eyeDropper = new window.EyeDropper(); const result = await eyeDropper.open();
-    const newPal=[...palette]; newPal[index]=result.sRGBHex; setPalette(newPal);
+    if(typeof window === "undefined" || !window.EyeDropper){ alert("Eyedropper not supported in this browser"); return; }
+    try{
+      // @ts-ignore
+      const eyeDropper = new window.EyeDropper(); const result = await eyeDropper.open();
+      const newPal=[...palette]; newPal[index]=result.sRGBHex; setPalette(newPal);
+    }catch{}
   };
 
-  // Color Blind Simulation (simple filter)
+  // FIXED FUNCTION - YAHI ERROR THA
   const simulateBlind = (hex: string) => {
     if(blindMode==="normal") return hex;
-    const {r,g,b}=hexToHsl(hex); // quick fake simulation by desaturating/rotating
-    if(blindMode==="deuteranopia") return hslToHex((r+10)%360, g*0.4, b);
-    if(blindMode==="protanopia") return hslToHex((r+20)%360, g*0.5, b);
-    if(blindMode==="tritanopia") return hslToHex((r+180)%360, g*0.6, b);
+    const {h,s,l}=hexToHsl(hex);
+    if(blindMode==="deuteranopia") return hslToHex((h+10)%360, s*0.4, l);
+    if(blindMode==="protanopia") return hslToHex((h+20)%360, s*0.5, l);
+    if(blindMode==="tritanopia") return hslToHex((h+180)%360, s*0.6, l);
     return hex;
   };
 
@@ -132,31 +117,19 @@ export default function ColorPalettePro() {
           <a href="/" className="bg-[#FF7A1A] px-4 py-2 rounded-full text-[12px] font-bold">Back</a>
         </div>
       </div>
-
       <section className="max-w-[1100px] mx-auto px-4 py-6">
         <h1 className="text-[30px] md:text-[44px] font-extrabold text-center leading-[0.9]">10/10 Color Palette <span className="text-[#FF7A1A]">Studio</span></h1>
-        
-        {/* Controls */}
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <select value={mode} onChange={e=>setMode(e.target.value)} className="bg-[#15151F] border border-white/10 rounded-full px-4 py-2 text-[13px]">
-            <option value="random">Random</option><option value="monochromatic">Monochromatic</option><option value="analogous">Analogous</option><option value="complementary">Complementary</option><option value="triadic">Triadic</option><option value="shades">Shades</option>
-          </select>
-          <select value={blindMode} onChange={e=>setBlindMode(e.target.value)} className="bg-[#15151F] border border-white/10 rounded-full px-4 py-2 text-[13px]">
-            <option value="normal">Normal Vision</option><option value="deuteranopia">Deuteranopia</option><option value="protanopia">Protanopia</option><option value="tritanopia">Tritanopia</option>
-          </select>
-          <button onClick={generate} className="bg-[#FF7A1A] px-6 py-2 rounded-full font-bold text-[13px] hover:scale-105 transition">Generate</button>
+          <select value={mode} onChange={e=>setMode(e.target.value)} className="bg-[#15151F] border border-white/10 rounded-full px-4 py-2 text-[13px]"><option value="random">Random</option><option value="monochromatic">Monochromatic</option><option value="analogous">Analogous</option><option value="complementary">Complementary</option><option value="triadic">Triadic</option><option value="shades">Shades</option></select>
+          <select value={blindMode} onChange={e=>setBlindMode(e.target.value)} className="bg-[#15151F] border border-white/10 rounded-full px-4 py-2 text-[13px]"><option value="normal">Normal Vision</option><option value="deuteranopia">Deuteranopia</option><option value="protanopia">Protanopia</option><option value="tritanopia">Tritanopia</option></select>
+          <button onClick={generate} className="bg-[#FF7A1A] px-6 py-2 rounded-full font-bold text-[13px]">Generate</button>
           <button onClick={()=>fileInputRef.current?.click()} className="bg-white text-black px-6 py-2 rounded-full font-bold text-[13px]">Image → Palette</button>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
-          <canvas ref={canvasRef} className="hidden" />
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImage} className="hidden" /><canvas ref={canvasRef} className="hidden" />
         </div>
-
-        {/* AI Prompt */}
         <div className="max-w-[500px] mx-auto mt-4 flex gap-2">
-          <input value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="AI: e.g. sunset desert, ocean, neon cyber..." className="flex-1 bg-[#15151F] border border-white/10 rounded-full px-4 py-2.5 text-[13px] outline-none focus:border-[#FF7A1A]/50" />
-          <button onClick={generateFromAI} className="bg-[#15151F] border border-[#FF7A1A]/30 text-[#FF7A1A] px-5 py-2.5 rounded-full font-bold text-[13px] hover:bg-[#FF7A1A] hover:text-black transition">AI Generate</button>
+          <input value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} placeholder="AI: e.g. sunset desert, ocean, neon cyber..." className="flex-1 bg-[#15151F] border border-white/10 rounded-full px-4 py-2.5 text-[13px] outline-none" />
+          <button onClick={generateFromAI} className="bg-[#15151F] border border-[#FF7A1A]/30 text-[#FF7A1A] px-5 py-2.5 rounded-full font-bold text-[13px]">AI Generate</button>
         </div>
-
-        {/* Palette */}
         <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-3">
           {palette.map((color,i)=>(
             <div key={i} className="group relative rounded-[20px] overflow-hidden border border-white/10 hover:scale-[1.02] transition-all">
@@ -165,72 +138,13 @@ export default function ColorPalettePro() {
                   <button onClick={(e)=>{e.stopPropagation(); const l=[...locked]; l[i]=!l[i]; setLocked(l);}} className="w-7 h-7 bg-black/60 backdrop-blur rounded-full text-[12px]">{locked[i]?"🔒":"🔓"}</button>
                   <button onClick={(e)=>{e.stopPropagation(); openEyedropper(i);}} className="w-7 h-7 bg-black/60 backdrop-blur rounded-full text-[10px]">👁️</button>
                 </div>
-                <div className="absolute bottom-2 left-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                  <button onClick={(e)=>{e.stopPropagation(); if(i>0){ const np=[...palette]; [np[i],np[i-1]]=[np[i-1],np[i]]; setPalette(np); }}} className="w-6 h-6 bg-black/60 rounded-full text-[10px]">◀</button>
-                  <button onClick={(e)=>{e.stopPropagation(); if(i<4){ const np=[...palette]; [np[i],np[i+1]]=[np[i+1],np[i]]; setPalette(np); }}} className="w-6 h-6 bg-black/60 rounded-full text-[10px]">▶</button>
-                </div>
               </div>
               <div className="bg-[#15151F] p-3">
                 <button onClick={()=>copy(color)} className="font-mono text-[13px] font-bold hover:text-[#FF7A1A] w-full text-left">{color.toUpperCase()}</button>
-                <div className="mt-1 flex gap-1">
-                  <input type="color" value={color} onChange={e=>{ const np=[...palette]; np[i]=e.target.value; setPalette(np); }} className="w-6 h-6 rounded bg-transparent" />
-                  <span className="text-[10px] text-white/40">RGB {Object.values(hexToHsl(color)).map(v=>Math.round(v)).join(" ")}</span>
-                </div>
               </div>
               {copied===color && <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black text-white text-[11px] px-3 py-1 rounded-full">Copied!</div>}
             </div>
           ))}
-        </div>
-
-        {/* Export */}
-        <div className="mt-8 grid md:grid-cols-3 gap-3">
-          <div className="bg-[#15151F] rounded-xl p-4 border border-white/5">
-            <p className="text-[11px] text-white/40 tracking-widest">TAILWIND</p>
-            <pre className="mt-2 text-[11px] overflow-x-auto text-white/60">{`colors: {\n${palette.map((c,i)=>`  color${i+1}: "${c}"`).join(",\n")}\n}`}</pre>
-            <button onClick={()=>copy(`colors: {\n${palette.map((c,i)=>`  color${i+1}: "${c}"`).join(",\n")}\n}`)} className="mt-2 text-[11px] bg-white/10 px-3 py-1 rounded-full">Copy</button>
-          </div>
-          <div className="bg-[#15151F] rounded-xl p-4 border border-white/5">
-            <p className="text-[11px] text-white/40 tracking-widest">CSS VARIABLES</p>
-            <pre className="mt-2 text-[11px] overflow-x-auto text-white/60">{`:root {\n${palette.map((c,i)=>`  --color-${i+1}: ${c};`).join("\n")}\n}`}</pre>
-            <button onClick={()=>copy(`:root {\n${palette.map((c,i)=>`  --color-${i+1}: ${c};`).join("\n")}\n}`)} className="mt-2 text-[11px] bg-white/10 px-3 py-1 rounded-full">Copy</button>
-          </div>
-          <div className="bg-[#15151F] rounded-xl p-4 border border-white/5">
-            <p className="text-[11px] text-white/40 tracking-widest">SHARE LINK</p>
-            <p className="mt-2 text-[11px] text-white/60 break-all">{typeof window!=="undefined" ? window.location.href : ""}</p>
-            <button onClick={()=>copy(window.location.href)} className="mt-2 text-[11px] bg-[#FF7A1A] text-black px-3 py-1 rounded-full font-bold">Copy Link</button>
-          </div>
-        </div>
-
-        {/* History */}
-        {history.length>0 && (
-          <div className="mt-6">
-            <p className="text-[12px] text-white/40 tracking-widest mb-2">HISTORY (Last 10)</p>
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {history.map((h,idx)=>(
-                <button key={idx} onClick={()=>setPalette(h)} className="flex shrink-0 rounded-full overflow-hidden border border-white/10 hover:scale-105 transition">
-                  {h.map((c,i)=><div key={i} className="w-6 h-8" style={{backgroundColor:c}}></div>)}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="max-w-[728px] mx-auto mt-8 bg-[#15151F] border border-dashed border-white/10 rounded-xl h-[90px] flex items-center justify-center text-white/20 text-[12px]">Ad Slot - 728x90 - Adsense Safe</div>
-      </section>
-
-      {/* SEO */}
-      <section className="max-w-[760px] mx-auto px-4 pb-16">
-        <div className="bg-[#15151F] border border-white/[0.07] rounded-[28px] overflow-hidden">
-          <div className="p-6 flex justify-between items-center">
-            <h2 className="font-bold text-[18px]">10/10 Guide - Why This is Best Palette Tool</h2>
-            <button onClick={()=>setShowSeo(!showSeo)} className="bg-white text-black text-[12px] font-bold px-4 py-2 rounded-full">{showSeo?"Hide":"Show"}</button>
-          </div>
-          {showSeo && (
-            <article className="px-6 pb-8 pt-4 border-t border-white/5 space-y-6 text-[13px] leading-[1.8] text-white/60">
-              <h1 className="text-[24px] font-extrabold text-white">Best Free Color Palette Generator with AI, Eyedropper, Blind Simulator</h1>
-              <p>This tool combines 6 harmony modes, AI prompt, image k-means extraction, eyedropper, drag reorder, history, shareable URL, Tailwind export, and WCAG blind simulation. Unlike basic tools, it uses real dominant color extraction via quantized k-means, not random pixels. Perfect for bloggers, Next.js devs, and designers. Adsense friendly with proper ad gaps.</p>
-            </article>
-          )}
         </div>
       </section>
     </div>
