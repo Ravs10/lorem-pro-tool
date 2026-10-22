@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge"; // required for OpenNext/Cloudflare to run this on the Worker
-
 const SYSTEM = `You are a color palette designer. Given a description, return EXACTLY 5 hex color codes as JSON: {"colors":["#RRGGBB",...]}. No prose, no markdown.`;
 
 function hslToHex(h: number, s: number, l: number): string {
