@@ -48,7 +48,6 @@ export default function ColorPaletteProFull() {
     }catch{}
   },[]);
 
-  // ROBUST COPY - WORKS ON HTTP + HTTPS
   const copy = async (text: string) => {
     try{
       if(navigator.clipboard && window.isSecureContext){
@@ -176,6 +175,23 @@ export default function ColorPaletteProFull() {
               {copied===color && <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black text-white text-[11px] px-3 py-1 rounded-full">Copied!</div>}
             </div>
           ))}
+        </div>
+
+        {/* ✅✅ YAHAN ADD KIYA HAI - TAILWIND LIVE TEST - bg-brand use ho raha hai */}
+        <div className="mt-10 bg-dark border border-white/[0.07] rounded-[20px] p-5">
+          <h3 className="font-bold text-[16px]">Tailwind Live Test - Brand Colors</h3>
+          <p className="text-[12px] text-white/40 mt-1">Ye check karne ke liye hai ki tailwind.config.js kaam kar raha hai ya nahi</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <div className="bg-brand text-white p-4 rounded-full text-[13px] font-bold">
+              bg-brand
+            </div>
+            <div className="bg-dark text-light p-4 rounded-xl text-[13px] border border-white/10">
+              bg-dark + text-light
+            </div>
+            <div className="bg-palette-1 p-4 rounded-xl text-[13px] text-black font-bold">palette-1</div>
+            <div className="bg-palette-2 text-white p-4 rounded-xl text-[13px] border border-white/10">palette-2</div>
+            <div className="bg-palette-4 text-black p-4 rounded-xl text-[13px]">palette-4</div>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-4 mt-10">
