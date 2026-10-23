@@ -310,7 +310,7 @@ export default function PaletteStudio() {
         {history.length > 0 && (<div className="mt-6"><p className="mb-2 text-[11px] tracking-widest text-white/40">HISTORY</p><div className="flex gap-2 overflow-x-auto pb-2">{history.map((h, idx) => (<button key={idx} onClick={() => setPalette(h)} className="flex shrink-0 overflow-hidden rounded-full border border-white/10 hover:scale-105 transition">{h.map((c, i) => (<div key={i} className="h-8 w-6" style={{ backgroundColor: c }} />))}</button>))}</div></div>)}
 
         {/* SEO article - UPDATED per features */}
-        <div className="mt-8 rounded-3xl border border-white/10 bg-neutral-900">
+          {/*    <div className="mt-8 rounded-3xl border border-white/10 bg-neutral-900">
           <div className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between"><h2 className="text-lg font-extrabold">About This Tool — Complete Guide</h2><button onClick={() => setShowSeo((v) => !v)} className="self-start rounded-full bg-white px-5 py-2 text-xs font-bold text-black sm:self-auto">{showSeo ? "Hide" : "Show"}</button></div>
           {showSeo && (
             <article className="space-y-6 border-t border-white/5 px-6 pb-8 pt-6 text-sm leading-relaxed text-white/70">
@@ -337,8 +337,26 @@ export default function PaletteStudio() {
               <h2 className="text-lg font-bold text-white">📦 Exports</h2><p>Tailwind, Tailwind v4, CSS Vars, PNG, SVG, JSON, ASE (Photoshop), Share Link with URL.</p>
             </article>
           )}
-        </div>
+        </div> */} 
       </div>
+      <section className="max-w-4xl mx-auto mt-16 px-4 pb-20 text-zinc-600">
+  <h2 className="text-2xl font-bold text-black mb-4">About Color Palette Generator</h2>
+  <p className="mb-6">Palette Studio is a free online color palette generator inspired by Coolors. Press Spacebar to generate, lock colors you like, drag to reorder, pick any color from your screen with EyeDropper, upload an image to extract colors, or type a prompt like "sunset beach" to generate with AI.</p>
+  
+  <h3 className="text-xl font-semibold text-black mt-8 mb-2">How to use?</h3>
+  <ul className="list-disc pl-5 space-y-1">
+    <li>Press <b>Spacebar</b> to generate random palettes</li>
+    <li>Click <b>Lock</b> to keep a color</li>
+    <li>Use <b>👁️ EyeDropper</b> to pick color from screen (Chrome Desktop)</li>
+    <li>Upload image to extract 5 dominant colors with K-Means</li>
+    <li>Export as Tailwind CSS, CSS Variables or JSON</li>
+  </ul>
+
+  <h3 className="text-xl font-semibold text-black mt-8 mb-2">FAQ</h3>
+  <p><b>Is EyeDropper supported on mobile?</b> No, it works only on Chrome/Edge desktop. On mobile the icon is hidden automatically.</p>
+  <p className="mt-2"><b>Is it free?</b> Yes, 100% free, no login required.</p>
+  <p className="mt-2"><b>Can I export palette?</b> Yes, you can copy HEX, RGB, and export Tailwind config.</p>
+</section>
       {toast && (<div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-orange-500 px-6 py-3 text-sm font-bold shadow-xl max-w-[90vw] truncate">{toast}</div>)}
     </div>
   )
