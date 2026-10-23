@@ -160,7 +160,7 @@ export default function PaletteStudio() {
     toastMsg("Extracting palette...");
   };
 
-  /* ---------- AI - FINAL: Understands Colors, Places, Moods ---------- */
+     /* ---------- AI - FINAL: Understands Colors, Places, Moods ---------- */
   const generateFromAI = async () => {
     setAiLoading(true);
     await new Promise(r => setTimeout(r, 200));
@@ -175,7 +175,6 @@ export default function PaletteStudio() {
       pink: 330, black: 0, white: 0, gray: 0, grey: 0
     };
 
-    // Helper to make shades of a hue
     const makeShades = (hue: number) => {
       const toHex = (h:number,s:number,l:number) => {
         s/=100;l/=100; let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
@@ -191,27 +190,32 @@ export default function PaletteStudio() {
     if (!raw) {
       pal = Array.from({length: SIZE}, () => randomHex());
     } else if (foundColor) {
-      // Agar "brown", "blue", "red" jaise color ka naam hai
-      let hue = colorMap[foundColor];
-      if(foundColor === "brown") hue = 25;
-      if(foundColor === "black") return setPalette(["#000000","#1A1A1A","#333333","#666666","#999999"]) || saveHistory(["#000000","#1A1A1A","#333333","#666666","#999999"]) || setAiLoading(false);
-      pal = makeShades(hue);
-    } else if(p.includes("sunset")||p.includes("sunrise")||p.includes("desert")||p.includes("dusk")) 
+      if (foundColor === "black") {
+        pal = ["#000000","#1A1A1A","#333333","#666666","#999999"];
+      } else if (foundColor === "white") {
+        pal = ["#FFFFFF","#F5F5F5","#E0E0E0","#BDBDBD","#757575"];
+      } else {
+        let hue = colorMap[foundColor];
+        if(foundColor === "brown") hue = 25;
+        pal = makeShades(hue);
+      }
+    } else if(p.includes("sunset")||p.includes("sunrise")||p.includes("desert")||p.includes("dusk")) {
       pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
-    else if(p.includes("ocean")||p.includes("sea")||p.includes("water")||p.includes("beach")) 
+    } else if(p.includes("ocean")||p.includes("sea")||p.includes("water")||p.includes("beach")) {
       pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
-    else if(p.includes("mountain")||p.includes("forest")||p.includes("nature")||p.includes("jungle")) 
+    } else if(p.includes("mountain")||p.includes("forest")||p.includes("nature")||p.includes("jungle")) {
       pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
-    else if(p.includes("neon")||p.includes("cyber")) 
+    } else if(p.includes("neon")||p.includes("cyber")) {
       pal=["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
-    else if(p.includes("pastel")) 
+    } else if(p.includes("pastel")) {
       pal=["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
-    else {
+    } else {
       let h = 0; for(const c of p) h = (h*31 + c.charCodeAt(0)) % 360;
       pal = makeShades(h);
     }
 
-    setPalette(pal); saveHistory(pal);
+    setPalette(pal); 
+    saveHistory(pal);
     toastMsg(raw ? `AI: ${raw}` : "Random palette");
     setAiLoading(false);
   };
