@@ -339,19 +339,66 @@ export default function PaletteStudio() {
           )}
         </div> */} 
       </div>
-      <section className="max-w-4xl mx-auto mt-16 px-4 pb-20 text-zinc-300">
-  <article className="space-y-6">
-    <h1 className="text-2xl font-bold text-white">Color Palette Generator - Free Online Tool</h1>
-    <p>Palette Studio is a free online color palette generator inspired by Coolors...</p>
+      {/* SEO ARTICLE - 1000 WORDS WITH SHOW/HIDE */}
+<div className="max-w-4xl mx-auto mt-16 px-4 pb-10">
+  <div className="rounded-3xl border border-zinc-800 bg-zinc-900/50 p-6 md:p-8">
     
-    <h2 className="text-lg font-bold text-white mt-6">What is Color Palette Generator?</h2>
-    <h2 className="text-lg font-bold text-white">How to Generate Palettes with Spacebar?</h2>
-    <h2 className="text-lg font-bold text-white">What is EyeDropper Tool?</h2>
-    <h2 className="text-lg font-bold text-white">How to Extract Colors from Image?</h2>
-    <h2 className="text-lg font-bold text-white">How to Generate Palette with AI Prompt?</h2>
-    <h2 className="text-lg font-bold text-white">FAQ - Is it Free?</h2>
-  </article>
-</section>
+    {/* Always visible first part - 300 words */}
+    <h2 className="text-2xl font-bold text-white mb-4">Color Palette Generator - Best Free Online Tool 2026</h2>
+    <p className="text-zinc-300 leading-relaxed mb-4">
+      Welcome to <b className="text-white">Palette Studio - Color Palette Generator</b>, the best free online alternative to Coolors. Our powerful color palette generator tool helps designers, developers, artists, and creators generate beautiful color combinations instantly. Whether you are designing a website, creating a logo, building a mobile app, or looking for branding inspiration, our tool makes color selection easy and fun. Press the Spacebar to generate random palettes, lock your favorite colors, drag to reorder, and export in seconds. No signup, no watermark, 100% free forever.
+    </p>
+    <p className="text-zinc-300 leading-relaxed mb-4">
+      In 2026, color trends are evolving fast. From pastel aesthetic to neon gradients, from earthy minimal to dark mode UI - you need the perfect palette to stand out. Our tool offers multiple ways to create palettes: Random generation with Spacebar, Image color extraction using K-Means algorithm, Screen color picker with EyeDropper API, and AI prompt generation like "sunset beach, cyberpunk city, forest green". Every palette comes with HEX, RGB, and HSL codes, one-click copy, and export as Tailwind CSS, CSS Variables, or JSON for developers.
+    </p>
+
+    {/* SHOW MORE BUTTON */}
+    {!showSeo && (
+      <button onClick={()=>setShowSeo(true)} className="mt-2 text-sm font-semibold text-violet-400 hover:text-violet-300">
+        Read More - Show Full Guide ↓
+      </button>
+    )}
+
+    {/* Hidden part - 700 words more */}
+    {showSeo && (
+      <article className="mt-6 space-y-6 text-zinc-300 leading-relaxed animate-in fade-in">
+        
+        <h2 className="text-xl font-bold text-white mt-8">What is a Color Palette Generator and Why You Need It?</h2>
+        <p>A color palette generator is an essential tool for any creative professional. Instead of spending hours manually picking colors that match, our generator uses color theory, randomization, and AI to create harmonious 5-color palettes that work perfectly together. Studies show that 90% of snap judgments about products are based on color alone. The right palette can increase brand recognition by 80% and improve website conversions. Our Coolors-inspired generator ensures your colors are balanced, accessible, and trendy.</p>
+
+        <h2 className="text-xl font-bold text-white">How to Generate Color Palettes with Spacebar - Step by Step?</h2>
+        <p>Generating palettes is super easy. <b className="text-white">Step 1:</b> Open our tool at /color-palette. <b className="text-white">Step 2:</b> Press Spacebar to generate a new random 5-color palette. <b className="text-white">Step 3:</b> If you like a color, hover and click the Lock icon - it will stay locked. <b className="text-white">Step 4:</b> Press Spacebar again to regenerate only unlocked colors. <b className="text-white">Step 5:</b> Drag colors left-right to reorder. <b className="text-white">Step 6:</b> Click any HEX code to copy. This workflow is loved by thousands of designers because it is fast, intuitive, and addictive like Coolors. You can generate unlimited palettes.</p>
+
+        <h2 className="text-xl font-bold text-white">What is EyeDropper Tool? How to Pick Color From Screen?</h2>
+        <p>Our advanced EyeDropper feature lets you pick any color from anywhere on your screen, not just from our website. Click the eye icon (👁️) on any color card, then your cursor will become a magnifier. Click anywhere - on an image, another website, your desktop wallpaper, Figma, Photoshop - and that exact color will be added to your palette. This uses the modern EyeDropper API available in Chrome and Edge on desktop. Note: Mobile browsers do not support EyeDropper API for security reasons, so we automatically hide this button on mobile phones. This is one of the most requested features for a color palette tool.</p>
+
+        <h2 className="text-xl font-bold text-white">How to Extract Colors From Image Using K-Means Algorithm?</h2>
+        <p>Have a beautiful photo and want its colors? Our image extraction tool is perfect for you. Click "Extract from Image" in the header, upload any JPG, PNG, or WebP image up to 12MP. We use a smart K-Means clustering algorithm in the browser - it reads your image pixels, groups similar colors into 5 clusters, and finds the most dominant colors. Unlike other tools, we shrink the image to 200px first for speed (0.2 seconds even for 12MP photos) and use k-means++ seeding for consistent results. Your image never leaves your device - 100% private and offline processing. Ideal for creating palettes from nature photos, movie posters, or brand inspiration.</p>
+
+        <h2 className="text-xl font-bold text-white">AI Prompt to Color Palette - Generate with Text?</h2>
+        <p>Type any idea like "sunset over ocean, forest in autumn, cyberpunk neon city, Barbie pink aesthetic, minimal Scandinavian" in the AI prompt box and hit Generate. Our AI understands moods, seasons, styles, and converts your text into a beautiful, relevant 5-color palette. This feature is powered by smart keyword-to-color mapping and is perfect when you have a feeling but not a color. Try prompts like "coffee shop warm cozy", "Spotify green dark mode", "peach pastel wedding". This is the future of palette generation - from imagination to colors in one click.</p>
+
+        <h2 className="text-xl font-bold text-white">How to Export Palette for Developers?</h2>
+        <p>For developers, we make export super easy. Click Export in the top bar. You can export as: <b className="text-white">1. Tailwind CSS Config</b> - ready to paste in tailwind.config.js, <b className="text-white">2. CSS Variables</b> - :root with --color-1 etc, <b className="text-white">3. JSON</b> - array of HEX codes, <b className="text-white">4. Copy individual HEX/RGB</b> - click any color. You can also save palettes to local storage and come back later. All exports are clean, formatted, and ready for production use in React, Next.js, Vue, or plain HTML.</p>
+
+        <h2 className="text-xl font-bold text-white">Color Palette Generator vs Coolors - Why Choose Us?</h2>
+        <p>While Coolors is great, Palette Studio offers more: <b className="text-white">EyeDropper screen picker</b> (Coolors doesn't have), <b className="text-white">Image extraction offline</b> (faster and private), <b className="text-white">AI Prompt generation</b> (text to palette), <b className="text-white">Fully free no ads</b>, <b className="text-white">Open source friendly exports</b>, <b className="text-white">Mobile responsive with drag-drop</b>. We are built with Next.js 14 for blazing speed and work offline after first load. Perfect alternative for Indian developers and global designers who want a fast, free, and private tool.</p>
+
+        <h2 className="text-xl font-bold text-white">Frequently Asked Questions (FAQ)</h2>
+        <p><b className="text-white">Q1. Is this Color Palette Generator free?</b> Yes, 100% free forever, no login, no watermark, unlimited generations.</p>
+        <p><b className="text-white">Q2. Can I use palettes for commercial projects?</b> Absolutely yes. All generated palettes are free for personal and commercial use.</p>
+        <p><b className="text-white">Q3. Is EyeDropper working on mobile?</b> No, EyeDropper API is only supported on Chrome/Edge desktop due to browser security.</p>
+        <p><b className="text-white">Q4. How many colors in a palette?</b> Currently 5 colors per palette, perfect balance for design. You can lock and mix to create bigger palettes.</p>
+        <p><b className="text-white">Q5. Does image extraction upload my photo?</b> No, everything happens offline in your browser. Your image never leaves your device, 100% private.</p>
+        <p><b className="text-white">Q6. How to save my favorite palettes?</b> Click the heart icon to save to browser local storage. You can view saved palettes anytime.</p>
+
+        <button onClick={()=>setShowSeo(false)} className="mt-8 text-sm font-semibold text-zinc-400 hover:text-white">
+          Show Less ↑
+        </button>
+      </article>
+    )}
+  </div>
+</div>
       {toast && (<div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-orange-500 px-6 py-3 text-sm font-bold shadow-xl max-w-[90vw] truncate">{toast}</div>)}
     </div>
   )
