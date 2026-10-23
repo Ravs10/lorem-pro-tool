@@ -160,50 +160,61 @@ export default function PaletteStudio() {
     toastMsg("Extracting palette...");
   };
 
-   /* ---------- AI - FINAL FIX ---------- */
+  /* ---------- AI - FINAL: Understands Colors, Places, Moods ---------- */
   const generateFromAI = async () => {
     setAiLoading(true);
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 200));
 
     const raw = aiPrompt.trim();
     const p = raw.toLowerCase();
     let pal: string[] = [];
 
-    // 1. Agar kuch type nahi kiya -> Random beautiful palette
+    const colorMap: Record<string, number> = {
+      red: 0, brown: 25, orange: 35, yellow: 50, 
+      green: 120, cyan: 180, blue: 220, purple: 280, 
+      pink: 330, black: 0, white: 0, gray: 0, grey: 0
+    };
+
+    // Helper to make shades of a hue
+    const makeShades = (hue: number) => {
+      const toHex = (h:number,s:number,l:number) => {
+        s/=100;l/=100; let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
+        if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+        const h2=(n:number)=>Math.round((n+m)*255).toString(16).padStart(2,'0');
+        return `#${h2(r)}${h2(g)}${h2(b)}`;
+      };
+      return [toHex(hue, 70, 35), toHex(hue, 65, 50), toHex(hue, 50, 65), toHex(hue, 40, 80), toHex(hue, 30, 92)];
+    };
+
+    const foundColor = Object.keys(colorMap).find(c => p.includes(c));
+
     if (!raw) {
       pal = Array.from({length: SIZE}, () => randomHex());
-    } 
-    // 2. Agar type kiya to keyword ke hisaab se
-    else if(p.includes("sunset")||p.includes("desert")||p.includes("dusk")) 
+    } else if (foundColor) {
+      // Agar "brown", "blue", "red" jaise color ka naam hai
+      let hue = colorMap[foundColor];
+      if(foundColor === "brown") hue = 25;
+      if(foundColor === "black") return setPalette(["#000000","#1A1A1A","#333333","#666666","#999999"]) || saveHistory(["#000000","#1A1A1A","#333333","#666666","#999999"]) || setAiLoading(false);
+      pal = makeShades(hue);
+    } else if(p.includes("sunset")||p.includes("sunrise")||p.includes("desert")||p.includes("dusk")) 
       pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
     else if(p.includes("ocean")||p.includes("sea")||p.includes("water")||p.includes("beach")) 
       pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
-    else if(p.includes("mountain")||p.includes("hill")||p.includes("forest")||p.includes("nature")||p.includes("jungle")||p.includes("tree")) 
+    else if(p.includes("mountain")||p.includes("forest")||p.includes("nature")||p.includes("jungle")) 
       pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
-    else if(p.includes("neon")||p.includes("cyber")||p.includes("futuristic")) 
+    else if(p.includes("neon")||p.includes("cyber")) 
       pal=["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
-    else if(p.includes("pastel")||p.includes("soft")||p.includes("cute")) 
+    else if(p.includes("pastel")) 
       pal=["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
-    else if(p.includes("love")||p.includes("romantic")) 
-      pal=["#FF006E","#FF4081","#FF80AB","#3A0CA3","#FFFFFF"];
     else {
-      // Unknown word -> usi word se hash karke beautiful palette
       let h = 0; for(const c of p) h = (h*31 + c.charCodeAt(0)) % 360;
-      const hslToHexLocal = (h:number,s:number,l:number) => {
-        s/=100;l/=100; let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
-        if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
-        const toHex=(n:number)=>Math.round((n+m)*255).toString(16).padStart(2,'0');
-        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-      };
-      pal = Array.from({length:5}, (_,i) => hslToHexLocal((h + i*37)%360, 70, 55));
+      pal = makeShades(h);
     }
 
-    setPalette(pal); 
-    saveHistory(pal);
-    toastMsg(raw ? `AI: ${raw}` : "Random AI palette");
+    setPalette(pal); saveHistory(pal);
+    toastMsg(raw ? `AI: ${raw}` : "Random palette");
     setAiLoading(false);
   };
-
   /* ---------- eyedropper ---------- */
   const openEyedropper = async (index: number) => {
     try {
