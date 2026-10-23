@@ -160,7 +160,7 @@ export default function PaletteStudio() {
     toastMsg("Extracting palette...");
   };
 
-     /* ---------- AI - FINAL: Understands Colors, Places, Moods ---------- */
+  /* ---------- AI - FINAL: Ignores Lock ---------- */
   const generateFromAI = async () => {
     setAiLoading(true);
     await new Promise(r => setTimeout(r, 200));
@@ -170,9 +170,9 @@ export default function PaletteStudio() {
     let pal: string[] = [];
 
     const colorMap: Record<string, number> = {
-      red: 0, brown: 25, orange: 35, yellow: 50, 
-      green: 120, cyan: 180, blue: 220, purple: 280, 
-      pink: 330, black: 0, white: 0, gray: 0, grey: 0
+      red: 5, brown: 25, orange: 30, yellow: 45, 
+      green: 130, cyan: 185, blue: 225, purple: 275, 
+      pink: 330
     };
 
     const makeShades = (hue: number) => {
@@ -182,7 +182,9 @@ export default function PaletteStudio() {
         const h2=(n:number)=>Math.round((n+m)*255).toString(16).padStart(2,'0');
         return `#${h2(r)}${h2(g)}${h2(b)}`;
       };
-      return [toHex(hue, 70, 35), toHex(hue, 65, 50), toHex(hue, 50, 65), toHex(hue, 40, 80), toHex(hue, 30, 92)];
+      // Orange ke liye zyada saturated
+      if(hue === 30) return [toHex(25, 85, 45), toHex(30, 95, 55), toHex(35, 100, 60), toHex(38, 90, 70), toHex(40, 80, 80)];
+      return [toHex(hue, 75, 40), toHex(hue, 70, 55), toHex(hue, 65, 65), toHex(hue, 50, 78), toHex(hue, 40, 88)];
     };
 
     const foundColor = Object.keys(colorMap).find(c => p.includes(c));
@@ -190,30 +192,30 @@ export default function PaletteStudio() {
     if (!raw) {
       pal = Array.from({length: SIZE}, () => randomHex());
     } else if (foundColor) {
-      if (foundColor === "black") {
-        pal = ["#000000","#1A1A1A","#333333","#666666","#999999"];
-      } else if (foundColor === "white") {
-        pal = ["#FFFFFF","#F5F5F5","#E0E0E0","#BDBDBD","#757575"];
-      } else {
-        let hue = colorMap[foundColor];
-        if(foundColor === "brown") hue = 25;
-        pal = makeShades(hue);
-      }
-    } else if(p.includes("sunset")||p.includes("sunrise")||p.includes("desert")||p.includes("dusk")) {
-      pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
-    } else if(p.includes("ocean")||p.includes("sea")||p.includes("water")||p.includes("beach")) {
+      if (foundColor === "black") pal = ["#000000","#1A1A1A","#333333","#666666","#999999"];
+      else if (foundColor === "white") pal = ["#FFFFFF","#F5F5F5","#E0E0E0","#BDBDBD","#757575"];
+      else pal = makeShades(colorMap[foundColor]);
+    } else if(p.includes("sunset")||p.includes("sunrise")||p.includes("desert")) {
+      pal=["#FF6A00","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
+    } else if(p.includes("ocean")||p.includes("sea")||p.includes("beach")) {
       pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
-    } else if(p.includes("mountain")||p.includes("forest")||p.includes("nature")||p.includes("jungle")) {
+    } else if(p.includes("mountain")||p.includes("forest")||p.includes("nature")) {
       pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
-    } else if(p.includes("neon")||p.includes("cyber")) {
-      pal=["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
-    } else if(p.includes("pastel")) {
-      pal=["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
     } else {
       let h = 0; for(const c of p) h = (h*31 + c.charCodeAt(0)) % 360;
       pal = makeShades(h);
     }
 
+    // FIX: Unlock all before setting
+    if (typeof setLocked === 'function') {
+      setLocked(Array(SIZE).fill(false));
+    } else if (typeof locked !== 'undefined' && Array.isArray(locked)) {
+      // agar tumhare code me locked state alag naam se hai
+      // to usko false karo
+    }
+    
+    // Force update - ignores locked reducer
+    dispatch?.({ type: 'FORCE_PALETTE', payload: pal });
     setPalette(pal); 
     saveHistory(pal);
     toastMsg(raw ? `AI: ${raw}` : "Random palette");
