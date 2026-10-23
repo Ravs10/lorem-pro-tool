@@ -309,6 +309,47 @@ export default function PaletteStudio() {
 
         {history.length > 0 && (<div className="mt-6"><p className="mb-2 text-[11px] tracking-widest text-white/40">HISTORY</p><div className="flex gap-2 overflow-x-auto pb-2">{history.map((h, idx) => (<button key={idx} onClick={() => setPalette(h)} className="flex shrink-0 overflow-hidden rounded-full border border-white/10 hover:scale-105 transition">{h.map((c, i) => (<div key={i} className="h-8 w-6" style={{ backgroundColor: c }} />))}</button>))}</div></div>)}
 
+       {/* ===== Other Useful Tools - Animated Hover ===== */}
+<div className="mt-16 rounded-[2rem] border border-white/10 bg-gradient-to-b from-zinc-900 to-zinc-900/50 p-6 md:p-8">
+  <div className="flex items-center gap-3">
+    <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-orange-500 to-violet-500"></div>
+    <h2 className="text-xl md:text-2xl font-black tracking-tight">Other Useful Tools</h2>
+    <span className="ml-auto text-[11px] tracking-widest text-white/30">LOREM PRO TOOL</span>
+  </div>
+
+  <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    {[
+      { name: "Word Counter", href: "/word-counter", emoji: "📝", grad: "from-violet-500 to-fuchsia-500", desc: "Count words & chars" },
+      { name: "Fancy Text", href: "/fancy-text", emoji: "✨", grad: "from-pink-500 to-rose-500", desc: "Stylish fonts" },
+      { name: "Password Gen", href: "/password-generator", emoji: "🔑", grad: "from-blue-500 to-cyan-500", desc: "Secure passwords" },
+      { name: "QR Generator", href: "/placeholder-qr-generator", emoji: "🔳", grad: "from-emerald-500 to-teal-500", desc: "Create QR instantly" },
+      { name: "Image to Text", href: "/image-to-text", emoji: "🖼️", grad: "from-orange-500 to-yellow-500", desc: "Extract text" },
+      { name: "Avatar", href: "/avatar", emoji: "👤", grad: "from-indigo-500 to-purple-500", desc: "Create avatars" },
+      { name: "Case Converter", href: "/case-converter", emoji: "🔠", grad: "from-green-500 to-lime-500", desc: "UPPER/lower" },
+      { name: "Fake Data", href: "/fake-data-generator", emoji: "🧪", grad: "from-red-500 to-pink-500", desc: "Dummy data" },
+    ].map((tool) => (
+      <Link
+        key={tool.href}
+        href={tool.href}
+        className="group relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-800/50 p-[1px] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-violet-500/10"
+      >
+        <div className="relative rounded-[15px] bg-zinc-900 p-4 h-full">
+          <div className={`absolute -inset-10 bg-gradient-to-br ${tool.grad} opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`}></div>
+          <div className="relative z-10">
+            <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${tool.grad} flex items-center justify-center text-lg shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+              {tool.emoji}
+            </div>
+            <h3 className="mt-4 font-bold text-white group-hover:text-orange-400 transition-colors">{tool.name}</h3>
+            <p className="mt-1 text-xs text-white/50">{tool.desc}</p>
+            <div className="mt-3 flex items-center text-[11px] font-bold text-violet-400 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300">
+              Try now <span className="ml-1">→</span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    ))}
+  </div>
+</div>
         {/* SEO article - UPDATED per features */}
           {/*    <div className="mt-8 rounded-3xl border border-white/10 bg-neutral-900">
           <div className="flex flex-col gap-3 p-6 sm:flex-row sm:items-center sm:justify-between"><h2 className="text-lg font-extrabold">About This Tool — Complete Guide</h2><button onClick={() => setShowSeo((v) => !v)} className="self-start rounded-full bg-white px-5 py-2 text-xs font-bold text-black sm:self-auto">{showSeo ? "Hide" : "Show"}</button></div>
