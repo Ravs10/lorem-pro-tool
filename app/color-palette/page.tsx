@@ -160,37 +160,34 @@ export default function PaletteStudio() {
     toastMsg("Extracting palette...");
   };
 
-  /* ---------- AI - FIXED, NO API NEEDED ---------- */
+   /* ---------- AI - FINAL FIX ---------- */
   const generateFromAI = async () => {
-    console.log("AI Clicked, prompt:", aiPrompt); // debug
-    if (!aiPrompt.trim()) {
-      toastMsg("Type something first!");
-      return;
-    }
     setAiLoading(true);
-    
-    // small delay for effect
     await new Promise(r => setTimeout(r, 300));
 
-    const p = aiPrompt.toLowerCase(); 
+    const raw = aiPrompt.trim();
+    const p = raw.toLowerCase();
     let pal: string[] = [];
-    
-    if(p.includes("sunset")||p.includes("desert")||p.includes("dusk")) 
+
+    // 1. Agar kuch type nahi kiya -> Random beautiful palette
+    if (!raw) {
+      pal = Array.from({length: SIZE}, () => randomHex());
+    } 
+    // 2. Agar type kiya to keyword ke hisaab se
+    else if(p.includes("sunset")||p.includes("desert")||p.includes("dusk")) 
       pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
     else if(p.includes("ocean")||p.includes("sea")||p.includes("water")||p.includes("beach")) 
       pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
-    else if(p.includes("forest")||p.includes("nature")||p.includes("jungle")) 
+    else if(p.includes("mountain")||p.includes("hill")||p.includes("forest")||p.includes("nature")||p.includes("jungle")||p.includes("tree")) 
       pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
     else if(p.includes("neon")||p.includes("cyber")||p.includes("futuristic")) 
       pal=["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
     else if(p.includes("pastel")||p.includes("soft")||p.includes("cute")) 
       pal=["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
-    else if(p.includes("christmas")) 
-      pal=["#FF0000","#00A303","#FFFFFF","#FFD700","#0A0A14"];
     else if(p.includes("love")||p.includes("romantic")) 
       pal=["#FF006E","#FF4081","#FF80AB","#3A0CA3","#FFFFFF"];
     else {
-      // hash based random but beautiful
+      // Unknown word -> usi word se hash karke beautiful palette
       let h = 0; for(const c of p) h = (h*31 + c.charCodeAt(0)) % 360;
       const hslToHexLocal = (h:number,s:number,l:number) => {
         s/=100;l/=100; let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
@@ -198,13 +195,12 @@ export default function PaletteStudio() {
         const toHex=(n:number)=>Math.round((n+m)*255).toString(16).padStart(2,'0');
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
       };
-      pal = Array.from({length:5}, (_,i) => hslToHexLocal((h + i*55)%360, 70, 55));
+      pal = Array.from({length:5}, (_,i) => hslToHexLocal((h + i*37)%360, 70, 55));
     }
 
-    console.log("Generated pal:", pal);
     setPalette(pal); 
     saveHistory(pal);
-    toastMsg("AI palette ready!");
+    toastMsg(raw ? `AI: ${raw}` : "Random AI palette");
     setAiLoading(false);
   };
 
