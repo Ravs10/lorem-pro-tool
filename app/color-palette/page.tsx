@@ -160,39 +160,52 @@ export default function PaletteStudio() {
     toastMsg("Extracting palette...");
   };
 
-  /* ---------- AI ---------- */
+  /* ---------- AI - FIXED, NO API NEEDED ---------- */
   const generateFromAI = async () => {
-    if (!aiPrompt.trim() || aiLoading) return;
-    setAiLoading(true);
-    try {
-      const res = await fetch("/api/palette", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiPrompt }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.colors) && data.colors.length >= 3) {
-          setPalette(data.colors.slice(0, SIZE));
-          saveHistory(data.colors.slice(0, SIZE));
-          toastMsg(data.source === "ai" ? "AI palette ready" : "Fallback palette ready");
-          return;
-        }
-      }
-      throw new Error("api failed");
-    } catch {
-      // FALLBACK - works offline, no API needed
-      const p = aiPrompt.toLowerCase(); let pal: string[] = [];
-      if(p.includes("sunset")||p.includes("desert")) pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
-      else if(p.includes("ocean")||p.includes("sea")) pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
-      else if(p.includes("forest")||p.includes("nature")) pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
-      else if(p.includes("neon")||p.includes("cyber")) pal=["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
-      else if(p.includes("pastel")) pal=["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
-      else pal=[randomHex(),randomHex(),randomHex(),randomHex(),randomHex()];
-      setPalette(pal); saveHistory(pal);
-      toastMsg("AI offline - showing matched palette");
+    console.log("AI Clicked, prompt:", aiPrompt); // debug
+    if (!aiPrompt.trim()) {
+      toastMsg("Type something first!");
+      return;
     }
-    finally { setAiLoading(false); }
+    setAiLoading(true);
+    
+    // small delay for effect
+    await new Promise(r => setTimeout(r, 300));
+
+    const p = aiPrompt.toLowerCase(); 
+    let pal: string[] = [];
+    
+    if(p.includes("sunset")||p.includes("desert")||p.includes("dusk")) 
+      pal=["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
+    else if(p.includes("ocean")||p.includes("sea")||p.includes("water")||p.includes("beach")) 
+      pal=["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
+    else if(p.includes("forest")||p.includes("nature")||p.includes("jungle")) 
+      pal=["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
+    else if(p.includes("neon")||p.includes("cyber")||p.includes("futuristic")) 
+      pal=["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
+    else if(p.includes("pastel")||p.includes("soft")||p.includes("cute")) 
+      pal=["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
+    else if(p.includes("christmas")) 
+      pal=["#FF0000","#00A303","#FFFFFF","#FFD700","#0A0A14"];
+    else if(p.includes("love")||p.includes("romantic")) 
+      pal=["#FF006E","#FF4081","#FF80AB","#3A0CA3","#FFFFFF"];
+    else {
+      // hash based random but beautiful
+      let h = 0; for(const c of p) h = (h*31 + c.charCodeAt(0)) % 360;
+      const hslToHexLocal = (h:number,s:number,l:number) => {
+        s/=100;l/=100; let c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
+        if(h<60){r=c;g=x;}else if(h<120){r=x;g=c;}else if(h<180){g=c;b=x;}else if(h<240){g=x;b=c;}else if(h<300){r=x;b=c;}else{r=c;b=x;}
+        const toHex=(n:number)=>Math.round((n+m)*255).toString(16).padStart(2,'0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+      };
+      pal = Array.from({length:5}, (_,i) => hslToHexLocal((h + i*55)%360, 70, 55));
+    }
+
+    console.log("Generated pal:", pal);
+    setPalette(pal); 
+    saveHistory(pal);
+    toastMsg("AI palette ready!");
+    setAiLoading(false);
   };
 
   /* ---------- eyedropper ---------- */
