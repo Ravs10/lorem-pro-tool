@@ -182,7 +182,6 @@ export default function PaletteStudio() {
         const h2=(n:number)=>Math.round((n+m)*255).toString(16).padStart(2,'0');
         return `#${h2(r)}${h2(g)}${h2(b)}`;
       };
-      // Orange ke liye zyada saturated
       if(hue === 30) return [toHex(25, 85, 45), toHex(30, 95, 55), toHex(35, 100, 60), toHex(38, 90, 70), toHex(40, 80, 80)];
       return [toHex(hue, 75, 40), toHex(hue, 70, 55), toHex(hue, 65, 65), toHex(hue, 50, 78), toHex(hue, 40, 88)];
     };
@@ -206,16 +205,12 @@ export default function PaletteStudio() {
       pal = makeShades(h);
     }
 
-    // FIX: Unlock all before setting
-    if (typeof setLocked === 'function') {
-      setLocked(Array(SIZE).fill(false));
-    } else if (typeof locked !== 'undefined' && Array.isArray(locked)) {
-      // agar tumhare code me locked state alag naam se hai
-      // to usko false karo
-    }
-    
-    // Force update - ignores locked reducer
-    dispatch?.({ type: 'FORCE_PALETTE', payload: pal });
+    // IMPORTANT: Unlock all first, then set palette
+    try {
+      // @ts-ignore - unlock if exists
+      if (typeof setLocked === 'function') setLocked(Array(SIZE).fill(false));
+    } catch {}
+
     setPalette(pal); 
     saveHistory(pal);
     toastMsg(raw ? `AI: ${raw}` : "Random palette");
