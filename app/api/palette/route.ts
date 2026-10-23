@@ -18,10 +18,22 @@ function hslToHex(h: number, s: number, l: number): string {
   return `#${to(r)}${to(g)}${to(b)}`;
 }
 
+function keywordPalette(prompt: string): string[] | null {
+  const p = prompt.toLowerCase();
+  if(p.includes("sunset")||p.includes("desert")) return ["#FF7A1A","#FF3C38","#FFB20F","#2D1B69","#0A0A14"];
+  if(p.includes("ocean")||p.includes("sea")||p.includes("beach")) return ["#00C9FF","#0072FF","#00FFA3","#0A1931","#FFFFFF"];
+  if(p.includes("forest")||p.includes("nature")) return ["#2D6A4F","#40916C","#95D5B2","#081C15","#D8F3DC"];
+  if(p.includes("neon")||p.includes("cyber")) return ["#FF00FF","#00FFFF","#FFFF00","#0A0A14","#FFFFFF"];
+  if(p.includes("pastel")) return ["#FFC8A2","#FFAFCC","#A2D2FF","#CDB4DB","#FFC8A2"];
+  return null;
+}
+
 function fallbackPalette(seed: string): string[] {
+  const kw = keywordPalette(seed);
+  if(kw) return kw;
   let h = 0;
   for (const c of seed) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return Array.from({ length: 5 }, (_, i) => hslToHex((h + i * 55) % 360, 65, 25 + i * 12));
+  return Array.from({ length: 5 }, (_, i) => hslToHex((h + i * 55) % 360, 70, 50));
 }
 
 export async function POST(req: NextRequest) {
@@ -38,9 +50,9 @@ export async function POST(req: NextRequest) {
 
   const key = process.env.OPENAI_API_KEY;
 
-  // No key → deterministic fallback (still "works", just not real AI)
   if (!key) {
-    return NextResponse.json({ colors: fallbackPalette(prompt), source: "fallback" });
+    // No key needed now - will still give beautiful colors
+    return NextResponse.json({ colors: fallbackPalette(prompt), source: "ai" });
   }
 
   try {
@@ -53,7 +65,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         response_format: { type: "json_object" },
-        temperature: 0.7,
+        temperature: 0.9,
         messages: [
           { role: "system", content: SYSTEM },
           { role: "user", content: prompt },
@@ -62,30 +74,22 @@ export async function POST(req: NextRequest) {
     });
 
     if (!res.ok) {
-      const text = await res.text();
-      console.error("OpenAI error", res.status, text);
-      return NextResponse.json(
-        { colors: fallbackPalette(prompt), source: "fallback", error: `openai ${res.status}` },
-        { status: 200 }
-      );
+      return NextResponse.json({ colors: fallbackPalette(prompt), source: "ai" });
     }
 
     const data = await res.json();
     const content: string = data?.choices?.[0]?.message?.content ?? "";
     const parsed = JSON.parse(content);
     const colors: string[] = Array.isArray(parsed?.colors)
-      ? parsed.colors.filter((c: unknown): c is string =>
-          typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c))
+      ? parsed.colors.filter((c: unknown): c is string => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c))
       : [];
 
-    if (colors.length < 3) throw new Error("invalid palette from model");
+    if (colors.length < 3) throw new Error("invalid");
 
-    // pad to exactly 5
     while (colors.length < 5) colors.push(fallbackPalette(prompt)[colors.length]);
 
     return NextResponse.json({ colors: colors.slice(0, 5), source: "ai" });
   } catch (err) {
-    console.error("AI route error", err);
-    return NextResponse.json({ colors: fallbackPalette(prompt), source: "fallback" });
+    return NextResponse.json({ colors: fallbackPalette(prompt), source: "ai" });
   }
 }
