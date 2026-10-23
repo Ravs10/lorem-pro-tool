@@ -58,7 +58,7 @@ export default function Header() {
             <Link href="/about" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">About</Link>
             <Link href="/contact" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Contact</Link>
             <Link href="/disclaimer" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Disclaimer</Link>
-            <Link href="/privacy-policy" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Privacy Policy</Link>
+            <Link href="/privacy" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Privacy Policy</Link>
           </div>
         </nav>
       )}
