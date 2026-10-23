@@ -7,7 +7,7 @@ import {
   simulateCVD, generateHarmony, type HarmonyMode,
 } from "./lib/color";
 import { exportPNG, exportSVG, exportJSON, exportASE } from "./lib/export";
-
+import Link from "next/link";
 /* ---------------- Undo/Redo reducer ---------------- */
 type State = { present: string[]; past: string[][]; future: string[][] };
 type Action =
