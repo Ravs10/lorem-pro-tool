@@ -37,6 +37,23 @@ export default function Footer() {
   return (
     <footer className="mt-16">
 
+    <style>{`
+  @keyframes veloraGlow {
+    0%, 100% { box-shadow: 0 0 15px rgba(255,107,0,0.4), 0 0 30px rgba(255,107,0,0.2); border-color: rgba(255,107,0,0.5); }
+    50% { box-shadow: 0 0 30px rgba(255,107,0,0.9), 0 0 60px rgba(255,107,0,0.5); border-color: rgba(255,107,0,1); }
+  }
+  @keyframes veloraFloat {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-8px) scale(1.03); }
+  }
+  @keyframes veloraBlinkDot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.8); }
+  }
+  .velora-glow { animation: veloraGlow 1.8s ease-in-out infinite; }
+  .velora-float { animation: veloraFloat 2.5s ease-in-out infinite; }
+  .velora-blink-dot { animation: veloraBlinkDot 1s ease-in-out infinite; }
+`}</style>
       {/* ===== 1. HIRE ME SECTION - CORRECTED ===== */}
       <div className="bg-gradient-to-br from-orange-500 via-[#ff6b00] to-[#ff3c00] relative overflow-hidden">
         <div className="relative max-w-6xl mx-auto px-6 py-12">
@@ -78,7 +95,38 @@ export default function Footer() {
               </div>
 
               <p className="text-center text-[11px] text-zinc-500 mt-3">⚡ REPLY IN 2 HOURS • 100% CONFIDENTIAL</p>
+{/* ===== EYE CATCHING LOGO WITH BLINKING ANIMATION ===== */}
+<a 
+  href="https://velora-cloud.run4ravish.workers.dev/" 
+  target="_blank" 
+  className="group relative mt-5 block"
+>
+  {/* Blinking LIVE Badge */}
+  <div className="absolute -top-3 -right-2 z-10 flex items-center gap-1.5 bg-red-600 text-white px-3 py-1 rounded-full text-[10px] font-black tracking-widest">
+    <span className="w-2 h-2 bg-white rounded-full velora-blink-dot"></span>
+    LIVE
+  </div>
 
+  <div className="velora-glow bg-[#111] border-2 border-orange-500 rounded-[18px] p-4 relative overflow-hidden">
+    {/* Shine sweep on hover */}
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+    
+    <div className="flex items-center justify-center relative">
+      <img 
+        src="/velora-logo.png" 
+        alt="VELORA"
+        className="velora-float w-full max-w-[280px] h-auto object-contain group-hover:scale-110 transition-all duration-500"
+      />
+    </div>
+
+    <div className="flex items-center justify-center gap-2 mt-3">
+      <span className="w-2 h-2 bg-green-400 rounded-full animate-ping"></span>
+      <p className="text-center text-[11px] font-black tracking-[0.2em] text-orange-400 group-hover:text-white transition">
+        CLICK TO VISIT VELORA CLOUD →
+      </p>
+    </div>
+  </div>
+</a>
               {/* LOGO BIG WITH LINK & ANIMATION */}
               <a 
                 href="https://velora-cloud.run4ravish.workers.dev/" 
