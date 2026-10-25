@@ -1146,8 +1146,44 @@ export default function HashtagGeneratorLevel12() {
           </div>
         </section>
       </main>
+{/* ============ SECTION 2: OTHER USEFUL CONTENT ============ */}
+<section className={`w-full border-t ${isDark?"border-white/10":"border-green-100"}`}>
+  <div className="max-w-7xl mx-auto px-4 py-10">
+    <h2 className="text-2xl font-black">Other Useful Tools – Explore More</h2>
+    <p className="text-[13px] opacity-60 mt-1">Free, private, edge-powered tools – same white & green theme, 10/10 rating.</p>
+    
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-6">
+      {[
+        { name: "AI Detector", slug: "ai-detector", desc: "Detect AI content 95% accurate", icon: "🤖" },
+        { name: "Word Counter", slug: "word-counter", desc: "Count words, chars, reading time", icon: "📝" },
+        { name: "Fancy Text", slug: "fancy-text", desc: "Stylish fonts for Instagram", icon: "✨" },
+        { name: "QR Generator", slug: "placeholder-qr-generator", desc: "Create QR code instantly", icon: "📱" },
+        { name: "Password Generator", slug: "password-generator", desc: "Strong password 100% safe", icon: "🔐" },
+        { name: "Color Palette", slug: "color-palette", desc: "Trending palettes & gradients", icon: "🎨" },
+        { name: "Image to Text", slug: "image-to-text", desc: "Extract text from image OCR", icon: "🖼️" },
+        { name: "Case Converter", slug: "case-converter", desc: "Upper, lower, title case", icon: "🔤" },
+        { name: "Fake Data", slug: "fake-data-generator", desc: "Test data for devs", icon: "🧪" },
+        { name: "Avatar Maker", slug: "avatar", desc: "Random avatar generator", icon: "👤" },
+        { name: "Remove Duplicates", slug: "remove-duplicates", desc: "Clean duplicate lines", icon: "🧹" },
+        { name: "Text to Handwriting", slug: "text-to-handwriting", desc: "Convert to handwritten", icon: "✍️" },
+      ].map(tool => (
+        <a key={tool.slug} href={`/${tool.slug}`} className={`group p-4 rounded-2xl border text-left transition hover:scale-[1.02] hover:shadow-md ${isDark?"bg-white/[0.03] border-white/10 hover:bg-white/[0.06]":"bg-white border-green-100 hover:border-[#00C950]/30"}`}>
+          <div className="text-2xl">{tool.icon}</div>
+          <div className="font-bold text-[13px] mt-2 group-hover:text-[#00C950]">{tool.name}</div>
+          <div className="text-[11px] opacity-60 mt-1 leading-4">{tool.desc}</div>
+          <div className="text-[10px] mt-2 font-bold opacity-40 group-hover:opacity-100">Try Now →</div>
+        </a>
+      ))}
+    </div>
 
-      <article className="mx-auto max-w-7xl px-4 py-8 text-sm leading-7 opacity-80">
+    {/* INTERNAL LINKING SEO PARA */}
+    <div className={`mt-8 p-5 rounded-2xl border text-[13px] leading-6 ${isDark?"bg-black/30 border-white/10":"bg-green-50 border-green-100"}`}>
+      <h3 className="font-black">Why Lorem Pro Tools?</h3>
+      <p className="mt-1 opacity-75">Lorem Pro Tools is all-in-one free toolkit for creators. Whether you need <a href="/ai-detector" className="underline text-[#00C950] font-bold">AI Detector</a> to check ChatGPT content, <a href="/hashtag-generator" className="underline text-[#00C950] font-bold">Hashtag Generator</a> for Instagram growth, <a href="/word-counter" className="underline text-[#00C950] font-bold">Word Counter</a> for SEO writing, or <a href="/color-palette" className="underline text-[#00C950] font-bold">Color Palette</a> for design – all tools work offline, private, and edge fast on Cloudflare Workers. No tracking, no login, Adsense safe, responsive for all devices. Trusted by 10k+ users.</p>
+    </div>
+  </div>
+</section>
+        {/*   <article className="mx-auto max-w-7xl px-4 py-8 text-sm leading-7 opacity-80">
         <h2 className="text-lg font-black">
           Advanced Hashtag Generator — Features and Usage
         </h2>
@@ -1190,7 +1226,7 @@ export default function HashtagGeneratorLevel12() {
           local keyword database and estimates. It does not fetch live
           platform statistics.
         </p>
-      </article>
+      </article>*/} 
     </div>
   );
 }
