@@ -32,9 +32,9 @@ export default function Footer() {
   }, [])
 
   const INITIAL_COUNT = 3
-const visibleTools = showAll ? allTools : allTools.slice(0, INITIAL_COUNT)
-const remainingCount = allTools.length - INITIAL_COUNT
-const showToggle = allTools.length > INITIAL_COUNT
+  const visibleTools = showAll ? allTools : allTools.slice(0, INITIAL_COUNT)
+  const remainingCount = allTools.length - INITIAL_COUNT
+  const showToggle = allTools.length > INITIAL_COUNT
 
   return (
     <footer className="mt-16">
@@ -78,7 +78,67 @@ const showToggle = allTools.length > INITIAL_COUNT
         </div>
       </div>
 
-      {/* ===== 2. ORANGE ALL TOOLS - CLICK TO OPEN ===== */}
+      {/* ===== 1.5 - DEVELOPED BY VELORA SECTION (NEW ADDED) ===== */}
+      <div className="bg-black border-y border-zinc-800 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10"></div>
+        <div className="relative max-w-6xl mx-auto px-6 py-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            {/* LEFT - LOGO */}
+            <div className="flex items-center gap-5">
+              <div className="bg-white rounded-[14px] p-3 w-[78px] h-[78px] flex items-center justify-center shadow-lg shrink-0">
+                <div className="text-center leading-none">
+                  <div className="flex justify-center font-black text-[32px]">
+                    <span className="text-orange-500">V</span>
+                    <span className="text-black">R</span>
+                  </div>
+                  <div className="flex justify-center text-[13px] font-black tracking-widest mt-[2px]">
+                    <span>VEL</span><span className="text-orange-500">O</span><span>RA</span>
+                  </div>
+                  <p className="text-[5px] tracking-widest text-zinc-500 mt-[2px] font-bold">FOUNDED BY YADAV RAVISH</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-zinc-500 text-[10px] font-black tracking-[0.2em] uppercase">This website is developed by</p>
+                <div className="mt-1 flex items-center">
+                  <h3 className="text-[32px] font-black tracking-[0.18em] leading-none flex">
+                    <span className="text-white">V</span>
+                    <span className="text-zinc-500">E</span>
+                    <span className="text-white">L</span>
+                    <span className="text-white">O</span>
+                    <span className="text-orange-500">R</span>
+                    <span className="text-white">A</span>
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="h-[2px] w-8 bg-orange-500"></div>
+                  <p className="text-zinc-500 text-[10px] tracking-[0.25em] font-medium">
+                    FOUNDED BY <span className="text-white font-bold">YADAV RAVISH</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT - What Velora Does */}
+            <div className="md:max-w-[520px] text-center md:text-left">
+              <p className="text-white font-bold text-[14px] leading-relaxed">
+                Velora is a <span className="text-orange-500">digital product studio</span> – We build money-making tools, SaaS, AI automation & high-converting websites that scale.
+              </p>
+              <p className="text-zinc-400 text-[12.5px] mt-2 leading-relaxed">
+                From Lorem Pro Tool to custom SaaS – Idea to Launch, Play Store to Profit. Your vision, our execution.
+              </p>
+              <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start">
+                <span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-full text-[11px] font-bold">⚡ Velora Agency</span>
+                <span className="bg-orange-500 text-black px-3 py-1 rounded-full text-[11px] font-black">Trusted by 10K+ Creators</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* ===== 2. ALL TOOLS ===== */}
       <div className="bg-[#fffaf0] border-t">
         <div className="max-w-6xl mx-auto px-6 py-10">
 
@@ -88,14 +148,6 @@ const showToggle = allTools.length > INITIAL_COUNT
                 <h4 className="text-xl font-black tracking-widest">ALL TOOLS</h4>
                 <span className="bg-orange-500 text-black text-[11px] font-black px-3 py-1 rounded-full animate-pulse">OPEN • LIVE</span>
               </div>
-              {/*{showToggle && (
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className="bg-black text-white px-5 py-2 rounded-full text-xs font-black hover:bg-orange-500 hover:text-black transition-all"
-              >
-                {showAll? 'Show Less ▲' : `More (${remainingCount}) ▼`}
-              </button>
-) } */} 
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
@@ -112,13 +164,12 @@ const showToggle = allTools.length > INITIAL_COUNT
             </div>
 
             {showToggle && (
-  <button onClick={() => setShowAll(!showAll)} className="mt-6 w-full bg-white border-2 border-dashed border-orange-300 py-3 rounded-full font-black text-sm hover:bg-orange-500 hover:text-black transition-all">
-    {showAll? '- Show Less' : `+ View All ${allTools.length} Tools`}
-  </button>
-)}
+              <button onClick={() => setShowAll(!showAll)} className="mt-6 w-full bg-white border-2 border-dashed border-orange-300 py-3 rounded-full font-black text-sm hover:bg-orange-500 hover:text-black transition-all">
+                {showAll? '- Show Less' : `+ View All ${allTools.length} Tools`}
+              </button>
+            )}
           </div>
 
-          {/* Latest Blogs Auto + Brand */}
           <div className="grid md:grid-cols-2 gap-8 mt-10">
             <div>
               <h4 className="text-lg font-black tracking-widest mb-4">LATEST BLOGS 🔥</h4>
@@ -135,27 +186,21 @@ const showToggle = allTools.length > INITIAL_COUNT
             <div className="bg-zinc-900 text-zinc-400 rounded-[24px] p-7">
               <p className="text-white font-black text-lg">Lorem Pro Tool</p>
               <p className="text-sm mt-3 leading-relaxed">Free, fast & private tools for writers, developers & creators. No login, no tracking. Built with ❤️ by Ravish.</p>
-                                                         {/* <div className="flex gap-4 mt-6 text-xs font-bold">
-                <Link href="/" className="hover:text-orange-500">Home</Link>
+              <div className="flex gap-4 mt-6 text-xs font-bold items-center flex-wrap">
+                <Link href="/" className="bg-orange-500 text-black px-5 py-2 rounded-full text-sm font-black animate-pulse hover:bg-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,165,0,0.5)]">
+                  ⚡ Home
+                </Link>
                 <Link href="/blog" className="hover:text-orange-500">Blog</Link>
-                <Link href="/privacy" className="hover:text-orange-500">Privacy</Link>
+                <Link href="/privacy" className="hover:text-orange-500">Privacy Policy</Link>
+                <Link href="/disclaimer" className="hover:text-orange-500">Disclaimer</Link>
                 <Link href="/contact" className="hover:text-orange-500">Contact</Link>
-              </div>*/} 
-<div className="flex gap-4 mt-6 text-xs font-bold items-center flex-wrap">
-  <Link href="/" className="bg-orange-500 text-black px-5 py-2 rounded-full text-sm font-black animate-pulse hover:bg-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,165,0,0.5)]">
-    ⚡ Home
-  </Link>
-  <Link href="/blog" className="hover:text-orange-500">Blog</Link>
-  <Link href="/privacy" className="hover:text-orange-500">Privacy Policy</Link>
-  <Link href="/disclaimer" className="hover:text-orange-500">Disclaimer</Link>
-  <Link href="/contact" className="hover:text-orange-500">Contact</Link>
-</div>
+              </div>
             </div>
           </div>
 
         </div>
         <div className="text-center text-[11px] text-zinc-500 py-6 border-t border-orange-100">
-          © {new Date().getFullYear()} Lorem Pro Tool • Built by Ravish
+          © {new Date().getFullYear()} Lorem Pro Tool • Built by Ravish • Developed by Velora – Founded by Yadav Ravish
         </div>
       </div>
     </footer>
