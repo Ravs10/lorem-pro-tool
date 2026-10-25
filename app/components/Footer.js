@@ -127,27 +127,7 @@ export default function Footer() {
     </div>
   </div>
 </a>
-              {/* LOGO BIG WITH LINK & ANIMATION */}
-              <a 
-                href="https://velora-cloud.run4ravish.workers.dev/" 
-                target="_blank" 
-                className="group mt-5 block bg-[#0e0e0e] border border-zinc-800 rounded-[18px] p-4 hover:border-orange-500/50 hover:shadow-[0_0_30px_rgba(255,107,0,0.35)] transition-all duration-500"
-              >
-                <div className="flex items-center justify-center">
-                  <img 
-                    src="/velora-logo.png" 
-                    alt="VELORA"
-                    className="w-full max-w-[280px] h-auto object-contain group-hover:scale-[1.06] group-hover:brightness-110 transition-all duration-500 ease-out"
-                  />
-                </div>
-                <p className="text-center text-[10px] tracking-[0.2em] text-zinc-500 mt-2 group-hover:text-orange-400 transition">VISIT VELORA CLOUD →</p>
-              </a>
-
-            </div>
-          </div>
-        </div>
-      </div>
-
+              
       {/* ===== ALL TOOLS ===== */}
       <div className="bg-[#fffaf0] border-t">
         <div className="max-w-6xl mx-auto px-6 py-10">
