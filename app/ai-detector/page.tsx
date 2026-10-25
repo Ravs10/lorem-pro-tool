@@ -246,7 +246,85 @@ export default function AIDetector() {
           )}</AnimatePresence>
         </div>
       </main>
-
+{/* OTHER USEFUL TOOLS - WITH ANIMATION + HOVER + SOUND */}
+<section className="max-w-[1200px] mx-auto p-8 mt-6">
+  <h2 className="text-3xl font-black text-center mb-2">Other Useful Tools</h2>
+  <p className="text-center opacity-50 text-sm mb-8">Super fast, free, 0MB Edge tools - Hover for sound & animation</p>
+  
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    {[
+      { name: "Word Counter", icon: "📝", href: "/word-counter", desc: "Count words & chars" },
+      { name: "Case Converter", icon: "🔠", href: "/case-converter", desc: "Upper / Lower case" },
+      { name: "Character Counter", icon: "🔢", href: "/character-counter", desc: "Char count instantly" },
+      { name: "Fancy Text", icon: "✨", href: "/fancy-text", desc: "Stylish fonts" },
+      { name: "Slug Generator", icon: "🔗", href: "/slug-generator", desc: "URL slug maker" },
+      { name: "Lorem Ipsum", icon: "📄", href: "/lorem-ipsum-generator", desc: "Dummy text" },
+      { name: "Password Gen", icon: "🔐", href: "/password-generator", desc: "Strong passwords" },
+      { name: "Color Palette", icon: "🎨", href: "/color-palette", desc: "Extract colors" },
+      { name: "QR Generator", icon: "📱", href: "/placeholder-qr-generator", desc: "QR codes" },
+      { name: "Image to Text", icon: "🖼️", href: "/image-to-text", desc: "OCR extract" },
+      { name: "Fake Data", icon: "🧑‍💻", href: "/fake-data-generator", desc: "Test data" },
+      { name: "Remove Duplicates", icon: "🧹", href: "/remove-duplicates", desc: "Clean lists" },
+    ].map((tool, i) => (
+      <motion.a
+        key={tool.name}
+        href={tool.href}
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: i * 0.05 }}
+        whileHover={{ scale: 1.06, y: -6, rotate: 0.5 }}
+        whileTap={{ scale: 0.96 }}
+        onHoverStart={() => {
+          try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = "sine";
+            o.frequency.setValueAtTime(300 + i * 20, ctx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.15);
+            g.gain.setValueAtTime(0.1, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(); o.stop(ctx.currentTime + 0.2);
+          } catch {}
+        }}
+        onClick={() => {
+          try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.type = "triangle";
+            o.frequency.setValueAtTime(500, ctx.currentTime);
+            o.frequency.setValueAtTime(800, ctx.currentTime + 0.05);
+            g.gain.setValueAtTime(0.15, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(); o.stop(ctx.currentTime + 0.25);
+          } catch {}
+        }}
+        className="group relative p-[1px] rounded-[1.5rem] overflow-hidden bg-gradient-to-br from-white/10 to-white/5 hover:from-[#FF7A1A]/50 hover:to-[#FF3D00]/20 transition-all"
+      >
+        <div className="rounded-[1.5rem] bg-[#12121f] group-hover:bg-[#1a1a2e] p-5 h-full transition-all">
+          <div className="flex justify-between items-start">
+            <motion.div whileHover={{ scale: 1.3, rotate: 10 }} className="text-3xl">{tool.icon}</motion.div>
+            <div className="opacity-0 group-hover:opacity-100 transition text-[10px] px-2 py-1 rounded-full bg-[#FF7A1A] font-bold">OPEN →</div>
+          </div>
+          <h3 className="font-bold mt-4 text-[14px] group-hover:text-[#FF7A1A] transition">{tool.name}</h3>
+          <p className="text-[11px] opacity-50 mt-1">{tool.desc}</p>
+          
+          {/* Hover glow */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-br from-[#FF7A1A]/10 to-transparent pointer-events-none transition duration-500" />
+          
+          {/* Shimmer */}
+          <motion.div
+            className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-700"
+          />
+        </div>
+      </motion.a>
+    ))}
+  </div>
+</section>
       {/* SEO 1200 WORDS CONTENT */}
       <article className="max-w-[1000px] mx-auto p-8 mt-10 leading-8 text-[14px] opacity-90">
         <h1 className="text-4xl font-black tracking-tight">AI Detector - Free AI Content Detector 2026 | Detect ChatGPT, Claude, Gemini</h1>
