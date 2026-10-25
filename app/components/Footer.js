@@ -111,33 +111,7 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ===== DEVELOPED BY VELORA ===== */}
-      <div className="bg-black border-y border-zinc-800 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10"></div>
-        <div className="relative max-w-6xl mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <div className="bg-white rounded-[14px] p-3 w-[78px] h-[78px] flex items-center justify-center shadow-lg shrink-0">
-                <div className="text-center leading-none">
-                  <div className="flex justify-center font-black text-[32px]"><span className="text-orange-500">V</span><span className="text-black">R</span></div>
-                  <div className="flex justify-center text-[13px] font-black tracking-widest mt-[2px]"><span>VEL</span><span className="text-orange-500">O</span><span>RA</span></div>
-                  <p className="text-[5px] tracking-widest text-zinc-500 mt-[2px] font-bold">FOUNDED BY YADAV RAVISH</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-zinc-500 text-[10px] font-black tracking-[0.2em] uppercase">This website is developed by</p>
-                <h3 className="text-[32px] font-black tracking-[0.18em] leading-none flex mt-1"><span className="text-white">V</span><span className="text-zinc-500">E</span><span className="text-white">L</span><span className="text-white">O</span><span className="text-orange-500">R</span><span className="text-white">A</span></h3>
-                <div className="flex items-center gap-2 mt-1"><div className="h-[2px] w-8 bg-orange-500"></div><p className="text-zinc-500 text-[10px] tracking-[0.25em]">FOUNDED BY <span className="text-white font-bold">YADAV RAVISH</span></p></div>
-              </div>
-            </div>
-            <div className="md:max-w-[520px] text-center md:text-left">
-              <p className="text-white font-bold text-[14px] leading-relaxed">Velora is a <span className="text-orange-500">digital product studio</span> – We build money-making tools, SaaS, AI automation & high-converting websites that scale.</p>
-              <div className="flex flex-wrap gap-2 mt-3 justify-center md:justify-start"><span className="bg-zinc-900 border border-zinc-800 text-zinc-300 px-3 py-1 rounded-full text-[11px] font-bold">⚡ Velora Agency</span><span className="bg-orange-500 text-black px-3 py-1 rounded-full text-[11px] font-black">Trusted by 10K+ Creators</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+  
       {/* ===== ALL TOOLS ===== */}
       <div className="bg-[#fffaf0] border-t">
         <div className="max-w-6xl mx-auto px-6 py-10">
