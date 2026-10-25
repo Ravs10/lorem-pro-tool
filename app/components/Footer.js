@@ -73,8 +73,8 @@ export default function Footer() {
 
               {/* BUTTONS - 'Me' REMOVED, ONLY WhatsApp / Email */}
               <div className="grid grid-cols-2 gap-3 mt-6">
-                <a href="https://wa.me/919999999999" target="_blank" className="bg-[#25D366] text-black text-center py-3 rounded-full font-black text-sm hover:scale-105 transition">WhatsApp</a>
-                <a href="mailto:ravish@example.com" className="bg-white text-black text-center py-3 rounded-full font-black text-sm hover:bg-zinc-200 transition">Email</a>
+                <a href="https://wa.me/918299746179" target="_blank" className="bg-[#25D366] text-black text-center py-3 rounded-full font-black text-sm hover:scale-105 transition">WhatsApp</a>
+                <a href="mailto:run4ravish@gmail.com" className="bg-white text-black text-center py-3 rounded-full font-black text-sm hover:bg-zinc-200 transition">Email</a>
               </div>
 
               <p className="text-center text-[11px] text-zinc-500 mt-3">⚡ REPLY IN 2 HOURS • 100% CONFIDENTIAL</p>
