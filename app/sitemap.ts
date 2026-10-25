@@ -8,13 +8,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 1,
+      priority: 1, // ONLY ROOT - 1
     },
     {
       url: `${baseUrl}/ai-detector`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 1,
+      priority: 0.9, // Main tool - 0.9
+    },
+    {
+      url: `${baseUrl}/hashtag-generator`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9, // Main tool - 0.9 (CORRECTED)
     },
     {
       url: `${baseUrl}/blog`,
@@ -35,6 +41,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/fake-data-generator`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/color-palette`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    // 0.8 tools
+    {
       url: `${baseUrl}/case-converter`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
@@ -51,12 +70,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/fake-data-generator`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
     },
     {
       url: `${baseUrl}/fancy-text`,
@@ -89,22 +102,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/color-palette`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.7,
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.7,
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/disclaimer`,
