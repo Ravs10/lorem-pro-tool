@@ -469,7 +469,7 @@ export default function YouTubeGenerator() {
         "Note: Update the links, claims and timestamps before publishing.",
       ].join("\n");
 
-      const tags = Array.from(
+            const tags = Array.from(
         new Set(
           [
             k.toLowerCase(),
@@ -485,11 +485,11 @@ export default function YouTubeGenerator() {
             `${k} step by step`,
             `${k} complete guide`,
             `${k} Hindi`,
-            `${k} 2026`,
+            `${k} ${year}`,
             `YouTube ${niche}`,
           ].map((tag) => tag.trim()),
         ),
-      ).filter(Boolean);
+      ).filter(Boolean).sort(() => Math.random() - 0.5);
 
       const hashtags = [
         `#${k.replace(/[^\p{L}\p{N}]/gu, "")}`,
@@ -497,7 +497,7 @@ export default function YouTubeGenerator() {
         "#YouTube",
         "#YouTubeTips",
         "#ContentCreator",
-      ].join(" ");
+      ].sort(() => Math.random() - 0.5).join(" ");
 
       const keywords = [
         k,
@@ -507,8 +507,7 @@ export default function YouTubeGenerator() {
         `${k} for beginners`,
         `${niche} ${k}`,
         `how to ${k}`,
-      ];
-
+      ].sort(() => Math.random() - 0.5);
       const thumbnails =
         lang === "hi"
           ? [
