@@ -640,46 +640,72 @@ export default function ResumeBuilderUltimate() {
     setStatusMessage("Profile photo selected. It is not included in local-storage autosave.");
     playSound("success");
   };
-
   const downloadPDF = async () => {
+    playSound("click");
     if (!resumeRef.current) return;
-
-    try {
-      playSound("click");
-
-      const canvas = await html2canvas(resumeRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-      });
-
-      const imageData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imageWidth = pageWidth;
-      const imageHeight = (canvas.height * imageWidth) / canvas.width;
-
-      let remainingHeight = imageHeight;
-      let yPosition = 0;
-
-      pdf.addImage(imageData, "PNG", 0, yPosition, imageWidth, imageHeight);
-      remainingHeight -= pageHeight;
-
-      while (remainingHeight > 0) {
-        yPosition -= pageHeight;
-        pdf.addPage();
-        pdf.addImage(imageData, "PNG", 0, yPosition, imageWidth, imageHeight);
-        remainingHeight -= pageHeight;
-      }
-
-      pdf.save(`${safeFilename(data.name)}_Resume.pdf`);
-    } catch {
-      setStatusMessage("PDF export failed. Try Print → Save as PDF.");
-    }
+    const canvas = await html2canvas(resumeRef.current, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`${safeFilename(data.name)}_resume.pdf`);
   };
+
+  const downloadTextPDF = () => {
+    playSound("click");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const margin = 15;
+    let y = 20;
+    const pageH = pdf.internal.pageSize.getHeight();
+
+    const addText = (text: string, size = 11, bold = false) => {
+      pdf.setFontSize(size);
+      pdf.setFont("helvetica", bold ? "bold" : "normal");
+      const lines = pdf.splitTextToSize(text, 180);
+      if (y + lines.length * 5 > pageH - 15) {
+        pdf.addPage();
+        y = 20;
+      }
+      pdf.text(lines, margin, y);
+      y += lines.length * 5 + 3;
+    };
+
+    addText(data.name || "Your Name", 22, true);
+    addText(data.title || "Professional Title", 12, true);
+    addText([data.email, data.phone, data.location].filter(Boolean).join(" | "), 9);
+    addText("", 2);
+    addText("PROFESSIONAL SUMMARY", 10, true);
+    addText(data.summary || "", 10);
+    addText("", 2);
+    addText("WORK EXPERIENCE", 10, true);
+    experiences
+      .filter((i) => i.role || i.desc)
+      .forEach((e) => {
+        addText(`${e.role} — ${e.company}`, 10, true);
+        addText(e.duration, 8);
+        addText(e.desc, 10);
+      });
+    addText("", 2);
+    addText("EDUCATION", 10, true);
+    educations
+      .filter((i) => i.degree)
+      .forEach((e) => {
+        addText(`${e.degree}`, 10, true);
+        addText(`${e.college} ${e.year}`, 9);
+      });
+    addText("", 2);
+    addText("SKILLS", 10, true);
+    addText(skills, 10);
+
+    pdf.save(`${safeFilename(data.name)}_ATS_Text.pdf`);
+  };
+
+  
   const downloadTextPDF = () => {
   playSound("click");
   const pdf = new jsPDF("p", "mm", "a4");
