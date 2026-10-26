@@ -468,7 +468,7 @@ export default function YouTubeGenerator() {
         "",
         "Note: Update the links, claims and timestamps before publishing.",
       ].join("\n");
-
+const year = new Date().getFullYear();
             const tags = Array.from(
         new Set(
           [
