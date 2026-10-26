@@ -120,16 +120,12 @@ const defaultEducation: Education[] = [
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const getKeywords = (jobDesc: string) => {
-  const words = jobDesc
-    .toLowerCase()
-    .match(/[a-z0-9+#.]+/g) || [];
-
+const getKeywords = (jobDesc: string): string[] => {
+  const words: string[] = jobDesc.toLowerCase().match(/[a-z0-9+#.]+/g) || [];
   return Array.from(
-    new Set(words.filter((word) => word.length > 2))
+    new Set(words.filter((word: string) => word.length > 2))
   ).slice(0, 100);
 };
-
 function HighlightText({
   text,
   keywords,
