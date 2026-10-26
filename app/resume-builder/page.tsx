@@ -640,70 +640,86 @@ export default function ResumeBuilderUltimate() {
     setStatusMessage("Profile photo selected. It is not included in local-storage autosave.");
     playSound("success");
   };
+
   const downloadPDF = async () => {
-    playSound("click");
     if (!resumeRef.current) return;
-    const canvas = await html2canvas(resumeRef.current, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`${safeFilename(data.name)}_resume.pdf`);
-  };
 
-  const downloadTextPDF = () => {
-    playSound("click");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const margin = 15;
-    let y = 20;
-    const pageH = pdf.internal.pageSize.getHeight();
+    try {
+      playSound("click");
 
-    const addText = (text: string, size = 11, bold = false) => {
-      pdf.setFontSize(size);
-      pdf.setFont("helvetica", bold ? "bold" : "normal");
-      const lines = pdf.splitTextToSize(text, 180);
-      if (y + lines.length * 5 > pageH - 15) {
+      const canvas = await html2canvas(resumeRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      const imageData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imageWidth = pageWidth;
+      const imageHeight = (canvas.height * imageWidth) / canvas.width;
+
+      let remainingHeight = imageHeight;
+      let yPosition = 0;
+
+      pdf.addImage(imageData, "PNG", 0, yPosition, imageWidth, imageHeight);
+      remainingHeight -= pageHeight;
+
+      while (remainingHeight > 0) {
+        yPosition -= pageHeight;
         pdf.addPage();
-        y = 20;
+        pdf.addImage(imageData, "PNG", 0, yPosition, imageWidth, imageHeight);
+        remainingHeight -= pageHeight;
       }
-      pdf.text(lines, margin, y);
-      y += lines.length * 5 + 3;
-    };
 
-    addText(data.name || "Your Name", 22, true);
-    addText(data.title || "Professional Title", 12, true);
-    addText([data.email, data.phone, data.location].filter(Boolean).join(" | "), 9);
-    addText("", 2);
-    addText("PROFESSIONAL SUMMARY", 10, true);
-    addText(data.summary || "", 10);
-    addText("", 2);
-    addText("WORK EXPERIENCE", 10, true);
-    experiences
-      .filter((i) => i.role || i.desc)
-      .forEach((e) => {
-        addText(`${e.role} — ${e.company}`, 10, true);
-        addText(e.duration, 8);
-        addText(e.desc, 10);
-      });
-    addText("", 2);
-    addText("EDUCATION", 10, true);
-    educations
-      .filter((i) => i.degree)
-      .forEach((e) => {
-        addText(`${e.degree}`, 10, true);
-        addText(`${e.college} ${e.year}`, 9);
-      });
-    addText("", 2);
-    addText("SKILLS", 10, true);
-    addText(skills, 10);
-
-    pdf.save(`${safeFilename(data.name)}_ATS_Text.pdf`);
+      pdf.save(`${safeFilename(data.name)}_Resume.pdf`);
+    } catch {
+      setStatusMessage("PDF export failed. Try Print → Save as PDF.");
+    }
   };
+  const downloadTextPDF = () => {
+  playSound("click");
+  const pdf = new jsPDF("p", "mm", "a4");
+  const margin = 15; let y = 20;
+  const pageH = pdf.internal.pageSize.getHeight();
+
+  const addText = (text: string, size = 11, bold = false) => {
+    pdf.setFontSize(size);
+    pdf.setFont("helvetica", bold ? "bold" : "normal");
+    const lines = pdf.splitTextToSize(text, 180);
+    if (y + lines.length * 5 > pageH - 15) { pdf.addPage(); y = 20; }
+    pdf.text(lines, margin, y);
+    y += lines.length * 5 + 3;
+  };
+
+  addText(data.name || "Your Name", 22, true);
+  addText(data.title || "Professional Title", 12, true);
+  addText([data.email, data.phone, data.location].filter(Boolean).join(" | "), 9);
+  addText("", 2);
+  addText("PROFESSIONAL SUMMARY", 10, true);
+  addText(data.summary || "", 10);
+  addText("", 2);
+  addText("WORK EXPERIENCE", 10, true);
+  experiences.filter(i=>i.role||i.desc).forEach(e=>{
+    addText(`${e.role} — ${e.company}`, 10, true);
+    addText(e.duration, 8);
+    addText(e.desc, 10);
+  });
+  addText("", 2);
+  addText("EDUCATION", 10, true);
+  educations.filter(i=>i.degree).forEach(e=>{
+    addText(`${e.degree}`, 10, true);
+    addText(`${e.college} ${e.year}`, 9);
+  });
+  addText("", 2);
+  addText("SKILLS", 10, true);
+  addText(skills, 10);
+
+  pdf.save(`${safeFilename(data.name)}_ATS_Text.pdf`);
+};
 
   const downloadTXT = () => {
     playSound("click");
@@ -733,6 +749,7 @@ export default function ResumeBuilderUltimate() {
       "application/json;charset=utf-8"
     );
   };
+
   const downloadDOC = () => {
     playSound("click");
 
@@ -749,37 +766,37 @@ export default function ResumeBuilderUltimate() {
       });
 
     const experienceHTML = experiences
-      .filter((item) => item.role || item.company)
+      .filter((item) => item.role || item.company || item.desc)
       .map(
         (item) => `
-        <h3>${escapeHtml(item.role)}</h3>
-        <p><strong>${escapeHtml(item.company)}</strong> ${escapeHtml(item.duration)}</p>
-        <p>${escapeHtml(item.desc).replace(/\n/g, "<br/>")}</p>
-      `
+          <h3>${escapeHtml(item.role)}</h3>
+          <p><strong>${escapeHtml(item.company)}</strong> ${escapeHtml(item.duration)}</p>
+          <p>${escapeHtml(item.desc).replace(/\n/g, "<br>")}</p>
+        `
       )
       .join("");
 
     const educationHTML = educations
-      .filter((item) => item.degree || item.college)
+      .filter((item) => item.degree || item.college || item.year)
       .map(
         (item) => `
-        <p><strong>${escapeHtml(item.degree)}</strong></p>
-        <p>${escapeHtml(item.college)} ${escapeHtml(item.year)}</p>
-      `
+          <p><strong>${escapeHtml(item.degree)}</strong><br>
+          ${escapeHtml(item.college)} ${escapeHtml(item.year)}</p>
+        `
       )
       .join("");
 
     const html = `
       <!doctype html>
       <html>
-      <head><meta charset="utf-8"><title>${escapeHtml(data.name)} Resume</title></head>
-      <body style="font-family:Arial,sans-serif">
+      <head><meta charset="utf-8"><title>Resume</title></head>
+      <body style="font-family:Arial,sans-serif;color:#222;line-height:1.5">
         <h1>${escapeHtml(data.name)}</h1>
         <h2>${escapeHtml(data.title)}</h2>
         <p>${escapeHtml([data.email, data.phone, data.location].filter(Boolean).join(" | "))}</p>
-        <p>${escapeHtml(data.linkedin)} ${escapeHtml(data.portfolio)}</p>
+        <p>${escapeHtml(data.linkedin)} ${escapeHtml(data.website)}</p>
         <h2>Professional Summary</h2>
-        <p>${escapeHtml(data.summary).replace(/\n/g, "<br/>")}</p>
+        <p>${escapeHtml(data.summary).replace(/\n/g, "<br>")}</p>
         <h2>Work Experience</h2>${experienceHTML}
         <h2>Education</h2>${educationHTML}
         <h2>Skills</h2><p>${escapeHtml(skills)}</p>
@@ -793,7 +810,7 @@ export default function ResumeBuilderUltimate() {
       "application/msword"
     );
   };
-  
+
   const shareResume = async () => {
     const text = resumeText;
 
@@ -1363,14 +1380,6 @@ export default function ResumeBuilderUltimate() {
               >
                 📄 PDF
               </button>
-              </button>
-<button
-  onClick={downloadTextPDF}
-  className="rounded-xl bg-zinc-900 border border-white/20 px-3 py-3 text-sm font-bold text-white hover:opacity-80"
->
-  📄 Text PDF
-</button>
-
               <button
                 onClick={downloadDOC}
                 className="rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white hover:opacity-80"
