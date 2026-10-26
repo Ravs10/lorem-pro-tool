@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import jsPDF from "jspdf";
-import { toPng } from "html-to-image";
+import html2canvas from "html2canvas";
 
 // SOUND EFFECT - Web Audio (No external file)
 const playSound = (type: 'click' | 'success' | 'hover') => {
@@ -48,10 +48,11 @@ export default function ResumeBuilder() {
     playSound('success');
   };
 
-  const downloadPDF = async () => {
+    const downloadPDF = async () => {
     if(!resumeRef.current) return;
     playSound('click');
-    const dataUrl = await toPng(resumeRef.current, { cacheBust: true, pixelRatio: 2 });
+    const canvas = await html2canvas(resumeRef.current, { scale: 2, useCORS: true });
+    const dataUrl = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297);
     pdf.save(`${data.name.replace(' ','_')}_Resume.pdf`);
