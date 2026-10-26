@@ -1380,6 +1380,14 @@ export default function ResumeBuilderUltimate() {
               >
                 📄 PDF
               </button>
+              </button>
+<button
+  onClick={downloadTextPDF}
+  className="rounded-xl bg-zinc-900 border border-white/20 px-3 py-3 text-sm font-bold text-white hover:opacity-80"
+>
+  📄 Text PDF
+</button>
+
               <button
                 onClick={downloadDOC}
                 className="rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white hover:opacity-80"
