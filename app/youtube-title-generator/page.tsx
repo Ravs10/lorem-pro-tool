@@ -128,83 +128,88 @@ const getTitleTemplates = (
   tone: Tone,
   lang: Lang,
 ) => {
+  const randNum = () => Math.floor(Math.random() * 5) + 3; // 3 se 7 tak random
+  const year = new Date().getFullYear();
+
   if (lang === "hi") {
-    return [
-      `${keyword}: ये 5 बातें जानना बेहद जरूरी है!`,
-      `${keyword} कैसे करें? पूरी जानकारी हिंदी में`,
+    const base = [
+      `${keyword}: ये ${randNum()} बातें जानना बेहद जरूरी है!`,
+      `${keyword} कैसे करें? पूरी जानकारी हिंदी में ${year}`,
       `${keyword} के बारे में पूरी सच्चाई!`,
-      `${keyword}: शुरुआती लोगों की 7 बड़ी गलतियां`,
+      `${keyword}: शुरुआती लोगों की ${randNum()} बड़ी गलतियां`,
       `${keyword} की ऐसी ट्रिक जो आपका काम आसान कर देगी`,
       `${keyword} का पूरा गाइड | ${niche} हिंदी`,
       `${keyword} सीखें आसान तरीके से`,
       `${keyword}: ये गलतियां मत करना!`,
-      `${keyword} के जरूरी टिप्स और ट्रिक्स`,
-      `${keyword} Explained in Hindi`,
+      `${keyword} के जरूरी टिप्स और ट्रिक्स ${year}`,
+      `${keyword} Explained in Hindi - ${randNum()} Tips`,
     ];
+    return base.sort(() => Math.random() - 0.5);
   }
 
   if (lang === "es") {
-    return [
-      `${keyword}: La guía completa para principiantes`,
-      `${keyword}: 7 errores que debes evitar`,
+    const base = [
+      `${keyword}: La guía completa para principiantes ${year}`,
+      `${keyword}: ${randNum()} errores que debes evitar`,
       `Cómo funciona ${keyword}: explicación sencilla`,
       `${keyword}: Consejos y trucos esenciales`,
       `Todo lo que debes saber sobre ${keyword}`,
       `${keyword} en 10 minutos: guía práctica`,
-      `La verdad sobre ${keyword}`,
+      `La verdad sobre ${keyword} en ${year}`,
       `${keyword}: Lo que nadie te explica`,
       `Aprende ${keyword} paso a paso`,
-      `${keyword}: Guía de ${niche}`,
+      `${keyword}: Guía de ${niche} con ${randNum()} consejos`,
     ];
+    return base.sort(() => Math.random() - 0.5);
   }
 
   const viral = [
-    `${keyword}: 7 Things Beginners Must Know`,
-    `I Tried ${keyword} — Here's What I Learned`,
-    `${keyword}: 5 Mistakes You Should Avoid`,
+    `${keyword}: ${randNum()} Things Beginners Must Know`,
+    `I Tried ${keyword} in ${year} — Here's What I Learned`,
+    `${keyword}: ${randNum()} Mistakes You Should Avoid in ${year}`,
     `The Ultimate ${keyword} Guide for Beginners`,
-    `${keyword} Explained in 10 Minutes`,
+    `${keyword} Explained in ${randNum()} Minutes`,
     `What Nobody Tells You About ${keyword}`,
-    `${keyword}: Tips That Make a Difference`,
-    `How to Master ${keyword} Step by Step`,
+    `${keyword}: ${randNum()} Tips That Make a Difference`,
+    `How to Master ${keyword} Step by Step (${year})`,
     `${keyword}: The Complete ${niche} Guide`,
-    `Before You Try ${keyword}, Watch This`,
+    `Before You Try ${keyword}, Watch This!`,
   ];
 
   if (tone === "Professional") {
     return [
-      `${keyword}: A Complete Professional Guide`,
+      `${keyword}: A Complete Professional Guide ${year}`,
       `How ${keyword} Works: A Detailed Explanation`,
       `${keyword}: Best Practices and Key Insights`,
       `Understanding ${keyword}: Step-by-Step Guide`,
       `${keyword}: Strategies, Benefits and Common Mistakes`,
-      ...viral.slice(0, 5),
-    ];
+      ...viral,
+    ].sort(() => Math.random() - 0.5).slice(0, 10);
   }
 
   if (tone === "Funny") {
     return [
-      `${keyword} Went Wrong 😂`,
+      `${keyword} Went Wrong 😂 (${year})`,
       `I Tried ${keyword} So You Don't Have To`,
-      `${keyword}: The Funniest Mistakes`,
+      `${keyword}: The Funniest ${randNum()} Mistakes`,
       `Expectation vs Reality: ${keyword}`,
       `When You Think You Understand ${keyword}...`,
-      ...viral.slice(0, 5),
-    ];
+      ...viral,
+    ].sort(() => Math.random() - 0.5).slice(0, 10);
   }
 
   if (tone === "Educational") {
     return [
       `${keyword} Explained Simply for Beginners`,
-      `Learn ${keyword} Step by Step`,
-      `${keyword}: Complete Tutorial and Examples`,
+      `Learn ${keyword} Step by Step in ${year}`,
+      `${keyword}: Complete Tutorial and ${randNum()} Examples`,
       `How ${keyword} Works: Full Lesson`,
       `${keyword}: Essential Concepts You Need to Know`,
-      ...viral.slice(0, 5),
-    ];
+      ...viral,
+    ].sort(() => Math.random() - 0.5).slice(0, 10);
   }
 
-  return viral;
+  return viral.sort(() => Math.random() - 0.5);
 };
 
 const informationalSections = [
