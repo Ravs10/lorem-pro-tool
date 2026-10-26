@@ -1015,6 +1015,8 @@ const copyForYouTubeStudio = async () => {
                     >
                       Export JSON
                     </button>
+                    <button type="button" onClick={copyForYouTubeStudio} className="rounded-full bg-black text-white border border-orange-500 px-4 py-2 text-xs font-black">{copied === "yt-studio" ? "Ready for YT!" : "📋 Copy for YouTube Studio"}</button>
+<button type="button" onClick={handleShare} className="rounded-full bg-[#25D366] text-black px-4 py-2 text-xs font-black">🔗 Share</button>
                   </div>
                 </div>
 
