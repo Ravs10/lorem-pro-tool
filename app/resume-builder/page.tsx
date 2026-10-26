@@ -1375,11 +1375,17 @@ export default function ResumeBuilderUltimate() {
             <h3 className="mb-3 font-bold">📦 Export & Share</h3>
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={downloadPDF}
-                className="rounded-xl bg-white px-3 py-3 text-sm font-bold text-black hover:opacity-80"
-              >
-                📄 PDF
-              </button>
+  onClick={downloadPDF}
+  className="rounded-xl bg-white px-3 py-3 text-sm font-bold text-black hover:opacity-80"
+>
+  📄 Visual PDF
+</button>
+<button
+  onClick={downloadTextPDF}
+  className="rounded-xl bg-violet-600 px-3 py-3 text-sm font-bold text-white hover:opacity-80"
+>
+  📑 ATS Text PDF
+</button>
               <button
                 onClick={downloadDOC}
                 className="rounded-xl bg-blue-600 px-3 py-3 text-sm font-bold text-white hover:opacity-80"
