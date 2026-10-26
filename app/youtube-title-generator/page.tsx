@@ -581,7 +581,21 @@ export default function YouTubeGenerator() {
       showNotice("Clipboard access failed. Please copy the text manually.");
     }
   };
-
+const handleShare = async () => {
+  if (!result) return;
+  const shareText = `Check my YouTube Viral Kit for "${result.keyword}" - ${SITE_URL}`;
+  if ((navigator as any).share) {
+    await (navigator as any).share({ title: "YT GEN PRO", text: shareText, url: SITE_URL });
+  } else {
+    await navigator.clipboard.writeText(shareText);
+    showNotice("Link copied!");
+  }
+};
+const copyForYouTubeStudio = async () => {
+  if (!result) return;
+  const ytStudioText = `TITLE:\n${result.titles[0]}\n\nDESCRIPTION:\n${result.descriptions}\n\nTAGS:\n${result.tags.join(", ")}`;
+  await copyText(ytStudioText, "yt-studio");
+};
   const allContent = useMemo(() => {
     if (!result) return "";
 
