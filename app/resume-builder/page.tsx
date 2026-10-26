@@ -683,10 +683,12 @@ export default function ResumeBuilderUltimate() {
   const downloadTextPDF = () => {
   playSound("click");
   const pdf = new jsPDF("p", "mm", "a4");
-  const margin = 15; let y = 20;
+  const margin = 15; 
+  let y = 20;
   const pageH = pdf.internal.pageSize.getHeight();
 
   const addText = (text: string, size = 11, bold = false) => {
+    if(!text) return;
     pdf.setFontSize(size);
     pdf.setFont("helvetica", bold ? "bold" : "normal");
     const lines = pdf.splitTextToSize(text, 180);
