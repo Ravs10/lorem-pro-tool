@@ -113,6 +113,15 @@ const tones: Tone[] = [
   "Viral", "Professional", "Funny", "Educational",
 ];
 
+const SITE_URL = "https://lorem-pro-tool.run4ravish.workers.dev/";
+const getCTRScore = (title: string) => {
+  let score = 70;
+  if (title.length >= 45 && title.length <= 65) score += 10;
+  if (/\d+/.test(title)) score += 5;
+  if (/[!?]|You Won't Believe|Mistakes|Secret|Trick|Complete|Ultimate/i.test(title)) score += 8;
+  if (title.includes(":") || title.includes("-")) score += 3;
+  return Math.min(score, 98);
+};
 const getTitleTemplates = (
   keyword: string,
   niche: string,
