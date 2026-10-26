@@ -2268,7 +2268,44 @@ const copyForYouTubeStudio = async () => {
               </div>
             )}
           </section>
-
+          {/* OTHER USEFUL TOOLS - Simple Section */}
+          <section className="mt-16">
+            <h2 className="text-2xl font-black tracking-tight">Other <span className="text-orange-500">Useful Tools</span></h2>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { n: "Resume Builder + ATS", d: "ATS Score + PDF", l: "/resume-builder", c: "from-violet-600 to-blue-600", h: true },
+                { n: "Image Compressor", d: "Without Quality Loss", l: "/image-compressor", c: "from-blue-600 to-cyan-600" },
+                { n: "QR Generator", d: "Custom + Logo", l: "/qr-generator", c: "from-emerald-600 to-teal-600" },
+                { n: "Hashtag Generator", d: "100 Viral Hashtags", l: "/hashtag-generator", c: "from-pink-600 to-rose-600" },
+                { n: "Password Generator", d: "Strong & Secure", l: "/password-generator", c: "from-amber-600 to-yellow-600" },
+                { n: "YouTube Tag Generator", d: "SEO Tags", l: "/youtube-tag-generator", c: "from-red-600 to-orange-600" },
+              ].map((tool, i) => (
+                <a
+                  key={tool.n}
+                  href={tool.l}
+                  onMouseEnter={() => {
+                    try {
+                      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                      const o = ctx.createOscillator(); const g = ctx.createGain();
+                      o.connect(g); g.connect(ctx.destination);
+                      o.frequency.value = 1000; g.gain.setValueAtTime(0.04, ctx.currentTime);
+                      o.start(); o.stop(ctx.currentTime + 0.05);
+                    } catch {}
+                  }}
+                  className={`group relative rounded-[20px] p-[1px] bg-gradient-to-br from-zinc-200 to-zinc-100 dark:from-white/10 dark:to-white/5 hover:from-orange-500/50 hover:to-red-500/50 transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(0,0,0,0.15)]`}
+                >
+                  <div className={`h-full rounded-[19px] p-5 ${isDark ? 'bg-zinc-900' : 'bg-white'} group-hover:bg-zinc-900/5 dark:group-hover:bg-zinc-800 transition-colors`}>
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${tool.c} flex items-center justify-center text-white font-black shadow-md group-hover:scale-110 group-hover:rotate-2 transition-all duration-300`}>L</div>
+                    <h3 className="mt-4 font-bold flex items-center gap-2">
+                      {tool.n} {tool.h && <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] animate-pulse">HOT</span>}
+                    </h3>
+                    <p className="text-xs opacity-60 mt-1">{tool.d}</p>
+                    <p className="mt-3 text-xs font-bold text-orange-500 opacity-0 group-hover:opacity-100 translate-x-[-8px] group-hover:translate-x-0 transition-all duration-300">Try Now →</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
           <section className={`mt-6 rounded-3xl border p-5 sm:p-6 ${panel}`}>
             <h2 className="text-xl font-black">Frequently Asked Questions</h2>
             <div className="mt-4 space-y-3">
