@@ -1526,17 +1526,16 @@ export default function ResumeBuilderUltimate() {
               </div>
 
               {showQR && data.linkedin.trim() && (
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
-                    /^https?:\/\//i.test(data.linkedin)
-                      ? data.linkedin
-                      : `https://${data.linkedin}`
-                  )}`}
-                  alt="LinkedIn QR code"
-                  className="h-[70px] w-[70px] shrink-0 border border-zinc-200 p-1"
-                  crossOrigin="anonymous"
-                />
-              )}
+  <div className="h-[70px] w-[70px] shrink-0 border border-zinc-200 bg-white p-1">
+    <QRCodeCanvas
+      value={/^https?:\/\//i.test(data.linkedin) ? data.linkedin : `https://${data.linkedin}`}
+      size={62}
+      bgColor="#ffffff"
+      fgColor="#000000"
+      level="M"
+    />
+  </div>
+)}
             </div>
 
             <div className="mt-6 h-[2px] bg-gradient-to-r from-violet-700 to-transparent" />
