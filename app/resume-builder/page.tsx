@@ -733,7 +733,6 @@ export default function ResumeBuilderUltimate() {
       "application/json;charset=utf-8"
     );
   };
-
   const downloadDOC = () => {
     playSound("click");
 
@@ -750,37 +749,37 @@ export default function ResumeBuilderUltimate() {
       });
 
     const experienceHTML = experiences
-      .filter((item) => item.role || item.company || item.desc)
+      .filter((item) => item.role || item.company)
       .map(
         (item) => `
-          <h3>${escapeHtml(item.role)}</h3>
-          <p><strong>${escapeHtml(item.company)}</strong> ${escapeHtml(item.duration)}</p>
-          <p>${escapeHtml(item.desc).replace(/\n/g, "<br>")}</p>
-        `
+        <h3>${escapeHtml(item.role)}</h3>
+        <p><strong>${escapeHtml(item.company)}</strong> ${escapeHtml(item.duration)}</p>
+        <p>${escapeHtml(item.desc).replace(/\n/g, "<br/>")}</p>
+      `
       )
       .join("");
 
     const educationHTML = educations
-      .filter((item) => item.degree || item.college || item.year)
+      .filter((item) => item.degree || item.college)
       .map(
         (item) => `
-          <p><strong>${escapeHtml(item.degree)}</strong><br>
-          ${escapeHtml(item.college)} ${escapeHtml(item.year)}</p>
-        `
+        <p><strong>${escapeHtml(item.degree)}</strong></p>
+        <p>${escapeHtml(item.college)} ${escapeHtml(item.year)}</p>
+      `
       )
       .join("");
 
     const html = `
       <!doctype html>
       <html>
-      <head><meta charset="utf-8"><title>Resume</title></head>
-      <body style="font-family:Arial,sans-serif;color:#222;line-height:1.5">
+      <head><meta charset="utf-8"><title>${escapeHtml(data.name)} Resume</title></head>
+      <body style="font-family:Arial,sans-serif">
         <h1>${escapeHtml(data.name)}</h1>
         <h2>${escapeHtml(data.title)}</h2>
         <p>${escapeHtml([data.email, data.phone, data.location].filter(Boolean).join(" | "))}</p>
-        <p>${escapeHtml(data.linkedin)} ${escapeHtml(data.website)}</p>
+        <p>${escapeHtml(data.linkedin)} ${escapeHtml(data.portfolio)}</p>
         <h2>Professional Summary</h2>
-        <p>${escapeHtml(data.summary).replace(/\n/g, "<br>")}</p>
+        <p>${escapeHtml(data.summary).replace(/\n/g, "<br/>")}</p>
         <h2>Work Experience</h2>${experienceHTML}
         <h2>Education</h2>${educationHTML}
         <h2>Skills</h2><p>${escapeHtml(skills)}</p>
@@ -794,7 +793,7 @@ export default function ResumeBuilderUltimate() {
       "application/msword"
     );
   };
-
+  
   const shareResume = async () => {
     const text = resumeText;
 
