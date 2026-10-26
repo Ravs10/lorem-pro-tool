@@ -8,19 +8,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'weekly',
-      priority: 1, // ONLY ROOT - 1
+      priority: 1,
     },
     {
       url: `${baseUrl}/ai-detector`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 0.9, // Main tool - 0.9
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/hashtag-generator`,
       lastModified: new Date(),
       changeFrequency: 'daily',
-      priority: 0.9, // Main tool - 0.9 (CORRECTED)
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/youtube-title-generator`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/blog`,
