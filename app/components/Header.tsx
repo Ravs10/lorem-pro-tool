@@ -3,19 +3,20 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { createClient } from "@supabase/supabase-js"
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+type Tool = { id: string; name: string; slug: string }
 
 export default function Header() {
-  const [tools, setTools] = useState<any[]>([])
+  const [tools, setTools] = useState<Tool[]>([])
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
     async function getTools() {
-      const { data } = await supabase.from('tools').select('*').eq('is_active', true).order('name')
-      if (data) setTools(data)
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      if (!url || !key) return
+      const supabase = createClient(url, key)
+      const { data } = await supabase.from('tools').select('id,name,slug').eq('is_active', true).order('name')
+      if (data) setTools(data as Tool[])
     }
     getTools()
   }, [])
@@ -27,10 +28,10 @@ export default function Header() {
           <img src="/logo.png" alt="logo" className="w-8 h-8 rounded" />
           Lorem Pro
         </Link>
-        <button onClick={()=>setOpen(!open)} className="md:hidden text-2xl">☰</button>
-        <nav className={`${open ? 'block' : 'hidden'} md:flex gap-4 absolute md:static top-14 left-0 bg-white w-full md:w-auto p-4 md:p-0 border md:border-0`}>
+        <button onClick={()=>setOpen(!open)} className="md:hidden text-2xl">{open ? '✕' : '☰'}</button>
+        <nav className={`${open ? 'block' : 'hidden'} md:flex gap-4 absolute md:static top-14 left-0 bg-white w-full md:w-auto p-4 md:p-0 border md:border-0 shadow md:shadow-none`}>
           {tools.map(t => (
-            <Link key={t.id} href={`/tools/${t.slug}`} className="block py-2 hover:text-blue-600">{t.name}</Link>
+            <Link key={t.id} href={`/tools/${t.slug}`} onClick={()=>setOpen(false)} className="block py-2 hover:text-blue-600">{t.name}</Link>
           ))}
         </nav>
       </div>
