@@ -1,40 +1,77 @@
-"use client"
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { createClient } from "@supabase/supabase-js"
+'use client';
+import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { createClient } from '@supabase/supabase-js';
 
-type Tool = { id: string; name: string; slug: string }
+type Tool = {
+  id: string;
+  name: string;
+  slug: string;
+  href?: string;
+}
 
 export default function Header() {
-  const [tools, setTools] = useState<Tool[]>([])
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [q, setQ] = useState("");
 
   useEffect(() => {
-    async function getTools() {
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      if (!url || !key) return
-      const supabase = createClient(url, key)
-      const { data } = await supabase.from('tools').select('id,name,slug').eq('is_active', true).order('name')
-      if (data) setTools(data as Tool[])
+    if(open){
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+      if(!url || !key) return;
+      const supabase = createClient(url, key);
+      supabase.from('tools').select('*').eq('is_active', true).order('name').then(({data})=>{
+        if(data) setTools(data as Tool[])
+      });
     }
-    getTools()
-  }, [])
+  }, [open]);
+
+  const filtered = useMemo(() => {
+    if(!q.trim()) return tools;
+    const s = q.toLowerCase();
+    return tools.filter((t) => t.name.toLowerCase().includes(s));
+  }, [tools, q]);
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <img src="/logo.png" alt="logo" className="w-8 h-8 rounded" />
-          Lorem Pro
+    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+        <Link href="/" className="flex items-center gap-2.5 text-white font-bold text-[22px]">
+          <Image src="/logo.png" alt="logo" width={32} height={32} className="rounded-md bg-white" />
+          Lorem Pro Tool
         </Link>
-        <button onClick={()=>setOpen(!open)} className="md:hidden text-2xl">{open ? '✕' : '☰'}</button>
-        <nav className={`${open ? 'block' : 'hidden'} md:flex gap-4 absolute md:static top-14 left-0 bg-white w-full md:w-auto p-4 md:p-0 border md:border-0 shadow md:shadow-none`}>
-          {tools.map(t => (
-            <Link key={t.id} href={`/tools/${t.slug}`} onClick={()=>setOpen(false)} className="block py-2 hover:text-blue-600">{t.name}</Link>
-          ))}
-        </nav>
+        <button onClick={() => setOpen(!open)} className="text-white text-3xl">{open?'✕':'☰'}</button>
       </div>
+      {open && (
+        <nav className="bg-[#111] border-t border-zinc-800 flex flex-col h-[calc(100dvh-60px)]">
+          <div className="p-4 shrink-0 space-y-3">
+            <div className="relative">
+              <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="🔍 Search tools..." className="w-full h-11 bg-zinc-900 border border-zinc-800 rounded-full pl-5 pr-10 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-orange-500" />
+              {q && <button onClick={()=>setQ("")} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500">✕</button>}
+            </div>
+            <div className="px-4 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white font-bold flex justify-between">
+              <span>🔥 All Tools ({filtered.length})</span>
+              <span className="text-[10px] bg-white text-orange-600 px-2.5 py-1 rounded-full font-extrabold animate-bounce">HOT</span>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-4">
+            <div className="grid gap-2">
+              {filtered.map((t)=>(
+                <Link key={t.id || t.slug} href={t.href || `/${t.slug}`} onClick={()=>setOpen(false)} className="px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-200 hover:bg-white hover:text-black text-sm font-semibold flex justify-between">
+                  <span className="truncate">{t.name}</span> <span>→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="shrink-0 border-t border-zinc-800 bg-[#111] px-4 py-3 space-y-1">
+            <Link href="/about" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">About</Link>
+            <Link href="/contact" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Contact</Link>
+            <Link href="/disclaimer" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Disclaimer</Link>
+            <Link href="/privacy" onClick={()=>setOpen(false)} className="block px-4 py-3 text-zinc-400">Privacy Policy</Link>
+          </div>
+        </nav>
+      )}
     </header>
   )
 }
