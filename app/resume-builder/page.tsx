@@ -1698,7 +1698,65 @@ export default function ResumeBuilderUltimate() {
           </motion.div>
         )}
       </AnimatePresence>
+{/* OTHER USEFUL TOOLS - WITH ANIMATION + HOVER + SOUND */}
+<section className="py-12 px-4 max-w-7xl mx-auto">
+  <style>{`
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    @keyframes shine { 0%{transform:translateX(-100%)} 100%{transform:translateX(200%)} }
+  `}</style>
 
+  <div className="text-center mb-8">
+    <h2 className="text-3xl md:text-4xl font-black">Other <span className="text-violet-600">Useful Tools</span></h2>
+    <p className="text-gray-500 text-sm mt-2">Hover karo • Click karo • Sound suno ✨</p>
+  </div>
+
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    {[
+      { n: "Resume Builder", l: "/resume-builder", i: "📄", c: "from-violet-500 to-purple-600", d: "ATS + Templates" },
+      { n: "AI Detector", l: "/ai-detector", i: "🤖", c: "from-blue-500 to-cyan-500", d: "Detect AI Text" },
+      { n: "Hashtag Gen", l: "/hashtag-generator", i: "#️⃣", c: "from-pink-500 to-rose-500", d: "Viral Tags" },
+      { n: "Word Counter", l: "/word-counter", i: "🔢", c: "from-emerald-500 to-teal-500", d: "Instant Count" },
+      { n: "QR Generator", l: "/placeholder-qr-generator", i: "🔳", c: "from-orange-500 to-amber-500", d: "Custom QR" },
+      { n: "Password Gen", l: "/password-generator", i: "🔐", c: "from-slate-700 to-black", d: "Secure Pass" },
+    ].map((t, idx) => (
+      <a
+        key={t.n}
+        href={t.l}
+        onMouseEnter={() => {
+          try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const o = ctx.createOscillator(); const g = ctx.createGain();
+            o.frequency.value = 600 + idx*50; g.gain.value = 0.05;
+            o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.08);
+          } catch(e){}
+        }}
+        onClick={() => {
+          try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const o = ctx.createOscillator(); const g = ctx.createGain();
+            o.frequency.value = 900; g.gain.value = 0.15;
+            o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.12);
+          } catch(e){}
+        }}
+        className="group relative p-[1px] rounded-2xl bg-gradient-to-br transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_15px_30px_rgba(0,0,0,0.15)]"
+        style={{ backgroundImage: `linear-gradient(to bottom right, var(--tw-gradient-stops))` }}
+      >
+        <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${t.c} opacity-100`}></div>
+        <div className="relative bg-white dark:bg-zinc-900 rounded-2xl p-5 text-center overflow-hidden h-full">
+          
+          {/* Shine on hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-[shine_0.8s_ease] pointer-events-none"></div>
+
+          <div className={`w-12 h-12 mx-auto rounded-xl bg-gradient-to-br ${t.c} flex items-center justify-center text-xl shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:animate-[float_2s_ease-in-out_infinite]`}>
+            {t.i}
+          </div>
+          <h3 className="font-bold mt-3 text-[13px]">{t.n}</h3>
+          <p className="text-[11px] text-gray-500 mt-1">{t.d}</p>
+        </div>
+      </a>
+    ))}
+  </div>
+</section>
       {/* SEO INFORMATIONAL CONTENT */}
       <section className="mx-auto max-w-5xl px-4 pb-16 pt-8 md:px-8">
         <article className="rounded-3xl border border-white/10 bg-black/[0.03] p-5 md:p-8">
