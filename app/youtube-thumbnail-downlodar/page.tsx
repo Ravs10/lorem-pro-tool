@@ -991,7 +991,66 @@ export default function YTProEnterprise() {
             </p>
           )}
         </section>
+        {/* Our Other Useful Tools - Animated Section */}
+        <section className="mt-12">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-bold tracking-widest text-violet-400">EXPLORE MORE</p>
+              <h2 className="mt-2 text-3xl font-black tracking-tight sm:text-4xl">
+                Our Other Useful Tools
+                <span className="ml-3 inline-block rounded-full bg-violet-500/15 px-3 py-1 text-sm text-violet-400">6 Tools</span>
+              </h2>
+              <p className={`mt-2 text-sm ${muted}`}>Crafted for creators, designers & developers. Hover to feel the magic.</p>
+            </div>
+          </div>
 
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {OTHER_TOOLS.map((tool, i) => (
+              <motion.a
+                key={tool.name}
+                href={tool.href}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08, duration: 0.5, ease: "easeOut" }}
+                whileHover={{ y: -6, scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onHoverStart={() => playSound()}
+                onClick={() => playSound()}
+                className={`group relative overflow-hidden rounded-[22px] border p-[1px] ${dark ? "border-white/10" : "border-slate-200"}`}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${tool.color} opacity-0 transition-opacity duration-500 group-hover:opacity-100`} />
+                <div className={`relative h-full rounded-[21px] p-5 transition-colors ${panel} group-hover:bg-black/20`}>
+                  <div className="flex items-start justify-between">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${tool.color} text-xl shadow-lg transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110`}>
+                      {tool.icon}
+                    </div>
+                    <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold tracking-wider text-white backdrop-blur">
+                      {tool.badge}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-4 text-lg font-bold tracking-tight transition-colors group-hover:text-white">
+                    {tool.name}
+                    <span className="ml-2 inline-block translate-x-0 opacity-0 transition-all duration-300 group-hover:translate-x-1 group-hover:opacity-100">→</span>
+                  </h3>
+                  <p className={`mt-1.5 line-clamp-2 text-sm leading-6 transition-colors ${muted} group-hover:text-white/70`}>
+                    {tool.desc}
+                  </p>
+
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+                    <span className="text-xs font-semibold text-emerald-400">Free to use</span>
+                    <span className={`ml-auto text-xs ${muted} group-hover:text-white/50`}>Click to open</span>
+                  </div>
+
+                  {/* Shine effect */}
+                  <div className="pointer-events-none absolute -inset-[1px] -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 transition-all duration-700 group-hover:translate-x-full group-hover:opacity-100" />
+                </div>
+              </motion.a>
+            ))}
+          </div>
+        </section>
         {/* How to use */}
         <section className={`mt-12 rounded-3xl border p-5 sm:p-8 ${panel}`}>
           <button
