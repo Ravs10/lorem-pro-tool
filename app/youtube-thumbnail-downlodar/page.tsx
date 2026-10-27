@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import JSZip from "jszip";
+import { motion } from "framer-motion";
 
 type VideoMeta = {
   title?: string;
