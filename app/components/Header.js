@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -10,7 +11,7 @@ const supabase = createClient(
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [tools, setTools] = useState([]);
+  const [tools, setTools] = useState<any[]>([]);
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -24,13 +25,16 @@ export default function Header() {
   const filtered = useMemo(() => {
     if(!q.trim()) return tools;
     const s = q.toLowerCase();
-    return tools.filter(t => t.name.toLowerCase().includes(s));
+    return tools.filter((t:any) => t.name.toLowerCase().includes(s));
   }, [tools, q]);
 
   return (
     <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-xl border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="flex items-center gap-2 text-white font-bold text-[22px]"><span className="animate-pulse">⚡</span> Lorem Pro Tool</Link>
+        <Link href="/" className="flex items-center gap-2.5 text-white font-bold text-[22px]">
+          <Image src="/logo.png" alt="logo" width={32} height={32} className="rounded-md bg-white" />
+          Lorem Pro Tool
+        </Link>
         <button onClick={() => setOpen(!open)} className="text-white text-3xl">{open?'✕':'☰'}</button>
       </div>
       {open && (
@@ -47,7 +51,7 @@ export default function Header() {
           </div>
           <div className="flex-1 overflow-y-auto px-4 space-y-2 pb-4">
             <div className="grid gap-2">
-              {filtered.map((t)=>(
+              {filtered.map((t:any)=>(
                 <Link key={t.id || t.slug} href={t.href || `/${t.slug}`} onClick={()=>setOpen(false)} className="px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-200 hover:bg-white hover:text-black text-sm font-semibold flex justify-between">
                   <span className="truncate">{t.name}</span> <span>→</span>
                 </Link>
