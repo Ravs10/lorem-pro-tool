@@ -24,6 +24,14 @@ const QUALITIES: Quality[] = [
   { key: "mqdefault", label: "MQ", description: "Medium quality" },
 ];
 
+const OTHER_TOOLS = [
+  { name: "QR Code Generator", icon: "🔳", desc: "Create custom QR with logo & colors", href: "#", color: "from-violet-600 to-indigo-600", badge: "Popular" },
+  { name: "Image to PDF", icon: "🖼️", desc: "Convert images to PDF in one click", href: "#", color: "from-blue-600 to-cyan-500", badge: "New" },
+  { name: "Background Remover", icon: "✂️", desc: "AI powered BG removal tool", href: "#", color: "from-emerald-500 to-teal-600", badge: "AI" },
+  { name: "Image Compressor", icon: "🗜️", desc: "Compress JPG, PNG, WebP 80% smaller", href: "#", color: "from-orange-500 to-red-500", badge: "Fast" },
+  { name: "Color Palette Extractor", icon: "🎨", desc: "Extract colors from any image", href: "#", color: "from-pink-500 to-rose-600", badge: "Free" },
+  { name: "Lorem Ipsum Pro", icon: "📝", desc: "Advanced placeholder generator", href: "#", color: "from-slate-700 to-slate-900", badge: "Pro" },
+];
 const FAQS = [
   {
     q: "How do I download a YouTube thumbnail?",
