@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -372,6 +371,7 @@ export default function YTProEnterprise() {
     setStatus("Preparing enhanced image…");
 
     try {
+      // FIXED: Blob + createImageBitmap = No CORS error + Sharp image
       const source = thumbnailUrl(id, quality);
       const response = await fetch(source);
       if (!response.ok) throw new Error("Image could not be fetched.");
@@ -392,10 +392,15 @@ export default function YTProEnterprise() {
       context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
       if (aiEnhance) {
-        // Visual adjustments only; this is not AI super-resolution.
-        context.filter = "contrast(1.08) saturate(1.12) brightness(1.02)";
-        context.drawImage(canvas, 0, 0);
-        context.filter = "none";
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const tempCtx = tempCanvas.getContext("2d")!;
+        tempCtx.filter = "contrast(1.08) saturate(1.12) brightness(1.02)";
+        tempCtx.drawImage(canvas, 0, 0);
+        
+        context.clearRect(0,0,canvas.width,canvas.height);
+        context.drawImage(tempCanvas,0,0);
       }
 
       bitmap.close();
@@ -421,7 +426,7 @@ export default function YTProEnterprise() {
 
       window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
       setStatus(
-        `Enhanced image prepared at ${scale}× dimensions. This is resizing, not native 4K or AI reconstruction.`
+        `Enhanced image prepared at ${scale}× (${canvas.width}x${canvas.height}). Resized, not native 4K.`
       );
     } catch (error) {
       setStatus(
