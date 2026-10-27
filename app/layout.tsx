@@ -43,12 +43,21 @@ export const metadata: Metadata = {
     title: "Lorem Pro Tool - Free Lorem Ipsum Generator in 77 Languages",
     description:
       "Generate dummy text in 77 native languages. Sentence, Paragraph, Word & List modes. 100% Free, No Login.",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Lorem Pro Tool",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Lorem Pro Tool - Free Lorem Ipsum Generator in 77 Languages",
     description:
       "Generate dummy text in 77 native languages. Sentence, Paragraph, Word & List modes.",
+    images: ["/opengraph-image.png"],
   },
 };
 
