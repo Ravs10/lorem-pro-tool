@@ -11,6 +11,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
+      url: `${baseUrl}/youtube-earnings-calculator`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.97, // Sabse high CPC = sabse high priority
+    },
+    {
       url: `${baseUrl}/resume-builder`,
       lastModified: new Date(),
       changeFrequency: 'daily',
@@ -53,18 +59,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/youtube-thumbnail-downlodar`,
+      url: `${baseUrl}/youtube-thumbnail-downloader`, // Spelling fixed
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
     },
-{
-      url: `${baseUrl}/youtube-earnings-calculator`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-    },
-    
     {
       url: `${baseUrl}/fake-data-generator`,
       lastModified: new Date(),
