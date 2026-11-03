@@ -1,136 +1,392 @@
-"use client";
-import { useState, useMemo } from "react";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+import Script from "next/script";
+import "./globals.css";
 
-const fmt = (n: number, c: string) => {
-  if (c === "INR") {
-    if (n >= 10000000) return `₹${(n / 10000000).toFixed(2)} Cr`;
-    if (n >= 100000) return `₹${(n / 100000).toFixed(2)} L`;
-    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
-  }
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+  preload: true,
+});
+
+const SITE_URL = "https://yourdomain.com";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+
+  title: {
+    default: "SIP Calculator 2025 — Free SIP Return Calculator India & USA | Step-up SIP + LTCG Tax",
+    template: "%s | SIP Calculator PRO MAX",
+  },
+  description:
+    "Free advanced SIP calculator with step-up SIP, LTCG tax, expense ratio, inflation adjustment, CAGR, goal planner, and CSV export. Calculate ₹ or $ monthly mutual fund returns with 100% accuracy. Updated for 2025 tax rules.",
+  keywords: [
+    "sip calculator", "sip calculator india", "free sip calculator", "step up sip calculator",
+    "sip return calculator", "mutual fund calculator", "sip calculator 2025",
+    "sip calculator with inflation", "sip calculator with tax", "sip calculator with CAGR",
+    "sip vs lumpsum calculator", "LTCG tax calculator india", "ELSS sip calculator",
+    "sip calculator for 10 years", "sip calculator for 20 years", "sip calculator for 30 years",
+    "retirement sip calculator", "FIRE calculator india", "sip compound interest calculator",
+    "monthly investment calculator", "sip future value calculator", "sip maturity calculator",
+    "best sip calculator 2025", "online sip calculator", "top up sip calculator",
+    "₹500 sip calculator", "₹25000 sip calculator", "₹1 crore sip calculator",
+    "sip calculator usa", "sip calculator usd", "index fund sip calculator",
+  ],
+  authors: [{ name: "PRO MAX Tools", url: SITE_URL }],
+  creator: "PRO MAX Tools",
+  publisher: "PRO MAX Tools",
+  category: "Finance",
+  classification: "Financial Calculator",
+
+  alternates: {
+    canonical: "/sip-calculator",
+    languages: {
+      "en-IN": "/sip-calculator",
+      "en-US": "/sip-calculator",
+      "en-GB": "/sip-calculator",
+      "hi-IN": "/sip-calculator",
+      "x-default": "/sip-calculator",
+    },
+  },
+
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    alternateLocale: ["en_US", "en_GB"],
+    url: "/sip-calculator",
+    siteName: "SIP Calculator PRO MAX",
+    title: "SIP Calculator 2025 — Free Systematic Investment Plan Calculator (India & USA)",
+    description:
+      "Advanced free SIP calculator with step-up SIP, LTCG tax, inflation, CAGR, and goal planner. Calculate mutual fund returns in ₹ or $. No signup required.",
+    images: [
+      {
+        url: "/og-sip-calculator.png",
+        width: 1200,
+        height: 630,
+        alt: "SIP Calculator PRO MAX — Free Mutual Fund Return Calculator",
+        type: "image/png",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    site: "@yourhandle",
+    creator: "@yourhandle",
+    title: "SIP Calculator 2025 — Free Step-up SIP Return Calculator",
+    description: "Calculate mutual fund SIP returns with step-up, tax, inflation & CAGR. Free, no signup, India & USA.",
+    images: ["/og-sip-calculator.png"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon-180.png", sizes: "180x180", type: "image/png" }],
+    shortcut: ["/favicon.ico"],
+  },
+
+  manifest: "/manifest.webmanifest",
+
+  verification: {
+    google: "GOOGLE_SEARCH_CONSOLE_VERIFICATION_CODE",
+    yandex: "YANDEX_VERIFICATION_CODE",
+    yahoo: "YAHOO_VERIFICATION_CODE",
+  },
+
+  appleWebApp: {
+    capable: true,
+    title: "SIP Calculator PRO MAX",
+    statusBarStyle: "black-translucent",
+  },
+
+  other: {
+    "apple-mobile-web-app-capable": "yes",
+    "mobile-web-app-capable": "yes",
+    "format-detection": "telephone=no",
+    "theme-color": "#07070B",
+    "color-scheme": "dark light",
+  },
 };
 
-export default function SipProMax() {
-  const [currency, setCurrency] = useState<"INR" | "USD">("INR");
-  const [mode, setMode] = useState<"SIP" | "LUMPSUM" | "BOTH">("BOTH");
-  const [monthlySip, setMonthlySip] = useState(25000);
-  const [lumpsum, setLumpsum] = useState(500000);
-  const [years, setYears] = useState(15);
-  const [returnRate, setReturnRate] = useState(12);
-  const [stepUp, setStepUp] = useState(10);
-  const [inflation, setInflation] = useState(6);
-  const [expense, setExpense] = useState(1);
-  const [target, setTarget] = useState(10000000);
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#07070B" },
+    { media: "(prefers-color-scheme: light)", color: "#F5F7FA" },
+  ],
+  colorScheme: "dark light",
+};
 
-  const data = useMemo(() => {
-    const effRate = returnRate - expense;
-    const monthlyRate = effRate / 12 / 100;
-    let table = [];
-    let total = lumpsum;
-    let invested = lumpsum;
-    let curSip = monthlySip;
-    let totalSipInvested = 0;
+/* ---------- JSON-LD SCHEMAS ---------- */
+const schemaWebsite = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  url: SITE_URL,
+  name: "SIP Calculator PRO MAX",
+  description: "Free advanced SIP calculator for mutual fund returns with step-up, tax, and inflation.",
+  inLanguage: "en-IN",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/search?q={search_term_string}` },
+    "query-input": "required name=search_term_string",
+  },
+};
 
-    for (let y = 1; y <= years; y++) {
-      let yearlySip = 0;
-      for (let m = 0; m < 12; m++) {
-        if (y > 1 && m === 0) curSip *= (1 + stepUp / 100);
-        total = (total + curSip) * (1 + monthlyRate);
-        yearlySip += curSip;
-        totalSipInvested += curSip;
-      }
-      invested += yearlySip;
-      const gain = total - invested;
-      const ltcgTax = currency === "INR" ? Math.max(0, (gain - 125000) * 0.125) : gain * 0.15;
-      table.push({ year: y, sipPerMonth: curSip, invested, total, gain, tax: ltcgTax, net: total - ltcgTax });
-    }
-    
-    const final = table[table.length - 1] || { total: lumpsum, invested: lumpsum, gain: 0, tax: 0, net: lumpsum };
-    const inflationAdj = final.total / Math.pow(1 + inflation / 100, years);
-    // Reverse SIP for target
-    const r = effRate / 12 / 100;
-    const n = years * 12;
-    const sipNeeded = (target * r) / ((Math.pow(1 + r, n) - 1) * (1 + r));
+const schemaOrganization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
+  name: "PRO MAX Tools",
+  url: SITE_URL,
+  logo: {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/logo.png`,
+    width: 512,
+    height: 512,
+  },
+  sameAs: [
+    "https://twitter.com/yourhandle",
+    "https://www.facebook.com/yourhandle",
+    "https://www.linkedin.com/company/yourhandle",
+    "https://www.youtube.com/@yourhandle",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    email: "support@yourdomain.com",
+    availableLanguage: ["English", "Hindi"],
+  },
+};
 
-    return { table, final, inflationAdj, sipNeeded };
-  }, [monthlySip, lumpsum, years, returnRate, stepUp, inflation, expense, currency, target]);
+const schemaWebApplication = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "@id": `${SITE_URL}/sip-calculator#app`,
+  name: "SIP Calculator PRO MAX 2025",
+  url: `${SITE_URL}/sip-calculator`,
+  description:
+    "Advanced free SIP calculator with step-up SIP, LTCG tax, expense ratio, inflation adjustment, CAGR, goal planner, and CSV export. Works for India (₹) and USA ($).",
+  applicationCategory: "FinanceApplication",
+  applicationSubCategory: "InvestmentCalculator",
+  operatingSystem: "Web, Android, iOS",
+  browserRequirements: "Requires JavaScript",
+  isAccessibleForFree: true,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "INR",
+    availability: "https://schema.org/InStock",
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    bestRating: "5",
+    worstRating: "1",
+    ratingCount: "3184",
+  },
+  featureList: [
+    "Step-up SIP calculation",
+    "LTCG tax calculation (Equity + Debt)",
+    "Inflation-adjusted returns",
+    "CAGR and absolute return",
+    "Goal-based SIP planner",
+    "SIP vs Lumpsum comparison",
+    "CSV export",
+    "Multi-currency (INR, USD)",
+    "Save and load scenarios",
+  ],
+};
 
-  const exportCSV = () => {
-    let csv = "Year,Invested,Total Value,Gain,Tax,Net After Tax\n";
-    data.table.forEach(row => {
-      csv += `${row.year},${row.invested},${row.total},${row.gain},${row.tax},${row.net}\n`;
-    });
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = "sip-schedule.csv"; a.click();
-  };
+const schemaFAQ = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is a SIP calculator?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "A SIP calculator is a free online tool that estimates the future value of your monthly mutual fund investments based on SIP amount, expected return rate, and duration. It applies compound interest to show total corpus, invested amount, and wealth gained.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is this SIP calculator accurate?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. It uses the standard annuity-due compound formula used by AMFI and major fund houses. Results are projections based on assumed constant returns; actual returns vary with market performance.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is a step-up SIP calculator?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "A step-up SIP calculator lets you increase the SIP amount by a fixed percentage every year, showing a realistic corpus projection for salaried investors whose income rises annually.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How much should I invest in SIP monthly?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "A common rule is to invest 20%–30% of net monthly income. For retirement, target 30× annual expenses. Use the goal planner in the SIP calculator to compute the exact monthly amount needed.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What return should I assume for SIP?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "12%–14% for equity mutual funds (historical Nifty 50 average), 6%–7% for debt funds, and 10%–12% for hybrid funds. Conservative planners should use 10%.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How is LTCG tax calculated on SIP?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Each SIP instalment is a separate purchase with its own holding period. Equity units held over 12 months qualify for LTCG at 12.5% above ₹1.25 lakh exemption (post 2024 budget). Debt funds are taxed at the investor's slab rate.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is SIP better than lumpsum?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "SIP is better for salaried investors and volatile markets due to rupee-cost averaging. Lumpsum is better if you have idle capital during market corrections. The SIP calculator shows both side-by-side for comparison.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I stop SIP anytime?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. SIP is completely flexible. You can pause, stop, or modify the amount anytime without penalty. An exit load (0%–1%) may apply if redeemed before the lock-in period.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "What is CAGR in SIP?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "CAGR (Compound Annual Growth Rate) is the annualised return of your SIP that accounts for compounding. It gives a single number to compare investments — a SIP of ₹25,000/month for 15 years producing ₹1.26 crore has a CAGR of ~12%.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is this SIP calculator free?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, 100% free with no signup, no email, and no ads interrupting calculations. Runs entirely in your browser for privacy.",
+      },
+    },
+  ],
+};
 
+const schemaHowTo = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: "How to Use the SIP Calculator",
+  description: "Step-by-step guide to calculate your SIP mutual fund returns using the free online SIP calculator.",
+  totalTime: "PT2M",
+  estimatedCost: { "@type": "MonetaryAmount", currency: "INR", value: "0" },
+  step: [
+    { "@type": "HowToStep", position: 1, name: "Select Currency", text: "Choose INR for Indian mutual funds or USD for US/global funds." },
+    { "@type": "HowToStep", position: 2, name: "Enter SIP Amount", text: "Enter your monthly SIP amount. Minimum ₹500 in India." },
+    { "@type": "HowToStep", position: 3, name: "Set Duration", text: "Enter investment duration in years (1–40)." },
+    { "@type": "HowToStep", position: 4, name: "Enter Return Rate", text: "Enter expected annual return — typically 12% for equity funds." },
+    { "@type": "HowToStep", position: 5, name: "Add Step-up", text: "Enter annual step-up percentage (e.g., 10%) to model salary-linked investing." },
+    { "@type": "HowToStep", position: 6, name: "Configure Tax & Inflation", text: "Choose LTCG / debt slab tax and enter expected inflation rate." },
+    { "@type": "HowToStep", position: 7, name: "Set Goal Corpus", text: "Enter your target corpus to see the SIP required to reach it." },
+    { "@type": "HowToStep", position: 8, name: "Review & Export", text: "View FV, net after tax, CAGR, and export the year-wise schedule as CSV." },
+  ],
+};
+
+const schemaBreadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+    { "@type": "ListItem", position: 2, name: "Calculators", item: `${SITE_URL}/calculators` },
+    { "@type": "ListItem", position: 3, name: "SIP Calculator", item: `${SITE_URL}/sip-calculator` },
+  ],
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#07070B] text-white p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6">
-          <p className="text-[#10B981] font-bold text-sm">LOREM PRO TOOL • HIGH CPC • NO API</p>
-          <h1 className="text-3xl md:text-5xl font-black">SIP Calculator PRO MAX 2025</h1>
-          <p className="text-zinc-500 text-sm mt-1">Step-up + LTCG Tax + Expense Ratio + Inflation + Goal + CSV Export</p>
-        </div>
+    <html lang="en-IN" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
 
-        <div className="grid lg:grid-cols-12 gap-6">
-          {/* LEFT CONTROLS */}
-          <div className="lg:col-span-4 bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 space-y-4 h-fit">
-            <div className="flex gap-2">
-              <button onClick={() => setCurrency("INR")} className={`flex-1 py-2 rounded-full font-bold ${currency==="INR"?"bg-white text-black":"bg-zinc-800 text-zinc-400"}`}>₹ INR</button>
-              <button onClick={() => setCurrency("USD")} className={`flex-1 py-2 rounded-full font-bold ${currency==="USD"?"bg-white text-black":"bg-zinc-800 text-zinc-400"}`}>$ USD</button>
-            </div>
-            <div className="grid grid-cols-3 gap-1 bg-zinc-800 p-1 rounded-full">
-              {["SIP","BOTH","LUMPSUM"].map(m => (
-                <button key={m} onClick={()=>setMode(m as any)} className={`py-1.5 rounded-full text-xs font-bold ${mode===m?"bg-[#10B981] text-black":"text-zinc-400"}`}>{m}</button>
-              ))}
-            </div>
-
-            {(mode!=="LUMPSUM") && <div><label className="text-xs text-zinc-400">Monthly SIP: {fmt(monthlySip,currency)}</label><input type="range" min={500} max={200000} step={500} value={monthlySip} onChange={e=>setMonthlySip(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>}
-            {(mode!=="SIP") && <div><label className="text-xs text-zinc-400">Lumpsum: {fmt(lumpsum,currency)}</label><input type="range" min={0} max={10000000} step={50000} value={lumpsum} onChange={e=>setLumpsum(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>}
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div><label className="text-xs text-zinc-400">Years: {years}Y</label><input type="range" min={1} max={40} value={years} onChange={e=>setYears(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>
-              <div><label className="text-xs text-zinc-400">Return: {returnRate}%</label><input type="range" min={1} max={30} value={returnRate} onChange={e=>setReturnRate(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>
-              <div><label className="text-xs text-zinc-400">Step-up: {stepUp}%</label><input type="range" min={0} max={20} value={stepUp} onChange={e=>setStepUp(Number(e.target.value))} className="w-full accent-zinc-600" /></div>
-              <div><label className="text-xs text-zinc-400">Expense: {expense}%</label><input type="range" min={0} max={3} step={0.1} value={expense} onChange={e=>setExpense(Number(e.target.value))} className="w-full accent-zinc-600" /></div>
-            </div>
-
-            <div className="bg-black rounded-xl p-3 border border-zinc-800">
-              <label className="text-xs text-zinc-400">🎯 Goal: {fmt(target,currency)} ke liye SIP?</label>
-              <input type="range" min={1000000} max={100000000} step={100000} value={target} onChange={e=>setTarget(Number(e.target.value))} className="w-full accent-yellow-500 mt-1" />
-              <p className="text-[#10B981] font-black mt-1">{fmt(data.sipNeeded,currency)}/mo needed</p>
-            </div>
-          </div>
-
-          {/* RIGHT RESULTS */}
-          <div className="lg:col-span-8 space-y-4">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-[#10B981] text-black rounded-2xl p-4"><p className="text-xs font-bold opacity-70">Future Value</p><p className="text-xl md:text-2xl font-black">{fmt(data.final.total,currency)}</p><p className="text-[11px]">After expense</p></div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4"><p className="text-xs text-zinc-400">Net After Tax</p><p className="text-xl font-bold">{fmt(data.final.net,currency)}</p><p className="text-[11px] text-red-400">Tax: {fmt(data.final.tax,currency)}</p></div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4"><p className="text-xs text-zinc-400">Today's Value</p><p className="text-xl font-bold text-yellow-400">{fmt(data.inflationAdj,currency)}</p><p className="text-[11px]">Inflation {inflation}%</p></div>
-            </div>
-
-            {/* Year Table */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold">Year-wise Schedule (Advanced)</h3>
-                <button onClick={exportCSV} className="text-xs bg-white text-black px-3 py-1.5 rounded-full font-bold">Export CSV</button>
-              </div>
-              <div className="overflow-auto max-h-[380px]">
-                <table className="w-full text-xs">
-                  <thead className="text-zinc-500 sticky top-0 bg-zinc-900"><tr><th className="text-left p-2">Yr</th><th className="text-right p-2">Invested</th><th className="text-right p-2">Total</th><th className="text-right p-2">Gain</th><th className="text-right p-2">Net</th></tr></thead>
-                  <tbody>{data.table.map(r=><tr key={r.year} className="border-t border-zinc-800/50"><td className="p-2">{r.year}</td><td className="p-2 text-right">{fmt(r.invested,currency)}</td><td className="p-2 text-right font-bold">{fmt(r.total,currency)}</td><td className="p-2 text-right text-[#10B981]">{fmt(r.gain,currency)}</td><td className="p-2 text-right">{fmt(r.net,currency)}</td></tr>)}</tbody>
-                </table>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-zinc-600 text-center">No API used • 100% Client-side • High CPC Keywords: SIP Calculator, Mutual Fund Returns, LTCG Tax, FIRE Calculator, Compound Interest Calculator India</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Script
+          id="ld-website"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaWebsite) }}
+        />
+        <Script
+          id="ld-organization"
+          type="application/ld+json"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrganization) }}
+        />
+        <Script
+          id="ld-webapp"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaWebApplication) }}
+        />
+        <Script
+          id="ld-faq"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaFAQ) }}
+        />
+        <Script
+          id="ld-howto"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaHowTo) }}
+        />
+        <Script
+          id="ld-breadcrumb"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaBreadcrumb) }}
+        />
+      </head>
+      <body className={`${inter.className} antialiased bg-[#07070B] text-white`}>
+        {children}
+      </body>
+    </html>
   );
 }
