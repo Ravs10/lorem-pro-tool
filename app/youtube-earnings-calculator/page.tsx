@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
-import Head from "next/head";
+
 
 // ==================== EXPANDED DATA ====================
 const NICHES = [
@@ -145,110 +145,8 @@ export default function YouTubeEarningsCalculator() {
 
   if (!mounted) return null;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "SoftwareApplication",
-        "name": "Advanced YouTube Earnings Calculator 2024",
-        "applicationCategory": "FinanceApplication",
-        "operatingSystem": "Web",
-        "description": "Calculate your exact YouTube earnings with AdSense CPM, sponsorships, memberships, super thanks, and tax deductions. Supports USD and INR for 20+ countries.",
-        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
-      },
-      {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://example.com" },
-          { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://example.com/tools" },
-          { "@type": "ListItem", "position": 3, "name": "YouTube Earnings Calculator" }
-        ]
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What is a YouTube Earnings Calculator?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "A YouTube Earnings Calculator is a free online tool that helps content creators estimate their potential revenue from YouTube based on views, CPM (Cost Per Mille), RPM (Revenue Per Mille), sponsorships, and other income streams. It accounts for YouTube's 45% platform cut and provides accurate net profit estimates in multiple currencies."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How does YouTube pay creators?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "YouTube pays creators through the YouTube Partner Program (YPP). For AdSense revenue, YouTube takes 45% and gives 55% to the creator. Additional income comes from channel memberships, Super Chat, Super Thanks, and brand sponsorships, where creators keep 100% (minus payment processing fees)."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "What is CPM and how is it different from RPM?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "CPM (Cost Per Mille) is what advertisers pay per 1,000 ad impressions. RPM (Revenue Per Mille) is what you actually earn per 1,000 video views after YouTube's cut. For example, if CPM is $10, your RPM would be $5.50 (after YouTube's 45% cut)."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How much does YouTube pay for 1 million views?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Earnings vary by niche and country. In the USA, 1 million views can earn $3,000-$22,000 depending on the niche (Finance pays highest). In India, the same views earn $300-$4,000. Finance, Crypto, and Make Money Online niches have the highest CPMs."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Which YouTube niche pays the most in 2024?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "The highest-paying YouTube niches in 2024 are: 1) Finance/Insurance ($15-30 CPM), 2) Crypto/Trading ($12-25 CPM), 3) Make Money Online ($10-20 CPM), 4) Software/SaaS/AI Tools ($8-15 CPM), and 5) Real Estate ($8-15 CPM). These niches attract high-value advertisers."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Do I need 1000 subscribers to earn on YouTube?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes, to join the YouTube Partner Program and monetize with ads, you need at least 1,000 subscribers AND 4,000 watch hours in the past 12 months (or 10 million Shorts views in 90 days). However, you can earn from sponsorships and affiliate marketing even before meeting these requirements."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "How accurate is this YouTube earnings calculator?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "This calculator provides estimates based on industry averages and real CPM data from 20+ countries. Actual earnings can vary by ±20% due to factors like ad blockers, viewer demographics, video length, seasonality, and YouTube's algorithm changes. Use it as a planning tool, not an exact prediction."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Can I earn from YouTube without showing my face?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Yes! Faceless YouTube channels are very profitable. Popular niches include: compilation videos, educational content, gaming, meditation/relaxation, top 10 lists, and AI-generated content. Many successful faceless channels earn $5,000-$50,000+ per month."
-            }
-          }
-        ]
-      }
-    ]
-  };
-
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-[#07070B] text-white" : "bg-[#FAFAFF] text-black"}`}>
-      <Head>
-        <title>YouTube Earnings Calculator 2024 | Free CPM, RPM & Revenue Estimator for 20+ Countries</title>
-        <meta name="description" content="Calculate your exact YouTube earnings with our advanced free calculator. Includes AdSense CPM, RPM, sponsorships, memberships, Super Thanks, and tax deductions. Supports USD & INR for USA, India, UK, and 20+ countries. Accurate estimates for Finance, Tech, Gaming, and all niches." />
-        <meta name="keywords" content="youtube earnings calculator, youtube money calculator, youtube cpm calculator, youtube rpm calculator, how much does youtube pay, youtube revenue estimator, youtube income calculator, youtube ad revenue calculator, youtube earnings per view, youtube calculator 2024, youtube money india, youtube earnings usa" />
-        <meta property="og:title" content="Advanced YouTube Earnings Calculator 2024 | Free CPM & Revenue Estimator" />
-        <meta property="og:description" content="Calculate exact YouTube earnings with AdSense, sponsorships, and tax. Free, accurate, and instant. Supports 20+ countries and 15+ niches." />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://example.com/og-image.jpg" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      </Head>
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;600;800;900&display=swap');
