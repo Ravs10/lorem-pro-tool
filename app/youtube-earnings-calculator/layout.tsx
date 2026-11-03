@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 
+const BASE_URL = "https://lorem-pro-tool.run4ravish.workers.dev";
+
 export const metadata: Metadata = {
   title: {
     default: "YouTube Earnings Calculator 2024 - AdSense + Sponsorship + Tax (India & USA)",
-    template: "%s | Earnings Calc Pro"
+    template: "%s | Lorem Pro Tool"
   },
   description: "Most advanced YouTube earnings calculator. Calculate AdSense (55% cut), sponsorships $5/1k, memberships, Super Thanks, tax. 15 niches, 20 countries, USD/INR. 7.8M views = $42,325 net. Finance niche $22 CPM.",
   keywords: [
@@ -18,23 +20,25 @@ export const metadata: Metadata = {
     "youtube earnings calculator inr",
     "youtube money calculator usa",
     "highest paying youtube niches",
+    "lorem pro tool", 
+    "lorem pro tool youtube earnings calculator", 
     "faceless youtube channel earnings"
   ],
-  authors: [{ name: "Earnings Calc Pro", url: "https://yourdomain.com" }],
-  creator: "Earnings Calc Pro",
-  publisher: "Earnings Calc Pro",
-  metadataBase: new URL("https://yourdomain.com"),
+  authors: [{ name: "Lorem Pro Tool" }],
+  creator: "Lorem Pro Tool",
+  publisher: "Lorem Pro Tool",
+  metadataBase: new URL(BASE_URL),
   alternates: {
     canonical: "/youtube-earnings-calculator",
   },
   openGraph: {
     title: "YouTube Earnings Calculator 2024 - $42,325/mo for 7.8M Views (Real Data)",
     description: "AdSense $7772 + Sponsorship $39255 - Tax = $42325 NET. Supports Finance $22 CPM, Gaming $1.5 CPM. 20 countries, USD/INR, Growth Projection.",
-    url: "https://yourdomain.com/youtube-earnings-calculator",
-    siteName: "Earnings Calc Pro",
+    url: `${BASE_URL}/youtube-earnings-calculator`,
+    siteName: "Lorem Pro Tool",
     images: [
       {
-        url: "/og-youtube-earnings-2024.png",
+        url: `${BASE_URL}/youtube-earnings-calculator/opengraph-image.png`,
         width: 1200,
         height: 630,
         alt: "YouTube Earnings Calculator - 15 Niches 20 Countries USD INR",
@@ -47,8 +51,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "YouTube Earnings Calculator India - Sponsorship + Tax + INR",
     description: "Calculate exact YouTube income in INR/USD. 15 niches, 20 countries. Export CSV, 6-month growth.",
-    images: ["/og-youtube-earnings-2024.png"],
-    creator: "@yourhandle",
+    images: [`${BASE_URL}/youtube-earnings-calculator/opengraph-image.png`],
   },
   robots: {
     index: true,
@@ -70,20 +73,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     "@type": "SoftwareApplication",
     "name": "YouTube Earnings Calculator PRO MAX 2024",
     "applicationCategory": "FinanceApplication",
-    "operatingSystem": "Web, Android, iOS",
+    "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
     "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "ratingCount": "3842", "bestRating": "5" },
     "featureList": "15 niches, 20 countries, USD INR toggle, AdSense 55%, Sponsorship per 1k, Memberships, Super Thanks, Tax, 6-month growth projection, CSV export, RPM calculator",
-    "screenshot": "https://yourdomain.com/og-youtube-earnings-2024.png"
+    "screenshot": `${BASE_URL}/youtube-earnings-calculator/opengraph-image.png`
   };
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://yourdomain.com" },
-      { "@type": "ListItem", "position": 2, "name": "Tools", "item": "https://yourdomain.com/tools" },
-      { "@type": "ListItem", "position": 3, "name": "YouTube Earnings Calculator" }
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": BASE_URL },
+      { "@type": "ListItem", "position": 2, "name": "YouTube Earnings Calculator", "item": `${BASE_URL}/youtube-earnings-calculator` }
     ]
   };
 
