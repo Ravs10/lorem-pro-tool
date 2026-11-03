@@ -52,7 +52,15 @@ export default function MortgageCalculatorPro() {
   const [copied, setCopied] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { 
+    setMounted(true);
+    const savedTheme = localStorage.getItem("mortgage-theme");
+    if(savedTheme) setTheme(savedTheme);
+  }, []);
+
+  useEffect(() => {
+    if(mounted) localStorage.setItem("mortgage-theme", theme);
+  }, [theme, mounted]);
 
   const isDark = theme === "dark";
   const curr = CURRENCIES[currency];
