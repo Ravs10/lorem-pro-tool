@@ -11,6 +11,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
+      url: `${baseUrl}/mortgage-calculator`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.98,
+    },
+    {
       url: `${baseUrl}/youtube-earnings-calculator`,
       lastModified: new Date(),
       changeFrequency: 'daily',
