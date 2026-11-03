@@ -58,6 +58,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+{
+      url: `${baseUrl}/youtube-earnings-calculator`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    
     {
       url: `${baseUrl}/fake-data-generator`,
       lastModified: new Date(),
