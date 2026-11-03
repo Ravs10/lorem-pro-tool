@@ -7,7 +7,6 @@ export const metadata: Metadata = {
   description: "Most advanced free mortgage calculator with PMI, property tax, insurance, HOA, extra payments, bi-weekly, amortization schedule, rent vs buy & payoff chart.",
   keywords: ["mortgage calculator", "home loan calculator", "lorem pro tool", "amortization calculator"],
   
-  // Ye line sabse important hai tumhare liye
   metadataBase: new URL(BASE_URL),
   
   alternates: {
@@ -19,11 +18,20 @@ export const metadata: Metadata = {
     url: `${BASE_URL}/mortgage-calculator`,
     siteName: "Lorem Pro Tool",
     type: "website",
+    images: [
+      {
+        url: `${BASE_URL}/mortgage-calculator/opengraph-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "Mortgage Calculator PRO - Save $61k Interest",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Mortgage Calculator PRO",
     description: "Free advanced mortgage calculator.",
+    images: [`${BASE_URL}/mortgage-calculator/opengraph-image.png`],
   },
 };
 
