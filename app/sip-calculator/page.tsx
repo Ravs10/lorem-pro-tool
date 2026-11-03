@@ -1,16 +1,16 @@
 "use client";
 import { useState, useMemo } from "react";
 
-const fmt = (num: number, currency: string) => {
-  if (currency === "INR") {
-    if (num >= 10000000) return `₹${(num / 10000000).toFixed(2)} Cr`;
-    if (num >= 100000) return `₹${(num / 100000).toFixed(2)} L`;
-    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(num);
+const fmt = (n: number, c: string) => {
+  if (c === "INR") {
+    if (n >= 10000000) return `₹${(n / 10000000).toFixed(2)} Cr`;
+    if (n >= 100000) return `₹${(n / 100000).toFixed(2)} L`;
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
   }
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(num);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 };
 
-export default function SipCalculator() {
+export default function SipProMax() {
   const [currency, setCurrency] = useState<"INR" | "USD">("INR");
   const [mode, setMode] = useState<"SIP" | "LUMPSUM" | "BOTH">("BOTH");
   const [monthlySip, setMonthlySip] = useState(25000);
@@ -19,110 +19,115 @@ export default function SipCalculator() {
   const [returnRate, setReturnRate] = useState(12);
   const [stepUp, setStepUp] = useState(10);
   const [inflation, setInflation] = useState(6);
+  const [expense, setExpense] = useState(1);
+  const [target, setTarget] = useState(10000000);
 
-  const result = useMemo(() => {
-    const months = years * 12;
-    const monthlyRate = returnRate / 12 / 100;
-    let sipTotal = 0;
-    let sipInvested = 0;
-    let currentSip = monthlySip;
+  const data = useMemo(() => {
+    const effRate = returnRate - expense;
+    const monthlyRate = effRate / 12 / 100;
+    let table = [];
+    let total = lumpsum;
+    let invested = lumpsum;
+    let curSip = monthlySip;
+    let totalSipInvested = 0;
 
-    for (let m = 1; m <= months; m++) {
-      if (m > 1 && (m - 1) % 12 === 0) {
-        currentSip = currentSip * (1 + stepUp / 100);
+    for (let y = 1; y <= years; y++) {
+      let yearlySip = 0;
+      for (let m = 0; m < 12; m++) {
+        if (y > 1 && m === 0) curSip *= (1 + stepUp / 100);
+        total = (total + curSip) * (1 + monthlyRate);
+        yearlySip += curSip;
+        totalSipInvested += curSip;
       }
-      sipInvested += currentSip;
-      sipTotal = (sipTotal + currentSip) * (1 + monthlyRate);
+      invested += yearlySip;
+      const gain = total - invested;
+      const ltcgTax = currency === "INR" ? Math.max(0, (gain - 125000) * 0.125) : gain * 0.15;
+      table.push({ year: y, sipPerMonth: curSip, invested, total, gain, tax: ltcgTax, net: total - ltcgTax });
     }
+    
+    const final = table[table.length - 1] || { total: lumpsum, invested: lumpsum, gain: 0, tax: 0, net: lumpsum };
+    const inflationAdj = final.total / Math.pow(1 + inflation / 100, years);
+    // Reverse SIP for target
+    const r = effRate / 12 / 100;
+    const n = years * 12;
+    const sipNeeded = (target * r) / ((Math.pow(1 + r, n) - 1) * (1 + r));
 
-    const lumpsumFuture = lumpsum * Math.pow(1 + returnRate / 100, years);
-    const totalFuture = (mode === "SIP" ? sipTotal : mode === "LUMPSUM" ? lumpsumFuture : sipTotal + lumpsumFuture);
-    const totalInvested = (mode === "SIP" ? sipInvested : mode === "LUMPSUM" ? lumpsum : sipInvested + lumpsum);
-    const gain = totalFuture - totalInvested;
-    const inflationAdj = totalFuture / Math.pow(1 + inflation / 100, years);
+    return { table, final, inflationAdj, sipNeeded };
+  }, [monthlySip, lumpsum, years, returnRate, stepUp, inflation, expense, currency, target]);
 
-    return { totalFuture, totalInvested, gain, sipTotal, lumpsumFuture, inflationAdj, sipInvested };
-  }, [monthlySip, lumpsum, years, returnRate, stepUp, inflation, mode]);
+  const exportCSV = () => {
+    let csv = "Year,Invested,Total Value,Gain,Tax,Net After Tax\n";
+    data.table.forEach(row => {
+      csv += `${row.year},${row.invested},${row.total},${row.gain},${row.tax},${row.net}\n`;
+    });
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "sip-schedule.csv"; a.click();
+  };
 
   return (
-    <div className="min-h-screen bg-[#07070B] text-white p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <p className="text-[#10B981] font-bold tracking-widest">HIGH CPC TOOL #1</p>
-          <h1 className="text-4xl md:text-5xl font-black mt-2">SIP & Compound Interest Calculator PRO</h1>
-          <p className="text-zinc-400 mt-2">SIP + Lumpsum + Step-up + Inflation + LTCG Tax | INR & USD</p>
+    <div className="min-h-screen bg-[#07070B] text-white p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-6">
+          <p className="text-[#10B981] font-bold text-sm">LOREM PRO TOOL • HIGH CPC • NO API</p>
+          <h1 className="text-3xl md:text-5xl font-black">SIP Calculator PRO MAX 2025</h1>
+          <p className="text-zinc-500 text-sm mt-1">Step-up + LTCG Tax + Expense Ratio + Inflation + Goal + CSV Export</p>
         </div>
 
-        {/* Controls */}
-        <div className="flex justify-center gap-3 mb-6">
-          <div className="bg-zinc-900 p-1 rounded-full flex">
-            <button onClick={() => setCurrency("INR")} className={`px-5 py-2 rounded-full font-bold ${currency === "INR" ? "bg-white text-black" : "text-zinc-400"}`}>₹ INR</button>
-            <button onClick={() => setCurrency("USD")} className={`px-5 py-2 rounded-full font-bold ${currency === "USD" ? "bg-white text-black" : "text-zinc-400"}`}>$ USD</button>
-          </div>
-          <div className="bg-zinc-900 p-1 rounded-full flex">
-            <button onClick={() => setMode("SIP")} className={`px-4 py-2 rounded-full text-sm font-bold ${mode === "SIP" ? "bg-[#10B981] text-black" : "text-zinc-400"}`}>SIP Only</button>
-            <button onClick={() => setMode("BOTH")} className={`px-4 py-2 rounded-full text-sm font-bold ${mode === "BOTH" ? "bg-[#10B981] text-black" : "text-zinc-400"}`}>SIP + Lumpsum</button>
-            <button onClick={() => setMode("LUMPSUM")} className={`px-4 py-2 rounded-full text-sm font-bold ${mode === "LUMPSUM" ? "bg-[#10B981] text-black" : "text-zinc-400"}`}>Lumpsum</button>
-          </div>
-        </div>
+        <div className="grid lg:grid-cols-12 gap-6">
+          {/* LEFT CONTROLS */}
+          <div className="lg:col-span-4 bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 space-y-4 h-fit">
+            <div className="flex gap-2">
+              <button onClick={() => setCurrency("INR")} className={`flex-1 py-2 rounded-full font-bold ${currency==="INR"?"bg-white text-black":"bg-zinc-800 text-zinc-400"}`}>₹ INR</button>
+              <button onClick={() => setCurrency("USD")} className={`flex-1 py-2 rounded-full font-bold ${currency==="USD"?"bg-white text-black":"bg-zinc-800 text-zinc-400"}`}>$ USD</button>
+            </div>
+            <div className="grid grid-cols-3 gap-1 bg-zinc-800 p-1 rounded-full">
+              {["SIP","BOTH","LUMPSUM"].map(m => (
+                <button key={m} onClick={()=>setMode(m as any)} className={`py-1.5 rounded-full text-xs font-bold ${mode===m?"bg-[#10B981] text-black":"text-zinc-400"}`}>{m}</button>
+              ))}
+            </div>
 
-        <div className="grid md:grid-cols-5 gap-6">
-          {/* Inputs */}
-          <div className="md:col-span-2 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-6 space-y-6">
-            {(mode === "SIP" || mode === "BOTH") && (
-              <div>
-                <label className="text-zinc-400 text-sm">Monthly SIP: {fmt(monthlySip, currency)}/mo</label>
-                <input type="range" min={currency === "INR" ? 500 : 100} max={currency === "INR" ? 200000 : 5000} step={500} value={monthlySip} onChange={e => setMonthlySip(Number(e.target.value))} className="w-full accent-[#10B981] mt-2" />
-              </div>
-            )}
-            {(mode === "LUMPSUM" || mode === "BOTH") && (
-              <div>
-                <label className="text-zinc-400 text-sm">Lumpsum: {fmt(lumpsum, currency)}</label>
-                <input type="range" min={0} max={currency === "INR" ? 10000000 : 100000} step={10000} value={lumpsum} onChange={e => setLumpsum(Number(e.target.value))} className="w-full accent-[#10B981] mt-2" />
-              </div>
-            )}
-            <div>
-              <label className="text-zinc-400 text-sm">Years: {years} Years</label>
-              <input type="range" min={1} max={40} value={years} onChange={e => setYears(Number(e.target.value))} className="w-full accent-[#10B981] mt-2" />
+            {(mode!=="LUMPSUM") && <div><label className="text-xs text-zinc-400">Monthly SIP: {fmt(monthlySip,currency)}</label><input type="range" min={500} max={200000} step={500} value={monthlySip} onChange={e=>setMonthlySip(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>}
+            {(mode!=="SIP") && <div><label className="text-xs text-zinc-400">Lumpsum: {fmt(lumpsum,currency)}</label><input type="range" min={0} max={10000000} step={50000} value={lumpsum} onChange={e=>setLumpsum(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>}
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className="text-xs text-zinc-400">Years: {years}Y</label><input type="range" min={1} max={40} value={years} onChange={e=>setYears(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>
+              <div><label className="text-xs text-zinc-400">Return: {returnRate}%</label><input type="range" min={1} max={30} value={returnRate} onChange={e=>setReturnRate(Number(e.target.value))} className="w-full accent-[#10B981]" /></div>
+              <div><label className="text-xs text-zinc-400">Step-up: {stepUp}%</label><input type="range" min={0} max={20} value={stepUp} onChange={e=>setStepUp(Number(e.target.value))} className="w-full accent-zinc-600" /></div>
+              <div><label className="text-xs text-zinc-400">Expense: {expense}%</label><input type="range" min={0} max={3} step={0.1} value={expense} onChange={e=>setExpense(Number(e.target.value))} className="w-full accent-zinc-600" /></div>
             </div>
-            <div>
-              <label className="text-zinc-400 text-sm">Expected Return: {returnRate}%</label>
-              <input type="range" min={1} max={30} value={returnRate} onChange={e => setReturnRate(Number(e.target.value))} className="w-full accent-[#10B981] mt-2" />
-            </div>
-            <div>
-              <label className="text-zinc-400 text-sm">Annual Step-up: {stepUp}% (Salary hike)</label>
-              <input type="range" min={0} max={20} value={stepUp} onChange={e => setStepUp(Number(e.target.value))} className="w-full accent-zinc-600 mt-2" />
+
+            <div className="bg-black rounded-xl p-3 border border-zinc-800">
+              <label className="text-xs text-zinc-400">🎯 Goal: {fmt(target,currency)} ke liye SIP?</label>
+              <input type="range" min={1000000} max={100000000} step={100000} value={target} onChange={e=>setTarget(Number(e.target.value))} className="w-full accent-yellow-500 mt-1" />
+              <p className="text-[#10B981] font-black mt-1">{fmt(data.sipNeeded,currency)}/mo needed</p>
             </div>
           </div>
 
-          {/* Result */}
-          <div className="md:col-span-3 space-y-4">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-[#10B981] text-black rounded-2xl p-5">
-                <p className="text-sm font-bold opacity-70">Total Value</p>
-                <p className="text-2xl font-black">{fmt(result.totalFuture, currency)}</p>
+          {/* RIGHT RESULTS */}
+          <div className="lg:col-span-8 space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-[#10B981] text-black rounded-2xl p-4"><p className="text-xs font-bold opacity-70">Future Value</p><p className="text-xl md:text-2xl font-black">{fmt(data.final.total,currency)}</p><p className="text-[11px]">After expense</p></div>
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4"><p className="text-xs text-zinc-400">Net After Tax</p><p className="text-xl font-bold">{fmt(data.final.net,currency)}</p><p className="text-[11px] text-red-400">Tax: {fmt(data.final.tax,currency)}</p></div>
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4"><p className="text-xs text-zinc-400">Today's Value</p><p className="text-xl font-bold text-yellow-400">{fmt(data.inflationAdj,currency)}</p><p className="text-[11px]">Inflation {inflation}%</p></div>
+            </div>
+
+            {/* Year Table */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-bold">Year-wise Schedule (Advanced)</h3>
+                <button onClick={exportCSV} className="text-xs bg-white text-black px-3 py-1.5 rounded-full font-bold">Export CSV</button>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                <p className="text-sm text-zinc-400">Invested</p>
-                <p className="text-xl font-bold">{fmt(result.totalInvested, currency)}</p>
-              </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-                <p className="text-sm text-zinc-400">Gain</p>
-                <p className="text-xl font-bold text-[#10B981]">{fmt(result.gain, currency)}</p>
+              <div className="overflow-auto max-h-[380px]">
+                <table className="w-full text-xs">
+                  <thead className="text-zinc-500 sticky top-0 bg-zinc-900"><tr><th className="text-left p-2">Yr</th><th className="text-right p-2">Invested</th><th className="text-right p-2">Total</th><th className="text-right p-2">Gain</th><th className="text-right p-2">Net</th></tr></thead>
+                  <tbody>{data.table.map(r=><tr key={r.year} className="border-t border-zinc-800/50"><td className="p-2">{r.year}</td><td className="p-2 text-right">{fmt(r.invested,currency)}</td><td className="p-2 text-right font-bold">{fmt(r.total,currency)}</td><td className="p-2 text-right text-[#10B981]">{fmt(r.gain,currency)}</td><td className="p-2 text-right">{fmt(r.net,currency)}</td></tr>)}</tbody>
+                </table>
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-              <h3 className="font-bold mb-3">Breakdown</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-zinc-400">SIP Invested</span><span>{fmt(result.sipInvested, currency)}</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Inflation Adjusted (Today's Value)</span><span className="text-yellow-400 font-bold">{fmt(result.inflationAdj, currency)}</span></div>
-                <div className="flex justify-between"><span className="text-zinc-400">Wealth Multiple</span><span>{(result.totalFuture / result.totalInvested).toFixed(2)}x</span></div>
-              </div>
-              <div className="mt-4 p-3 bg-black rounded-xl text-xs text-zinc-500">
-                *No API used. 100% client-side calculation. LTCG Tax (India 12.5% above 1.25L) excluded for simplicity. High CPC keywords: mutual fund, sip calculator, compound interest.
-              </div>
-            </div>
+            <p className="text-[11px] text-zinc-600 text-center">No API used • 100% Client-side • High CPC Keywords: SIP Calculator, Mutual Fund Returns, LTCG Tax, FIRE Calculator, Compound Interest Calculator India</p>
           </div>
         </div>
       </div>
