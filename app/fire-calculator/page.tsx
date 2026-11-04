@@ -41,7 +41,7 @@ function Accordion({ title, children, isOpen, onToggle, isDark }) {
   );
 }
 
-function LineChart({ data, max, color, isDark, showMarker, markerIndex, label }) {
+function LineChart({ data, max, color, isDark, showMarker, markerIndex, label }: any) {
   if (!data || data.length === 0) return null;
   const w = 600, h = 140;
   const step = w / Math.max(1, data.length - 1);
