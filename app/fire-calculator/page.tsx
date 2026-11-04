@@ -107,7 +107,10 @@ export default function FireCalculatorUltra() {
   const play = useCallback((type) => {
     if (!soundOn) return;
     try {
-      if (!audioRef.current) audioRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      if (!audioRef.current) {
+  const AC = window.AudioContext || (window as any).webkitAudioContext;
+  audioRef.current = new AC();
+}
       const ctx = audioRef.current;
       if (ctx.state === "suspended") ctx.resume();
       const o = ctx.createOscillator();
