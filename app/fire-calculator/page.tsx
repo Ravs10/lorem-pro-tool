@@ -113,7 +113,10 @@ useEffect(() => {
   useEffect(() => { setMounted(true); }, []);
 
   const isDark = theme === "dark";
-
+// FIX 3: Dynamic Income Max
+const incomeMax = currency === "INR" ? 5000000 : 200000;
+const incomeMin = currency === "INR" ? 300000 : 20000;
+  
   const play = useCallback((type) => {
     if (!soundOn) return;
     try {
