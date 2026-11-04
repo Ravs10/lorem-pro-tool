@@ -94,7 +94,13 @@ export default function FireCalculatorUltra() {
   const [healthInflation, setHealthInflation] = useState(8);
 
  // FIX 1: Debounce - Slider lag fix
-const [debounced, setDebounced] = useState({ age, retireAge, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation });
+const [debounced, setDebounced] = useState({ age, retireAge, income, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation });
+useEffect(() => {
+  const t = setTimeout(() => {
+    setDebounced({ age, retireAge, income, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation });
+  }, 200);
+  return () => clearTimeout(t);
+}, [age, retireAge, income, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation]);
 useEffect(() => {
   const t = setTimeout(() => {
     setDebounced({ age, retireAge, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation });
