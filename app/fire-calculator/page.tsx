@@ -150,7 +150,8 @@ const [openAccordion, setOpenAccordion] = useState(null);
 
   // -------- MASTER CALC ENGINE --------
   const data = useMemo(() => {
-    const yearsToRetire = Math.max(1, retireAge - age);
+  const d = debounced;
+  const yearsToRetire = Math.max(1, d.retireAge - d.age);
     const r_m = ret / 12 / 100;
     const n_months = yearsToRetire * 12;
     const annualExpenseToday = expense * 12;
