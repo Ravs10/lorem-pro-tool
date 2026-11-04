@@ -421,7 +421,7 @@ BARISTA: ${fmt(data.barista, currency)}`;
               </div>
               <div>
                 <p className={`text-[9px] font-bold ${isDark ? "text-white/40" : "text-black/50"}`}>INCOME / yr</p>
-                <input type="range" min={300000} max={5000000} step={50000} value={income} onChange={(e) => setIncome(+e.target.value)} className="w-full h-1 rounded-full appearance-none mt-1" />
+                <input type="range" min={incomeMin} max={incomeMax} step={50000} value={income} onChange={(e) => setIncome(+e.target.value)} className="w-full h-1 rounded-full appearance-none mt-1" />
                 <p className="text-[12px] font-bold mt-1">{fmt(income, currency)} • {data.savingsRate.toFixed(0)}% saved</p>
               </div>
               <div>
