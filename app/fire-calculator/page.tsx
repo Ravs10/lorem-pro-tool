@@ -25,7 +25,7 @@ const fmtFull = (n, currency) => {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 };
 
-function Accordion({ title, children, isOpen, onToggle, isDark }) {
+function Accordion({ title, children, isOpen, onToggle, isDark }: any) {
   return (
     <div className={`border rounded-xl overflow-hidden mb-2 ${isDark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-white"}`}>
       <button onClick={onToggle} className="w-full flex justify-between items-center p-4 text-left">
