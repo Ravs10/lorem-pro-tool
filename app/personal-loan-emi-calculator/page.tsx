@@ -11,6 +11,8 @@ const CURRENCIES = {
   AED: { symbol: "AED ", code: "AED", rate: 3.67, locale: "en-AE" },
 };
 
+type CurrencyKey = keyof typeof CURRENCIES;
+
 const BANKS = [
   { name: "HDFC Bank", rate: 10.75, fee: 1.5 },
   { name: "IDFC First", rate: 10.99, fee: 2.0 },
@@ -31,15 +33,14 @@ const CIBIL_TIERS = [
 ];
 
 // ============ HELPERS ============
-const emiFormula = (P, r, n) => {
+const emiFormula = (P: number, r: number, n: number): number => {
   if (r === 0) return P / n;
   return (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
 };
 
-// APR using Newton-Raphson (cash flow: +P at t=0, -EMI monthly, -fees at t=0)
-const calculateAPR = (P, emi, n, fees) => {
+const calculateAPR = (P: number, emi: number, n: number, fees: number): number => {
   const netProceeds = P - fees;
-  const npv = (rate) => {
+  const npv = (rate: number) => {
     let pv = netProceeds;
     for (let m = 1; m <= n; m++) pv -= emi / Math.pow(1 + rate, m);
     return pv;
@@ -53,10 +54,18 @@ const calculateAPR = (P, emi, n, fees) => {
     if (Math.abs(next - r) < 1e-9) { r = next; break; }
     r = next;
   }
-  return ((Math.pow(1 + r, 12) - 1) * 100);
+  return (Math.pow(1 + r, 12) - 1) * 100;
 };
 
-function Accordion({ title, children, isOpen, onToggle, isDark }) {
+interface AccordionProps {
+  title: string;
+  children: React.ReactNode;
+  isOpen: boolean;
+  onToggle: () => void;
+  isDark: boolean;
+}
+
+function Accordion({ title, children, isOpen, onToggle, isDark }: AccordionProps) {
   return (
     <div className={`border rounded-[18px] overflow-hidden mb-2 ${isDark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-white"}`}>
       <button onClick={onToggle} className="w-full flex justify-between items-center p-4 text-left">
@@ -75,24 +84,23 @@ function Accordion({ title, children, isOpen, onToggle, isDark }) {
 export default function PersonalLoanEMI() {
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(true);
-  const [soundOn, setSoundOn] = useState(false); // FIX: default OFF
-  const [currency, setCurrency] = useState("INR");
+  const [soundOn, setSoundOn] = useState(false);
+  const [currency, setCurrency] = useState<CurrencyKey>("INR");
 
   // Inputs
   const [loanAmount, setLoanAmount] = useState(500000);
   const [rate, setRate] = useState(11.5);
   const [tenure, setTenure] = useState(60);
-  const [tenureType, setTenureType] = useState("months");
+  const [tenureType, setTenureType] = useState<"months" | "years">("months");
   const [processingFee, setProcessingFee] = useState(2);
   const [prepayment, setPrepayment] = useState(0);
   const [prepayMonth, setPrepayMonth] = useState(12);
   const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0]);
 
   // Tabs
-  const [activeTab, setActiveTab] = useState("emi");
+  const [activeTab, setActiveTab] = useState<"emi" | "eligibility" | "transfer">("emi");
   const [showSchedule, setShowSchedule] = useState(false);
-  const [scheduleView, setScheduleView] = useState("monthly");
-  const [openAccordion, setOpenAccordion] = useState(null);
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
 
@@ -107,35 +115,43 @@ export default function PersonalLoanEMI() {
   const [newRate, setNewRate] = useState(10.5);
   const [transferFee, setTransferFee] = useState(1);
 
-  const audioRef = useRef(null);
+  const audioRef = useRef<AudioContext | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
   const curr = CURRENCIES[currency];
 
-  const play = (type = "tick") => {
+  const play = (type: "tick" | "fire" | "success" = "tick") => {
     if (!soundOn) return;
     try {
       if (!audioRef.current) {
-        const AC = window.AudioContext || window.webkitAudioContext;
+        // ✅ FIX: cast window to any for webkitAudioContext (legacy Safari prefix)
+        const AC = window.AudioContext || (window as any).webkitAudioContext;
         audioRef.current = new AC();
       }
       const ctx = audioRef.current;
+      if (!ctx) return;
       if (ctx.state === "suspended") ctx.resume();
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
-      if (type === "fire") { o.frequency.setValueAtTime(220, ctx.currentTime); o.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.3); }
-      else if (type === "success") { o.frequency.setValueAtTime(523, ctx.currentTime); o.frequency.linearRampToValueAtTime(1046, ctx.currentTime + 0.2); }
-      else o.frequency.value = 880;
+      if (type === "fire") {
+        o.frequency.setValueAtTime(220, ctx.currentTime);
+        o.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.3);
+      } else if (type === "success") {
+        o.frequency.setValueAtTime(523, ctx.currentTime);
+        o.frequency.linearRampToValueAtTime(1046, ctx.currentTime + 0.2);
+      } else {
+        o.frequency.value = 880;
+      }
       g.gain.setValueAtTime(0.05, ctx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-      o.start(); o.stop(ctx.currentTime + 0.3);
+      o.start();
+      o.stop(ctx.currentTime + 0.3);
     } catch {}
   };
 
-  // FIX: Currency conversion
-  const switchCurrency = (newCur) => {
+  const switchCurrency = (newCur: CurrencyKey) => {
     if (newCur === currency) return;
     const rateRatio = CURRENCIES[newCur].rate / CURRENCIES[currency].rate;
     setLoanAmount(Math.round((loanAmount * rateRatio) / 1000) * 1000);
@@ -146,7 +162,7 @@ export default function PersonalLoanEMI() {
     setCurrency(newCur);
   };
 
-  const fmt = (v) => {
+  const fmt = (v: number): string => {
     if (!isFinite(v) || isNaN(v)) v = 0;
     const abs = Math.abs(v);
     const sign = v < 0 ? "-" : "";
@@ -158,7 +174,8 @@ export default function PersonalLoanEMI() {
     return sign + new Intl.NumberFormat(curr.locale, { style: "currency", currency: curr.code, maximumFractionDigits: 0 }).format(abs);
   };
 
-  const fmtFull = (v) => new Intl.NumberFormat(curr.locale, { style: "currency", currency: curr.code, maximumFractionDigits: 0 }).format(v);
+  const fmtFull = (v: number): string =>
+    new Intl.NumberFormat(curr.locale, { style: "currency", currency: curr.code, maximumFractionDigits: 0 }).format(v);
 
   // ============ MASTER CALC ============
   const calc = useMemo(() => {
@@ -172,9 +189,10 @@ export default function PersonalLoanEMI() {
     const totalCost = totalPayment + feeAmt;
     const apr = calculateAPR(P, emi, n, feeAmt);
 
-    // Amortization with prepayment (FIXED: no double-count)
     let balance = P;
-    const fullSchedule = [];
+    const fullSchedule: Array<{
+      month: number; emi: number; principal: number; interest: number; balance: number; isPrepay: boolean;
+    }> = [];
     let totalIntWithPrepay = 0;
     let paidMonths = 0;
 
@@ -199,8 +217,7 @@ export default function PersonalLoanEMI() {
     const saved = Math.max(0, totalInterest - totalIntWithPrepay);
     const monthsSaved = Math.max(0, n - paidMonths);
 
-    // Yearly summary
-    const yearly = [];
+    const yearly: Array<{ year: number; interest: number; principal: number; balance: number }> = [];
     let bal = P;
     for (let y = 1; y <= Math.ceil(n / 12); y++) {
       let yInt = 0, yPrin = 0;
@@ -218,17 +235,14 @@ export default function PersonalLoanEMI() {
       yearly.push({ year: y, interest: Math.round(yInt), principal: Math.round(yPrin), balance: Math.max(0, Math.round(bal)) });
     }
 
-    // Eligibility (FOIR 50%)
     const maxEMIAllowed = monthlySalary * 0.5 - existingEMI - otherEMI;
     const eligibleEMI = Math.max(0, maxEMIAllowed);
     const eligibleAmount = eligibleEMI > 0 ? (eligibleEMI * (Math.pow(1 + r, n) - 1)) / (r * Math.pow(1 + r, n)) : 0;
     const foir = monthlySalary > 0 ? ((existingEMI + otherEMI + emi) / monthlySalary) * 100 : 0;
     const emiToIncome = monthlySalary > 0 ? (emi / monthlySalary) * 100 : 0;
 
-    // CIBIL-based rate
     const cibilTier = CIBIL_TIERS.find((t) => cibilScore >= t.min) || CIBIL_TIERS[CIBIL_TIERS.length - 1];
 
-    // Balance transfer
     const oldR = oldRate / 1200;
     const newR = newRate / 1200;
     const oldEMI = emiFormula(P, oldR, n);
@@ -236,11 +250,9 @@ export default function PersonalLoanEMI() {
     const transferFeeAmt = (P * transferFee) / 100;
     const transferSaving = (oldEMI - newEMI) * n - transferFeeAmt;
 
-    // Payoff date
     const payoff = new Date(startDate);
     payoff.setMonth(payoff.getMonth() + paidMonths);
 
-    // Bank comparison with fees
     const bankComp = BANKS.map((b) => {
       const br = b.rate / 1200;
       const bEmi = emiFormula(P, br, n);
@@ -259,14 +271,12 @@ export default function PersonalLoanEMI() {
 
   const maxY = Math.max(...calc.yearly.map((y) => y.interest + y.principal), 1);
 
-  // Presets (scale to currency)
   const presets = useMemo(() => {
     const baseINR = [100000, 300000, 500000, 1000000, 1500000, 2500000];
     const ratio = CURRENCIES[currency].rate / CURRENCIES.INR.rate;
     return baseINR.map((v) => ({ label: fmt(v * ratio), amt: Math.round(v * ratio) }));
   }, [currency]);
 
-  // ============ ACTIONS ============
   const copyReport = () => {
     play("success");
     const text = `💰 Personal Loan EMI Report (${currency})
@@ -362,16 +372,14 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
     try {
       const d = JSON.parse(localStorage.getItem("personal-loan-v3") || "null");
       if (!d) { setSaveMsg("Nothing saved"); setTimeout(() => setSaveMsg(""), 2000); return; }
-      Object.keys(d).forEach((k) => {
-        const setters = {
-          loanAmount: setLoanAmount, rate: setRate, tenure: setTenure, tenureType: setTenureType,
-          processingFee: setProcessingFee, prepayment: setPrepayment, prepayMonth: setPrepayMonth,
-          monthlySalary: setMonthlySalary, existingEMI: setExistingEMI, otherEMI: setOtherEMI,
-          cibilScore: setCibilScore, oldRate: setOldRate, newRate: setNewRate,
-          transferFee: setTransferFee, currency: setCurrency, isDark: setIsDark,
-        };
-        setters[k]?.(d[k]);
-      });
+      const setters: Record<string, (v: any) => void> = {
+        loanAmount: setLoanAmount, rate: setRate, tenure: setTenure,
+        tenureType: setTenureType, processingFee: setProcessingFee, prepayment: setPrepayment,
+        prepayMonth: setPrepayMonth, monthlySalary: setMonthlySalary, existingEMI: setExistingEMI,
+        otherEMI: setOtherEMI, cibilScore: setCibilScore, oldRate: setOldRate,
+        newRate: setNewRate, transferFee: setTransferFee, currency: setCurrency, isDark: setIsDark,
+      };
+      Object.keys(d).forEach((k) => { setters[k]?.(d[k]); });
       setSaveMsg("✓ Loaded!");
     } catch { setSaveMsg("✗ Failed"); }
     setTimeout(() => setSaveMsg(""), 2000);
@@ -391,7 +399,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
 
   if (!mounted) return null;
 
-  // ============ SCHEMAS ============
   const schemaFAQ = {
     "@context": "https://schema.org", "@type": "FAQPage",
     mainEntity: [
@@ -426,16 +433,14 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
     <div className={`min-h-screen transition-colors ${isDark ? "bg-[#0a0a0b] text-white" : "bg-[#f8f8f8] text-black"}`}>
       <style>{`input[type=range]{accent-color:#f59e0b}`}</style>
 
-      {/* Schema */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaFAQ) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaApp) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaHowTo) }} />
 
-      {/* HEADER */}
       <header className="max-w-[1280px] mx-auto px-4 py-3 flex justify-between items-center gap-2 flex-wrap">
         <Link href="/" className="font-black text-[18px]">Lorem<span className="text-amber-500"> Pro Tool</span> <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-black">FREE</span></Link>
         <div className="flex gap-2 items-center">
-          <select value={currency} onChange={(e) => switchCurrency(e.target.value)} className={`px-2 py-1.5 rounded-xl text-[11px] font-black border ${isDark ? "bg-white/10 border-white/10" : "bg-white border-black/10"}`}>
+          <select value={currency} onChange={(e) => switchCurrency(e.target.value as CurrencyKey)} className={`px-2 py-1.5 rounded-xl text-[11px] font-black border ${isDark ? "bg-white/10 border-white/10" : "bg-white border-black/10"}`}>
             {Object.keys(CURRENCIES).map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
           <button onClick={() => setSoundOn(!soundOn)} className={`w-9 h-9 rounded-full border flex items-center justify-center ${isDark ? "bg-white/10 border-white/10" : "bg-black/5 border-black/10"}`}>{soundOn ? "🔊" : "🔇"}</button>
@@ -443,28 +448,27 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
         </div>
       </header>
 
-      {/* HERO */}
       <div className="max-w-[1280px] mx-auto px-4 pt-2 pb-4 text-center">
         <p className="text-[11px] font-black tracking-[0.25em] text-amber-500">💰 PERSONAL LOAN EMI CALCULATOR 2026</p>
         <h1 className="text-[28px] md:text-[42px] font-black leading-tight mt-2">Personal Loan EMI <span className="text-amber-500">Calculator</span></h1>
-        <p className={`text-[13px] md:text-[14px] mt-1 max-w-[700px] mx-auto ${isDark ? "text-white/60" : "text-black/60"}`}>EMI + Prepayment + Balance Transfer + Eligibility + APR + 8 Bank Comparison — Sab kuch ek jagah. HDFC, ICICI, SBI, Bajaj, Axis sabke liye.</p>
+        <p className={`text-[13px] md:text-[14px] mt-1 max-w-[700px] mx-auto ${isDark ? "text-white/60" : "text-black/60"}`}>EMI + Prepayment + Balance Transfer + Eligibility + APR + 8 Bank Comparison — Sab kuch ek jagah.</p>
         <div className="flex justify-center gap-2 mt-3 flex-wrap">
           {["No Signup", "APR Calculator", "Prepayment Savings", "8 Banks", "100% Free"].map((t) => <span key={t} className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${isDark ? "border-white/10 bg-white/5" : "border-black/10 bg-white"}`}>✓ {t}</span>)}
         </div>
       </div>
 
-      {/* TABS */}
       <div className="max-w-[1280px] mx-auto px-4 flex gap-2 justify-center mb-4 flex-wrap">
-        {[{ id: "emi", l: "🧮 EMI" }, { id: "eligibility", l: "✅ Eligibility" }, { id: "transfer", l: "🔄 Balance Transfer" }].map((t) => (
+        {[
+          { id: "emi" as const, l: "🧮 EMI" },
+          { id: "eligibility" as const, l: "✅ Eligibility" },
+          { id: "transfer" as const, l: "🔄 Balance Transfer" },
+        ].map((t) => (
           <button key={t.id} onClick={() => { setActiveTab(t.id); play("tick"); }} className={`px-4 py-2 rounded-full text-[12px] font-black transition ${activeTab === t.id ? "bg-amber-500 text-black scale-105 shadow-lg shadow-amber-500/30" : isDark ? "bg-white/10 hover:bg-white/15" : "bg-white border shadow-sm"}`}>{t.l}</button>
         ))}
       </div>
 
       <main className="max-w-[1280px] mx-auto px-4 grid lg:grid-cols-[1fr_380px] gap-4 pb-6">
-        {/* LEFT: CONTROLS */}
         <div className={`rounded-[24px] p-5 border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10 shadow-sm"}`}>
-
-          {/* EMI TAB */}
           {activeTab === "emi" && (
             <>
               <label className="text-[12px] font-black">LOAN AMOUNT: <span className="text-amber-500">{fmt(loanAmount)}</span></label>
@@ -507,7 +511,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
                 {prepayment > 0 && <p className="text-[11px] text-green-500 font-bold mt-2">✅ {calc.monthsSaved} months pehle loan khatam + {fmt(calc.saved)} interest savings!</p>}
               </div>
 
-              {/* Yearly Chart */}
               <div className="mt-6">
                 <p className="text-[12px] font-black mb-3">📊 YEAR WISE — PRINCIPAL vs INTEREST</p>
                 <div className="flex items-end gap-2 h-[140px]">
@@ -526,7 +529,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
             </>
           )}
 
-          {/* ELIGIBILITY TAB */}
           {activeTab === "eligibility" && (
             <div className="space-y-4">
               <h3 className="text-[16px] font-black">Kitna Loan Milega? (50% FOIR Rule)</h3>
@@ -549,7 +551,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
             </div>
           )}
 
-          {/* TRANSFER TAB */}
           {activeTab === "transfer" && (
             <div className="space-y-4">
               <h3 className="text-[16px] font-black">Balance Transfer — Kitna Bachega?</h3>
@@ -565,7 +566,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
             </div>
           )}
 
-          {/* BANK COMPARISON */}
           <div className="mt-6">
             <p className="text-[12px] font-black mb-2">🏦 BANK COMPARISON (including fees) — {fmt(loanAmount)} @ {calc.n} months</p>
             <div className="overflow-x-auto">
@@ -592,7 +592,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
           </div>
         </div>
 
-        {/* RIGHT: RESULTS */}
         <div className="space-y-3">
           <div className="rounded-[24px] p-5 bg-gradient-to-br from-amber-400 to-orange-600 text-black relative overflow-hidden">
             <p className="text-[11px] font-black tracking-widest opacity-70">YOUR MONTHLY EMI</p>
@@ -625,7 +624,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
             </div>
           </div>
 
-          {/* PRINCIPAL vs INTEREST DONUT */}
           <div className={`rounded-[24px] p-4 border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10"}`}>
             <p className="text-[12px] font-black mb-2">PRINCIPAL vs INTEREST</p>
             <div className="flex items-center gap-4">
@@ -639,7 +637,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
             </div>
           </div>
 
-          {/* SAVE/LOAD/RESET */}
           <div className={`rounded-[20px] p-3 border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10"}`}>
             <div className="grid grid-cols-3 gap-2">
               <button onClick={save} className={`py-2 rounded-xl font-black text-[11px] ${isDark ? "bg-white/10 hover:bg-white/15" : "bg-gray-100 hover:bg-gray-200"}`}>💾 Save</button>
@@ -649,12 +646,10 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
             {saveMsg && <p className="text-center text-[11px] mt-2 font-black text-green-500">{saveMsg}</p>}
           </div>
 
-          {/* AD SLOT */}
           <div className={`h-[250px] rounded-[20px] border border-dashed flex items-center justify-center text-[10px] font-bold tracking-widest ${isDark ? "bg-white/[0.02] border-white/10 text-white/30" : "bg-black/[0.02] border-black/10 text-black/30"}`}>AD SLOT · 300×250</div>
         </div>
       </main>
 
-      {/* FULL SCHEDULE */}
       {showSchedule && (
         <div className="max-w-[1280px] mx-auto px-4 pb-6">
           <div className={`rounded-[24px] p-4 border overflow-hidden ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10"}`}>
@@ -686,7 +681,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
         </div>
       )}
 
-      {/* RELATED TOOLS */}
       <section className="max-w-[1280px] mx-auto px-4 pb-2 mt-4">
         <div className="flex justify-between items-end flex-wrap gap-2 mb-4">
           <div><p className="text-[11px] font-black tracking-[0.25em] text-amber-500">⭐ MORE TOOLS</p><h2 className="text-[22px] md:text-[28px] font-black leading-tight mt-1">Log Aur Bhi <span className="text-amber-500">Use Kar Rahe Hai</span></h2></div>
@@ -708,7 +702,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
         </div>
       </section>
 
-      {/* ================= SEO CONTENT — 2000+ WORDS ================= */}
       <article className={`max-w-[900px] mx-auto px-4 py-8 text-[14px] leading-relaxed ${isDark ? "text-white/80" : "text-black/80"}`}>
         <h1 className="text-[30px] md:text-[40px] font-black leading-tight text-amber-500">
           Personal Loan EMI Calculator 2026 — Free Monthly Payment, Eligibility & Balance Transfer Tool
@@ -857,7 +850,7 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
         </p>
 
         <div className={`mt-8 p-4 rounded-xl text-[11px] ${isDark ? "bg-white/5 text-white/50" : "bg-gray-100 text-black/60"}`}>
-          <strong>Disclaimer:</strong> This Personal Loan EMI Calculator provides estimates based on the inputs you provide. Actual EMI, processing fee, and rate may vary by lender, credit profile, and market conditions. Interest rates shown (10.5%–24%) are typical Indian bank/NBFC rates as of 2026 but are not guaranteed. Loan eligibility is subject to bank's internal credit policy. Always read the loan agreement carefully and consult a certified financial advisor before borrowing. Use this tool for planning and comparison purposes only — not as a substitute for professional financial advice.
+          <strong>Disclaimer:</strong> This Personal Loan EMI Calculator provides estimates based on the inputs you provide. Actual EMI, processing fee, and rate may vary by lender, credit profile, and market conditions. Interest rates shown (10.5%–24%) are typical Indian bank/NBFC rates as of 2026 but are not guaranteed. Loan eligibility is subject to bank&apos;s internal credit policy. Always read the loan agreement carefully and consult a certified financial advisor before borrowing. Use this tool for planning and comparison purposes only — not as a substitute for professional financial advice.
         </div>
       </article>
     </div>
