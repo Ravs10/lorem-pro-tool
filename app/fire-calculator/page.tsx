@@ -640,7 +640,57 @@ BARISTA: ${fmtFull(data.barista, currency)}`;
           </div>
         </div>
       </div>
+{/* ========== MORE FAVORITE TOOLS ========== */}
+<section className="max-w-[1280px] mx-auto px-4 pb-2">
+  <style>{`
+    @keyframes toolIn { from { opacity: 0; transform: translateY(18px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes glowPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.35); } 50% { box-shadow: 0 0 0 8px rgba(245,158,11,0); } }
+    .tool-card { animation: toolIn 0.5s ease both; transition: all 0.3s cubic-bezier(.175,.885,.32,1.275); }
+    .tool-card:hover { transform: translateY(-6px) scale(1.03) rotate(-0.5deg); }
+    .tool-card:active { transform: scale(0.97); }
+    .active-glow { animation: glowPulse 2s infinite; }
+  `}</style>
 
+  <div className="flex justify-between items-end flex-wrap gap-2 mb-4">
+    <div>
+      <p className="text-[11px] font-black tracking-[0.25em] text-amber-500">⭐ MORE FAVORITE TOOLS</p>
+      <h2 className={`text-[22px] md:text-[28px] font-black leading-tight mt-1 ${isDark ? "text-white" : "text-black"}`}>
+        Log Aur Bhi <span className="text-amber-500">Use Kar Rahe Hai</span>
+      </h2>
+      <p className={`text-[12px] mt-0.5 ${isDark ? "text-white/50" : "text-black/50"}`}>100% Free • No Signup • Instant Result</p>
+    </div>
+    <a href="/" className="text-[11px] font-black px-3 py-2 rounded-full bg-amber-500 text-black hover:scale-105 transition">All Tools →</a>
+  </div>
+
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    {[
+      { href: "/fire-calculator", icon: "🔥", title: "FIRE Calculator", desc: "Retire Early at 40, 45, 50", tag: "YOU ARE HERE", grad: "from-amber-400 to-orange-600", active: true },
+      { href: "/sip-calculator", icon: "📈", title: "SIP Calculator", desc: "Mutual Fund Wealth Growth", tag: "POPULAR", grad: "from-green-400 to-emerald-600", active: false },
+      { href: "/mortgage-calculator", icon: "🏠", title: "Mortgage Calculator", desc: "Home Loan EMI + Interest", tag: "HIGH CPC", grad: "from-blue-400 to-indigo-600", active: false },
+      { href: "/youtube-earnings-calculator", icon: "▶️", title: "YouTube Earnings", desc: "Views se Kitni Earning?", tag: "VIRAL", grad: "from-red-400 to-pink-600", active: false },
+      { href: "/resume-builder", icon: "📄", title: "Resume Builder", desc: "ATS Friendly Resume", tag: "NEW", grad: "from-purple-400 to-violet-600", active: false },
+      { href: "/ai-detector", icon: "🤖", title: "AI Detector", desc: "AI ya Human Content?", tag: "TRENDING", grad: "from-cyan-400 to-sky-600", active: false },
+      { href: "/password-generator", icon: "🔐", title: "Password Generator", desc: "Strong & Secure Password", tag: "FREE", grad: "from-yellow-400 to-amber-600", active: false },
+      { href: "/hashtag-generator", icon: "#️⃣", title: "Hashtag Generator", desc: "Viral Hashtags in 1 Click", tag: "FREE", grad: "from-pink-400 to-rose-600", active: false },
+    ].map((t, i) => (
+      <a
+        key={t.href}
+        href={t.href}
+        onMouseEnter={() => play("fire")}
+        onClick={() => play("fire")}
+        className={`tool-card group relative overflow-hidden rounded-[20px] p-4 border ${t.active ? "border-amber-500/50 bg-amber-500/10 active-glow" : isDark ? "border-white/10 bg-white/[0.04] hover:border-white/25 hover:bg-white/[0.07]" : "border-black/10 bg-white hover:border-black/20 shadow-sm hover:shadow-lg"}`}
+        style={{ animationDelay: `${i * 0.06}s` }}
+      >
+        <span className={`absolute top-3 right-3 text-[8px] font-black px-2 py-0.5 rounded-full bg-gradient-to-r ${t.grad} text-white`}>{t.tag}</span>
+        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${t.grad} flex items-center justify-center text-[22px] transition-all duration-300 group-hover:rotate-[-10deg] group-hover:scale-110 group-hover:shadow-lg`}>{t.icon}</div>
+        <h3 className={`font-black text-[14px] mt-3 leading-tight group-hover:text-amber-500 transition-colors ${isDark ? "text-white" : "text-black"}`}>{t.title}</h3>
+        <p className={`text-[11px] mt-1 leading-snug ${isDark ? "text-white/50" : "text-black/50"}`}>{t.desc}</p>
+        <p className="text-[11px] font-black mt-3 flex items-center gap-1 text-amber-500 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all">Try Now <span>→</span></p>
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+      </a>
+    ))}
+  </div>
+</section>
       {/* ================= SEO CONTENT ================= */}
       <article className={`max-w-[900px] mx-auto px-4 py-10 ${isDark ? "text-white/80" : "text-black/80"}`}>
         <h1 className="text-[30px] md:text-[42px] font-black tracking-tight text-amber-500 leading-tight">
