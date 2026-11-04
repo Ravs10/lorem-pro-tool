@@ -150,57 +150,56 @@ const incomeMin = currency === "INR" ? 300000 : 20000;
     setSocial(Math.round(social * rate));
     setCurrency(newCur);
   };
-
   // -------- MASTER CALC ENGINE --------
   const data = useMemo(() => {
-  const d = debounced;
-  const yearsToRetire = Math.max(1, d.retireAge - d.age);
-    const r_m = ret / 12 / 100;
+    const d = debounced;
+    const yearsToRetire = Math.max(1, d.retireAge - d.age);
+    const r_m = d.ret / 12 / 100;
     const n_months = yearsToRetire * 12;
-    const annualExpenseToday = expense * 12;
-    const annualHealthToday = health * 12;
+    const annualExpenseToday = d.expense * 12;
+    const annualHealthToday = d.health * 12;
 
     // Correct monthly compounding FV
-    const fvLump = savings * Math.pow(1 + r_m, n_months);
-    const fvSip = monthlyInvest * ((Math.pow(1 + r_m, n_months) - 1) / r_m) * (1 + r_m);
+    const fvLump = d.savings * Math.pow(1 + r_m, n_months);
+    const fvSip = d.monthlyInvest * ((Math.pow(1 + r_m, n_months) - 1) / r_m) * (1 + r_m);
     const fv = fvLump + fvSip;
 
     // Expenses at retirement (inflation-adjusted)
-    const annualExpenseAtRet = annualExpenseToday * Math.pow(1 + inflation / 100, yearsToRetire);
-    const annualHealthAtRet = annualHealthToday * Math.pow(1 + healthInflation / 100, yearsToRetire);
+    const annualExpenseAtRet = annualExpenseToday * Math.pow(1 + d.inflation / 100, yearsToRetire);
+    const annualHealthAtRet = annualHealthToday * Math.pow(1 + d.healthInflation / 100, yearsToRetire);
 
     // Tax on withdrawal (approximation)
     // FIX 2: Correct Tax - Need / (1 - tax)
-const taxFactor = 1 / (1 - taxRate / 100);
+    const taxFactor = 1 / (1 - d.taxRate / 100);
     const totalAnnualNeed = (annualExpenseAtRet + annualHealthAtRet) * taxFactor;
 
     // FIRE number = annual need / SWR
-    const fireNumber = totalAnnualNeed / (withdraw / 100);
+    const fireNumber = totalAnnualNeed / (d.withdraw / 100);
     const lean = fireNumber * 0.7;
     const fat = fireNumber * 1.5;
 
     // Coast FIRE (correct: what you need NOW for it to grow to FIRE without more SIP)
-    const coast = fireNumber / Math.pow(1 + ret / 100, yearsToRetire);
+    const coast = fireNumber / Math.pow(1 + d.ret / 100, yearsToRetire);
 
     // Barista FIRE (reduce need by part-time income)
-    const barista = Math.max(0, (totalAnnualNeed - social * 12) / (withdraw / 100));
+    const barista = Math.max(0, (totalAnnualNeed - d.social * 12) / (d.withdraw / 100));
 
     // FIRE age finder
     let fireAge = null;
-    for (let testAge = age; testAge <= 80; testAge++) {
-      const testYears = testAge - age;
+    for (let testAge = d.age; testAge <= 80; testAge++) {
+      const testYears = testAge - d.age;
       const testN = testYears * 12;
-      const tFvL = savings * Math.pow(1 + r_m, testN);
-      const tFvS = testN > 0 ? monthlyInvest * ((Math.pow(1 + r_m, testN) - 1) / r_m) * (1 + r_m) : 0;
+      const tFvL = d.savings * Math.pow(1 + r_m, testN);
+      const tFvS = testN > 0 ? d.monthlyInvest * ((Math.pow(1 + r_m, testN) - 1) / r_m) * (1 + r_m) : 0;
       const tFv = tFvL + tFvS;
-      const tExp = annualExpenseToday * Math.pow(1 + inflation / 100, testYears);
-      const tHealth = annualHealthToday * Math.pow(1 + healthInflation / 100, testYears);
-      const tNeed = ((tExp + tHealth) * taxFactor) / (withdraw / 100);
+      const tExp = annualExpenseToday * Math.pow(1 + d.inflation / 100, testYears);
+      const tHealth = annualHealthToday * Math.pow(1 + d.healthInflation / 100, testYears);
+      const tNeed = ((tExp + tHealth) * taxFactor) / (d.withdraw / 100);
       if (tFv >= tNeed) { fireAge = testAge; break; }
     }
 
     // Savings rate
-    const savingsRate = income > 0 ? ((monthlyInvest * 12) / income) * 100 : 0;
+    const savingsRate = d.income > 0 ? ((d.monthlyInvest * 12) / d.income) * 100 : 0;
 
     // Monte Carlo (30-year retirement with social security + taxes)
     let successCount = 0;
@@ -209,10 +208,10 @@ const taxFactor = 1 / (1 - taxRate / 100);
       let bal = fv;
       let ok = true;
       for (let y = 0; y < 30; y++) {
-        const mRet = ret + (Math.random() * 30 - 15);
+        const mRet = d.ret + (Math.random() * 30 - 15);
         bal = bal * (1 + mRet / 100);
-        const yearExp = (annualExpenseAtRet + annualHealthAtRet) * Math.pow(1 + inflation / 100, y) * taxFactor;
-        bal = bal - yearExp + social * 12;
+        const yearExp = (annualExpenseAtRet + annualHealthAtRet) * Math.pow(1 + d.inflation / 100, y) * taxFactor;
+        bal = bal - yearExp + d.social * 12;
         if (bal < 0) { ok = false; break; }
       }
       if (ok) successCount++;
@@ -222,17 +221,17 @@ const taxFactor = 1 / (1 - taxRate / 100);
     // How many years will money last?
     let yearsLast = 0, bTest = fv;
     while (bTest > 0 && yearsLast < 100) {
-      const yearExp = (annualExpenseAtRet + annualHealthAtRet) * Math.pow(1 + inflation / 100, yearsLast) * taxFactor;
-      bTest = bTest * (1 + ret / 100) - yearExp + social * 12;
+      const yearExp = (annualExpenseAtRet + annualHealthAtRet) * Math.pow(1 + d.inflation / 100, yearsLast) * taxFactor;
+      bTest = bTest * (1 + d.ret / 100) - yearExp + d.social * 12;
       yearsLast++;
     }
 
     // Accumulation chart
     const chartAcc = [];
-    let bAcc = savings;
+    let bAcc = d.savings;
     for (let y = 0; y <= yearsToRetire; y++) {
       chartAcc.push(Math.max(0, Math.round(bAcc)));
-      for (let m = 0; m < 12; m++) bAcc = bAcc * (1 + r_m) + monthlyInvest;
+      for (let m = 0; m < 12; m++) bAcc = bAcc * (1 + r_m) + d.monthlyInvest;
     }
 
     // Decumulation chart (20 years post-retire)
@@ -240,27 +239,27 @@ const taxFactor = 1 / (1 - taxRate / 100);
     let bDec = fv;
     for (let y = 0; y <= 20; y++) {
       chartDec.push(Math.max(0, Math.round(bDec)));
-      const marketGain = bDec * (ret / 100);
-      const yearExp = (annualExpenseAtRet + annualHealthAtRet) * Math.pow(1 + inflation / 100, y) * taxFactor;
-      bDec = bDec + marketGain - yearExp + social * 12;
+      const marketGain = bDec * (d.ret / 100);
+      const yearExp = (annualExpenseAtRet + annualHealthAtRet) * Math.pow(1 + d.inflation / 100, y) * taxFactor;
+      bDec = bDec + marketGain - yearExp + d.social * 12;
     }
 
     // 1-more-year analysis
     const oneMore = (() => {
       const n2 = (yearsToRetire + 1) * 12;
-      const fv2L = savings * Math.pow(1 + r_m, n2);
-      const fv2S = monthlyInvest * ((Math.pow(1 + r_m, n2) - 1) / r_m) * (1 + r_m);
+      const fv2L = d.savings * Math.pow(1 + r_m, n2);
+      const fv2S = d.monthlyInvest * ((Math.pow(1 + r_m, n2) - 1) / r_m) * (1 + r_m);
       const fv2 = fv2L + fv2S;
-      const exp2 = annualExpenseToday * Math.pow(1 + inflation / 100, yearsToRetire + 1);
-      const health2 = annualHealthToday * Math.pow(1 + healthInflation / 100, yearsToRetire + 1);
-      const need2 = ((exp2 + health2) * taxFactor) / (withdraw / 100);
+      const exp2 = annualExpenseToday * Math.pow(1 + d.inflation / 100, yearsToRetire + 1);
+      const health2 = annualHealthToday * Math.pow(1 + d.healthInflation / 100, yearsToRetire + 1);
+      const need2 = ((exp2 + health2) * taxFactor) / (d.withdraw / 100);
       return { extraCorpus: fv2 - fv, extraSafety: ((fv2 - need2) / need2) * 100 };
     })();
 
     // What-if: 10% higher SIP
     const whatIf10Sip = (() => {
-      const newSip = monthlyInvest * 1.25;
-      const nFv = savings * Math.pow(1 + r_m, n_months) + newSip * ((Math.pow(1 + r_m, n_months) - 1) / r_m) * (1 + r_m);
+      const newSip = d.monthlyInvest * 1.25;
+      const nFv = d.savings * Math.pow(1 + r_m, n_months) + newSip * ((Math.pow(1 + r_m, n_months) - 1) / r_m) * (1 + r_m);
       const gap = fireNumber - nFv;
       return { newCorpus: nFv, gap, yearsEarlier: gap <= 0 ? "Already FIRE" : null };
     })();
@@ -275,9 +274,8 @@ const taxFactor = 1 / (1 - taxRate / 100);
       successRate, chartAcc, chartDec, oneMore, yearsLast, fireAge,
       whatIf10Sip, readyPct, gap, taxFactor,
     };
-  }, [age, retireAge, income, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation]);
-
-  // -------- ACTIONS --------
+  }, [debounced]);
+  
   const copyPlan = () => {
     play("fire");
     const text = `🔥 FIRE Plan Report (${currency})
