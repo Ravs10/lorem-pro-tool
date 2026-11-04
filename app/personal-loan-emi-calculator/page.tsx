@@ -10,7 +10,6 @@ const CURRENCIES = {
   GBP: { symbol: "£", code: "GBP", rate: 0.79, locale: "en-GB" },
   AED: { symbol: "AED ", code: "AED", rate: 3.67, locale: "en-AE" },
 };
-
 type CurrencyKey = keyof typeof CURRENCIES;
 
 const BANKS = [
@@ -57,6 +56,55 @@ const calculateAPR = (P: number, emi: number, n: number, fees: number): number =
   return (Math.pow(1 + r, 12) - 1) * 100;
 };
 
+// ✅ FIX #1b: Deterministic date formatting (no locale dependency → no hydration mismatch)
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const fmtMonthYear = (d: Date, long = false) => {
+  const arr = long ? MONTHS_LONG : MONTHS_SHORT;
+  return `${arr[d.getMonth()]} ${d.getFullYear()}`;
+};
+
+// ✅ FIX #2: SVG Donut Chart — no gaps, pixel-perfect
+interface DonutProps {
+  segments: { value: number; color: string }[];
+  size?: number;
+}
+function DonutChart({ segments, size = 90 }: DonutProps) {
+  const total = segments.reduce((s, seg) => s + Math.max(0, seg.value), 0);
+  if (total === 0) {
+    return <div style={{ width: size, height: size }} className="rounded-full bg-gray-200" />;
+  }
+  const radius = 15.9;
+  const circumference = 2 * Math.PI * radius;
+  let cumulative = 0;
+
+  return (
+    <svg viewBox="0 0 42 42" style={{ width: size, height: size }} className="-rotate-90">
+      <circle cx="21" cy="21" r={radius} fill="transparent" stroke="#27272a" strokeWidth="6" />
+      {segments.map((seg, i) => {
+        const val = Math.max(0, seg.value);
+        if (val === 0) return null;
+        const dash = (val / total) * circumference;
+        const offset = -cumulative;
+        cumulative += dash;
+        return (
+          <circle
+            key={i}
+            cx="21"
+            cy="21"
+            r={radius}
+            fill="transparent"
+            stroke={seg.color}
+            strokeWidth="6"
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            strokeDashoffset={offset}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
@@ -64,7 +112,6 @@ interface AccordionProps {
   onToggle: () => void;
   isDark: boolean;
 }
-
 function Accordion({ title, children, isOpen, onToggle, isDark }: AccordionProps) {
   return (
     <div className={`border rounded-[18px] overflow-hidden mb-2 ${isDark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-white"}`}>
@@ -82,7 +129,7 @@ function Accordion({ title, children, isOpen, onToggle, isDark }: AccordionProps
 }
 
 export default function PersonalLoanEMI() {
-  const [mounted, setMounted] = useState(false);
+  // ✅ FIX #1: No `mounted` state, no `return null` — page renders immediately
   const [isDark, setIsDark] = useState(true);
   const [soundOn, setSoundOn] = useState(false);
   const [currency, setCurrency] = useState<CurrencyKey>("INR");
@@ -95,7 +142,9 @@ export default function PersonalLoanEMI() {
   const [processingFee, setProcessingFee] = useState(2);
   const [prepayment, setPrepayment] = useState(0);
   const [prepayMonth, setPrepayMonth] = useState(12);
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0]);
+
+  // ✅ FIX #1a: Fixed default date for SSR, then update on mount (no flicker, no hydration warning)
+  const [startDate, setStartDate] = useState("2026-01-01");
 
   // Tabs
   const [activeTab, setActiveTab] = useState<"emi" | "eligibility" | "transfer">("emi");
@@ -117,7 +166,10 @@ export default function PersonalLoanEMI() {
 
   const audioRef = useRef<AudioContext | null>(null);
 
-  useEffect(() => { setMounted(true); }, []);
+  // ✅ FIX #1a: Set today's date after mount (client-only, no SSR mismatch)
+  useEffect(() => {
+    setStartDate(new Date().toISOString().split("T")[0]);
+  }, []);
 
   const curr = CURRENCIES[currency];
 
@@ -125,7 +177,6 @@ export default function PersonalLoanEMI() {
     if (!soundOn) return;
     try {
       if (!audioRef.current) {
-        // ✅ FIX: cast window to any for webkitAudioContext (legacy Safari prefix)
         const AC = window.AudioContext || (window as any).webkitAudioContext;
         audioRef.current = new AC();
       }
@@ -134,7 +185,8 @@ export default function PersonalLoanEMI() {
       if (ctx.state === "suspended") ctx.resume();
       const o = ctx.createOscillator();
       const g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
+      o.connect(g);
+      g.connect(ctx.destination);
       if (type === "fire") {
         o.frequency.setValueAtTime(220, ctx.currentTime);
         o.frequency.linearRampToValueAtTime(880, ctx.currentTime + 0.3);
@@ -191,7 +243,12 @@ export default function PersonalLoanEMI() {
 
     let balance = P;
     const fullSchedule: Array<{
-      month: number; emi: number; principal: number; interest: number; balance: number; isPrepay: boolean;
+      month: number;
+      emi: number;
+      principal: number;
+      interest: number;
+      balance: number;
+      isPrepay: boolean;
     }> = [];
     let totalIntWithPrepay = 0;
     let paidMonths = 0;
@@ -250,7 +307,7 @@ export default function PersonalLoanEMI() {
     const transferFeeAmt = (P * transferFee) / 100;
     const transferSaving = (oldEMI - newEMI) * n - transferFeeAmt;
 
-    const payoff = new Date(startDate);
+    const payoff = new Date(startDate || "2026-01-01");
     payoff.setMonth(payoff.getMonth() + paidMonths);
 
     const bankComp = BANKS.map((b) => {
@@ -289,7 +346,7 @@ Total Interest: ${fmtFull(calc.totalInterest)}
 Total Payment: ${fmtFull(calc.totalPayment)}
 APR (true cost): ${calc.apr.toFixed(2)}%
 Total Outflow: ${fmtFull(calc.totalCost)}
-Payoff: ${calc.payoff.toLocaleDateString(curr.locale, { month: "short", year: "numeric" })}
+Payoff: ${fmtMonthYear(calc.payoff)}
 ━━━━━━━━━━━━━━━━━
 ${prepayment > 0 ? `Prepay ${fmtFull(prepayment)} in month ${prepayMonth}
 Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prepayment configured"}`;
@@ -313,48 +370,134 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
     URL.revokeObjectURL(url);
   };
 
+  // ✅ FIX #3: PDF with full schedule + proper page breaks + repeated headers
   const downloadPDF = () => {
     play("success");
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
-    printWindow.document.write(`
-      <html><head><title>Personal Loan EMI Report</title>
-      <style>
-        body{font-family:Arial,sans-serif;padding:30px;color:#000;max-width:800px;margin:auto}
-        h1{font-size:24px;border-bottom:3px solid #f59e0b;padding-bottom:8px}
-        h3{margin-top:20px;color:#333}
-        table{width:100%;border-collapse:collapse;margin-top:12px}
-        th,td{border:1px solid #ddd;padding:8px;font-size:12px;text-align:left}
-        th{background:#fef3c7}
-        .box{background:#fef3c7;padding:15px;border-radius:12px;margin:15px 0}
-        .box p{margin:4px 0;font-size:13px}
-        .footer{font-size:10px;color:#888;margin-top:20px;text-align:center}
-      </style></head><body>
-      <h1>💰 Personal Loan EMI Report</h1>
-      <p style="font-size:11px;color:#666">Generated on ${new Date().toLocaleDateString("en-IN")} • Lorem Pro Tool</p>
-      <div class="box">
-        <p><b>Loan Amount:</b> ${fmtFull(loanAmount)}</p>
-        <p><b>Interest Rate:</b> ${rate}% p.a.</p>
-        <p><b>Tenure:</b> ${calc.n} months (${(calc.n / 12).toFixed(1)} years)</p>
-        <p><b>Processing Fee:</b> ${processingFee}% = ${fmtFull(calc.feeAmt)}</p>
-        <p><b>Monthly EMI:</b> ${fmtFull(calc.emi)}</p>
-        <p><b>Total Interest:</b> ${fmtFull(calc.totalInterest)}</p>
-        <p><b>Total Payment:</b> ${fmtFull(calc.totalPayment)}</p>
-        <p><b>Total Cost (incl. fees):</b> ${fmtFull(calc.totalCost)}</p>
-        <p><b>APR:</b> ${calc.apr.toFixed(2)}%</p>
-        <p><b>Payoff Date:</b> ${calc.payoff.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</p>
-        ${prepayment > 0 ? `<p><b>Prepayment:</b> ${fmtFull(prepayment)} in month ${prepayMonth} → Saves ${fmtFull(calc.saved)} + ${calc.monthsSaved} months</p>` : ""}
-      </div>
-      <h3>Amortization Schedule</h3>
-      <table>
-        <tr><th>Month</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th></tr>
-        ${calc.fullSchedule.map((s) => `<tr><td>${s.month}${s.isPrepay ? " ★" : ""}</td><td>${fmtFull(s.emi)}</td><td>${fmtFull(s.principal)}</td><td>${fmtFull(s.interest)}</td><td>${fmtFull(s.balance)}</td></tr>`).join("")}
-      </table>
-      <p class="footer">Estimate only. Actual EMI may vary by lender. | Lorem Pro Tool</p>
-      <script>window.onload=()=>window.print()</script>
-      </body></html>
-    `);
+    printWindow.document.write(`<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Personal Loan EMI Report</title>
+<style>
+  @page { size: A4; margin: 12mm 10mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 20px;
+    color: #000;
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 12px;
+  }
+  h1 {
+    font-size: 22px;
+    border-bottom: 3px solid #f59e0b;
+    padding-bottom: 8px;
+    margin: 0 0 8px;
+  }
+  h3 {
+    margin-top: 20px;
+    color: #333;
+    font-size: 14px;
+    page-break-after: avoid;
+  }
+  .meta { font-size: 10px; color: #666; margin-bottom: 12px; }
+  .box {
+    background: #fef3c7;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin: 12px 0;
+    page-break-inside: avoid;
+  }
+  .box p { margin: 3px 0; font-size: 12px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 10px;
+  }
+  thead { display: table-header-group; }
+  tbody { display: table-row-group; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 5px 6px;
+    text-align: left;
+  }
+  th {
+    background: #fef3c7;
+    font-weight: bold;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .prepay-row { background: #fef9e7; }
+  .footer {
+    font-size: 9px;
+    color: #888;
+    margin-top: 20px;
+    text-align: center;
+    page-break-inside: avoid;
+  }
+  @media print {
+    body { padding: 0; }
+    .no-print { display: none; }
+    h1 { font-size: 20px; }
+    th, td { padding: 4px 5px; font-size: 9px; }
+  }
+</style>
+</head><body>
+  <h1>💰 Personal Loan EMI Report</h1>
+  <p class="meta">Generated on ${new Date().toLocaleDateString("en-IN")} • Lorem Pro Tool</p>
+
+  <div class="box">
+    <p><b>Loan Amount:</b> ${fmtFull(loanAmount)}</p>
+    <p><b>Interest Rate:</b> ${rate}% p.a.</p>
+    <p><b>Tenure:</b> ${calc.n} months (${(calc.n / 12).toFixed(1)} years)</p>
+    <p><b>Processing Fee:</b> ${processingFee}% = ${fmtFull(calc.feeAmt)}</p>
+    <p><b>Monthly EMI:</b> ${fmtFull(calc.emi)}</p>
+    <p><b>Total Interest:</b> ${fmtFull(calc.totalInterest)}</p>
+    <p><b>Total Payment:</b> ${fmtFull(calc.totalPayment)}</p>
+    <p><b>Total Cost (incl. fees):</b> ${fmtFull(calc.totalCost)}</p>
+    <p><b>APR (true cost):</b> ${calc.apr.toFixed(2)}%</p>
+    <p><b>Payoff Date:</b> ${fmtMonthYear(calc.payoff, true)}</p>
+    ${prepayment > 0 ? `<p><b>Prepayment:</b> ${fmtFull(prepayment)} in month ${prepayMonth} → Saves ${fmtFull(calc.saved)} + ${calc.monthsSaved} months</p>` : ""}
+  </div>
+
+  <h3>Amortization Schedule (All ${calc.fullSchedule.length} Months)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>EMI</th>
+        <th>Principal</th>
+        <th>Interest</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${calc.fullSchedule.map((s) => `<tr${s.isPrepay ? ' class="prepay-row"' : ""}><td>${s.month}${s.isPrepay ? " ★" : ""}</td><td>${fmtFull(s.emi)}</td><td>${fmtFull(s.principal)}</td><td>${fmtFull(s.interest)}</td><td>${fmtFull(s.balance)}</td></tr>`).join("")}
+    </tbody>
+  </table>
+
+  <p class="footer">Estimate only. Actual EMI may vary by lender. Consult your bank for final terms. | Lorem Pro Tool</p>
+
+  <script>
+    // ✅ FIX #3b: Wait for full render before invoking print dialog
+    window.addEventListener('load', function() {
+      setTimeout(function() { window.print(); }, 400);
+    });
+  </script>
+</body></html>`);
     printWindow.document.close();
+  };
+
+  // ✅ FIX #1c: Compute WhatsApp URL at click time (not render time → no hydration mismatch)
+  const shareWhatsApp = () => {
+    play("success");
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://yourdomain.com";
+    const text = `🔥 Personal Loan EMI Check!\n\n💰 Loan: ${fmt(loanAmount)}\n📊 EMI: ${fmt(calc.emi)}/mo\n📈 Rate: ${rate}% • ${calc.n} months\n💸 Total Interest: ${fmt(calc.totalInterest)}\n✅ APR: ${calc.apr.toFixed(2)}%\n\nCheck yours 👉 ${origin}/personal-loan-emi-calculator`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   const save = () => {
@@ -393,12 +536,6 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
     setSaveMsg("✓ Reset!"); setTimeout(() => setSaveMsg(""), 2000);
   };
 
-  const whatsappLink = `https://wa.me/?text=${encodeURIComponent(
-    `🔥 Personal Loan EMI Check!\n\n💰 Loan: ${fmt(loanAmount)}\n📊 EMI: ${fmt(calc.emi)}/mo\n📈 Rate: ${rate}% • ${calc.n} months\n💸 Total Interest: ${fmt(calc.totalInterest)}\n✅ APR: ${calc.apr.toFixed(2)}%\n\nCheck yours 👉 ${typeof window !== "undefined" ? window.location.origin : ""}/personal-loan-emi-calculator`
-  )}`;
-
-  if (!mounted) return null;
-
   const schemaFAQ = {
     "@context": "https://schema.org", "@type": "FAQPage",
     mainEntity: [
@@ -428,6 +565,14 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
       { "@type": "HowToStep", position: 4, name: "View EMI", text: "See monthly EMI, total interest, and full amortization schedule instantly." },
     ],
   };
+
+  // ✅ Compute donut segments once for reuse
+  const donutSegments = [
+    { value: loanAmount, color: "#f59e0b" },
+    { value: calc.totalInterest, color: "#ef4444" },
+    { value: calc.feeAmt, color: "#8b5cf6" },
+  ];
+  const donutTotal = donutSegments.reduce((s, seg) => s + seg.value, 0);
 
   return (
     <div className={`min-h-screen transition-colors ${isDark ? "bg-[#0a0a0b] text-white" : "bg-[#f8f8f8] text-black"}`}>
@@ -607,7 +752,7 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
 
             <div className="mt-3 bg-black/10 rounded-xl p-2.5 flex justify-between items-center">
               <p className="text-[10px] font-bold opacity-70">LOAN ENDS</p>
-              <p className="font-black text-[12px]">{calc.payoff.toLocaleDateString(curr.locale, { month: "short", year: "numeric" })}</p>
+              <p className="font-black text-[12px]">{fmtMonthYear(calc.payoff)}</p>
             </div>
 
             <button onClick={() => { setShowSchedule(!showSchedule); play("fire"); }} className="w-full mt-4 bg-black text-white py-3 rounded-full text-[12px] font-black hover:scale-[1.02] transition">
@@ -619,18 +764,21 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
               <button onClick={copyReport} className="bg-white text-black py-2.5 rounded-full text-[11px] font-black hover:scale-[1.02] transition">{copied ? "✓ Copied" : "📋 Copy"}</button>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2">
-              <a href={whatsappLink} target="_blank" rel="noreferrer" onClick={() => play("success")} className="bg-[#25D366] text-white py-2.5 rounded-full text-[11px] font-black text-center hover:scale-[1.02] transition">💬 WhatsApp</a>
+              <button onClick={shareWhatsApp} className="bg-[#25D366] text-white py-2.5 rounded-full text-[11px] font-black hover:scale-[1.02] transition">💬 WhatsApp</button>
               <button onClick={exportCSV} className="bg-white text-black py-2.5 rounded-full text-[11px] font-black hover:scale-[1.02] transition">📥 CSV</button>
             </div>
           </div>
 
+          {/* ✅ FIX #2: SVG Donut Chart — no gaps */}
           <div className={`rounded-[24px] p-4 border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10"}`}>
             <p className="text-[12px] font-black mb-2">PRINCIPAL vs INTEREST</p>
             <div className="flex items-center gap-4">
-              <div className="w-[90px] h-[90px] rounded-full shrink-0" style={{ background: `conic-gradient(#f59e0b 0 ${(loanAmount / (calc.totalPayment + calc.feeAmt)) * 360}deg, #ef4444 ${(loanAmount / (calc.totalPayment + calc.feeAmt)) * 360}deg ${((loanAmount + calc.totalInterest) / (calc.totalPayment + calc.feeAmt)) * 360}deg, #8b5cf6 ${((loanAmount + calc.totalInterest) / (calc.totalPayment + calc.feeAmt)) * 360}deg 360deg)` }} />
+              <div className="shrink-0">
+                <DonutChart segments={donutSegments} size={90} />
+              </div>
               <div className="text-[11px] space-y-1">
-                <p>🟧 Principal: {fmt(loanAmount)} ({((loanAmount / (calc.totalPayment + calc.feeAmt)) * 100).toFixed(0)}%)</p>
-                <p>🟥 Interest: {fmt(calc.totalInterest)} ({((calc.totalInterest / (calc.totalPayment + calc.feeAmt)) * 100).toFixed(0)}%)</p>
+                <p>🟧 Principal: {fmt(loanAmount)} ({donutTotal > 0 ? ((loanAmount / donutTotal) * 100).toFixed(0) : 0}%)</p>
+                <p>🟥 Interest: {fmt(calc.totalInterest)} ({donutTotal > 0 ? ((calc.totalInterest / donutTotal) * 100).toFixed(0) : 0}%)</p>
                 <p>🟪 Fees: {fmt(calc.feeAmt)}</p>
                 {calc.saved > 0 && <p className="font-bold text-green-500">✅ Save {fmt(calc.saved)} via prepay</p>}
               </div>
@@ -737,7 +885,7 @@ Savings: ${fmtFull(calc.saved)} | ${calc.monthsSaved} months earlier` : "No prep
           <strong>APR (Annual Percentage Rate)</strong> is the true annual cost of borrowing — it includes not just the interest rate but also the <strong>processing fee, documentation charges, insurance premiums, and any other upfront costs</strong>. If Bank A offers 11% interest with 2% processing fee, and Bank B offers 10.5% with 4% processing fee, Bank A is actually cheaper despite the higher headline rate.
         </p>
         <p className="mt-3">
-          Our calculator computes APR using the Newton-Raphson iterative method, which is how banks and RBI calculate it. A typical personal loan with 11.5% interest and 2% processing fee will show an APR of around 13-14% — that is the number you should compare across banks, not the EMI. RBI mandates that all lenders disclose APR, but most borrowers ignore it. Don't be that borrower.
+          Our calculator computes APR using the Newton-Raphson iterative method, which is how banks and RBI calculate it. A typical personal loan with 11.5% interest and 2% processing fee will show an APR of around 13-14% — that is the number you should compare across banks, not the EMI. RBI mandates that all lenders disclose APR, but most borrowers ignore it. Don&apos;t be that borrower.
         </p>
 
         <h2 className="text-[22px] md:text-[28px] font-black mt-8 text-amber-500">What Factors Affect Your Personal Loan EMI?</h2>
