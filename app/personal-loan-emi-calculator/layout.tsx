@@ -5,7 +5,7 @@ const URL = `${ROOT}/personal-loan-emi-calculator`;
 const SITE_NAME = "Lorem Pro Tool";
 const TITLE = "Personal Loan EMI Calculator 2026 - EMI, Prepayment, APR & Balance Transfer";
 const DESCRIPTION = "Free Personal Loan EMI Calculator 2026 - EMI, Prepayment Saving, True APR, Eligibility (FOIR), CIBIL Score Rate & 8 Bank Comparison (HDFC, ICICI, SBI, Bajaj). 1 second me EMI check karo, PDF & CSV download karo. No signup, 100% Free.";
-const OG_IMAGE = `${ROOT}/og/personal-loan-emi-calculator.png`;
+const OG_IMAGE = `${SITE_URL}/opengraph-image.png`;
 const LOGO = `${ROOT}/logo.png`;
 
 export const metadata: Metadata = {
