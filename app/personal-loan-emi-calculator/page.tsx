@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import Link from "next/link";
 
 export default function PersonalLoanEMI() {
@@ -7,20 +7,16 @@ export default function PersonalLoanEMI() {
   const [soundOn, setSoundOn] = useState(true);
   const [loanAmount, setLoanAmount] = useState(500000);
   const [rate, setRate] = useState(11.5);
-  const [tenure, setTenure] = useState(60); // months
+  const [tenure, setTenure] = useState(60);
   const [tenureType, setTenureType] = useState<"months" | "years">("months");
-  const [processingFee, setProcessingFee] = useState(2); // %
+  const [processingFee, setProcessingFee] = useState(2);
   const [prepayment, setPrepayment] = useState(0);
   const [prepayMonth, setPrepayMonth] = useState(12);
   const [showSchedule, setShowSchedule] = useState(false);
   const [activeTab, setActiveTab] = useState<"emi" | "eligibility" | "transfer">("emi");
-
-  // Eligibility inputs
   const [monthlySalary, setMonthlySalary] = useState(60000);
   const [existingEMI, setExistingEMI] = useState(5000);
   const [otherEMI, setOtherEMI] = useState(0);
-
-  // Balance Transfer
   const [oldRate, setOldRate] = useState(14);
   const [newRate, setNewRate] = useState(10.5);
   const [transferFee, setTransferFee] = useState(1);
@@ -50,17 +46,12 @@ export default function PersonalLoanEMI() {
     const totalInterest = totalPayment - P;
     const feeAmt = P * processingFee / 100;
     const totalCost = totalPayment + feeAmt;
-
-    // Amortization with prepayment
     let balance = P, schedule: any[] = [], totalIntWithPrepay = 0, paidMonths = 0, saved = 0;
     for (let m = 1; m <= n; m++) {
       if (balance <= 0) break;
       const interest = balance * r;
       let principal = emi - interest;
-      if (m === prepayMonth && prepayment > 0) {
-        principal += prepayment;
-        balance -= prepayment;
-      }
+      if (m === prepayMonth && prepayment > 0) { principal += prepayment; balance -= prepayment; }
       if (principal > balance) principal = balance;
       balance -= principal;
       totalIntWithPrepay += interest;
@@ -69,20 +60,13 @@ export default function PersonalLoanEMI() {
     }
     saved = totalInterest - totalIntWithPrepay;
     const monthsSaved = n - paidMonths;
-
-    // Eligibility - 50% FOIR rule
     const maxEMIAllowed = (monthlySalary * 0.5) - existingEMI - otherEMI;
     const eligibleEMI = Math.max(0, maxEMIAllowed);
-    // Reverse EMI to loan amount
     const eligibleAmount = eligibleEMI * (Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n));
-
-    // Balance Transfer
     const oldR = oldRate / 1200, newR = newRate / 1200;
     const oldEMI = P * oldR * Math.pow(1 + oldR, n) / (Math.pow(1 + oldR, n) - 1);
     const newEMI = P * newR * Math.pow(1 + newR, n) / (Math.pow(1 + newR, n) - 1);
     const transferSaving = (oldEMI - newEMI) * n - (P * transferFee / 100);
-
-    // Chart data - yearly
     const yearly: any[] = [];
     let bal = P;
     for (let y = 1; y <= Math.ceil(n / 12); y++) {
@@ -93,22 +77,51 @@ export default function PersonalLoanEMI() {
       }
       yearly.push({ year: y, interest: Math.round(yInt), principal: Math.round(yPrin), balance: Math.max(0, Math.round(bal)) });
     }
-
     return { emi, totalPayment, totalInterest, feeAmt, totalCost, schedule, totalIntWithPrepay, saved, monthsSaved, paidMonths, eligibleEMI, eligibleAmount, oldEMI, newEMI, transferSaving, yearly, n };
   }, [loanAmount, rate, tenure, tenureType, processingFee, prepayment, prepayMonth, monthlySalary, existingEMI, otherEMI, oldRate, newRate, transferFee]);
 
   const fmt = (v: number) => v >= 10000000 ? `₹${(v / 10000000).toFixed(2)} Cr` : v >= 100000 ? `₹${(v / 100000).toFixed(2)} L` : `₹${Math.round(v).toLocaleString("en-IN")}`;
   const maxY = Math.max(...calc.yearly.map(y => y.interest + y.principal), 1);
-
   const presets = [
     { label: "₹1 Lakh", amt: 100000 }, { label: "₹3 Lakh", amt: 300000 },
     { label: "₹5 Lakh", amt: 500000 }, { label: "₹10 Lakh", amt: 1000000 },
     { label: "₹15 Lakh", amt: 1500000 }, { label: "₹25 Lakh", amt: 2500000 },
   ];
 
+  const downloadPDF = () => {
+    play("success");
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html><head><title>Loan EMI Report - Lorem Pro Tool</title>
+      <style>body{font-family:Arial;padding:30px;color:#000}h1{font-size:22px}table{width:100%;border-collapse:collapse;margin-top:15px}td,th{border:1px solid #ddd;padding:8px;font-size:13px;text-align:left}.box{background:#fef3c7;padding:15px;border-radius:12px}</style>
+      </head><body>
+      <h1>🔥 Personal Loan EMI Report</h1>
+      <p>Generated from Lorem Pro Tool • ${new Date().toLocaleDateString("en-IN")}</p>
+      <div class="box">
+        <p><b>Loan Amount:</b> ${fmt(loanAmount)}</p>
+        <p><b>Interest Rate:</b> ${rate}% p.a.</p>
+        <p><b>Tenure:</b> ${calc.n} Months</p>
+        <p><b>Monthly EMI:</b> ${fmt(calc.emi)}</p>
+        <p><b>Total Interest:</b> ${fmt(calc.totalInterest)}</p>
+        <p><b>Total Payment:</b> ${fmt(calc.totalPayment)}</p>
+        <p><b>Prepayment Saving:</b> ${fmt(calc.saved)} • ${calc.monthsSaved} Months Early</p>
+      </div>
+      <h3>Amortization Schedule (First 12 Months)</h3>
+      <table><tr><th>Month</th><th>EMI</th><th>Principal</th><th>Interest</th><th>Balance</th></tr>
+      ${calc.schedule.slice(0, 12).map((s: any) => `<tr><td>${s.month}</td><td>${fmt(s.emi)}</td><td>${fmt(s.principal)}</td><td>${fmt(s.interest)}</td><td>${fmt(s.balance)}</td></tr>`).join("")}
+      </table>
+      <p style="font-size:11px;color:#888;margin-top:20px">Disclaimer: Ye estimate hai. Actual EMI bank ke hisab se alag ho sakti hai. | lorem-pro-tool.run4ravish.workers.dev</p>
+      <script>window.onload=()=>window.print()</script>
+      </body></html>
+    `);
+    printWindow.document.close();
+  };
+
+  const whatsappLink = `https://wa.me/?text=${encodeURIComponent(`🔥 Meri Loan EMI Check Karo!\n\n💰 Loan: ${fmt(loanAmount)}\n📊 EMI: ${fmt(calc.emi)}/month\n📈 Rate: ${rate}% • Tenure: ${calc.n} Months\n💸 Total Interest: ${fmt(calc.totalInterest)}\n✅ Prepay karke ${fmt(calc.saved)} bacha sakta hu!\n\nTum bhi check karo 👉 https://lorem-pro-tool.run4ravish.workers.dev/personal-loan-emi-calculator`)}`;
+
   return (
     <div className={`min-h-screen transition-colors ${isDark ? "bg-[#0a0a0b] text-white" : "bg-[#f8f8f8] text-black"}`}>
-      {/* HEADER */}
       <header className="max-w-[1280px] mx-auto px-4 py-3 flex justify-between items-center">
         <Link href="/" className="font-black text-[18px]">Lorem<span className="text-amber-500"> Pro Tool</span> <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500 text-black">FREE</span></Link>
         <div className="flex gap-2">
@@ -117,7 +130,6 @@ export default function PersonalLoanEMI() {
         </div>
       </header>
 
-      {/* TITLE */}
       <div className="max-w-[1280px] mx-auto px-4 pt-2 pb-4 text-center">
         <p className="text-[11px] font-black tracking-[0.25em] text-amber-500">💰 PERSONAL LOAN EMI CALCULATOR 2026 • INDIA</p>
         <h1 className="text-[28px] md:text-[42px] font-black leading-tight mt-2">Personal Loan EMI <span className="text-amber-500">Calculator</span></h1>
@@ -127,7 +139,6 @@ export default function PersonalLoanEMI() {
         </div>
       </div>
 
-      {/* TABS */}
       <div className="max-w-[1280px] mx-auto px-4 flex gap-2 justify-center mb-4">
         {[{ id: "emi", l: "🧮 EMI Calculator" }, { id: "eligibility", l: "✅ Eligibility" }, { id: "transfer", l: "🔄 Balance Transfer" }].map(t => (
           <button key={t.id} onClick={() => { setActiveTab(t.id as any); play("tick"); }} className={`px-4 py-2 rounded-full text-[12px] font-black transition ${activeTab === t.id ? "bg-amber-500 text-black scale-105 shadow-lg shadow-amber-500/30" : isDark ? "bg-white/10 hover:bg-white/15" : "bg-white border shadow-sm"}`}>{t.l}</button>
@@ -135,7 +146,6 @@ export default function PersonalLoanEMI() {
       </div>
 
       <main className="max-w-[1280px] mx-auto px-4 grid lg:grid-cols-[1fr_380px] gap-4 pb-6">
-        {/* LEFT - INPUTS */}
         <div className={`rounded-[24px] p-5 border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10 shadow-sm"}`}>
           {activeTab === "emi" && (
             <>
@@ -159,8 +169,6 @@ export default function PersonalLoanEMI() {
                   </div>
                 </div>
               </div>
-
-              {/* PREPAYMENT - ADVANCE */}
               <div className={`mt-5 p-4 rounded-[18px] border border-dashed ${isDark ? "border-amber-500/30 bg-amber-500/5" : "border-amber-500/40 bg-amber-50"}`}>
                 <p className="text-[12px] font-black">🔥 PREPAYMENT / PART-PAYMENT <span className="ml-1 text-[9px] px-2 py-0.5 rounded-full bg-green-500 text-white">SAVE ₹{Math.round(calc.saved).toLocaleString("en-IN")}</span></p>
                 <div className="grid md:grid-cols-2 gap-4 mt-3">
@@ -169,21 +177,18 @@ export default function PersonalLoanEMI() {
                 </div>
                 {prepayment > 0 && <p className="text-[11px] text-green-500 font-bold mt-2">✅ Tum {calc.monthsSaved} months pehle loan khatam kar doge aur ₹{Math.round(calc.saved).toLocaleString("en-IN")} interest bacha loge!</p>}
               </div>
-
               <div className="mt-4">
                 <label className="text-[12px] font-black">PROCESSING FEE: {processingFee}% = {fmt(calc.feeAmt)}</label>
                 <input type="range" min={0} max={5} step={0.25} value={processingFee} onChange={e => setProcessingFee(+e.target.value)} className="w-full accent-amber-500 mt-1" />
               </div>
-
-              {/* YEARLY CHART */}
               <div className="mt-6">
                 <p className="text-[12px] font-black mb-3">📊 YEAR WISE - PRINCIPAL vs INTEREST</p>
                 <div className="flex items-end gap-2 h-[140px]">
                   {calc.yearly.map(y => (
                     <div key={y.year} className="flex-1 flex flex-col items-center gap-1 group">
                       <div className="w-full flex flex-col justify-end h-[120px]">
-                        <div className="bg-amber-500 rounded-t-md transition-all group-hover:opacity-80" style={{ height: `${(y.principal / maxY) * 110}px` }} title={`Principal ${fmt(y.principal)}`} />
-                        <div className="bg-red-500/80 rounded-b-md transition-all" style={{ height: `${(y.interest / maxY) * 110}px` }} title={`Interest ${fmt(y.interest)}`} />
+                        <div className="bg-amber-500 rounded-t-md transition-all group-hover:opacity-80" style={{ height: `${(y.principal / maxY) * 110}px` }} />
+                        <div className="bg-red-500/80 rounded-b-md transition-all" style={{ height: `${(y.interest / maxY) * 110}px` }} />
                       </div>
                       <span className="text-[9px] font-bold opacity-60">Y{y.year}</span>
                     </div>
@@ -193,7 +198,6 @@ export default function PersonalLoanEMI() {
               </div>
             </>
           )}
-
           {activeTab === "eligibility" && (
             <div className="space-y-4">
               <h3 className="text-[16px] font-black">Kitna Loan Milega?</h3>
@@ -206,7 +210,6 @@ export default function PersonalLoanEMI() {
               </div>
             </div>
           )}
-
           {activeTab === "transfer" && (
             <div className="space-y-4">
               <h3 className="text-[16px] font-black">Balance Transfer - Kitna Bachhega?</h3>
@@ -221,8 +224,6 @@ export default function PersonalLoanEMI() {
               </div>
             </div>
           )}
-
-          {/* BANK COMPARISON */}
           <div className="mt-6">
             <p className="text-[12px] font-black mb-2">🏦 BANK COMPARISON - {fmt(loanAmount)} @ {calc.n} Months</p>
             <div className="overflow-x-auto">
@@ -239,7 +240,6 @@ export default function PersonalLoanEMI() {
           </div>
         </div>
 
-        {/* RIGHT - RESULT */}
         <div className="space-y-3">
           <div className="rounded-[24px] p-5 bg-gradient-to-br from-amber-400 to-orange-600 text-black relative overflow-hidden">
             <p className="text-[11px] font-black tracking-widest opacity-70">YOUR MONTHLY EMI</p>
@@ -252,9 +252,12 @@ export default function PersonalLoanEMI() {
               <div className="bg-black/10 rounded-[14px] p-3"><p className="text-[10px] font-bold opacity-70">TOTAL COST</p><p className="font-black text-[14px]">{fmt(calc.totalCost)}</p></div>
             </div>
             <button onClick={() => { setShowSchedule(!showSchedule); play("fire"); }} className="w-full mt-4 bg-black text-white py-3 rounded-full text-[12px] font-black hover:scale-[1.02] transition">{showSchedule ? "Hide Schedule ▲" : "View Full Amortization Schedule ▼"}</button>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <button onClick={downloadPDF} className="bg-white text-black py-3 rounded-full text-[12px] font-black hover:scale-[1.02] transition">📄 PDF Download</button>
+              <a href={whatsappLink} target="_blank" onClick={() => play("success")} className="bg-[#25D366] text-white py-3 rounded-full text-[12px] font-black text-center hover:scale-[1.02] transition flex items-center justify-center">WhatsApp Share</a>
+            </div>
+            <p className="text-[10px] text-center opacity-60 mt-2">PDF me poora schedule aayega • WhatsApp pe 1 click me share hoga</p>
           </div>
-
-          {/* DONUT */}
           <div className={`rounded-[24px] p-4 border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10"}`}>
             <p className="text-[12px] font-black mb-2">PRINCIPAL vs INTEREST</p>
             <div className="flex items-center gap-4">
@@ -262,8 +265,6 @@ export default function PersonalLoanEMI() {
               <div className="text-[11px] space-y-1"><p>🟧 Principal: {fmt(loanAmount)} ({Math.round(loanAmount / calc.totalPayment * 100)}%)</p><p>🟥 Interest: {fmt(calc.totalInterest)} ({Math.round(calc.totalInterest / calc.totalPayment * 100)}%)</p><p className="font-bold text-green-500">Prepay karke {fmt(calc.saved)} bachao</p></div>
             </div>
           </div>
-
-          {/* QUICK TIP */}
           <div className={`rounded-[24px] p-4 border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10"}`}>
             <p className="text-[12px] font-black">💡 SMART TIP</p>
             <p className="text-[11px] opacity-70 mt-1 leading-relaxed">EMI tumhari salary ka 40% se zyada nahi honi chahiye. Agar rate 1% bhi kam ho jaye to {fmt(calc.emi)} wali EMI pe {fmt(calc.totalPayment * 0.05)} tak bach sakta hai. Isliye Balance Transfer check karo.</p>
@@ -271,7 +272,6 @@ export default function PersonalLoanEMI() {
         </div>
       </main>
 
-      {/* SCHEDULE TABLE */}
       {showSchedule && (
         <div className="max-w-[1280px] mx-auto px-4 pb-6">
           <div className={`rounded-[24px] p-4 border overflow-x-auto ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10"}`}>
@@ -281,7 +281,6 @@ export default function PersonalLoanEMI() {
         </div>
       )}
 
-      {/* MORE FAVORITE TOOLS */}
       <section className="max-w-[1280px] mx-auto px-4 pb-2">
         <div className="flex justify-between items-end flex-wrap gap-2 mb-4"><div><p className="text-[11px] font-black tracking-[0.25em] text-amber-500">⭐ MORE FAVORITE TOOLS</p><h2 className="text-[22px] md:text-[28px] font-black leading-tight mt-1">Log Aur Bhi <span className="text-amber-500">Use Kar Rahe Hai</span></h2></div><a href="/" className="text-[11px] font-black px-3 py-2 rounded-full bg-amber-500 text-black">All Tools →</a></div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -289,7 +288,26 @@ export default function PersonalLoanEMI() {
         </div>
       </section>
 
-      {/* SEO CONTENT */}
+      {/* FAQ SECTION */}
+      <section className="max-w-[1280px] mx-auto px-4 py-6">
+        <h2 className={`text-[20px] font-black mb-4 ${isDark ? "text-white" : "text-black"}`}>❓ Personal Loan EMI - Sabse Zyada Puche Jane Wale Sawal</h2>
+        <div className="grid md:grid-cols-2 gap-3">
+          {[
+            { q: "Personal Loan EMI kaise calculate karte hai?", a: "EMI = P × r × (1+r)^n / [(1+r)^n - 1] formula se nikalte hai. Example: ₹5 Lakh, 11.5% rate, 60 months pe EMI ₹10,997 banti hai. Upar wale calculator me bas amount, rate aur tenure daalo, EMI turant mil jayegi." },
+            { q: "Prepayment karne pe koi charge lagta hai?", a: "RBI ke rule ke hisab se floating rate wale personal loan pe koi prepayment charge nahi lagta. Fixed rate pe bank 2% - 4% tak charge le sakta hai. Prepayment karne se pehle apne bank se confirm kar lo." },
+            { q: "Personal Loan ke liye CIBIL Score kitna chahiye?", a: "750+ score pe sabse kam rate milta hai (10.5% - 11.5%). 700-750 pe 12% - 14% rate milega. 650 se neeche score pe loan milna mushkil ho jata hai ya bahut zyada rate lagta hai." },
+            { q: "EMI kam karne ka sabse aasan tarika kya hai?", a: "3 tarike hai: 1) Prepayment karo, 2) Balance Transfer karke rate kam karwao, 3) Tenure mat badhao, tenure badhane se EMI kam lagti hai par total interest double ho jata hai." },
+            { q: "Balance Transfer karna fayde ka hai?", a: "Agar naya rate purane rate se 1% se zyada kam hai aur loan ke 12+ months bache hai, to transfer fayde ka hai. Upar wale Balance Transfer tab me purana aur naya rate daal ke check kar lo, kitna bachega wo dikh jayega." },
+            { q: "Personal Loan EMI kitni honi chahiye?", a: "Tumhari total EMI tumhari salary ke 40% - 50% se zyada nahi honi chahiye. Salary ₹60,000 hai to total EMI ₹24,000 - ₹30,000 se zyada nahi honi chahiye, warna bank loan reject kar degi." },
+          ].map((f) => (
+            <details key={f.q} className={`rounded-[18px] p-4 border cursor-pointer group ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/10 shadow-sm"}`}>
+              <summary className={`text-[13px] font-black list-none flex justify-between gap-2 ${isDark ? "text-white" : "text-black"}`}>{f.q}<span className="text-amber-500 group-open:rotate-45 transition">+</span></summary>
+              <p className={`text-[12px] mt-2 leading-relaxed ${isDark ? "text-white/60" : "text-black/60"}`}>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       <article className={`max-w-[1280px] mx-auto px-4 py-8 text-[13px] leading-relaxed ${isDark ? "text-white/60" : "text-black/60"}`}>
         <h2 className={`text-[20px] font-black ${isDark ? "text-white" : "text-black"}`}>Personal Loan EMI Calculator - EMI Kaise Calculate Kare?</h2>
         <p className="mt-2">Personal Loan EMI ka formula hai: <b>EMI = P × r × (1+r)^n / [(1+r)^n - 1]</b> jaha P = Loan Amount, r = Monthly Interest Rate, n = Months. Example: ₹5 Lakh, 11.5% rate, 60 months pe EMI ₹10,997 banti hai aur total interest ₹1,59,820 lagta hai.</p>
