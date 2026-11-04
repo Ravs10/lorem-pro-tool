@@ -93,7 +93,7 @@ export default function FireCalculatorUltra() {
   const [social, setSocial] = useState(20000);
   const [healthInflation, setHealthInflation] = useState(8);
 
- // FIX 1: Debounce - Slider lag fix
+// FIX 1: Debounce - Slider lag fix
 const [debounced, setDebounced] = useState({ age, retireAge, income, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation });
 useEffect(() => {
   const t = setTimeout(() => {
@@ -116,7 +116,7 @@ useEffect(() => {
 // FIX 3: Dynamic Income Max
 const incomeMax = currency === "INR" ? 5000000 : 200000;
 const incomeMin = currency === "INR" ? 300000 : 20000;
-  
+
   const play = useCallback((type) => {
     if (!soundOn) return;
     try {
@@ -201,14 +201,27 @@ const incomeMin = currency === "INR" ? 300000 : 20000;
     // Savings rate
     const savingsRate = d.income > 0 ? ((d.monthlyInvest * 12) / d.income) * 100 : 0;
 
-    // Monte Carlo (30-year retirement with social security + taxes)
+    // Monte Carlo (30-year retirement with social security + taxes) - SEEDED, stable result
+    // FIX: health, social, healthInflation sab seed me add (prime multipliers for spread)
+    let seed = Math.floor(
+      d.ret * 1000 + d.inflation * 100 + d.withdraw * 10 + d.taxRate +
+      d.expense + d.income + d.savings + d.monthlyInvest +
+      d.age * 7 + d.retireAge * 13 +
+      d.health * 17 + d.social * 23 + d.healthInflation * 29 +
+      12345
+    );
+    const seedUsed = seed;
+    const rand = () => {
+      seed = (seed * 1103515245 + 12345) % 2147483648;
+      return seed / 2147483648;
+    };
     let successCount = 0;
     const numSims = 1000;
     for (let i = 0; i < numSims; i++) {
       let bal = fv;
       let ok = true;
       for (let y = 0; y < 30; y++) {
-        const mRet = d.ret + (Math.random() * 30 - 15);
+        const mRet = d.ret + (rand() * 30 - 15);
         bal = bal * (1 + mRet / 100);
         const yearExp = (annualExpenseAtRet + annualHealthAtRet) * Math.pow(1 + d.inflation / 100, y) * taxFactor;
         bal = bal - yearExp + d.social * 12;
@@ -272,37 +285,39 @@ const incomeMin = currency === "INR" ? 300000 : 20000;
       yearsToRetire, fv, annualExpenseAtRet, annualHealthAtRet,
       totalAnnualNeed, fireNumber, lean, fat, coast, barista, savingsRate,
       successRate, chartAcc, chartDec, oneMore, yearsLast, fireAge,
-      whatIf10Sip, readyPct, gap, taxFactor,
+      whatIf10Sip, readyPct, gap, taxFactor, seedUsed,
     };
   }, [debounced]);
-  
+
   const copyPlan = () => {
     play("fire");
     const text = `🔥 FIRE Plan Report (${currency})
 ━━━━━━━━━━━━━━━━━
 Age: ${age} → Retire: ${retireAge} (${data.yearsToRetire} yrs)
-Income: ${fmt(income, currency)}/yr | Savings Rate: ${data.savingsRate.toFixed(1)}%
-Monthly SIP: ${fmt(monthlyInvest, currency)}
+Income: ${fmtFull(income, currency)}/yr | Savings Rate: ${data.savingsRate.toFixed(1)}%
+Current Savings: ${fmtFull(savings, currency)}
+Monthly SIP: ${fmtFull(monthlyInvest, currency)}
 Return: ${ret}% | Inflation: ${inflation}% | SWR: ${withdraw}%
+Tax: ${taxRate}% | Health: ${fmtFull(health, currency)}/mo | Medical Inflation: ${healthInflation}%
 ━━━━━━━━━━━━━━━━━
-Corpus at ${retireAge}: ${fmt(data.fv, currency)}
-FIRE Number: ${fmt(data.fireNumber, currency)}
-Status: ${data.fv >= data.fireNumber ? "✅ FIRE READY" : `❌ GAP ${fmt(data.gap, currency)}`}
-Monte Carlo Success: ${data.successRate.toFixed(1)}%
+Corpus at ${retireAge}: ${fmtFull(data.fv, currency)}
+FIRE Number: ${fmtFull(data.fireNumber, currency)}
+Status: ${data.fv >= data.fireNumber ? "✅ FIRE READY" : `❌ GAP ${fmtFull(data.gap, currency)}`}
+Monte Carlo Success: ${data.successRate.toFixed(1)}% (seed: ${data.seedUsed})
 Money lasts: ${data.yearsLast} years
 ━━━━━━━━━━━━━━━━━
-LEAN: ${fmt(data.lean, currency)}
-REGULAR: ${fmt(data.fireNumber, currency)}
-FAT: ${fmt(data.fat, currency)}
-COAST: ${fmt(data.coast, currency)}
-BARISTA: ${fmt(data.barista, currency)}`;
+LEAN: ${fmtFull(data.lean, currency)}
+REGULAR: ${fmtFull(data.fireNumber, currency)}
+FAT: ${fmtFull(data.fat, currency)}
+COAST: ${fmtFull(data.coast, currency)}
+BARISTA: ${fmtFull(data.barista, currency)}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const exportCSV = () => {
-    let csv = "Age,Accumulation Corpus,Decumulation Corpus\n";
+    let csv = `# FIRE Plan (Seed: ${data.seedUsed}, Currency: ${currency})\nAge,Accumulation Corpus,Decumulation Corpus\n`;
     const maxLen = Math.max(data.chartAcc.length, data.chartDec.length);
     for (let i = 0; i < maxLen; i++) {
       const acc = data.chartAcc[i] !== undefined ? data.chartAcc[i] : "";
@@ -312,7 +327,7 @@ BARISTA: ${fmt(data.barista, currency)}`;
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `fire-plan-${currency}.csv`; a.click();
+    a.href = url; a.download = `fire-plan-${currency}-seed${data.seedUsed}.csv`; a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -410,8 +425,8 @@ BARISTA: ${fmt(data.barista, currency)}`;
               </span>
             </div>
 
-            {/* Core sliders */}
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Core sliders — SAVINGS INPUT ADDED (bug fix) */}
+            <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               <div>
                 <p className={`text-[9px] font-bold ${isDark ? "text-white/40" : "text-black/50"}`}>AGE</p>
                 <input type="range" min="18" max="60" value={age} onChange={(e) => { setAge(+e.target.value); play("fire"); }} className="w-full h-1 rounded-full appearance-none mt-1" />
@@ -431,6 +446,11 @@ BARISTA: ${fmt(data.barista, currency)}`;
                 <p className={`text-[9px] font-bold ${isDark ? "text-white/40" : "text-black/50"}`}>RETIRE AGE</p>
                 <input type="range" min={age + 1} max="70" value={retireAge} onChange={(e) => { setRetireAge(+e.target.value); play("fire"); }} className="w-full h-1 rounded-full appearance-none mt-1" />
                 <p className="text-[12px] font-bold mt-1">{retireAge} yrs</p>
+              </div>
+              <div>
+                <p className={`text-[9px] font-bold ${isDark ? "text-white/40" : "text-black/50"}`}>CURRENT SAVINGS</p>
+                <input type="range" min={0} max={currency === "INR" ? 20000000 : 240000} step={currency === "INR" ? 100000 : 1000} value={savings} onChange={(e) => { setSavings(+e.target.value); play("fire"); }} className="w-full h-1 rounded-full appearance-none mt-1" />
+                <p className="text-[12px] font-bold mt-1 text-blue-400">{fmt(savings, currency)}</p>
               </div>
             </div>
 
@@ -595,7 +615,10 @@ BARISTA: ${fmt(data.barista, currency)}`;
               <div className={`h-2 rounded-full mt-1 overflow-hidden ${isDark ? "bg-white/10" : "bg-black/10"}`}>
                 <div className={`h-full ${data.successRate > 80 ? "bg-gradient-to-r from-green-500 to-emerald-400" : data.successRate > 60 ? "bg-gradient-to-r from-yellow-500 to-orange-400" : "bg-gradient-to-r from-red-500 to-pink-500"}`} style={{ width: `${data.successRate}%` }} />
               </div>
-              <p className={`text-[9px] mt-1 ${isDark ? "text-white/30" : "text-black/40"}`}>1,000 simulations with ±15% market variance</p>
+              <p className={`text-[9px] mt-1 flex justify-between ${isDark ? "text-white/30" : "text-black/40"}`}>
+                <span>1,000 seeded simulations · ±15% variance</span>
+                <span className="font-mono">seed: {data.seedUsed}</span>
+              </p>
             </div>
 
             <button onClick={copyPlan} className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 text-black font-black hover-lift">
@@ -621,7 +644,7 @@ BARISTA: ${fmt(data.barista, currency)}`;
       {/* ================= SEO CONTENT ================= */}
       <article className={`max-w-[900px] mx-auto px-4 py-10 ${isDark ? "text-white/80" : "text-black/80"}`}>
         <h1 className="text-[30px] md:text-[42px] font-black tracking-tight text-amber-500 leading-tight">
-          FIRE Calculator 2025 — Financial Independence Retire Early Calculator (Free, India + USA)
+          FIRE Calculator 2026 — Financial Independence Retire Early Calculator (Free, India + USA)
         </h1>
         <p className="mt-4 text-[14px] leading-relaxed">
           Our <strong>free FIRE calculator</strong> helps you find the exact retirement number you need to achieve <strong>Financial Independence, Retire Early (FIRE)</strong>. Whether you plan to retire at 40, 45, or 50, this advanced tool calculates your <strong>FIRE number, Coast FIRE, Barista FIRE, Lean FIRE, Fat FIRE,</strong> and Regular FIRE targets — plus a <strong>Monte Carlo simulation</strong> to test whether your corpus survives 30 years of market volatility. It works for both Indian investors (₹) and global investors ($), with tax, health inflation, and social security factored in. Unlike basic FIRE calculators, this tool shows <strong>year-by-year projections, drawdown simulations, FIRE age finder, one-more-year analysis, and a what-if engine</strong> — so you can actually plan, not just dream.
@@ -740,7 +763,7 @@ BARISTA: ${fmt(data.barista, currency)}`;
           ))}
         </div>
 
-        <h2 className="text-[22px] md:text-[28px] font-black mt-8 text-amber-500">FIRE Investment Tips for 2025</h2>
+        <h2 className="text-[22px] md:text-[28px] font-black mt-8 text-amber-500">FIRE Investment Tips for 2026</h2>
         <ul className={`mt-3 text-[14px] leading-relaxed list-disc pl-6 space-y-1.5 ${isDark ? "text-white/80" : "text-black/80"}`}>
           <li><strong>Track savings rate, not returns:</strong> A 60% savings rate at 10% return beats a 30% savings rate at 15% return — savings rate dominates early FIRE math.</li>
           <li><strong>Use step-up SIPs:</strong> Increase SIP by 10%–15% each year as your salary grows. This alone can cut 5+ years off your FIRE timeline.</li>
@@ -756,7 +779,7 @@ BARISTA: ${fmt(data.barista, currency)}`;
 
         <h2 className="text-[22px] md:text-[28px] font-black mt-8 text-amber-500">Related FIRE Keywords</h2>
         <p className={`mt-3 text-[12px] leading-relaxed ${isDark ? "text-white/60" : "text-black/60"}`}>
-          FIRE calculator · FIRE number calculator · financial independence calculator · retire early calculator · Coast FIRE calculator · Barista FIRE calculator · Lean FIRE calculator · Fat FIRE calculator · 4% rule calculator · safe withdrawal rate calculator · Monte Carlo retirement calculator · FIRE India calculator · FIRE calculator 2025 · early retirement calculator · corpus calculator · retirement corpus calculator · how much to retire early · financial freedom calculator · 25x rule calculator · MRR calculator · FIRE calculator with inflation · FIRE calculator with tax · SWP calculator · mutual fund corpus calculator · SIP for FIRE · FIRE age calculator · when can I retire calculator · how much do I need to retire · retirement number calculator · Indian FIRE calculator · USA FIRE calculator
+          FIRE calculator · FIRE number calculator · financial independence calculator · retire early calculator · Coast FIRE calculator · Barista FIRE calculator · Lean FIRE calculator · Fat FIRE calculator · 4% rule calculator · safe withdrawal rate calculator · Monte Carlo retirement calculator · FIRE India calculator · FIRE calculator 2026 · early retirement calculator · corpus calculator · retirement corpus calculator · how much to retire early · financial freedom calculator · 25x rule calculator · MRR calculator · FIRE calculator with inflation · FIRE calculator with tax · SWP calculator · mutual fund corpus calculator · SIP for FIRE · FIRE age calculator · when can I retire calculator · how much do I need to retire · retirement number calculator · Indian FIRE calculator · USA FIRE calculator
         </p>
 
         <div className={`mt-8 p-4 rounded-xl text-[11px] ${isDark ? "bg-white/5 text-white/50" : "bg-gray-100 text-black/60"}`}>
