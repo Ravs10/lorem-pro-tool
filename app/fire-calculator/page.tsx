@@ -156,7 +156,8 @@ export default function FireCalculatorUltra() {
     const annualHealthAtRet = annualHealthToday * Math.pow(1 + healthInflation / 100, yearsToRetire);
 
     // Tax on withdrawal (approximation)
-    const taxFactor = 1 + taxRate / 100;
+    // FIX 2: Correct Tax - Need / (1 - tax)
+const taxFactor = 1 / (1 - taxRate / 100);
     const totalAnnualNeed = (annualExpenseAtRet + annualHealthAtRet) * taxFactor;
 
     // FIRE number = annual need / SWR
