@@ -101,14 +101,8 @@ useEffect(() => {
   }, 200);
   return () => clearTimeout(t);
 }, [age, retireAge, income, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation]);
-useEffect(() => {
-  const t = setTimeout(() => {
-    setDebounced({ age, retireAge, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation });
-  }, 200);
-  return () => clearTimeout(t);
-}, [age, retireAge, savings, monthlyInvest, ret, inflation, expense, withdraw, taxRate, health, social, healthInflation]);
 
-const [openAccordion, setOpenAccordion] = useState(null);
+
   // UI state
   const [openAccordion, setOpenAccordion] = useState(null);
   const [saveMsg, setSaveMsg] = useState("");
