@@ -28,6 +28,8 @@ export const metadata: Metadata = {
     "80CCD NPS calculator",
     "STCG LTCG calculator",
     "VDA tax calculator",
+    "lorem pro tool", 
+    "lorem pro tool income tax calculator", 
   ],
   authors: [{ name: "Lorem Pro Tool" }],
   creator: "Lorem Pro Tool",
