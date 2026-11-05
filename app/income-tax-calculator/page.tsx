@@ -426,7 +426,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
 
     const jsonData = {
       _meta: {
-        tool: "VELORA Income Tax Calculator Pro",
+        tool: "Lorem pro tool - Income Tax Calculator Pro",
         generatedAt: new Date().toISOString(),
         assessmentYear: "2026-27",
         financialYear: "2025-26",
