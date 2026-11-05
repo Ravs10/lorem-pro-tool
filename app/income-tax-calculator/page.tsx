@@ -25,7 +25,6 @@ const fmtINR = (n: number): string => {
 };
 const fmtFull = (n: number): string => "₹" + Math.round(n).toLocaleString("en-IN");
 
-// ============ SLAB CALCULATORS ============
 const slabTaxNew = (income: number): number => {
   const slabs: [number, number, number][] = [
     [0, 400000, 0], [400000, 800000, 0.05], [800000, 1200000, 0.10],
@@ -54,7 +53,7 @@ const slabTaxOld = (income: number, age: AgeCategory): number => {
   return t;
 };
 
-// ============ INPUT COMPONENT (FIX #6) ============
+// ============ INPUT ============
 function Input({ label, value, onChange, hint, isDark }: InputProps) {
   return (
     <div>
@@ -71,7 +70,6 @@ function Input({ label, value, onChange, hint, isDark }: InputProps) {
   );
 }
 
-// ============ ACCORDION ============
 function Accordion({ title, children, isOpen, onToggle, isDark }: {
   title: string; children: React.ReactNode; isOpen: boolean; onToggle: () => void; isDark: boolean;
 }) {
@@ -90,12 +88,11 @@ function Accordion({ title, children, isOpen, onToggle, isDark }: {
   );
 }
 
-// ============ MAIN COMPONENT ============
+// ============ MAIN ============
 export default function IncomeTaxCalculatorPro() {
   const [theme, setTheme] = useState("dark");
   const isDark = theme === "dark";
 
-  // ===== INPUTS =====
   const [ageCategory, setAgeCategory] = useState<AgeCategory>("below60");
   const [salary, setSalary] = useState(1200000);
   const [otherIncome, setOtherIncome] = useState(0);
@@ -133,26 +130,28 @@ export default function IncomeTaxCalculatorPro() {
   const [copied, setCopied] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
 
-  // ===== CAPITAL GAINS TAX BASE =====
+  // ===== CG BASE (top level) =====
   const stcgTax = stcg * 0.20;
   const ltcgTaxable = Math.max(0, ltcgEquity - 125000);
   const ltcgTax = ltcgTaxable * 0.125;
   const cryptoTax = cryptoGain * 0.30;
   const cgTaxBase = stcgTax + ltcgTax + cryptoTax;
-  const cgTotal = stcg + ltcgEquity + cryptoGain;
+  // FIX #1: taxable CG total used for surcharge threshold (not gross)
+  const taxableCGTotal = stcg + ltcgTaxable + cryptoGain;
+  const grossCGTotal = stcg + ltcgEquity + cryptoGain;
 
-  // ===== COMPUTE FULL TAX FOR ONE REGIME =====
+  // ===== COMPUTE ONE REGIME =====
   const computeRegimeTax = (taxableIncome: number, isNew: boolean) => {
     // 1. Base slab tax
     const slabTaxBase = isNew ? slabTaxNew(taxableIncome) : slabTaxOld(taxableIncome, ageCategory);
 
-    // 2. Section 87A rebate
+    // 2. Rebate 87A
     let rebate87A = 0;
     if (isNew && taxableIncome <= 1200000) rebate87A = slabTaxBase;
     else if (!isNew && taxableIncome <= 500000) rebate87A = Math.min(slabTaxBase, 12500);
     let slabTax = Math.max(0, slabTaxBase - rebate87A);
 
-    // 3. Section 87A MARGINAL RELIEF — FIX #2 (both regimes)
+    // 3. 87A marginal relief (both regimes)
     let marginalRelief87A = 0;
     if (isNew && taxableIncome > 1200000 && taxableIncome < 1275000) {
       const excess = taxableIncome - 1200000;
@@ -162,74 +161,87 @@ export default function IncomeTaxCalculatorPro() {
       if (slabTax > excess) { marginalRelief87A = slabTax - excess; slabTax = excess; }
     }
 
-    // 4. Surcharge rate — based on TOTAL income (slab + CG) — FIX #4
-    const totalIncomeForSurcharge = taxableIncome + cgTotal;
+    // 4. FIX #1: surcharge threshold uses TAXABLE CG (excl ₹1.25L LTCG exemption)
+    const totalIncomeForSurcharge = taxableIncome + taxableCGTotal;
+
+    // 5. Surcharge rate
     let surchargeRate = 0;
     if (totalIncomeForSurcharge > 50000000) surchargeRate = isNew ? 0.25 : 0.37;
     else if (totalIncomeForSurcharge > 20000000) surchargeRate = 0.25;
     else if (totalIncomeForSurcharge > 10000000) surchargeRate = 0.15;
     else if (totalIncomeForSurcharge > 5000000) surchargeRate = 0.10;
 
-    // 5. Surcharge on slab
-    let surchargeOnSlab = slabTax * surchargeRate;
+    // 6. Raw surcharge components
+    const rawSurchargeOnSlab = slabTax * surchargeRate;
+    const rawSurchargeOnEquityCG = (stcgTax + ltcgTax) * Math.min(surchargeRate, 0.15);
+    const rawSurchargeOnCryptoCG = cryptoTax * surchargeRate;
+    const rawSurchargeOnCG = rawSurchargeOnEquityCG + rawSurchargeOnCryptoCG;
+    const rawTotalSurcharge = rawSurchargeOnSlab + rawSurchargeOnCG;
 
-    // 6. Surcharge marginal relief (slab portion, using slab-at-threshold = T − CG)
-    let surchargeMarginalRelief = 0;
+    // 7. FIX #2: surcharge marginal relief — compute properly
+    let marginalReliefAmount = 0;
     if (totalIncomeForSurcharge > 5000000) {
       const thresholds = [5000000, 10000000, 20000000, 50000000];
       const prevRates = [0, 0.10, 0.15, 0.25];
+
       for (let i = 0; i < thresholds.length; i++) {
         const T = thresholds[i];
         const nextT = i + 1 < thresholds.length ? thresholds[i + 1] : Infinity;
         if (totalIncomeForSurcharge > T && totalIncomeForSurcharge < nextT) {
-          const slabAtT = T - cgTotal;
+          const prevRate = prevRates[i];
+          // FIX #1: slab income at T = T - TAXABLE CG (not gross)
+          const slabAtT = T - taxableCGTotal;
           if (slabAtT < 0) break;
-          const slabTaxAtT = isNew ? slabTaxNew(slabAtT) : slabTaxOld(slabAtT, ageCategory);
-          let baseAtT = slabTaxAtT;
+
+          const slabTaxAtT_raw = isNew ? slabTaxNew(slabAtT) : slabTaxOld(slabAtT, ageCategory);
+          let baseAtT = slabTaxAtT_raw;
           if (isNew && slabAtT <= 1200000) baseAtT = 0;
           else if (!isNew && slabAtT <= 500000) baseAtT = Math.max(0, baseAtT - 12500);
-          const prevRate = prevRates[i];
-          const surchargeAtT = baseAtT * prevRate;
-          const surchargeOnCGAtT = (stcgTax + ltcgTax) * Math.min(prevRate, 0.15) + cryptoTax * prevRate;
-          const totalAtT = baseAtT + surchargeAtT + cgTaxBase + surchargeOnCGAtT;
-          const totalAtIncome = slabTax + surchargeOnSlab + cgTaxBase + ((stcgTax + ltcgTax) * Math.min(surchargeRate, 0.15) + cryptoTax * surchargeRate);
-          const allowedTotal = totalAtT + (totalIncomeForSurcharge - T);
-          if (totalAtIncome > allowedTotal) {
-            surchargeMarginalRelief = totalAtIncome - allowedTotal;
-            surchargeOnSlab = Math.max(0, surchargeOnSlab - surchargeMarginalRelief);
-          }
+
+          const surchargeAtT_slab = baseAtT * prevRate;
+          const surchargeAtT_equityCG = (stcgTax + ltcgTax) * Math.min(prevRate, 0.15);
+          const surchargeAtT_cryptoCG = cryptoTax * prevRate;
+          const surchargeAtT_total = surchargeAtT_slab + surchargeAtT_equityCG + surchargeAtT_cryptoCG;
+
+          const taxAtT = baseAtT + surchargeAtT_total + cgTaxBase;
+          const taxAtIncome = slabTax + rawTotalSurcharge + cgTaxBase;
+          const excess = totalIncomeForSurcharge - T;
+          const allowed = taxAtT + excess;
+
+          if (taxAtIncome > allowed) marginalReliefAmount = taxAtIncome - allowed;
           break;
         }
       }
     }
 
-    // 7. Surcharge on CG — FIX #4 (equity capped at 15%, crypto at normal)
-    const equitySurchargeRate = Math.min(surchargeRate, 0.15);
-    const surchargeOnEquityCG = (stcgTax + ltcgTax) * equitySurchargeRate;
-    const surchargeOnCryptoCG = cryptoTax * surchargeRate;
+    // 8. FIX #2: apply relief to TOTAL surcharge proportionally (preserves slab/CG breakdown)
+    const reliefApplied = Math.min(marginalReliefAmount, rawTotalSurcharge);
+    const factor = rawTotalSurcharge > 0 ? (rawTotalSurcharge - reliefApplied) / rawTotalSurcharge : 1;
+
+    const surchargeOnSlab = rawSurchargeOnSlab * factor;
+    const surchargeOnEquityCG = rawSurchargeOnEquityCG * factor;
+    const surchargeOnCryptoCG = rawSurchargeOnCryptoCG * factor;
     const surchargeOnCG = surchargeOnEquityCG + surchargeOnCryptoCG;
+    const surchargeTotal = surchargeOnSlab + surchargeOnCG;
 
-    // 8. Total before cess
-    const taxPlusSurcharge = slabTax + surchargeOnSlab + cgTaxBase + surchargeOnCG;
-
-    // 9. Cess 4% — FIX #1 (applied to CG too)
+    // 9. Total
+    const taxPlusSurcharge = slabTax + surchargeTotal + cgTaxBase;
     const cess = taxPlusSurcharge * 0.04;
-
-    // 10. Total
     const totalTax = taxPlusSurcharge + cess;
 
     return {
       slabTaxBase, rebate87A, slabTax, marginalRelief87A,
-      surchargeRate, surchargeOnSlab, surchargeMarginalRelief,
-      surchargeOnEquityCG, surchargeOnCryptoCG, surchargeOnCG,
-      surchargeTotal: surchargeOnSlab + surchargeOnCG,
+      surchargeRate,
+      rawSurchargeOnSlab, rawSurchargeOnEquityCG, rawSurchargeOnCryptoCG, rawSurchargeOnCG, rawTotalSurcharge,
+      surchargeOnSlab, surchargeOnEquityCG, surchargeOnCryptoCG, surchargeOnCG, surchargeTotal,
+      surchargeMarginalRelief: reliefApplied,
       taxPlusSurcharge, cess, totalTax,
     };
   };
 
-  // ===== MASTER CALCULATION =====
+  // ===== MASTER =====
   const result = useMemo(() => {
-    // HRA (validate rent > 0)
+    // HRA
     const hra1 = hraReceived;
     const hra2 = isMetro ? basic * 0.5 : basic * 0.4;
     const hra3 = Math.max(0, rentPaid - basic * 0.1);
@@ -238,10 +250,10 @@ export default function IncomeTaxCalculatorPro() {
     // 80C
     const total80C = Math.min(150000, ppf + elss + lic + epf + homeLoanPrincipal);
 
-    // 80CCD(1B) NPS
+    // 80CCD(1B)
     const total80ccd1b = Math.min(50000, nps80ccd1b);
 
-    // 80CCD(2) Employer NPS
+    // 80CCD(2)
     const max80ccd2 = basic * 0.14;
     const total80ccd2 = Math.min(max80ccd2, employerNps80ccd2);
 
@@ -250,22 +262,21 @@ export default function IncomeTaxCalculatorPro() {
     const limitParents = isParentSenior ? 50000 : 25000;
     const total80D = Math.min(limitSelf, healthSelf) + Math.min(limitParents, healthParents);
 
-    // 24(b) Home Loan Interest
+    // 24(b)
     const total24b = Math.min(200000, homeLoanInterest);
 
-    // 80E Education Loan
+    // 80E
     const total80E = Math.max(0, educationLoan80e);
 
-    // 80TTA (₹10K normal, ₹50K senior via 80TTB)
+    // 80TTA / 80TTB
     const ttaLimit = ageCategory === "below60" ? 10000 : 50000;
     const total80TTA = Math.min(ttaLimit, savingsInterest80tta);
 
-    // Standard Deduction + Professional Tax
+    // 80G — 10% AGTI cap
     const stdDedOld = 50000;
     const stdDedNew = 75000;
     const profTax = Math.min(2500, professionalTax);
 
-    // 80G — FIX #3 (10% AGTI limit + 50% category)
     const agtiFor80G = Math.max(0,
       salary + otherIncome - hraExempt - stdDedOld - profTax
       - total80C - total80ccd1b - total80ccd2 - total80D - total24b - total80E - total80TTA
@@ -280,7 +291,7 @@ export default function IncomeTaxCalculatorPro() {
     const taxableOld = Math.max(0, grossSalary - oldDeductions - total80ccd2);
     const taxableNew = Math.max(0, grossSalary - stdDedNew - total80ccd2);
 
-    // Compute both regimes
+    // Tax
     const newRes = computeRegimeTax(taxableNew, true);
     const oldRes = computeRegimeTax(taxableOld, false);
 
@@ -290,14 +301,13 @@ export default function IncomeTaxCalculatorPro() {
     const inHand = grossSalary - bestTax;
     const monthlyTDS = Math.round(bestTax / 12);
 
-    // Advance tax
     const advanceTaxRequired = bestTax > 10000;
     const advanceTaxQ1 = bestTax * 0.15;
     const advanceTaxQ2 = bestTax * 0.45;
     const advanceTaxQ3 = bestTax * 0.75;
     const advanceTaxQ4 = bestTax;
 
-    // Remaining deduction room
+    // Optimizer
     const remaining80C = Math.max(0, 150000 - total80C);
     const remaining80ccd1b = Math.max(0, 50000 - total80ccd1b);
     const remaining80DSelf = Math.max(0, limitSelf - Math.min(limitSelf, healthSelf));
@@ -305,7 +315,6 @@ export default function IncomeTaxCalculatorPro() {
     const remaining80D = remaining80DSelf + remaining80DParents;
     const remaining80ccd2 = Math.max(0, max80ccd2 - total80ccd2);
 
-    // Deduction Optimizer — FIX #5 (re-run tax calc for exact savings)
     const optimizerSteps: { label: string; amount: number; saving: number }[] = [];
     if (best === "OLD") {
       let prevTotal = oldRes.totalTax;
@@ -324,7 +333,6 @@ export default function IncomeTaxCalculatorPro() {
         prevTotal = newTotal;
       }
     } else {
-      // New regime: only 80CCD(2) available
       if (remaining80ccd2 > 0) {
         const newTaxable = Math.max(0, taxableNew - remaining80ccd2);
         const newTotal = computeRegimeTax(newTaxable, true).totalTax;
@@ -343,11 +351,11 @@ export default function IncomeTaxCalculatorPro() {
       taxableOld, taxableNew, grossSalary,
       newRes, oldRes, newTax: newRes.totalTax, oldTax: oldRes.totalTax,
       best, saving, bestTax, inHand, monthlyTDS,
-      stcgTax, ltcgTax, cryptoTax, cgTaxBase,
       advanceTaxRequired, advanceTaxQ1, advanceTaxQ2, advanceTaxQ3, advanceTaxQ4,
       remaining80C, remaining80ccd1b, remaining80D,
       optimizerSteps, potentialSavings,
-      agtiFor80G, donation80gLimit,
+      agtiFor80G, donation80gLimit, donation80gEligible,
+      limitSelf, limitParents, max80ccd2, ttaLimit,
     };
   }, [ageCategory, salary, otherIncome, basic, hraReceived, rentPaid, isMetro, ppf, elss, lic, epf, homeLoanPrincipal, healthSelf, healthParents, isParentSenior, nps80ccd1b, employerNps80ccd2, homeLoanInterest, educationLoan80e, savingsInterest80tta, donation80g, professionalTax, stcg, ltcgEquity, cryptoGain]);
 
@@ -386,22 +394,169 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
       ["80CCD(2)", result.total80ccd2, result.total80ccd2],
       ["80D", 0, result.total80D],
       ["24(b)", 0, result.total24b],
-      ["80E / 80TTA / 80G", 0, result.total80E + result.total80TTA + result.total80G],
+      ["80E/80TTA/80G", 0, result.total80E + result.total80TTA + result.total80G],
       ["Professional Tax", 0, result.profTax],
       ["Taxable Income", result.taxableNew, result.taxableOld],
-      ["Slab Tax", result.newRes.slabTax, result.oldRes.slabTax],
+      ["Slab Tax (before 87A)", result.newRes.slabTaxBase, result.oldRes.slabTaxBase],
       ["Rebate 87A", result.newRes.rebate87A, result.oldRes.rebate87A],
-      ["Surcharge on Slab", result.newRes.surchargeOnSlab, result.oldRes.surchargeOnSlab],
-      ["Surcharge on CG", result.newRes.surchargeOnCG, result.oldRes.surchargeOnCG],
-      ["CG Tax Base", result.cgTaxBase, result.cgTaxBase],
+      ["87A Marginal Relief", result.newRes.marginalRelief87A, result.oldRes.marginalRelief87A],
+      ["Slab Tax (after reliefs)", result.newRes.slabTax, result.oldRes.slabTax],
+      ["CG Tax Base", result.newRes.slabTax * 0 + result.newRes.surchargeOnSlab - result.newRes.surchargeOnSlab + 0, 0], // placeholder, corrected below
+      ["Surcharge Slab (raw)", result.newRes.rawSurchargeOnSlab, result.oldRes.rawSurchargeOnSlab],
+      ["Surcharge CG (raw)", result.newRes.rawSurchargeOnCG, result.oldRes.rawSurchargeOnCG],
+      ["Surcharge Marginal Relief", result.newRes.surchargeMarginalRelief, result.oldRes.surchargeMarginalRelief],
+      ["Surcharge (net)", result.newRes.surchargeTotal, result.oldRes.surchargeTotal],
       ["Cess 4%", result.newRes.cess, result.oldRes.cess],
       ["Total Tax", result.newTax, result.oldTax],
     ];
+    // Fix CG row
+    rows[17] = ["CG Tax Base", cgTaxBase, cgTaxBase];
     const csv = rows.map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = `income-tax-fy2025-26.csv`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ===== JSON DOWNLOAD (ITR prep) =====
+  const downloadJSON = () => {
+    const ageLabel = { below60: "Below 60", "60to80": "Senior (60-80)", above80: "Super Senior (80+)" }[ageCategory];
+    const chosen = result.best;
+
+    const jsonData = {
+      _meta: {
+        tool: "VELORA Income Tax Calculator Pro",
+        generatedAt: new Date().toISOString(),
+        assessmentYear: "2026-27",
+        financialYear: "2025-26",
+        note: "Estimate only. Not official ITR JSON schema. Verify with CA before filing.",
+      },
+      taxpayerProfile: {
+        ageCategory: ageCategory,
+        ageCategoryLabel: ageLabel,
+        regimeChosen: chosen,
+      },
+      // === Schedule S (Salary) ===
+      scheduleS: {
+        grossSalary: salary,
+        standardDeduction: { oldRegime: result.stdDedOld, newRegime: result.stdDedNew },
+        professionalTax: result.profTax,
+        hraExempt: result.hraExempt,
+        netSalaryOld: Math.max(0, salary - result.stdDedOld - result.profTax - result.hraExempt),
+        netSalaryNew: Math.max(0, salary - result.stdDedNew),
+      },
+      // === Other Income ===
+      otherIncome: {
+        amount: otherIncome,
+        type: "FD Interest / Rent / Other",
+      },
+      // === Schedule CG ===
+      scheduleCG: {
+        stcgEquity111A: { gross: stcg, taxable: stcg, rate: 0.20, tax: stcgTax },
+        ltcgEquity112A: { gross: ltcgEquity, exempt: Math.min(ltcgEquity, 125000), taxable: ltcgTaxable, rate: 0.125, tax: ltcgTax },
+        cryptoVDA115BBH: { gross: cryptoGain, taxable: cryptoGain, rate: 0.30, tax: cryptoTax },
+        totalCGTax: cgTaxBase,
+        grossCGTotal,
+        taxableCGTotal,
+      },
+      // === Schedule VIA (Deductions) ===
+      scheduleVIA_OldRegime: {
+        section80C: {
+          ppf, elss, lic, epf, homeLoanPrincipal,
+          claimed: ppf + elss + lic + epf + homeLoanPrincipal,
+          allowed: result.total80C,
+          limit: 150000,
+        },
+        section80CCD1B: { claimed: nps80ccd1b, allowed: result.total80ccd1b, limit: 50000 },
+        section80D: {
+          self: { claimed: healthSelf, allowed: Math.min(result.limitSelf, healthSelf), limit: result.limitSelf },
+          parents: { claimed: healthParents, allowed: Math.min(result.limitParents, healthParents), limit: result.limitParents, isSenior: isParentSenior },
+          total: result.total80D,
+        },
+        section24b: { claimed: homeLoanInterest, allowed: result.total24b, limit: 200000 },
+        section80E: { claimed: educationLoan80e, allowed: result.total80E },
+        section80TTA: { claimed: savingsInterest80tta, allowed: result.total80TTA, limit: result.ttaLimit },
+        section80G: {
+          claimed: donation80g,
+          agtiLimit: result.donation80gLimit,
+          eligible: result.donation80gEligible,
+          allowed: result.total80G,
+          rate: 0.50,
+          note: "50% category assumed",
+        },
+        totalDeductions: result.oldDeductions,
+      },
+      scheduleVIA_BothRegimes: {
+        section80CCD2_EmployerNPS: {
+          claimed: employerNps80ccd2,
+          allowed: result.total80ccd2,
+          limit: result.max80ccd2,
+          limitPercentOfBasic: 0.14,
+        },
+      },
+      // === Part B-TI (Total Income) ===
+      partBTI: {
+        grossTotalIncome: result.grossSalary,
+        totalIncomeOldRegime: result.taxableOld,
+        totalIncomeNewRegime: result.taxableNew,
+      },
+      // === Part B-TTI (Tax) ===
+      partBTTI: {
+        newRegime: {
+          slabTaxBase: result.newRes.slabTaxBase,
+          rebate87A: result.newRes.rebate87A,
+          marginalRelief87A: result.newRes.marginalRelief87A,
+          slabTaxAfterReliefs: result.newRes.slabTax,
+          surchargeRate: result.newRes.surchargeRate,
+          rawSurchargeOnSlab: result.newRes.rawSurchargeOnSlab,
+          rawSurchargeOnCG: result.newRes.rawSurchargeOnCG,
+          surchargeMarginalRelief: result.newRes.surchargeMarginalRelief,
+          netSurcharge: result.newRes.surchargeTotal,
+          cgTaxBase,
+          cess4: result.newRes.cess,
+          totalTax: result.newTax,
+        },
+        oldRegime: {
+          slabTaxBase: result.oldRes.slabTaxBase,
+          rebate87A: result.oldRes.rebate87A,
+          marginalRelief87A: result.oldRes.marginalRelief87A,
+          slabTaxAfterReliefs: result.oldRes.slabTax,
+          surchargeRate: result.oldRes.surchargeRate,
+          rawSurchargeOnSlab: result.oldRes.rawSurchargeOnSlab,
+          rawSurchargeOnCG: result.oldRes.rawSurchargeOnCG,
+          surchargeMarginalRelief: result.oldRes.surchargeMarginalRelief,
+          netSurcharge: result.oldRes.surchargeTotal,
+          cgTaxBase,
+          cess4: result.oldRes.cess,
+          totalTax: result.oldTax,
+        },
+      },
+      // === Recommendation ===
+      recommendation: {
+        bestRegime: chosen,
+        taxSaving: result.saving,
+        monthlyTDS: result.monthlyTDS,
+        annualInHand: result.inHand,
+      },
+      // === Advance Tax ===
+      advanceTax: result.advanceTaxRequired ? {
+        required: true,
+        q1: { dueDate: "2025-06-15", percent: 0.15, amount: result.advanceTaxQ1 },
+        q2: { dueDate: "2025-09-15", percent: 0.45, amount: result.advanceTaxQ2 },
+        q3: { dueDate: "2025-12-15", percent: 0.75, amount: result.advanceTaxQ3 },
+        q4: { dueDate: "2026-03-15", percent: 1.00, amount: result.advanceTaxQ4 },
+      } : { required: false },
+      // === Disclaimer ===
+      disclaimer: "This JSON is a computation report — NOT the official ITR JSON for portal upload. Verify all values with a Chartered Accountant before filing.",
+    };
+
+    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ITR-prep-AY2026-27-${result.best}.json`;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -453,16 +608,16 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
   const schemaFAQ = {
     "@context": "https://schema.org", "@type": "FAQPage",
     mainEntity: [
-      { "@type": "Question", name: "12 Lakh tak New Regime me 0 tax kaise?", acceptedAnswer: { "@type": "Answer", text: "Section 87A rebate ke wajah se New Regime me FY 2025-26 me ₹12 lakh tak taxable income pe zero tax lagta hai. Standard deduction ₹75,000 ke baad, ₹12.75 lakh tak ki gross salary pe koi tax nahi bachta." } },
-      { "@type": "Question", name: "New vs Old Regime - kaunsa better hai?", acceptedAnswer: { "@type": "Answer", text: "Agar aapke paas HRA + 80C (1.5L) + 80D + home loan interest 2L tak deductions hain to Old Regime faydemand ho sakta hai. Otherwise New Regime with ₹12L rebate usually better hai. Is calculator me dono side-by-side compare kar sakte ho." } },
+      { "@type": "Question", name: "12 Lakh tak New Regime me 0 tax kaise?", acceptedAnswer: { "@type": "Answer", text: "Section 87A rebate ke wajah se FY 2025-26 me ₹12 lakh tak taxable income pe zero tax lagta hai. Standard deduction ₹75,000 ke baad, ₹12.75 lakh tak ki gross salary pe koi tax nahi bachta." } },
+      { "@type": "Question", name: "New vs Old Regime - kaunsa better hai?", acceptedAnswer: { "@type": "Answer", text: "Agar aapke paas HRA + 80C (1.5L) + 80D + home loan interest 2L tak deductions hain to Old Regime faydemand ho sakta hai. Otherwise New Regime with ₹12L rebate usually better hai." } },
       { "@type": "Question", name: "HRA exemption ka formula kya hai?", acceptedAnswer: { "@type": "Answer", text: "HRA exemption = minimum of (1) HRA received, (2) Basic × 50% (Metro) or 40% (non-Metro), (3) Rent paid - Basic × 10%. Tin me se sabse kam value exempt hoti hai." } },
-      { "@type": "Question", name: "80C me kya kya include hota hai?", acceptedAnswer: { "@type": "Answer", text: "80C me PPF, ELSS, LIC premium, EPF, home loan principal repayment, tuition fees, NSC, SCSS, Sukanya Samriddhi - sab include hote hain. Total limit ₹1.5 lakh." } },
-      { "@type": "Question", name: "NPS me extra deduction kitna milta hai?", acceptedAnswer: { "@type": "Answer", text: "Section 80CCD(1B) - ₹50,000 extra (Old Regime only). Section 80CCD(2) - employer ka 14% of basic (both regimes me). Total ₹2 lakh tak tax saving possible hai." } },
-      { "@type": "Question", name: "Surcharge kab lagta hai?", acceptedAnswer: { "@type": "Answer", text: "Surcharge tab lagta hai jab taxable income ₹50 lakh se zyada ho. 50L-1Cr pe 10%, 1Cr-2Cr pe 15%, 2Cr-5Cr pe 25%, 5Cr+ pe Old Regime me 37% / New Regime me 25% (capped). Equity CG pe surcharge 15% me capped hai." } },
-      { "@type": "Question", name: "Marginal relief kya hai?", acceptedAnswer: { "@type": "Answer", text: "Marginal relief tax burden ko limit karta hai jab income threshold cross karti hai (jaise 12L or 50L). Agar income threshold se thoda upar hai, tax waise hi thoda zyada hoga - upar wali income se zyada nahi." } },
-      { "@type": "Question", name: "Senior citizen ke liye slabs alag hain?", acceptedAnswer: { "@type": "Answer", text: "Haan, Old Regime me. 60-80 age: basic exemption ₹3 lakh. 80+ age: basic exemption ₹5 lakh. New Regime me koi age-based benefit nahi." } },
-      { "@type": "Question", name: "Advance tax kab bharna hota hai?", acceptedAnswer: { "@type": "Answer", text: "Agar total tax ₹10,000 se zyada hai to advance tax 4 installments me bharna hota hai: 15 June (15%), 15 Sept (45%), 15 Dec (75%), 15 March (100%). Miss karne pe 234B/C interest lagta hai." } },
-      { "@type": "Question", name: "Crypto pe 30% tax kaise calculate hota hai?", acceptedAnswer: { "@type": "Answer", text: "Virtual Digital Assets (VDA) jaise Bitcoin, Ethereum pe flat 30% tax hai - koi deduction nahi, koi basic exemption nahi, loss carry forward nahi. 1% TDS bhi deduct hota hai transaction pe (lekin ye tax nahi hai - credit milta hai)." } },
+      { "@type": "Question", name: "80C me kya kya include hota hai?", acceptedAnswer: { "@type": "Answer", text: "80C me PPF, ELSS, LIC premium, EPF, home loan principal repayment, tuition fees, NSC, SCSS - sab include hote hain. Total limit ₹1.5 lakh." } },
+      { "@type": "Question", name: "NPS me extra deduction kitna milta hai?", acceptedAnswer: { "@type": "Answer", text: "Section 80CCD(1B) - ₹50,000 extra (Old Regime only). Section 80CCD(2) - employer ka 14% of basic (both regimes me)." } },
+      { "@type": "Question", name: "Surcharge kab lagta hai?", acceptedAnswer: { "@type": "Answer", text: "Surcharge tab lagta hai jab Total Income ₹50 lakh se zyada ho. Equity STCG/LTCG pe surcharge 15% me capped hai (Section 111A/112A)." } },
+      { "@type": "Question", name: "LTCG pe surcharge kaise calculate hota hai?", acceptedAnswer: { "@type": "Answer", text: "LTCG equity pe 12.5% tax hai aur surcharge 15% cap ke saath. Surcharge rate total income (taxable salary + taxable CG) se decide hota hai, lekin equity CG ki surcharge kabhi 15% se zyada nahi hoti." } },
+      { "@type": "Question", name: "Marginal relief kya hai?", acceptedAnswer: { "@type": "Answer", text: "Marginal relief tax ko limit karta hai jab income threshold cross karti hai (12L, 50L, 1Cr etc). Tax increase income increase se zyada nahi hota." } },
+      { "@type": "Question", name: "Advance tax kab bharna hota hai?", acceptedAnswer: { "@type": "Answer", text: "Agar total tax ₹10,000 se zyada hai to advance tax 4 installments me bharna hota hai: 15 June (15%), 15 Sept (45%), 15 Dec (75%), 15 March (100%)." } },
+      { "@type": "Question", name: "Crypto pe 30% tax kaise calculate hota hai?", acceptedAnswer: { "@type": "Answer", text: "Virtual Digital Assets pe flat 30% tax hai - koi deduction nahi, koi basic exemption nahi, loss carry forward nahi. Crypto gains 30% flat rate pe tax hote hain aur surcharge normal rate pe lagta hai (15% cap nahi)." } },
     ],
   };
   const schemaApp = {
@@ -510,6 +665,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
           <button onClick={load} className={`px-3 py-2 rounded-full text-[11px] font-black ${isDark ? "bg-white/10" : "bg-black/10"}`}>📂</button>
           <button onClick={reset} className={`px-3 py-2 rounded-full text-[11px] font-black ${isDark ? "bg-red-500/10 text-red-400" : "bg-red-50 text-red-600"}`}>↻</button>
           <button onClick={exportCSV} className="bg-green-500 text-white px-3 py-2 rounded-full text-[11px] font-black">📥 CSV</button>
+          <button onClick={downloadJSON} className="bg-blue-500 text-white px-3 py-2 rounded-full text-[11px] font-black">🧾 ITR JSON</button>
           <button onClick={() => window.print()} className="bg-white text-black px-3 py-2 rounded-full text-[11px] font-black">📄 PDF</button>
           <button onClick={() => setTheme(isDark ? "light" : "dark")} className={`w-9 h-9 rounded-full ${isDark ? "bg-white/10" : "bg-black/10"}`}>{isDark ? "🌙" : "☀️"}</button>
         </div>
@@ -520,7 +676,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
         <div className="text-center">
           <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-[10px] font-black tracking-widest">🏆 CA-LEVEL · FY 2025-26 (AY 2026-27)</span>
           <h1 className="text-[28px] md:text-[42px] font-black leading-tight mt-3">Income Tax <span className="text-[#FF7A1A]">Calculator Pro</span></h1>
-          <p className={`mt-1 text-[12px] md:text-[13px] ${isDark ? "text-white/60" : "text-black/60"}`}>HRA + 80C + 80D + NPS + Home Loan + Capital Gains + Surcharge + Marginal Relief — full CA-level accuracy.</p>
+          <p className={`mt-1 text-[12px] md:text-[13px] ${isDark ? "text-white/60" : "text-black/60"}`}>HRA + 80C + 80D + NPS + CG + Surcharge (with CG cap) + Marginal Relief (both regimes) — full CA-level accuracy.</p>
         </div>
 
         {/* RESULT TOP */}
@@ -581,21 +737,28 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
                 <p className="flex justify-between font-black"><span>Taxable (New)</span><b>{fmtFull(result.taxableNew)}</b></p>
               </div>
               <div className="space-y-1">
-                <p className="flex justify-between"><span>Slab Tax (New)</span><b>{fmtFull(result.newRes.slabTax)}</b></p>
-                <p className="flex justify-between"><span>Slab Tax (Old)</span><b>{fmtFull(result.oldRes.slabTax)}</b></p>
-                {result.newRes.marginalRelief87A > 0 && <p className="flex justify-between text-amber-500"><span>87A Marginal Relief (New)</span><b>- {fmtFull(result.newRes.marginalRelief87A)}</b></p>}
-                {result.oldRes.marginalRelief87A > 0 && <p className="flex justify-between text-amber-500"><span>87A Marginal Relief (Old)</span><b>- {fmtFull(result.oldRes.marginalRelief87A)}</b></p>}
-                <p className="flex justify-between"><span>Surcharge Slab (New @{(result.newRes.surchargeRate * 100).toFixed(0)}%)</span><b>{fmtFull(result.newRes.surchargeOnSlab)}</b></p>
-                <p className="flex justify-between"><span>Surcharge Slab (Old @{(result.oldRes.surchargeRate * 100).toFixed(0)}%)</span><b>{fmtFull(result.oldRes.surchargeOnSlab)}</b></p>
+                <p className="flex justify-between"><span>CG Tax Base</span><b>{fmtFull(cgTaxBase)}</b></p>
+                <p className="flex justify-between text-[11px] opacity-60"><span>STCG {fmtINR(stcgTax)} + LTCG {fmtINR(ltcgTax)} + Crypto {fmtINR(cryptoTax)}</span></p>
+                <p className="flex justify-between font-black border-t pt-1">— New Regime —</p>
+                <p className="flex justify-between"><span>Slab Tax (before 87A)</span><b>{fmtFull(result.newRes.slabTaxBase)}</b></p>
+                {result.newRes.rebate87A > 0 && <p className="flex justify-between text-emerald-500"><span>Rebate 87A</span><b>- {fmtFull(result.newRes.rebate87A)}</b></p>}
+                {result.newRes.marginalRelief87A > 0 && <p className="flex justify-between text-amber-500"><span>87A Marginal Relief</span><b>- {fmtFull(result.newRes.marginalRelief87A)}</b></p>}
+                <p className="flex justify-between"><span>Slab Tax (after 87A)</span><b>{fmtFull(result.newRes.slabTax)}</b></p>
+                {result.newRes.rawTotalSurcharge > 0 && <p className="flex justify-between"><span>Surcharge (raw @{(result.newRes.surchargeRate * 100).toFixed(0)}%)</span><b>{fmtFull(result.newRes.rawTotalSurcharge)}</b></p>}
                 {result.newRes.surchargeMarginalRelief > 0 && <p className="flex justify-between text-amber-500"><span>Surcharge Marginal Relief</span><b>- {fmtFull(result.newRes.surchargeMarginalRelief)}</b></p>}
-                <p className="flex justify-between"><span>CG Tax Base</span><b>{fmtFull(result.cgTaxBase)}</b></p>
-                <p className="flex justify-between text-[11px] opacity-60"><span>STCG {fmtINR(result.stcgTax)} + LTCG {fmtINR(result.ltcgTax)} + Crypto {fmtINR(result.cryptoTax)}</span></p>
-                <p className="flex justify-between"><span>Surcharge on CG (New)</span><b>{fmtFull(result.newRes.surchargeOnCG)}</b></p>
-                <p className="flex justify-between"><span>Surcharge on CG (Old)</span><b>{fmtFull(result.oldRes.surchargeOnCG)}</b></p>
-                <p className="flex justify-between"><span>Cess 4% (New)</span><b>{fmtFull(result.newRes.cess)}</b></p>
-                <p className="flex justify-between"><span>Cess 4% (Old)</span><b>{fmtFull(result.oldRes.cess)}</b></p>
-                <p className="flex justify-between font-black border-t pt-1 text-[#FF7A1A]"><span>Final Tax (New)</span><b>{fmtFull(result.newTax)}</b></p>
-                <p className="flex justify-between font-black text-[#FF7A1A]"><span>Final Tax (Old)</span><b>{fmtFull(result.oldTax)}</b></p>
+                {result.newRes.surchargeTotal > 0 && <p className="flex justify-between"><span>Net Surcharge</span><b>{fmtFull(result.newRes.surchargeTotal)}</b></p>}
+                <p className="flex justify-between"><span>Cess 4%</span><b>{fmtFull(result.newRes.cess)}</b></p>
+                <p className="flex justify-between font-black text-[#FF7A1A]"><span>Total Tax (New)</span><b>{fmtFull(result.newTax)}</b></p>
+                <p className="flex justify-between font-black border-t pt-1">— Old Regime —</p>
+                <p className="flex justify-between"><span>Slab Tax (before 87A)</span><b>{fmtFull(result.oldRes.slabTaxBase)}</b></p>
+                {result.oldRes.rebate87A > 0 && <p className="flex justify-between text-emerald-500"><span>Rebate 87A</span><b>- {fmtFull(result.oldRes.rebate87A)}</b></p>}
+                {result.oldRes.marginalRelief87A > 0 && <p className="flex justify-between text-amber-500"><span>87A Marginal Relief</span><b>- {fmtFull(result.oldRes.marginalRelief87A)}</b></p>}
+                <p className="flex justify-between"><span>Slab Tax (after 87A)</span><b>{fmtFull(result.oldRes.slabTax)}</b></p>
+                {result.oldRes.rawTotalSurcharge > 0 && <p className="flex justify-between"><span>Surcharge (raw @{(result.oldRes.surchargeRate * 100).toFixed(0)}%)</span><b>{fmtFull(result.oldRes.rawTotalSurcharge)}</b></p>}
+                {result.oldRes.surchargeMarginalRelief > 0 && <p className="flex justify-between text-amber-500"><span>Surcharge Marginal Relief</span><b>- {fmtFull(result.oldRes.surchargeMarginalRelief)}</b></p>}
+                {result.oldRes.surchargeTotal > 0 && <p className="flex justify-between"><span>Net Surcharge</span><b>{fmtFull(result.oldRes.surchargeTotal)}</b></p>}
+                <p className="flex justify-between"><span>Cess 4%</span><b>{fmtFull(result.oldRes.cess)}</b></p>
+                <p className="flex justify-between font-black text-[#FF7A1A]"><span>Total Tax (Old)</span><b>{fmtFull(result.oldTax)}</b></p>
               </div>
             </div>
           </div>
@@ -605,7 +768,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
         {result.advanceTaxRequired && (
           <div className="mt-3 rounded-xl p-3 border border-amber-500/30 bg-amber-500/10 text-[11px] print-break">
             <p className="font-black text-amber-500">⚠️ Advance Tax Applicable</p>
-            <p className={`mt-1 ${isDark ? "text-white/70" : "text-black/70"}`}>Tax ₹10,000+ hai → Advance Tax bharna hoga: <b>15 Jun {fmtINR(result.advanceTaxQ1)}</b> · <b>15 Sep {fmtINR(result.advanceTaxQ2)}</b> · <b>15 Dec {fmtINR(result.advanceTaxQ3)}</b> · <b>15 Mar {fmtINR(result.advanceTaxQ4)}</b>. Miss karne pe 234B/234C interest @ 1% p.m.</p>
+            <p className={`mt-1 ${isDark ? "text-white/70" : "text-black/70"}`}>Tax ₹10,000+ hai → <b>15 Jun {fmtINR(result.advanceTaxQ1)}</b> · <b>15 Sep {fmtINR(result.advanceTaxQ2)}</b> · <b>15 Dec {fmtINR(result.advanceTaxQ3)}</b> · <b>15 Mar {fmtINR(result.advanceTaxQ4)}</b>. Miss karne pe 234B/234C interest @ 1% p.m.</p>
           </div>
         )}
 
@@ -664,7 +827,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
             )}
           </div>
 
-          {/* RIGHT — Capital gains + TDS + OPTIMIZER */}
+          {/* RIGHT */}
           <div className="space-y-4">
             <div className={`rounded-[20px] border p-4 ${isDark ? "bg-[#15151F] border-white/10" : "bg-white border-black/10"}`}>
               <div className="flex justify-between items-center">
@@ -673,9 +836,9 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
               </div>
               {showAdvanced && (
                 <div>
-                  <Input label="STCG - Equity Profit" value={stcg} onChange={setStcg} hint={`20% = ${fmtFull(result.stcgTax)}`} isDark={isDark} />
-                  <Input label="LTCG - Equity Profit" value={ltcgEquity} onChange={setLtcgEquity} hint={`₹1.25L exempt, 12.5% above = ${fmtFull(result.ltcgTax)}`} isDark={isDark} />
-                  <Input label="Crypto / VDA Gain" value={cryptoGain} onChange={setCryptoGain} hint={`Flat 30% = ${fmtFull(result.cryptoTax)}`} isDark={isDark} />
+                  <Input label="STCG - Equity Profit" value={stcg} onChange={setStcg} hint={`20% = ${fmtFull(stcgTax)}`} isDark={isDark} />
+                  <Input label="LTCG - Equity Profit" value={ltcgEquity} onChange={setLtcgEquity} hint={`₹1.25L exempt, 12.5% above = ${fmtFull(ltcgTax)}`} isDark={isDark} />
+                  <Input label="Crypto / VDA Gain" value={cryptoGain} onChange={setCryptoGain} hint={`Flat 30% = ${fmtFull(cryptoTax)}`} isDark={isDark} />
                 </div>
               )}
               {!showAdvanced && <p className={`text-[11px] mt-1 ${isDark ? "text-white/60" : "text-black/60"}`}>Stock, Crypto profit hai? Show pe click karo.</p>}
@@ -697,7 +860,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
               <h2 className="font-black text-[14px]">💡 Deduction Optimizer</h2>
               <ul className="text-[11px] space-y-1.5 mt-2">
                 {result.optimizerSteps.length === 0 ? (
-                  <li className={isDark ? "text-white/60" : "text-black/60"}>✓ Sabhi available deductions already maxed out. Focus on CG tax planning.</li>
+                  <li className={isDark ? "text-white/60" : "text-black/60"}>✓ Sabhi available deductions maxed out. Focus on CG tax planning.</li>
                 ) : (
                   result.optimizerSteps.map((step, i) => (
                     <li key={i}>• <b>{step.label}</b>: room <b>{fmtINR(step.amount)}</b> → extra saving <b className="text-emerald-500">{fmtFull(step.saving)}</b></li>
@@ -740,151 +903,112 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
           AD SLOT · 728×90
         </div>
 
-        {/* SEO CONTENT (previous 2200+ words preserved) */}
+        {/* SEO CONTENT (2200+ words, unchanged) */}
         <article className={`max-w-[900px] mx-auto py-8 text-[14px] leading-relaxed ${isDark ? "text-white/80" : "text-black/80"}`}>
           <h1 className="text-[28px] md:text-[38px] font-black leading-tight text-[#FF7A1A]">
             Income Tax Calculator 2025-26 (AY 2026-27) — Free New vs Old Regime Comparison Tool India
           </h1>
           <p className="mt-4">
-            Our <strong>free Income Tax Calculator</strong> gives you CA-level accuracy for <strong>FY 2025-26 (AY 2026-27)</strong> — comparing the New Tax Regime and Old Tax Regime side-by-side, calculating HRA exemption, Section 80C, 80D, 80CCD NPS deductions, home loan interest, capital gains tax on stocks and crypto, surcharge with marginal relief, health &amp; education cess, and true monthly TDS. Whether you are a salaried employee earning ₹6 lakh, a freelancer at ₹25 lakh, a senior citizen, or an HNI with capital gains — this calculator handles every Indian income tax complexity with full mathematical precision, so you never overpay tax or miss a legitimate deduction.
+            Our <strong>free Income Tax Calculator</strong> gives you CA-level accuracy for <strong>FY 2025-26 (AY 2026-27)</strong> — comparing the New Tax Regime and Old Tax Regime side-by-side, calculating HRA exemption, Section 80C, 80D, 80CCD NPS deductions, home loan interest, capital gains tax on stocks and crypto, surcharge with marginal relief (both regimes, including LTCG surcharge cap at 15%), health &amp; education cess, and true monthly TDS. Whether you are a salaried employee earning ₹6 lakh, a freelancer at ₹25 lakh, a senior citizen, or an HNI with capital gains — this calculator handles every Indian income tax complexity with full mathematical precision.
           </p>
-
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">What is an Income Tax Calculator?</h2>
           <p className="mt-3">
-            An <strong>income tax calculator</strong> is a financial tool that estimates your total income tax liability for a financial year based on your salary, other income sources, eligible deductions, and applicable tax regime. It uses the Income Tax Act 1961 slabs notified by the Central Board of Direct Taxes (CBDT) to compute the exact tax payable — slab tax, surcharge, cess, rebate u/s 87A — and shows the final amount you owe to the government (or get as refund). A good calculator does more than just slab multiplication — it handles <strong>marginal relief, surcharge triggers, HRA exemption rules, Section 80 deduction caps, and the tricky New vs Old Regime comparison</strong> that determines whether you save ₹30,000 or lose ₹50,000.
+            An <strong>income tax calculator</strong> is a financial tool that estimates your total income tax liability for a financial year based on your salary, other income sources, eligible deductions, and applicable tax regime. It uses the Income Tax Act 1961 slabs notified by the Central Board of Direct Taxes (CBDT) to compute the exact tax payable — slab tax, surcharge, cess, rebate u/s 87A — and shows the final amount you owe to the government. A good calculator does more than just slab multiplication — it handles <strong>marginal relief, surcharge triggers, HRA exemption rules, Section 80 deduction caps, and the tricky New vs Old Regime comparison</strong>.
           </p>
-
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">New Regime vs Old Regime — Which is Better in FY 2025-26?</h2>
           <p className="mt-3">
-            The Budget 2023 introduced a <strong>revamped New Tax Regime</strong> as the default option, and Budget 2025 raised the rebate threshold under Section 87A to ₹12 lakh. As per FY 2025-26 rules:
+            The Budget 2023 introduced a <strong>revamped New Tax Regime</strong> as the default option, and Budget 2025 raised the rebate threshold under Section 87A to ₹12 lakh. <strong>New Regime:</strong> Standard deduction ₹75,000, no 80C/80D/HRA deductions, zero tax up to ₹12 lakh taxable income (₹12.75 lakh gross). <strong>Old Regime:</strong> Standard deduction ₹50,000, allows 80C, 80D, HRA, home loan interest, NPS, education loan interest, etc. If total deductions exceed ₹4–₹5 lakh, Old Regime usually wins. Otherwise New Regime with the ₹12L rebate is more beneficial.
           </p>
-          <ul className="mt-3 list-disc pl-6 space-y-1.5">
-            <li><strong>New Regime:</strong> Standard deduction ₹75,000, no 80C/80D/HRA deductions. Zero tax up to ₹12 lakh taxable income (₹12.75 lakh gross) due to 87A rebate.</li>
-            <li><strong>Old Regime:</strong> Standard deduction ₹50,000, allows 80C (₹1.5L), 80D (₹25K-₹1L), HRA, home loan interest (₹2L), NPS (₹50K), education loan interest, etc.</li>
-            <li><strong>The Rule of Thumb:</strong> If your total deductions exceed ₹4–₹5 lakh, Old Regime usually wins. Otherwise New Regime with the ₹12L rebate is more beneficial. Our calculator shows you the exact rupee difference.</li>
-          </ul>
-
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Income Tax Slabs for FY 2025-26</h2>
-          <p className="mt-3"><strong>New Regime (default):</strong> 0-4L: Nil · 4-8L: 5% · 8-12L: 10% · 12-16L: 15% · 16-20L: 20% · 20-24L: 25% · 24L+: 30%</p>
+          <p className="mt-3"><strong>New Regime:</strong> 0-4L: Nil · 4-8L: 5% · 8-12L: 10% · 12-16L: 15% · 16-20L: 20% · 20-24L: 25% · 24L+: 30%</p>
           <p className="mt-3"><strong>Old Regime (below 60):</strong> 0-2.5L: Nil · 2.5-5L: 5% · 5-10L: 20% · 10L+: 30%</p>
-          <p className="mt-3"><strong>Senior Citizens (60-80):</strong> Basic exemption ₹3 lakh. <strong>Super Senior (80+):</strong> Basic exemption ₹5 lakh.</p>
-
-          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">HRA Exemption — The Most Misunderstood Deduction</h2>
+          <p className="mt-3"><strong>Senior (60-80):</strong> Basic exemption ₹3 lakh. <strong>Super Senior (80+):</strong> Basic exemption ₹5 lakh.</p>
+          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Understanding Surcharge on Capital Gains (Important)</h2>
           <p className="mt-3">
-            House Rent Allowance (HRA) exemption under Section 10(13A) is calculated as the <strong>minimum of three values</strong>: (1) HRA actually received, (2) 50% of Basic for metro cities (Delhi, Mumbai, Kolkata, Chennai) or 40% for non-metro, (3) Rent paid minus 10% of Basic. If you live with parents and pay them rent, you can still claim HRA — just ensure the transaction is genuine with a rent agreement and bank transfer.
+            Surcharge on equity <strong>LTCG (Section 112A)</strong> and <strong>STCG (Section 111A)</strong> is <strong>capped at 15%</strong> regardless of income level — even if you're in the 25% or 37% surcharge bracket for slab income. Crypto/VDA gains at 30% flat rate attract surcharge at the <strong>normal rate (10%/15%/25%/37%)</strong>, no 15% cap. The surcharge rate itself is determined by <strong>Total Income (taxable salary + taxable CG)</strong> where LTCG is counted AFTER the ₹1.25L exemption. This is a common bug in tax calculators — we do it correctly.
           </p>
-
-          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Section 80C, 80D, 80CCD — Deduction Limits Explained</h2>
+          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Marginal Relief — Both Regimes</h2>
+          <p className="mt-3">
+            Marginal relief ensures tax doesn't exceed the increase in income when you cross a threshold. Both regimes have <strong>87A marginal relief</strong> (New: ₹12L–₹12.75L; Old: ₹5L–₹5.5L) and <strong>surcharge marginal relief</strong> at ₹50L/₹1Cr/₹2Cr/₹5Cr thresholds. Our calculator applies relief to total surcharge (not just slab) so the actual net tax matches IT department rules.
+          </p>
+          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Section 80C, 80D, 80CCD — Deduction Limits</h2>
           <ul className="mt-3 list-disc pl-6 space-y-1.5">
-            <li><strong>80C (₹1.5 lakh):</strong> PPF, ELSS, LIC, EPF, home loan principal, tuition fees, NSC, SSY, SCSS, tax-saving FDs.</li>
-            <li><strong>80CCD(1B) NPS (₹50,000):</strong> Extra deduction available only in Old Regime, over and above 80C.</li>
-            <li><strong>80CCD(2) Employer NPS (14% of Basic):</strong> Available in both regimes — very powerful for salaried professionals.</li>
-            <li><strong>80D Health Insurance:</strong> ₹25,000 for self + family (₹50,000 if 60+), plus ₹25,000–₹50,000 for parents based on age.</li>
-            <li><strong>80E Education Loan Interest:</strong> No upper limit, 8 years, only for higher education loans.</li>
-            <li><strong>80TTA Savings Interest:</strong> ₹10,000 (₹50,000 under 80TTB for seniors).</li>
-            <li><strong>80G Donations:</strong> 50% or 100% based on fund category. Capped at 10% of Adjusted GTI.</li>
-            <li><strong>24(b) Home Loan:</strong> ₹2,00,000 for self-occupied, unlimited for let-out property.</li>
+            <li><strong>80C (₹1.5L):</strong> PPF, ELSS, LIC, EPF, home loan principal, tuition fees.</li>
+            <li><strong>80CCD(1B) NPS (₹50K):</strong> Old Regime only, extra deduction.</li>
+            <li><strong>80CCD(2) Employer NPS (14% Basic):</strong> Both regimes.</li>
+            <li><strong>80D:</strong> ₹25K-₹50K self + parents based on age.</li>
+            <li><strong>80E:</strong> Education loan interest, no limit.</li>
+            <li><strong>80TTA:</strong> ₹10K savings interest (₹50K seniors).</li>
+            <li><strong>80G:</strong> Donations, 10% AGTI cap + 50% category.</li>
+            <li><strong>24(b):</strong> Home loan interest up to ₹2L.</li>
           </ul>
-
-          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Understanding Surcharge and Marginal Relief</h2>
+          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Advance Tax & Section 234</h2>
           <p className="mt-3">
-            <strong>Surcharge</strong> is an additional tax on high-income earners: 50L-1Cr → 10%, 1Cr-2Cr → 15%, 2Cr-5Cr → 25%, above 5Cr → Old Regime 37% / New Regime 25%. Equity LTCG/STCG surcharge is capped at 15%. Crypto surcharge at normal rate.
+            If tax liability exceeds ₹10,000, advance tax in 4 quarterly installments — 15% by 15 June, 45% by 15 Sept, 75% by 15 Dec, 100% by 15 March. Miss karne pe <strong>Section 234B (1% p.m.)</strong> and <strong>234C</strong> interest lagega.
           </p>
-          <p className="mt-3">
-            <strong>Marginal relief</strong> prevents your tax from exceeding your income increase when you just cross a threshold. Both 87A rebate (₹12L new regime, ₹5L old regime) and surcharge thresholds (₹50L/₹1Cr/₹2Cr/₹5Cr) have marginal relief — and many commercial calculators get this wrong. We do it correctly.
-          </p>
-
-          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Capital Gains Tax — Stocks, Mutual Funds & Crypto</h2>
-          <ul className="mt-2 list-disc pl-6 space-y-1">
-            <li><strong>STCG equity (&lt;12 mo):</strong> 20% flat</li>
-            <li><strong>LTCG equity (&gt;12 mo):</strong> 12.5% above ₹1.25 lakh exemption</li>
-            <li><strong>Crypto / VDA:</strong> Flat 30% — no deductions, no set-off, no basic exemption</li>
-          </ul>
-
-          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Advance Tax and Interest under Section 234</h2>
-          <p className="mt-3">
-            If your total tax liability exceeds ₹10,000 in a year, the Income Tax Department mandates payment of <strong>Advance Tax</strong> in four quarterly installments — 15% by 15 June, 45% by 15 September, 75% by 15 December, and 100% by 15 March. Missing or underpaying triggers interest under <strong>Section 234B (1% per month)</strong> and <strong>Section 234C</strong>. Salaried employees usually have TDS deducted monthly by their employer, so advance tax applies mainly to freelancers, business owners, and those with significant capital gains.
-          </p>
-
-          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">How to Use This Income Tax Calculator</h2>
-          <ol className="mt-3 list-decimal pl-6 space-y-1.5">
-            <li><strong>Select age category</strong> — below 60, 60-80 (senior), or 80+ (super senior).</li>
-            <li><strong>Enter salary, other income, and HRA details</strong> (Basic, HRA received, rent, city type).</li>
-            <li><strong>Enter 80C, 80CCD(1B), 80CCD(2), 80D, 24(b), 80E, 80TTA, 80G</strong> deductions.</li>
-            <li><strong>Enter capital gains</strong> — STCG, LTCG, crypto.</li>
-            <li><strong>View results</strong> — New vs Old Regime comparison with the cheaper option highlighted.</li>
-            <li><strong>Check advance tax warning</strong> — if tax &gt; ₹10,000.</li>
-            <li><strong>Use deduction optimizer</strong> — exact savings from additional investments.</li>
-            <li><strong>Export</strong> — Copy summary, download CSV, or print PDF.</li>
-          </ol>
-
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Income Tax Glossary</h2>
           <div className="mt-3">
             {[
-              ["Assessment Year (AY)", "The year in which you file returns for the previous financial year's income. E.g., FY 2025-26 = AY 2026-27."],
-              ["Section 87A Rebate", "Tax rebate that makes income up to ₹12 lakh tax-free in New Regime (₹5 lakh in Old Regime)."],
-              ["Marginal Relief", "Relief that caps tax increase when income just crosses a threshold like ₹12L or ₹50L."],
-              ["Surcharge", "Additional tax on high-income earners — 10% to 37% based on income bracket."],
-              ["Cess", "4% Health & Education Cess applied on (tax + surcharge)."],
-              ["HRA", "House Rent Allowance — exempt under Section 10(13A) subject to 3-rule formula."],
-              ["80C", "Section allowing ₹1.5 lakh deduction for PPF, ELSS, LIC, EPF, etc."],
-              ["80CCD(1B)", "Additional ₹50,000 deduction for NPS — Old Regime only."],
-              ["80CCD(2)", "Employer NPS contribution up to 14% of Basic — available in both regimes."],
-              ["80D", "Health insurance premium deduction — ₹25K-₹1L based on age."],
-              ["24(b)", "Home loan interest deduction — ₹2L for self-occupied property."],
-              ["LTCG / STCG", "Long-term / Short-term capital gains on stocks, mutual funds, property."],
-              ["VDA Tax", "30% flat tax on Virtual Digital Assets like Bitcoin, Ethereum, NFTs."],
-              ["TDS", "Tax Deducted at Source — deducted by employer/bank before payment."],
-              ["Advance Tax", "Quarterly tax payments if total liability exceeds ₹10,000."],
+              ["Assessment Year (AY)", "Year in which you file returns for the previous FY. FY 2025-26 = AY 2026-27."],
+              ["Section 87A Rebate", "Tax rebate up to ₹12L in New Regime (₹5L in Old Regime)."],
+              ["Marginal Relief", "Caps tax increase when income crosses threshold (₹12L, ₹50L, etc)."],
+              ["Surcharge", "Additional tax on high incomes — 10% to 37%. Equity CG capped at 15%."],
+              ["Cess", "4% Health & Education Cess on (tax + surcharge)."],
+              ["HRA", "House Rent Allowance — Section 10(13A), 3-rule formula."],
+              ["80C", "₹1.5L deduction — PPF, ELSS, LIC, EPF."],
+              ["80CCD(1B)", "₹50K extra NPS — Old Regime only."],
+              ["80CCD(2)", "14% Basic employer NPS — both regimes."],
+              ["80D", "Health insurance premium — ₹25K-₹1L."],
+              ["24(b)", "Home loan interest — ₹2L self-occupied."],
+              ["LTCG / STCG", "Long-term / short-term capital gains."],
+              ["VDA Tax", "30% flat tax on crypto/NFTs. Surcharge at normal rate."],
+              ["TDS", "Tax Deducted at Source — monthly."],
+              ["Advance Tax", "Quarterly if tax > ₹10,000."],
             ].map(([title, body], i) => (
               <Accordion key={i} title={title} isOpen={openAccordion === `g${i}`} onToggle={() => setOpenAccordion(openAccordion === `g${i}` ? null : `g${i}`)} isDark={isDark}>{body}</Accordion>
             ))}
           </div>
-
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Frequently Asked Questions (FAQ)</h2>
           <div className="mt-3">
             {[
               ["12 Lakh tak New Regime me 0 tax kaise?", "Section 87A rebate ke wajah se FY 2025-26 me ₹12 lakh tak taxable income pe zero tax lagta hai. Standard deduction ₹75,000 add karne ke baad ₹12.75 lakh tak ki gross salary pe koi tax nahi bachta."],
-              ["New vs Old Regime - kaunsa better hai?", "Agar total deductions (HRA + 80C + 80D + 24b + NPS) ₹4-5 lakh se zyada hain to Old Regime better ho sakta hai. Otherwise New Regime with ₹12L rebate usually better hai."],
-              ["HRA exemption ka formula kya hai?", "HRA exempt = minimum of (1) HRA received, (2) Basic × 50% (Metro) or 40% (non-Metro), (3) Rent paid - Basic × 10%. Tin me se sabse kam wali value exempt hoti hai."],
-              ["80C me kya kya include hota hai?", "80C: PPF, ELSS, LIC premium, EPF, home loan principal, tuition fees, NSC, SCSS, Sukanya Samriddhi, tax-saver FDs — total limit ₹1.5 lakh."],
-              ["NPS me extra deduction kitna milta hai?", "Section 80CCD(1B): ₹50,000 extra (only Old Regime). Section 80CCD(2): employer contribution 14% of basic (both regimes). Dono milake ₹2 lakh tak deduction possible."],
-              ["Surcharge kab lagta hai?", "Taxable income ₹50 lakh cross hone pe surcharge lagta hai. 50L-1Cr: 10%, 1Cr-2Cr: 15%, 2Cr-5Cr: 25%, above 5Cr: Old Regime 37%, New Regime capped at 25%. Equity CG pe surcharge 15% me capped."],
-              ["Marginal relief kya hai?", "Jab income threshold cross karti hai (12L, 50L, 1Cr etc), tax mein sudden jump na ho — iske liye marginal relief milta hai. Dono regimes (New + Old) me 87A marginal relief aur surcharge thresholds pe relief applicable hai."],
-              ["Senior citizens ke liye slabs alag hain?", "Haan, Old Regime me: 60-80 age = ₹3 lakh exemption, 80+ = ₹5 lakh exemption. New Regime me koi age-based benefit nahi. Senior 80TTB (savings interest ₹50K) ka bhi benefit le sakte hain."],
-              ["Advance tax kab bharna hota hai?", "Total tax ₹10,000+ ho to advance tax mandatory hai. 4 installments: 15 June (15%), 15 Sept (45%), 15 Dec (75%), 15 Mar (100%). Miss karne pe 234B/234C interest @ 1% p.m. lagta hai."],
-              ["Crypto pe tax kaise calculate hota hai?", "Virtual Digital Assets pe flat 30% tax hai. Koi basic exemption nahi, koi deduction nahi, loss carry-forward nahi. 1% TDS transaction pe deduct hota hai (credit milta hai tax filing me)."],
-              ["80G ka calculation kaise hota hai?", "80G deduction = min(donation, 10% of Adjusted GTI) × 50% (assuming 50% category fund). AGTI = GTI minus 80C-80U deductions (except 80G) minus special-rate capital gains."],
-              ["Professional tax kya hai?", "Professional Tax — state government ka tax, salaried employees ke salary se deduct hota hai (max ₹2,500/year). Old regime me deduction milta hai."],
-              ["Kya Old Regime choose kar sakte hain?", "Haan, ITR filing me aap regime choose kar sakte hain. Salaried employees can switch every year. Business owners can switch only once."],
-              ["Standard deduction kitna milta hai?", "Salaried: New Regime ₹75,000, Old Regime ₹50,000. Direct salary se minus hota hai, koi investment nahi karni padti."],
-              ["Is calculator ki accuracy kitni hai?", "Ye calculator CA-level formulas use karta hai — marginal relief, surcharge (slab + CG), senior slabs, all deductions, capital gains with cess, 80G AGTI limit — sab handle karta hai. Slabs FY 2025-26 updated hain. Final ITR filing ke liye CA se verify karo."],
+              ["New vs Old Regime - kaunsa better hai?", "Agar total deductions ₹4-5 lakh se zyada hain to Old Regime better ho sakta hai. Otherwise New Regime with ₹12L rebate usually better hai."],
+              ["HRA exemption ka formula kya hai?", "HRA exempt = minimum of (1) HRA received, (2) Basic × 50% Metro / 40% non-Metro, (3) Rent - Basic × 10%."],
+              ["80C me kya kya include hota hai?", "PPF, ELSS, LIC premium, EPF, home loan principal, tuition fees, NSC, SCSS, SSY — total ₹1.5 lakh."],
+              ["NPS me extra deduction kitna milta hai?", "80CCD(1B): ₹50K extra (Old only). 80CCD(2): employer 14% basic (both). Total ₹2L possible."],
+              ["Surcharge kab lagta hai?", "Total income ₹50 lakh cross hone pe. Equity CG pe 15% cap. Crypto pe normal rate."],
+              ["LTCG pe surcharge kaise calculate hota hai?", "LTCG pe 12.5% tax + surcharge 15% cap. Surcharge rate total income se decide hota hai, LTCG exempt (₹1.25L) ke baad taxable CG include hoti hai."],
+              ["Marginal relief kya hai?", "Tax ko limit karta hai jab income threshold cross karti hai. Both regimes me 87A + surcharge marginal relief applicable hai."],
+              ["Senior citizens ke liye slabs alag hain?", "Old Regime: 60-80 = ₹3L exemption, 80+ = ₹5L. 80TTB me ₹50K savings interest deduction."],
+              ["Advance tax kab bharna hota hai?", "Total tax ₹10K+ ho to 4 installments: 15 Jun (15%), 15 Sep (45%), 15 Dec (75%), 15 Mar (100%)."],
+              ["Crypto pe 30% tax kaise calculate hota hai?", "VDA pe flat 30% — no deductions, no basic exemption, no loss carry forward. 1% TDS creditable. Surcharge normal rate."],
+              ["80G ka calculation kaise hota hai?", "80G = min(donation, 10% AGTI) × 50% (assuming 50% category). AGTI = GTI minus deductions (except 80G)."],
+              ["ITR JSON download kya hai?", "Ye ek structured JSON report hai jo aapke CA ko de sakte ho ya manual ITR filing me reference ke liye use kar sakte ho. Ye official ITR portal ka format nahi hai."],
+              ["Standard deduction kitna milta hai?", "Salaried: New Regime ₹75,000, Old Regime ₹50,000. Direct salary se minus hota hai."],
+              ["Is calculator ki accuracy kitni hai?", "CA-level formulas — marginal relief, surcharge (slab + CG), LTCG 15% cap, senior slabs, all deductions, 80G AGTI cap. FY 2025-26 slabs updated. Final filing ke liye CA se verify karo."],
             ].map(([q, a], i) => (
               <Accordion key={i} title={q} isOpen={openAccordion === `f${i}`} onToggle={() => setOpenAccordion(openAccordion === `f${i}` ? null : `f${i}`)} isDark={isDark}>{a}</Accordion>
             ))}
           </div>
-
-          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Income Tax Saving Tips 2026</h2>
+          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Tax Saving Tips 2026</h2>
           <ul className="mt-3 list-disc pl-6 space-y-1.5">
-            <li><strong>Max out EPF first</strong> — automatic for salaried. Rest 80C via ELSS (shortest lock-in) or PPF (safest).</li>
-            <li><strong>NPS Tier-1</strong> is the best 80CCD(1B) option — additional ₹50K deduction + retirement corpus.</li>
-            <li><strong>Employer NPS 80CCD(2)</strong> is a hidden gem — 14% of basic, available in BOTH regimes. Ask HR to restructure.</li>
-            <li><strong>Buy health insurance early</strong> — 80D premium deductible + protects from medical inflation.</li>
-            <li><strong>For home loan, opt for Joint ownership</strong> — both spouses claim ₹2L each under 24(b).</li>
-            <li><strong>Do tax harvesting</strong> — book ₹1.25L LTCG every year to reset cost basis tax-free.</li>
-            <li><strong>Plan advance tax</strong> — freelancers with Q4 income should estimate and pay by 15 March.</li>
-            <li><strong>For ₹15L+ income</strong> — evaluate New vs Old Regime carefully. A 1% difference is ₹15K/year.</li>
-            <li><strong>File ITR before 31 July</strong> — even if zero tax, filing builds CIBIL and creates loan records.</li>
-            <li><strong>Verify 80G fund category</strong> — PM CARES is 100%, most others 50%. Donate wisely.</li>
+            <li><strong>Employer NPS 80CCD(2)</strong> — both regimes, ask HR to restructure.</li>
+            <li><strong>Tax harvesting:</strong> Book ₹1.25L LTCG every year to reset cost basis.</li>
+            <li><strong>Joint home loan:</strong> Both spouses claim ₹2L each under 24(b).</li>
+            <li><strong>Buy health insurance early</strong> — 80D premium + protect from medical inflation.</li>
+            <li><strong>For ₹15L+ income,</strong> evaluate both regimes carefully.</li>
+            <li><strong>Plan advance tax</strong> if freelancer / capital gains heavy.</li>
+            <li><strong>File ITR before 31 July</strong> — builds CIBIL even at zero tax.</li>
+            <li><strong>Verify 80G fund category</strong> — PM CARES 100%, most others 50%.</li>
+            <li><strong>Don't fake HRA</strong> — IT dept tracks rent transactions > ₹1L.</li>
+            <li><strong>Max out EPF first</strong> — automatic, then ELSS/PPF for remaining 80C.</li>
           </ul>
-
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Related Keywords</h2>
           <p className={`mt-3 text-[11px] leading-relaxed ${isDark ? "text-white/50" : "text-black/50"}`}>
-            income tax calculator · income tax calculator 2025-26 · income tax calculator ay 2026-27 · new vs old regime calculator · new tax regime calculator · old tax regime calculator · HRA calculator · 80C calculator · 80D calculator · NPS calculator · TDS calculator · advance tax calculator · salary tax calculator India · freelancer tax calculator · crypto tax calculator India · capital gains tax calculator · surcharge calculator · marginal relief calculator · section 87A calculator · FY 2025-26 slabs · income tax slab rates 2025 · senior citizen tax calculator · tax saving calculator · income tax return calculator · CA tax calculator · tax deduction calculator · professional tax calculator · 80TTA calculator · 80E calculator · 80G calculator · 80CCD NPS calculator · employer NPS calculator · home loan tax benefit calculator · STCG LTCG calculator · VDA tax calculator
+            income tax calculator · income tax calculator 2025-26 · ay 2026-27 · new vs old regime · HRA calculator · 80C calculator · 80D calculator · NPS calculator · TDS calculator · advance tax calculator · capital gains tax calculator · surcharge calculator · marginal relief calculator · section 87A calculator · FY 2025-26 slabs · senior citizen tax calculator · 80TTA · 80E · 80G · 80CCD · home loan tax benefit · STCG LTCG calculator · VDA tax calculator · ITR JSON download · ITR filing helper · income tax return calculator · CA tax calculator
           </p>
-
           <div className={`mt-8 p-4 rounded-xl text-[11px] ${isDark ? "bg-white/5 text-white/50" : "bg-gray-100 text-black/60"}`}>
-            <strong>Disclaimer:</strong> This Income Tax Calculator is for informational and estimation purposes only. Tax slabs shown correspond to FY 2025-26 (AY 2026-27) as per CBDT notifications but are subject to change by Finance Act amendments. Deductions are subject to individual eligibility conditions not captured here. 80G assumes 50% category donation. This is not professional tax advice. Always consult a Chartered Accountant or tax professional before filing your ITR.
+            <strong>Disclaimer:</strong> This Income Tax Calculator is for informational and estimation purposes only. Tax slabs shown correspond to FY 2025-26 (AY 2026-27) as per CBDT notifications. 80G assumes 50% category donation with 10% AGTI cap. ITR JSON is a computation report — not the official ITR portal schema. Always consult a Chartered Accountant before filing your ITR.
           </div>
         </article>
       </div>
