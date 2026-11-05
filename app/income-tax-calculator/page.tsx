@@ -410,7 +410,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
       ["Total Tax", result.newTax, result.oldTax],
     ];
     // Fix CG row
-    rows[17] = ["CG Tax Base", cgTaxBase, cgTaxBase];
+    rows[16] = ["CG Tax Base", cgTaxBase, cgTaxBase];
     const csv = rows.map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
