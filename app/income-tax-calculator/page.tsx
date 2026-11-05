@@ -657,7 +657,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
       {/* HEADER */}
       <div className="max-w-[1100px] mx-auto px-4 pt-5 flex justify-between items-center no-print flex-wrap gap-2">
         <Link href="/" className="flex items-center gap-2 font-black text-[16px]">
-          <span className="w-8 h-8 bg-[#FF7A1A] rounded-lg flex items-center justify-center text-white text-[13px]">V</span>
+          <span className="w-8 h-8 bg-[#FF7A1A] rounded-lg flex items-center justify-center text-white text-[13px]">L</span>
           Lorem Pro Tool
         </Link>
         <div className="flex gap-2 flex-wrap">
