@@ -1000,7 +1000,7 @@ Monthly TDS: ${fmtFull(result.monthlyTDS)}`;
             <li><strong>Plan advance tax</strong> if freelancer / capital gains heavy.</li>
             <li><strong>File ITR before 31 July</strong> — builds CIBIL even at zero tax.</li>
             <li><strong>Verify 80G fund category</strong> — PM CARES 100%, most others 50%.</li>
-            <li><strong>Don't fake HRA</strong> — IT dept tracks rent transactions > ₹1L.</li>
+            <li><strong>Don&apos;t fake HRA</strong> — IT dept tracks rent transactions &gt; ₹1L.</li>
             <li><strong>Max out EPF first</strong> — automatic, then ELSS/PPF for remaining 80C.</li>
           </ul>
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Related Keywords</h2>
