@@ -262,7 +262,7 @@ export default function SeoContent() {
         <h4>Who made LoremPro?</h4><P>LoremPro was made by Ravish from India with love for designers and developers. Contact: lorempro75@gmail.com for custom tools, feature requests, or hiring. Price starting from $25 / ₹1999 per tool.</P>
       </div>)}
 
-      <p style={{ fontSize: 12, color: "#666", marginTop: 20 }}>Last Updated: October 2026 | Made with ❤️ in India | Total Informational Content: 5000+ Words | Main Focus: Lorem Ipsum Generator 77 Languages + 12 Other Tools Short Overview</p>
+      <p style={{ fontSize: 12, color: "#666", marginTop: 20 }}>Last Updated: November 2026 | Made with ❤️ in India | Total Informational Content: 8000+ Words | Main Focus: Lorem Ipsum Generator 77 Languages + 25 Other Free Tools = 26 Tools Total</p>
     </div>
   )
 }
