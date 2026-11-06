@@ -8,6 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: baseUrl, lastModified: lastMod, changeFrequency: 'weekly', priority: 1 },
 
     // HIGH CPC / MONEY TOOLS
+    { url: `${baseUrl}/fd-rd-calculator`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.95 },
     { url: `${baseUrl}/income-tax-calculator`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.95 },
     { url: `${baseUrl}/personal-loan-emi-calculator`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.95 },
     { url: `${baseUrl}/fire-calculator`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.95 },
