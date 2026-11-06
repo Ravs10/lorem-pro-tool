@@ -6,8 +6,8 @@ export default function Disclaimer() {
       <a href="https://velora-cloud.run4ravish.workers.dev/" target="_blank" rel="noopener noreferrer" title="Visit Velora - Developed by Yadav Ravish">
         <img 
           src="/velora-logo.png" 
-          alt="Velora Logo - Lorem Pro Tool Disclaimer" 
-          style={{width:"120px", height:"auto", borderRadius:"12px", marginBottom:"5px", cursor:"pointer"}} 
+          alt="Velora Logo - Lorem Pro Tool by Yadav Ravish" 
+          style={{width:"180px", height:"auto", margin:"0 auto 5px", borderRadius:"16px", cursor:"pointer"}} 
         />
       </a>
       <p style={{fontSize:"13px", color:"#2563eb", marginTop:"0", fontWeight:"600"}}>Developed By Velora - Click Logo To Visit Developer Website</p>
