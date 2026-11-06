@@ -326,7 +326,7 @@ return(
 </div>
 </div>}
 <div style={{marginTop:20,background:"#fff",border:"2px solid #000",borderRadius:16,padding:14}}>
-<h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools - 25 Free Tools</h3>
+<h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools - 25 Free Tools + Our Blog</h3>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
 <a href="/ai-detector" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🤖</div>
