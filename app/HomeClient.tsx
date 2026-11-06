@@ -445,7 +445,7 @@ return(
 </a>
 <a href="/youtube-thumbnail-downloader" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🖼️</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YT Thumbnail Downloader</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YT Thumbnail Downlodar</div>
 <div style={{fontSize:9,color:"#555"}}>HD Thumbnail Download</div>
 </a>
 <a href="/youtube-title-generator" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
@@ -459,7 +459,7 @@ return(
 <div style={{fontSize:9,color:"#555"}}>Tips, Tricks & SEO Guide - Read On Blogspot</div>
 </a>
 </div>
-<p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>✅ All 25 Tools Free - No Login Required</p>
+<p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>✅ All 25 Tools Free + Blog - No Login Required</p>
 </div>
 {page==="home" && (
   <div style={{background:"#fff", marginTop:20, borderRadius:20}}>
