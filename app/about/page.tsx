@@ -13,6 +13,18 @@ export default function About() {
         we have built it all for you at <a href="https://lorem-pro-tool.run4ravish.workers.dev/">https://lorem-pro-tool.run4ravish.workers.dev/</a>
       </p>
 
+      <h2>Developed By Velora - Founded By Yadav Ravish</h2>
+      <p>
+        <strong>Lorem Pro Tool is developed by Velora</strong>, a growing digital brand focused on building simple, 
+        fast, and free tools for everyone. <strong>Velora was founded by Yadav Ravish</strong>, with a vision to 
+        make powerful online tools accessible to every student, creator, and small business owner in India - 
+        without any cost or login barrier.
+      </p>
+      <p>
+        Under Velora, Lorem Pro Tool is continuously improved with new features, better design, and more useful tools 
+        every month. Every tool on this website is carefully built and tested by the Velora team.
+      </p>
+
       <h2>What Is Lorem Pro Tool?</h2>
       <p>
         Lorem Pro Tool started with a simple idea - Lorem Ipsum Generator. But soon we realized people need more than just dummy text. 
@@ -66,14 +78,15 @@ export default function About() {
         <li><strong>Regular Updates:</strong> We add new tools every month based on user feedback.</li>
       </ul>
 
-      <h2>Our Vision</h2>
+      <h2>Our Vision - By Velora</h2>
       <p>
-        Our vision is to make Lorem Pro Tool the best free tools website in India and the world. 
-        We want every student, creator, and small business owner to have access to premium-quality tools without paying anything.
+        Our vision at Velora is to make Lorem Pro Tool the best free tools website in India and the world. 
+        Founded by Yadav Ravish, Velora believes that every student, creator, and small business owner 
+        should have access to premium-quality tools without paying anything.
         If you have any tool idea, please contact us. We love to build what our users need.
       </p>
       <p>
-        Thank you for visiting Lorem Pro Tool. Please bookmark our website, share it with your friends, 
+        Thank you for visiting Lorem Pro Tool by Velora. Please bookmark our website, share it with your friends, 
         and explore all our free tools today: <a href="https://lorem-pro-tool.run4ravish.workers.dev/">Lorem Pro Tool - Home</a>
       </p>
     </div>
