@@ -453,10 +453,15 @@ return(
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YouTube Title Generator</div>
 <div style={{fontSize:9,color:"#555"}}>Viral Title Maker</div>
 </a>
- <a href="https://loremipsumpro.blogspot.com" target="_blank" rel="noopener noreferrer" className="tool-card" style={{textDecoration:"none",background:"#fef3c7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block",gridColumn:"span 2"}}>
-<div style={{fontSize:20}}>📚</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Our Blog - Lorem Ipsum Pro</div>
-<div style={{fontSize:9,color:"#555"}}>Tips, Tricks & SEO Guide - Read On Blogspot</div>
+<a href="/blog" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block",gridColumn:"span 2"}}>
+<div style={{fontSize:20}}>📝</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Our Blog - Latest Articles</div>
+<div style={{fontSize:9,color:"#555"}}>Tips, Tricks & SEO Guide - Read On This Website</div>
+</a>
+<a href="https://loremipsumpro.blogspot.com" target="_blank" rel="noopener noreferrer" className="tool-card" style={{textDecoration:"none",background:"#fef3c7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block",gridColumn:"span 2"}}>
+<div style={{fontSize:20}}>🌐</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Lorem Ipsum Generator - 7 Languages</div>
+<div style={{fontSize:9,color:"#555"}}>Our 2nd Tool - Blogger Version - Try Now</div>
 </a>
 </div>
 <p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>✅ All 25 Tools Free + Blog - No Login Required</p>
