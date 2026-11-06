@@ -29,10 +29,10 @@ const BANKS = [
 ];
 
 const PO_SCHEMES = {
-  NSC: { name: "NSC (5Y)", rate: 7.7, years: 5, lockIn: 5, taxable: true, desc: "Compounded annually · 80C eligible · Interest taxable" },
-  SCSS: { name: "SCSS (5Y)", rate: 8.2, years: 5, lockIn: 5, taxable: true, desc: "Senior 60+ only · quarterly payout · Interest taxable" },
-  KVP: { name: "KVP (~9.5Y)", rate: 7.5, years: 9.58, lockIn: 9.58, taxable: true, desc: "Money doubles in 115 months · Interest taxable" },
-  SSY: { name: "SSY (15Y)", rate: 8.2, years: 15, lockIn: 21, taxable: false, desc: "Girl child · tax-free (EEE) · 80C up to 1.5L/yr" },
+  NSC: { name: "NSC (5Y)", rate: 7.7, years: 5, lockIn: 5, taxable: true, payout: false, desc: "Compounded annually · 80C eligible · Interest taxable" },
+  SCSS: { name: "SCSS (5Y)", rate: 8.2, years: 5, lockIn: 5, taxable: true, payout: true, desc: "Senior 60+ · quarterly payout · Simple interest · Taxable" },
+  KVP: { name: "KVP (~9.5Y)", rate: 7.5, years: 9.58, lockIn: 9.58, taxable: true, payout: false, desc: "Money doubles in 115 months · Interest taxable" },
+  SSY: { name: "SSY (15Y)", rate: 8.2, years: 15, lockIn: 21, taxable: false, payout: false, desc: "Girl child · tax-free (EEE) · 80C up to 1.5L/yr" },
 };
 
 // ============ HELPERS ============
@@ -86,9 +86,30 @@ const calcPPF = (Y: number, r: number, y: number) => {
   const mat = Y * ((Math.pow(1 + i, y) - 1) / i) * (1 + i);
   return { invested: Y * y, gain: mat - Y * y, maturity: mat };
 };
+
+// ===== FIX #2: PO calculation — SCSS uses SIMPLE interest (payout) =====
 const calcPO = (P: number, scheme: POScheme) => {
   const s = PO_SCHEMES[scheme];
-  const maturity = P * Math.pow(1 + s.rate / 100, s.years);
+  let maturity: number;
+  if (s.payout) {
+    // SCSS — simple interest (principal returned + yearly interest)
+    maturity = P + (P * s.rate / 100 * s.years);
+  } else {
+    maturity = P * Math.pow(1 + s.rate / 100, s.years);
+  }
+  return { invested: P, gain: maturity - P, maturity };
+};
+
+// Helper for year-table PO calc
+const calcPOAtYear = (P: number, scheme: POScheme, y: number) => {
+  const s = PO_SCHEMES[scheme];
+  const yEff = Math.min(y, s.years);
+  let maturity: number;
+  if (s.payout) {
+    maturity = P + (P * s.rate / 100 * yEff);
+  } else {
+    maturity = P * Math.pow(1 + s.rate / 100, yEff);
+  }
   return { invested: P, gain: maturity - P, maturity };
 };
 
@@ -222,17 +243,16 @@ export default function FdRdPro() {
 
   const years = tab === "FD" ? fdYears : tab === "RD" ? rdYears : tab === "CI" ? ciYears : tab === "PPF" ? ppfYears : PO_SCHEMES[poScheme].years;
 
-  // ===== FIX #1 + #7: TDS total + only FD/RD =====
+  // TDS (only FD/RD — mutual funds have no TDS)
   const annualInterest = years > 0 ? current.gain / years : 0;
   const tdsAnnual = tab === "FD" || tab === "RD" ? calcTDS(annualInterest, isSenior) : 0;
   const tdsTotal = tdsAnnual * years;
 
-  // ===== FIX #6 + #8: CI LTCG multi-year + PO taxable per scheme =====
+  // Slab tax per scheme
   let slabTax = 0;
   if (tab === "PPF" || (tab === "PO" && poScheme === "SSY")) {
-    slabTax = 0; // EEE schemes
+    slabTax = 0;
   } else if (tab === "PO") {
-    // NSC, SCSS, KVP — taxable at slab
     slabTax = calcSlabTax(current.gain, taxSlab);
   } else if (tab === "CI") {
     // Equity LTCG: ₹1.25L exemption per year (annual harvesting assumption)
@@ -241,12 +261,16 @@ export default function FdRdPro() {
     slabTax = calcSlabTax(current.gain, taxSlab);
   }
 
-  const finalTax = tab === "CI" ? slabTax : Math.max(tdsTotal, slabTax);
+  // ===== FIX #3: finalTax = slabTax (TDS is just source-deducted, refund/adjust via ITR) =====
+  const finalTax = slabTax;
   const afterTaxMaturity = current.maturity - finalTax;
   const realValue = inflAdj(afterTaxMaturity, years, inflation);
   const eay = tab === "FD" ? calcEAY(effFdRate, fdFreq) : 0;
 
-  // ===== FIX #2: PO year table per-year compounding =====
+  // TDS refund/additional indicator
+  const tdsDelta = tdsTotal - slabTax; // positive = refund due, negative = pay extra
+
+  // Year table
   const yearTable = useMemo(() => {
     const arr: { year: number; invested: number; maturity: number; gain: number; realValue: number }[] = [];
     for (let y = 1; y <= Math.min(years, 30); y++) {
@@ -255,45 +279,41 @@ export default function FdRdPro() {
       else if (tab === "RD") r = calcRD(rdMonthly, effRdRate, y);
       else if (tab === "CI") r = calcCI(ciP, ciMonthly, ciRate, y);
       else if (tab === "PPF") r = calcPPF(ppfYearly, ppfRate, y);
-      else {
-        const s = PO_SCHEMES[poScheme];
-        const yEff = Math.min(y, s.years);
-        const mat = poP * Math.pow(1 + s.rate / 100, yEff);
-        r = { invested: poP, gain: mat - poP, maturity: mat };
-      }
+      else r = calcPOAtYear(poP, poScheme, y);
       arr.push({ year: y, invested: r.invested, maturity: r.maturity, gain: r.gain, realValue: inflAdj(r.maturity, y, inflation) });
     }
     return arr;
   }, [tab, fdP, effFdRate, fdYears, fdFreq, rdMonthly, effRdRate, rdYears, ciP, ciMonthly, ciRate, ciYears, ppfYearly, ppfRate, ppfYears, poP, poScheme, inflation, years]);
 
-  // ===== FIX #3: compYears only forces 15 for PPF tab =====
+  // ===== FIX #1: PPF always 15Y, others use user's years =====
   const comparison = useMemo(() => {
     const monthly = tab === "RD" ? rdMonthly : tab === "CI" ? ciMonthly : tab === "PPF" ? Math.min(12500, ppfYearly / 12) : 5000;
-    const compYears = tab === "PPF" ? 15 : years;
+    const ppfYearsForCompare = 15; // PPF always 15
+    const otherYears = years; // others use user's tenure
 
-    const rd = calcRD(monthly, effRdRate, compYears);
+    const rd = calcRD(monthly, effRdRate, otherYears);
     const rdTax = calcSlabTax(rd.gain, taxSlab);
     const rdNet = rd.maturity - rdTax;
 
-    const sip = calcCI(0, monthly, 12, compYears);
-    // FIX: LTCG exemption scales with years
-    const sipTax = Math.max(0, sip.gain - 125000 * compYears) * 0.125;
+    const sip = calcCI(0, monthly, 12, otherYears);
+    // LTCG exemption scales with years
+    const sipTax = Math.max(0, sip.gain - 125000 * otherYears) * 0.125;
     const sipNet = sip.maturity - sipTax;
 
     const ppfAnnual = Math.min(150000, monthly * 12);
-    const ppf = calcPPF(ppfAnnual, 7.1, compYears);
+    const ppf = calcPPF(ppfAnnual, 7.1, ppfYearsForCompare);
     const ppfNet = ppf.maturity;
 
-    const fdLumpsum = monthly * 12 * compYears;
-    const fd = calcFD(fdLumpsum, effFdRate, compYears, 4);
+    const fdLumpsum = monthly * 12 * otherYears;
+    const fd = calcFD(fdLumpsum, effFdRate, otherYears, 4);
     const fdTax = calcSlabTax(fd.gain, taxSlab);
     const fdNet = fd.maturity - fdTax;
 
     return [
-      { key: "ppf", name: "🛡️ PPF", ...ppf, tax: 0, net: ppfNet, monthly, totalInv: ppf.invested, note: "Tax-free EEE + 80C" },
-      { key: "rd", name: "📅 RD", ...rd, tax: rdTax, net: rdNet, monthly, totalInv: rd.invested, note: "Bank-safe, slab taxed" },
-      { key: "sip", name: "📈 SIP 12%", ...sip, tax: sipTax, net: sipNet, monthly, totalInv: sip.invested, note: `Equity · 12.5% LTCG above ${fmtL(125000 * compYears)}` },
-      { key: "fd", name: "🏦 FD (Lumpsum)", ...fd, tax: fdTax, net: fdNet, monthly: 0, totalInv: fd.invested, note: "Lump @ start, slab taxed" },
+      { key: "ppf", name: "🛡️ PPF", ...ppf, tax: 0, net: ppfNet, monthly, totalInv: ppf.invested, note: `Tax-free EEE · ${ppfYearsForCompare}Y (fixed)`, yearsUsed: ppfYearsForCompare },
+      { key: "rd", name: "📅 RD", ...rd, tax: rdTax, net: rdNet, monthly, totalInv: rd.invested, note: `Bank-safe, slab taxed · ${otherYears}Y`, yearsUsed: otherYears },
+      { key: "sip", name: "📈 SIP 12%", ...sip, tax: sipTax, net: sipNet, monthly, totalInv: sip.invested, note: `Equity · 12.5% LTCG above ${fmtL(125000 * otherYears)} · ${otherYears}Y`, yearsUsed: otherYears },
+      { key: "fd", name: "🏦 FD (Lumpsum)", ...fd, tax: fdTax, net: fdNet, monthly: 0, totalInv: fd.invested, note: `Lump @ start, slab taxed · ${otherYears}Y`, yearsUsed: otherYears },
     ];
   }, [tab, years, rdMonthly, ciMonthly, ppfYearly, fdP, effRdRate, effFdRate, taxSlab]);
 
@@ -318,9 +338,9 @@ export default function FdRdPro() {
 Invested: ${fmt(current.invested)}
 Interest/Gain: ${fmt(current.gain)}
 Maturity: ${fmt(current.maturity)}
-TDS Total: ${fmt(tdsTotal)}
-Slab Tax: ${fmt(slabTax)}
-Final Tax: ${fmt(finalTax)}
+TDS Deducted (at source): ${fmt(tdsTotal)}
+Actual Slab Tax: ${fmt(slabTax)}
+${tdsDelta > 0 ? `Refund via ITR: ${fmt(tdsDelta)}` : tdsDelta < 0 ? `Additional tax at ITR: ${fmt(-tdsDelta)}` : ""}
 After Tax: ${fmt(afterTaxMaturity)}
 Real Value (@${inflation}% inflation): ${fmt(realValue)}
 ━━━━━━━━━━━━━━━━━
@@ -388,20 +408,20 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
     "@context": "https://schema.org", "@type": "FAQPage",
     mainEntity: [
       { "@type": "Question", name: "FD aur RD me kya difference hai?", acceptedAnswer: { "@type": "Answer", text: "FD me aap ek baar lumpsum invest karte ho aur uspe fixed interest milta hai. RD me aap har mahine ek fixed amount deposit karte ho, aur har installment pe uske deposit time se maturity tak interest milta hai. FD lumpsum ke liye, RD salary se monthly savings ke liye." } },
-      { "@type": "Question", name: "FD pe TDS kab kata jata hai?", acceptedAnswer: { "@type": "Answer", text: "Agar ek financial year me FD/RD se interest ₹40,000 se zyada ho (senior citizen ke liye ₹50,000), to bank 10% TDS katta hai. Form 15G/15H deke TDS bacha sakte ho agar aapki total income taxable nahi hai." } },
+      { "@type": "Question", name: "FD pe TDS kab kata jata hai?", acceptedAnswer: { "@type": "Answer", text: "Agar ek financial year me FD/RD se interest ₹40,000 se zyada ho (senior citizen ke liye ₹50,000), to bank 10% TDS katta hai. Form 15G/15H deke TDS bacha sakte ho agar aapki total income taxable nahi hai. TDS sirf at-source deduction hai — actual tax slab rate pe hota hai aur ITR me adjust/refund hota hai." } },
       { "@type": "Question", name: "PPF pe tax lagta hai?", acceptedAnswer: { "@type": "Answer", text: "Nahi. PPF EEE (Exempt-Exempt-Exempt) hai — investment pe 80C deduction, interest tax-free, maturity bhi tax-free. 15 saal ka lock-in hai, 5 saal ke blocks me extend kar sakte ho." } },
       { "@type": "Question", name: "Senior citizens ko FD pe extra interest milta hai?", acceptedAnswer: { "@type": "Answer", text: "Haan, zyadatar banks 60+ age walo ko 0.25-0.50% extra interest dete hai. SBI, HDFC, ICICI sab me senior citizen FD rates alag hote hai." } },
       { "@type": "Question", name: "FD me compounding kaise hoti hai?", acceptedAnswer: { "@type": "Answer", text: "Bank FD me usually quarterly compounding hoti hai. Monthly, half-yearly, yearly options bhi available hai. Compounding frequency jitni zyada, effective yield utna zyada." } },
       { "@type": "Question", name: "PPF maturity kitne saal me hoti hai?", acceptedAnswer: { "@type": "Answer", text: "PPF ka original lock-in 15 saal hai. Uske baad 5-5 saal ke blocks me extend kar sakte ho (any number of times). Premature withdrawal 7 saal ke baad partial allowed hai." } },
-      { "@type": "Question", name: "NSC, SCSS, KVP kya hai?", acceptedAnswer: { "@type": "Answer", text: "NSC: 5-year, 7.7%, 80C eligible. SCSS: Senior citizen 60+, 8.2%, quarterly payout. KVP: 7.5%, money doubles in 115 months. Ye sab Post Office schemes hai — government backed. NSC/SCSS/KVP interest taxable at slab rate." } },
+      { "@type": "Question", name: "NSC, SCSS, KVP kya hai?", acceptedAnswer: { "@type": "Answer", text: "NSC: 5-year, 7.7%, 80C eligible, interest taxable. SCSS: Senior 60+, 8.2% quarterly payout on principal (simple interest), interest taxable. KVP: 7.5%, money doubles in 115 months, interest taxable. Sab government-backed Post Office schemes hai." } },
+      { "@type": "Question", name: "SCSS ka interest kaise milta hai?", acceptedAnswer: { "@type": "Answer", text: "SCSS quarterly payout scheme hai — simple interest. ₹30L deposit karne pe 8.2% saal ka = ₹2.46L interest har saal, jo 4 quarterly installments (₹61,500 each) me aapke bank account me credit hota hai. Principal 5 saal baad wapas milta hai. Compound interest nahi lagta." } },
       { "@type": "Question", name: "Compound interest ka formula kya hai?", acceptedAnswer: { "@type": "Answer", text: "A = P(1 + r/n)^(nt), jaha P = principal, r = annual rate, n = compounding per year, t = years. SIP ke liye: A = M × ((1+i)^n - 1)/i × (1+i) jaha i = monthly rate, n = months." } },
       { "@type": "Question", name: "FD vs SIP — kaunsa better hai?", acceptedAnswer: { "@type": "Answer", text: "FD safe hai, 6.5-7.5% fixed return, zero risk. SIP equity me hai, 12% historical return par market risk hai. Short term (1-3Y) me FD, long term (10Y+) me SIP better historically." } },
       { "@type": "Question", name: "Tax saver FD kya hai?", acceptedAnswer: { "@type": "Answer", text: "5-year lock-in FD jo 80C me ₹1.5L tak deduction deta hai. Rate normal FD se thoda kam hota hai (usually 0.5% less). Premature withdrawal allowed nahi hai." } },
-      { "@type": "Question", name: "FD interest pe 80C deduction milta hai?", acceptedAnswer: { "@type": "Answer", text: "Nahi, sirf interest pe nahi. Tax-saver FD (5-year lock-in) ke principal amount pe 80C deduction milta hai, par interest taxable hai (slab rate pe)." } },
+      { "@type": "Question", name: "TDS aur actual tax me kya difference hai?", acceptedAnswer: { "@type": "Answer", text: "TDS = Tax Deducted at Source — bank 10% katt deta hai agar interest ₹40K/₹50K cross ho jaye. Actual tax aapke slab rate pe hota hai (0/5/20/30%). Agar TDS > slab tax, ITR me refund milta hai. Agar TDS < slab tax, additional tax bharna padta hai. Final after-tax value hamesha (maturity - slabTax) hota hai." } },
       { "@type": "Question", name: "Kya FD premature close karne pe penalty hai?", acceptedAnswer: { "@type": "Answer", text: "Haan, usually 0.5%-1% penalty lagta hai. Amount rate card ke hisab se re-calculate hota hai, aur naya rate purane rate se 0.5-1% kam ho sakta hai." } },
       { "@type": "Question", name: "Real return kya hai?", acceptedAnswer: { "@type": "Answer", text: "Real return = Nominal return - Inflation. Agar FD 7% de raha hai aur inflation 6% hai, real return sirf 1% hai. ₹1 Cr aaj 6% inflation pe 15 saal baad sirf ₹41L ke barabar hoga." } },
       { "@type": "Question", name: "NSC vs PPF — kaunsa better hai?", acceptedAnswer: { "@type": "Answer", text: "NSC 5-year hai, PPF 15-year. Rate similar hai (~7.1-7.7%). NSC me interest pe tax lagta hai (though reinvested), PPF completely tax-free. Long term me PPF better." } },
-      { "@type": "Question", name: "Kya RD me compounding hoti hai?", acceptedAnswer: { "@type": "Answer", text: "Haan, most banks RD me quarterly compounding karte hai. Har monthly installment pe uske deposit date se maturity tak ka interest milta hai." } },
     ],
   };
   const schemaApp = {
@@ -508,11 +528,29 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
             <div className="bg-black/25 rounded-xl p-3 mt-3 text-[11px] space-y-1">
               <p className="flex justify-between"><span>Invested</span><b>{fmt(current.invested)}</b></p>
               <p className="flex justify-between"><span>Gain</span><b>{fmt(current.gain)}</b></p>
-              {tdsTotal > 0 && <p className="flex justify-between"><span>TDS Deducted</span><b className="text-yellow-200">- {fmt(tdsTotal)}</b></p>}
-              {slabTax > tdsTotal && <p className="flex justify-between"><span>Extra Slab Tax</span><b className="text-red-200">- {fmt(slabTax - tdsTotal)}</b></p>}
+              {tdsTotal > 0 && (
+                <p className="flex justify-between text-white/80">
+                  <span>TDS (at source)</span>
+                  <b>{fmt(tdsTotal)}</b>
+                </p>
+              )}
+              <p className="flex justify-between">
+                <span>Actual Slab Tax</span>
+                <b className="text-red-200">- {fmt(slabTax)}</b>
+              </p>
               <p className="flex justify-between border-t border-white/20 pt-1"><span>After Tax</span><b>{fmt(afterTaxMaturity)}</b></p>
               <p className="flex justify-between"><span>Real (@{inflation}%)</span><b className="text-yellow-200">{fmt(realValue)}</b></p>
             </div>
+            {tdsTotal > 0 && (
+              <p className="text-[10px] mt-2 bg-black/20 rounded-lg p-2 leading-relaxed">
+                ℹ️ TDS ₹{Math.round(tdsTotal).toLocaleString("en-IN")} bank ne kat liya hai
+                {tdsDelta > 0
+                  ? ` — ITR me ₹${Math.round(tdsDelta).toLocaleString("en-IN")} refund milega.`
+                  : tdsDelta < 0
+                  ? ` — ITR me ₹${Math.round(-tdsDelta).toLocaleString("en-IN")} extra bharna hoga (total slab tax zyada hai).`
+                  : " — slab tax = TDS, koi adjustment nahi."}
+              </p>
+            )}
           </div>
 
           <div className={`rounded-[20px] border p-4 md:col-span-2 ${isDark ? "bg-[#15151F] border-white/10" : "bg-white border-black/10"}`}>
@@ -535,7 +573,7 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
                 <p className="font-black text-[12px]">{current.invested > 0 ? (current.maturity / current.invested).toFixed(2) : "0"}×</p>
               </div>
               <div className={`rounded-xl p-2.5 text-center ${isDark ? "bg-white/5" : "bg-black/5"}`}>
-                <p className="text-[9px] opacity-60 font-bold">TDS TOTAL</p>
+                <p className="text-[9px] opacity-60 font-bold">TDS</p>
                 <p className="font-black text-[12px]">{fmt(tdsTotal)}</p>
               </div>
               <div className={`rounded-xl p-2.5 text-center ${isDark ? "bg-white/5" : "bg-black/5"}`}>
@@ -618,7 +656,7 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
                 </div>
                 <p className={`text-[11px] mt-2 ${isDark ? "text-white/60" : "text-black/60"}`}>{PO_SCHEMES[poScheme].desc}</p>
                 <Input label="Lumpsum Amount (₹)" value={poP} onChange={setPoP} suffix="₹" isDark={isDark} />
-                <p className={`text-[10px] mt-2 ${isDark ? "text-white/50" : "text-black/50"}`}>Rate: {PO_SCHEMES[poScheme].rate}% for {PO_SCHEMES[poScheme].years} years{PO_SCHEMES[poScheme].taxable ? " · Taxable at slab" : " · Tax-free EEE"}</p>
+                <p className={`text-[10px] mt-2 ${isDark ? "text-white/50" : "text-black/50"}`}>Rate: {PO_SCHEMES[poScheme].rate}% for {PO_SCHEMES[poScheme].years} years{PO_SCHEMES[poScheme].taxable ? " · Taxable at slab" : " · Tax-free EEE"}{PO_SCHEMES[poScheme].payout ? " · Simple interest payout" : ""}</p>
               </>
             )}
           </div>
@@ -652,11 +690,11 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
             {showCompare && (
               <div className={`rounded-[20px] border p-4 ${isDark ? "bg-[#15151F] border-white/10" : "bg-white border-black/10"}`}>
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-black text-[14px]">⚔️ Fair Comparison (Same Monthly, Same Tenure)</h3>
+                  <h3 className="font-black text-[14px]">⚔️ Fair Comparison (Same Monthly, Each at Own Tenure)</h3>
                   <button onClick={() => setShowCompare(false)} className="text-[10px] font-black text-[#FF7A1A]">Hide</button>
                 </div>
                 <p className={`text-[10px] mb-2 ${isDark ? "text-white/50" : "text-black/50"}`}>
-                  Assuming ₹{comparison[0].monthly.toLocaleString("en-IN")}/month for {tab === "PPF" ? 15 : years} years. FD = same total as lumpsum at start.
+                  ₹{comparison[0].monthly.toLocaleString("en-IN")}/month invested. PPF at 15Y (its standard tenure), others at your {years}Y. FD = same total as lumpsum at start.
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {comparison.map((c) => (
@@ -664,7 +702,7 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
                       <p className="font-black text-[11px]">{c.name}</p>
                       {c.key === bestCompare.key && <span className="text-[8px] font-black bg-emerald-500 text-white px-1.5 py-0.5 rounded-full">BEST</span>}
                       <p className="font-black text-[14px] mt-1">{fmtL(c.net)}</p>
-                      <p className="text-[9px] opacity-60">after tax</p>
+                      <p className="text-[9px] opacity-60">after tax · {c.yearsUsed}Y</p>
                       <p className="text-[9px] text-red-500 mt-0.5">-{fmtL(c.tax)}</p>
                       <div className="h-1 bg-black/10 rounded-full mt-1 overflow-hidden">
                         <div className="h-full bg-gradient-to-r from-orange-400 to-emerald-500" style={{ width: `${(c.net / bestCompare.net) * 100}%` }} />
@@ -753,7 +791,7 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
             <li><strong>PPF:</strong> Best for 15+ year goals with tax-free returns. Rate is lower (7.1%) than equity SIP but completely risk-free and tax-free. Perfect for retirement corpus, child education, or wedding.</li>
             <li><strong>Compound/SIP:</strong> Best for 10+ year goals with higher risk tolerance. Historical equity returns of 12-14% beat all FD/PPF by wide margins, but come with market volatility. LTCG tax of 12.5% above ₹1.25L applies.</li>
             <li><strong>NSC:</strong> 5-year Post Office scheme at 7.7% — higher than FD, 80C eligible. Interest is taxable but reinvested interest also qualifies for 80C.</li>
-            <li><strong>SCSS:</strong> Senior citizens only, 8.2% quarterly payout, max ₹30L, 80C eligible. Best for retirees wanting regular income.</li>
+            <li><strong>SCSS:</strong> Senior citizens only, 8.2% quarterly payout (simple interest on principal), max ₹30L, 80C eligible. Best for retirees wanting regular income — principal returned at maturity plus yearly interest.</li>
             <li><strong>KVP:</strong> Money doubles in 115 months (~9.5 years) at 7.5%. No 80C. Good for goal-based investing without tax complexity.</li>
             <li><strong>SSY:</strong> Girl child scheme, 8.2% tax-free, 80C eligible up to ₹1.5L/year. 15-year deposit period, matures at 21 years.</li>
           </ul>
@@ -763,7 +801,7 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
             Under Section 194A of the Income Tax Act, banks deduct <strong>10% TDS on FD/RD interest</strong> if the total interest earned across all branches of a single bank exceeds <strong>₹40,000 in a financial year</strong> (₹50,000 for senior citizens aged 60+). This threshold was increased from ₹10,000 to ₹40,000 in Budget 2023 to reduce compliance burden on small investors.
           </p>
           <p className="mt-3">
-            <strong>Important nuance:</strong> TDS is not the same as your actual tax liability. If you are in the 30% slab, you still owe 20% more tax at filing — banks only deducted 10% TDS, so you must pay the remaining 20% as self-assessment tax. Conversely, if your total income is below the taxable limit, you can file <strong>Form 15G</strong> (below 60) or <strong>Form 15H</strong> (senior citizens) to prevent TDS deduction altogether, or claim a refund at ITR filing if TDS was already deducted. Our calculator shows both TDS and actual tax at your slab, so you see the real hit to your returns.
+            <strong>Critical nuance:</strong> TDS is NOT the same as your actual tax liability. It's just a source-deduction mechanism. Your real tax is at your slab rate (0/5/20/30%). If TDS &gt; actual tax, you claim <strong>refund at ITR filing</strong>. If TDS &lt; actual tax, you pay the <strong>additional tax at ITR</strong>. So the after-tax cash in your hand is always <strong>maturity − slabTax</strong>, regardless of TDS. Our calculator displays both TDS and actual slab tax separately, so you see the real picture: what the bank has already deducted, and what final adjustment you'll make via ITR.
           </p>
 
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Senior Citizen Benefits (2026)</h2>
@@ -774,6 +812,11 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
             <li><strong>Section 80TTB:</strong> ₹50,000 deduction on savings + FD interest (vs ₹10,000 under 80TTA for others).</li>
             <li><strong>Higher basic exemption (old regime):</strong> ₹3 lakh for 60-80, ₹5 lakh for 80+.</li>
           </ul>
+
+          <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">SCSS — Simple Interest Payout Scheme</h2>
+          <p className="mt-3">
+            Unlike FD/NSC which use compound interest, <strong>SCSS (Senior Citizens Savings Scheme)</strong> uses simple interest with quarterly payout. If you deposit ₹30 lakh at 8.2%, you receive ₹2.46 lakh interest per year — paid in 4 quarterly instalments of ₹61,500 each into your bank account. The principal remains intact throughout the 5-year tenure, and is returned in full at maturity. Total interest earned over 5 years = ₹12.3 lakh; maturity value = ₹42.3 lakh (principal + accumulated interest, if not spent). This is why SCSS is popular for retirement income — it works like a pension, paying you regularly without depleting the corpus.
+          </p>
 
           <h2 className="text-[22px] md:text-[26px] font-black mt-8 text-[#FF7A1A]">Real Returns — Why Inflation Matters</h2>
           <p className="mt-3">
@@ -787,17 +830,17 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
               ["RD (Recurring Deposit)", "Bank scheme where you deposit a fixed amount every month for a fixed tenure."],
               ["PPF", "Public Provident Fund — 15-year government scheme with EEE tax status and 7.1% rate."],
               ["NSC", "National Savings Certificate — 5-year Post Office scheme at 7.7%, 80C eligible, interest taxable."],
-              ["SCSS", "Senior Citizens Savings Scheme — 8.2% quarterly payout for 60+ age, max ₹30L, interest taxable."],
+              ["SCSS", "Senior Citizens Savings Scheme — 8.2% quarterly payout (simple interest) for 60+ age, max ₹30L, interest taxable."],
               ["KVP", "Kisan Vikas Patra — 7.5% rate, money doubles in 115 months, interest taxable at maturity."],
               ["SSY", "Sukanya Samriddhi Yojana — girl child scheme at 8.2%, tax-free EEE."],
-              ["TDS", "Tax Deducted at Source — 10% on FD/RD interest above ₹40K/₹50K threshold."],
+              ["TDS", "Tax Deducted at Source — 10% on FD/RD interest above ₹40K/₹50K threshold. Actual tax is at slab rate; difference adjusted in ITR."],
               ["EAY", "Effective Annual Yield — actual annual return after compounding, > nominal rate."],
               ["Compounding", "Interest on interest — makes money grow exponentially over time."],
-              ["LTCG", "Long-Term Capital Gains — 12.5% tax on equity/mutual fund gains above ₹1.25L."],
+              ["Simple Interest", "Interest only on principal — used by SCSS, POMIS, and most payout schemes."],
+              ["LTCG", "Long-Term Capital Gains — 12.5% tax on equity/mutual fund gains above ₹1.25L per year."],
               ["Real Return", "Nominal return minus inflation — the actual purchasing power gain."],
               ["Premature Withdrawal", "Closing FD/RD before maturity — attracts 0.5-1% penalty."],
               ["Form 15G/15H", "Declarations to avoid TDS if your income is below taxable limit."],
-              ["Section 80C", "₹1.5L deduction for PPF, NSC, SSY, tax-saver FD, ELSS."],
             ].map(([title, body], i) => (
               <Accordion key={i} title={title} isOpen={openAccordion === `g${i}`} onToggle={() => setOpenAccordion(openAccordion === `g${i}` ? null : `g${i}`)} isDark={isDark}>{body}</Accordion>
             ))}
@@ -807,12 +850,14 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
           <div className="mt-3">
             {[
               ["FD aur RD me kya difference hai?", "FD me lumpsum invest karte ho, RD me har mahine. FD larger amounts ke liye, RD monthly savings ke liye better hai."],
-              ["FD pe TDS kab kata jata hai?", "Jab annual FD/RD interest ₹40,000 (senior ₹50,000) cross ho, tab bank 10% TDS katta hai. Form 15G/15H deke bacha sakte ho agar income taxable nahi hai."],
+              ["FD pe TDS kab kata jata hai?", "Jab annual FD/RD interest ₹40,000 (senior ₹50,000) cross ho, tab bank 10% TDS katta hai. Form 15G/15H deke bacha sakte ho. TDS sirf at-source deduction hai — actual tax slab rate pe hota hai, ITR me adjust/refund hota hai."],
+              ["TDS aur actual tax me kya difference hai?", "TDS = bank 10% kat leta hai agar interest ₹40K/₹50K cross ho. Actual tax slab rate pe hota hai (0/5/20/30%). Agar TDS > slab tax, ITR me refund milta hai. Agar TDS < slab tax, additional bharna padta hai. Final after-tax = maturity − slabTax, hamesha."],
               ["PPF pe tax lagta hai?", "Nahi, PPF EEE hai — investment pe 80C deduction, interest tax-free, maturity tax-free."],
               ["Senior citizens ko FD pe extra interest milta hai?", "Haan, 0.25-0.50% extra. SBI, HDFC, ICICI sab me senior rates alag hai. TDS threshold bhi ₹50K hai."],
               ["FD me compounding kaise hoti hai?", "Banks usually quarterly compounding karte hai. Monthly, half-yearly, yearly options bhi available hai. Zyada compounding = zyada EAY."],
               ["PPF maturity kitne saal me hoti hai?", "15 saal ka lock-in, phir 5-5 saal ke blocks me extend kar sakte ho. 7 saal ke baad partial withdrawal allowed hai."],
-              ["NSC, SCSS, KVP kya hai?", "NSC 5Y @ 7.7%, SCSS senior-only @ 8.2% quarterly payout, KVP @ 7.5% doubles money in 115 months. NSC/SCSS/KVP interest taxable at slab rate, SSY tax-free."],
+              ["NSC, SCSS, KVP kya hai?", "NSC 5Y @ 7.7% compound, SCSS senior-only @ 8.2% simple interest quarterly payout, KVP @ 7.5% doubles money in 115 months. NSC/SCSS/KVP interest taxable, SSY tax-free."],
+              ["SCSS ka interest kaise milta hai?", "SCSS quarterly payout scheme hai — simple interest. ₹30L deposit karne pe 8.2% saal ka = ₹2.46L interest har saal, 4 quarterly installments (₹61,500 each) me credit. Principal 5 saal baad wapas."],
               ["Compound interest ka formula kya hai?", "Lumpsum: A = P(1+r/n)^(nt). SIP: A = M × ((1+i)^n - 1)/i × (1+i) where i = monthly rate."],
               ["FD vs SIP — kaunsa better hai?", "Short-term (<3Y): FD safer. Long-term (>10Y): SIP historical 12% returns beat FD even after tax. But SIP has market risk."],
               ["Tax saver FD kya hai?", "5-year lock-in FD with 80C deduction up to ₹1.5L. Rate normal FD se 0.5% less. Premature withdrawal not allowed."],
@@ -831,7 +876,7 @@ Tax Slab: ${taxSlab}%${isSenior ? " • Senior Citizen" : ""}`;
             <li><strong>Ladder your FDs:</strong> Split a large FD into 3-5 smaller FDs of different tenures so you don't lose interest if you need money early.</li>
             <li><strong>Use Form 15G/15H:</strong> If your income is below taxable limit, avoid TDS — better cash flow.</li>
             <li><strong>PPF before 5th of month:</strong> Interest is calculated on lowest balance between 5th and month-end. Deposit before 5th to earn full month interest.</li>
-            <li><strong>Senior citizens:</strong> SCSS gives 8.2% with quarterly payout — often better than FD after senior bonus.</li>
+            <li><strong>Senior citizens:</strong> SCSS gives 8.2% simple interest with quarterly payout — often better than FD after senior bonus.</li>
             <li><strong>Tax-saver FD for 80C:</strong> Only if you can't invest in ELSS/PPF — 5-year lock-in, rate slightly lower.</li>
             <li><strong>Don't chase highest rate:</strong> Small co-op banks sometimes offer 9% but carry higher risk. Stick to DICGC-insured (₹5L cover) or reputed banks.</li>
             <li><strong>SIP for long-term:</strong> If goal is >10 years, SIP beats FD/PPF by 5%+ CAGR — worth the volatility.</li>
