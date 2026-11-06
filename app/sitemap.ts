@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://lorem-pro-tool.run4ravish.workers.dev';
-  const lastMod = new Date(); // hamesha aaj ki date jayegi
+  const lastMod = new Date();
 
   return [
     { url: baseUrl, lastModified: lastMod, changeFrequency: 'weekly', priority: 1 },
@@ -37,6 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/text-to-handwriting`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/remove-duplicates`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/avatar`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${baseUrl}/slug-generator`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.8 },
 
     // PAGES
     { url: `${baseUrl}/about`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.6 },
