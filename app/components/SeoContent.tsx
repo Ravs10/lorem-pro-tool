@@ -250,7 +250,7 @@ export default function SeoContent() {
   <P>Color Palette Generator is a free design tool to generate beautiful color palettes for websites, apps, logos, and posters. Click generate, and you will get 5 perfect color combinations with HEX codes. Designers use it to choose colors that look professional and modern. For example, for a finance website, blue + white + grey looks trustworthy. For a food website, red + yellow looks tasty. You can copy HEX code in one click and use it in Figma, Photoshop, or CSS. It is 100% free and no login needed. <a href="/color-palette">Try Color Palette Generator →</a></P>
 </div>)}
       
-      <Head title="23. Frequently Asked Questions (FAQ)" k="faq" />
+      <Head title="37. Frequently Asked Questions (FAQ)" k="faq" />
       {open.faq && (<div>
         <h4>Is Lorem Ipsum Generator free?</h4><P>Yes, 100% free. No login, no signup, no watermark, unlimited generation. You can generate 1 to 100 items, any number of times, for free, forever.</P>
         <h4>Can I generate Lorem Ipsum in Hindi?</h4><P>Yes. We support Hindi and 76 other languages including Bengali, Tamil, Telugu, Marathi, Urdu, Spanish, Arabic, French, German, and more. Hindi is our default language because LoremPro was made in India.</P>
