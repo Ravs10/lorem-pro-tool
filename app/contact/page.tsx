@@ -12,7 +12,7 @@ export default function Contact() {
       </a>
       <p style={{fontSize:"13px", color:"#2563eb", marginTop:"0", fontWeight:"600"}}>Developed By Velora - Click Logo To Visit Developer Website</p>
 
-      <div style={{textAlign:"left"}}>
+      <div style={{textAlign:"center"}}>
       <h1>Contact Us - Lorem Pro Tool By Velora</h1>
       <p>
         Have any question, suggestion, or want to report a bug? Contact the <strong>Velora</strong> team. 
