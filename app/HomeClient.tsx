@@ -443,7 +443,7 @@ return(
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YouTube Earnings</div>
 <div style={{fontSize:9,color:"#555"}}>YouTube Money Calculator</div>
 </a>
-<a href="/youtube-thumbnail-downloader" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<a href="/youtube-thumbnail-downlodar" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🖼️</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YT Thumbnail Downlodar</div>
 <div style={{fontSize:9,color:"#555"}}>HD Thumbnail Download</div>
