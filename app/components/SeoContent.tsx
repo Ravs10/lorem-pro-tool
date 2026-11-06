@@ -9,6 +9,10 @@ export default function SeoContent() {
     avatar: false, case: false, char: false, fake: false, fancy: false,
     imagetotext: false, pass: false, placeholder: false, qr: false,
     remove: false, hand: false, word: false,
+      // NEW 13 TOOLS - 26 TOOLS SEO UPDATE
+  fd: false, sip: false, fire: false, mortgage: false, loan: false, tax: false,
+  slug: false, resume: false, yttitle: false, ytearn: false, ytthumb: false,
+  hashtag: false, aidetector: false, color: false,
   })
   const toggleOne = (key: string) => setOpen((p: any) => ({ ...p, [key]: !p[key] }))
   const setAll = (v: boolean) => setOpen(Object.fromEntries(Object.keys(open).map(k => [k, v])) as any)
