@@ -326,7 +326,45 @@ return(
 </div>
 </div>}
 <div style={{marginTop:20,background:"#fff",border:"2px solid #000",borderRadius:16,padding:14}}>
-<h3 style={{margin:"0 0 12px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools - 25 Free Tools + Our Blog</h3>
+<h3 style={{margin:"0 0 14px 0",color:"#000",fontSize:16,fontWeight:900}}>🔧 Other Useful Tools - Category Wise</h3>
+
+{/* 1. TEXT & WRITING TOOLS */}
+<h4 style={{margin:"14px 0 8px 0",fontSize:13,fontWeight:900}}>✍️ Text & Writing Tools</h4>
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+<a href="/word-counter" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>📝</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Word Counter</div>
+<div style={{fontSize:9,color:"#555"}}>Count words & chars</div>
+</a>
+<a href="/character-counter" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>🔤</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Character Counter</div>
+<div style={{fontSize:9,color:"#555"}}>Count Letters & Chars</div>
+</a>
+<a href="/case-converter" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>🔄</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Case Converter</div>
+<div style={{fontSize:9,color:"#555"}}>UPPER to lower</div>
+</a>
+<a href="/fancy-text" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>✨</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Fancy Text</div>
+<div style={{fontSize:9,color:"#555"}}>Stylish Fonts</div>
+</a>
+<a href="/remove-duplicates" className="tool-card" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>🧹</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Remove Duplicates</div>
+<div style={{fontSize:9,color:"#555"}}>Clean Duplicate Lines</div>
+</a>
+<a href="/text-to-handwriting" className="tool-card" style={{textDecoration:"none",background:"#fef9c3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>✍️</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Text to Handwriting</div>
+<div style={{fontSize:9,color:"#555"}}>Handwritten Notes</div>
+</a>
+</div>
+
+{/* 2. AI & IMAGE TOOLS */}
+<h4 style={{margin:"16px 0 8px 0",fontSize:13,fontWeight:900}}>🤖 AI & Image Tools</h4>
 <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
 <a href="/ai-detector" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🤖</div>
@@ -338,30 +376,50 @@ return(
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Avatar Generator</div>
 <div style={{fontSize:9,color:"#555"}}>Profile Picture Maker</div>
 </a>
-<a href="/case-converter" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>🔄</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Case Converter</div>
-<div style={{fontSize:9,color:"#555"}}>UPPER to lower</div>
-</a>
-<a href="/character-counter" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>🔤</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Character Counter</div>
-<div style={{fontSize:9,color:"#555"}}>Count Letters & Chars</div>
+<a href="/image-to-text" className="tool-card" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>🖼️</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Image to Text</div>
+<div style={{fontSize:9,color:"#555"}}>OCR Tool</div>
 </a>
 <a href="/color-palette" className="tool-card" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🎨</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Color Palette</div>
 <div style={{fontSize:9,color:"#555"}}>Best Color Combo</div>
 </a>
-<a href="/fake-data-generator" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>🧪</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Fake Data Generator</div>
-<div style={{fontSize:9,color:"#555"}}>Dummy Data For Testing</div>
+<a href="/placeholder-qr-generator" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>📱</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>QR Generator</div>
+<div style={{fontSize:9,color:"#555"}}>Make QR Code</div>
 </a>
-<a href="/fancy-text" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>✨</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Fancy Text</div>
-<div style={{fontSize:9,color:"#555"}}>Stylish Fonts</div>
+<a href="/password-generator" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>🔑</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Password Generator</div>
+<div style={{fontSize:9,color:"#555"}}>Strong Password</div>
+</a>
+</div>
+
+{/* 3. SEO & BLOGGING */}
+<h4 style={{margin:"16px 0 8px 0",fontSize:13,fontWeight:900}}>🔗 SEO & Blogging Tools</h4>
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+<a href="/slug-generator" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>🔗</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Slug Generator</div>
+<div style={{fontSize:9,color:"#555"}}>SEO Friendly URL</div>
+</a>
+<a href="/hashtag-generator" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>#️⃣</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Hashtag Generator</div>
+<div style={{fontSize:9,color:"#555"}}>Viral Hashtags</div>
+</a>
+</div>
+
+{/* 4. FINANCE & CALCULATOR */}
+<h4 style={{margin:"16px 0 8px 0",fontSize:13,fontWeight:900}}>💰 Finance & Calculator Tools</h4>
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+<a href="/sip-calculator" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>📈</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>SIP Calculator</div>
+<div style={{fontSize:9,color:"#555"}}>Mutual Fund Return</div>
 </a>
 <a href="/fd-rd-calculator" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🏦</div>
@@ -373,16 +431,6 @@ return(
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Fire Calculator</div>
 <div style={{fontSize:9,color:"#555"}}>Retire Early Planner</div>
 </a>
-<a href="/hashtag-generator" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>#️⃣</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Hashtag Generator</div>
-<div style={{fontSize:9,color:"#555"}}>Viral Hashtags</div>
-</a>
-<a href="/image-to-text" className="tool-card" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>🖼️</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Image to Text</div>
-<div style={{fontSize:9,color:"#555"}}>OCR Tool</div>
-</a>
 <a href="/income-tax-calculator" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🧾</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Income Tax Calculator</div>
@@ -393,66 +441,46 @@ return(
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Mortgage Calculator</div>
 <div style={{fontSize:9,color:"#555"}}>Home Loan EMI</div>
 </a>
-<a href="/password-generator" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>🔑</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Password Generator</div>
-<div style={{fontSize:9,color:"#555"}}>Strong Password</div>
-</a>
 <a href="/personal-loan-emi-calculator" className="tool-card" style={{textDecoration:"none",background:"#fef9c3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>💳</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Personal Loan EMI</div>
 <div style={{fontSize:9,color:"#555"}}>Loan EMI Calculator</div>
 </a>
-<a href="/placeholder-qr-generator" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>📱</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>QR Generator</div>
-<div style={{fontSize:9,color:"#555"}}>Make QR Code</div>
-</a>
-<a href="/remove-duplicates" className="tool-card" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>🧹</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Remove Duplicates</div>
-<div style={{fontSize:9,color:"#555"}}>Clean Duplicate Lines</div>
-</a>
-<a href="/resume-builder" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>📄</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Resume Builder</div>
-<div style={{fontSize:9,color:"#555"}}>Free Resume Maker</div>
-</a>
-<a href="/sip-calculator" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>📈</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>SIP Calculator</div>
-<div style={{fontSize:9,color:"#555"}}>Mutual Fund Return</div>
-</a>
-<a href="/slug-generator" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>🔗</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Slug Generator</div>
-<div style={{fontSize:9,color:"#555"}}>SEO Friendly URL</div>
-</a>
-<a href="/text-to-handwriting" className="tool-card" style={{textDecoration:"none",background:"#fef9c3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>✍️</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Text to Handwriting</div>
-<div style={{fontSize:9,color:"#555"}}>Handwritten Notes</div>
-</a>
-<a href="/word-counter" className="tool-card" style={{textDecoration:"none",background:"#fce7f3",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>📝</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Word Counter</div>
-<div style={{fontSize:9,color:"#555"}}>Count words & chars</div>
-</a>
-<a href="/youtube-earnings-calculator" className="tool-card" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>💰</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YouTube Earnings</div>
-<div style={{fontSize:9,color:"#555"}}>YouTube Money Calculator</div>
+</div>
+
+{/* 5. YOUTUBE TOOLS */}
+<h4 style={{margin:"16px 0 8px 0",fontSize:13,fontWeight:900}}>▶️ YouTube Tools</h4>
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
+<a href="/youtube-title-generator" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>▶️</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YouTube Title Generator</div>
+<div style={{fontSize:9,color:"#555"}}>Viral Title Maker</div>
 </a>
 <a href="/youtube-thumbnail-downlodar" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
 <div style={{fontSize:20}}>🖼️</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YT Thumbnail Downlodar</div>
 <div style={{fontSize:9,color:"#555"}}>HD Thumbnail Download</div>
 </a>
-<a href="/youtube-title-generator" className="tool-card" style={{textDecoration:"none",background:"#dbeafe",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
-<div style={{fontSize:20}}>▶️</div>
-<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YouTube Title Generator</div>
-<div style={{fontSize:9,color:"#555"}}>Viral Title Maker</div>
+<a href="/youtube-earnings-calculator" className="tool-card" style={{textDecoration:"none",background:"#e0e7ff",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>💰</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>YouTube Earnings</div>
+<div style={{fontSize:9,color:"#555"}}>YouTube Money Calculator</div>
 </a>
+<a href="/fake-data-generator" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>🧪</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Fake Data Generator</div>
+<div style={{fontSize:9,color:"#555"}}>Dummy Data For Testing</div>
+</a>
+<a href="/resume-builder" className="tool-card" style={{textDecoration:"none",background:"#ffedd5",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block"}}>
+<div style={{fontSize:20}}>📄</div>
+<div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Resume Builder</div>
+<div style={{fontSize:9,color:"#555"}}>Free Resume Maker</div>
+</a>
+</div>
+
+{/* 6. BLOG + 2ND GENERATOR - FULL WIDTH */}
+<h4 style={{margin:"16px 0 8px 0",fontSize:13,fontWeight:900}}>🌐 Our Blog & 2nd Generator</h4>
+<div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:10}}>
 <a href="/blog" className="tool-card" style={{textDecoration:"none",background:"#dcfce7",border:"2px solid #000",padding:12,borderRadius:12,textAlign:"center",display:"block",gridColumn:"span 2"}}>
 <div style={{fontSize:20}}>📝</div>
 <div style={{fontSize:12,fontWeight:800,color:"#000",marginTop:4}}>Our Blog - Latest Articles</div>
@@ -464,8 +492,10 @@ return(
 <div style={{fontSize:9,color:"#555"}}>Our 2nd Tool - Blogger Version - Try Now</div>
 </a>
 </div>
-<p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:10,marginBottom:0}}>✅ All 25 Tools Free + Blog - No Login Required</p>
+
+<p style={{fontSize:10,color:"#666",textAlign:"center",marginTop:12,marginBottom:0}}>✅ All Tools Free - No Login Required</p>
 </div>
+
 {page==="home" && (
   <div style={{background:"#fff", marginTop:20, borderRadius:20}}>
     <SeoContent />
