@@ -180,7 +180,76 @@ export default function SeoContent() {
       {open.word && (<div>
         <P>Word Counter is a free tool that counts words, characters, sentences, paragraphs, and reading time in your text in real time. As you type or paste, it instantly shows live statistics. It is essential for writers, bloggers, students, and SEO experts who need to meet word count requirements. For example, if your assignment needs 500 words, you can check if you have reached 500. If your blog needs 1000 words for SEO, Word Counter will tell you. If your meta description needs to be under 160 characters, it will show character count. It also shows reading time, so you know how long it will take a reader to finish your article. It is used by millions of users for essays, articles, resumes, captions, and social media posts.</P>
       </div>)}
+<Head title="23. FD & RD Calculator - Fixed Deposit Interest Calculator" k="fd" />
+{open.fd && (<div>
+  <P>FD & RD Calculator is a free tool to calculate Fixed Deposit and Recurring Deposit interest in seconds. Just enter amount, interest rate, and time, and you will get maturity amount, total interest, and total deposit instantly. It is perfect for Indian users who invest in FD and RD in banks like SBI, HDFC, ICICI, and Post Office. For example, if you invest ₹1,00,000 in FD at 7% for 5 years, you will get maturity amount with compound interest. If you invest ₹5,000 per month in RD, you will know total return after 1, 2, or 5 years. The tool uses exact compound interest formula used by banks, so result is 100% accurate. It is used by students, job holders, business owners, and retired people to plan savings. It is 100% free, no login, and works on mobile. <a href="/fd-rd-calculator">Try FD RD Calculator →</a></P>
+</div>)}
 
+<Head title="24. SIP Calculator - Mutual Fund SIP Return Calculator" k="sip" />
+{open.sip && (<div>
+  <P>SIP Calculator is a free tool to calculate Mutual Fund SIP returns. Enter monthly investment, expected return rate, and time period, and you will see total invested amount, total gain, and total maturity value with a clear chart. For example, if you invest ₹5,000 per month for 10 years at 12% return, you will know exactly how much wealth you will create. SIP is the best way for middle-class Indians to create long-term wealth with small monthly savings. This calculator helps you compare different SIP amounts and plan for child education, home, car, and retirement. It is used by beginners, investors, and financial advisors. It is 100% free, accurate, and no login needed. <a href="/sip-calculator">Try SIP Calculator →</a></P>
+</div>)}
+
+<Head title="25. FIRE Calculator - Financial Independence Retire Early" k="fire" />
+{open.fire && (<div>
+  <P>FIRE Calculator helps you find out when you can retire early and become financially free. Enter your monthly expenses, current savings, monthly investment, and expected return, and it will tell you your FIRE number, years to retire, and monthly passive income needed. FIRE means Financial Independence Retire Early. It is very popular among young people who do not want to work till 60. If your monthly expense is ₹50,000, you need around ₹1.5 Crore to retire. This tool shows you that number clearly. You can plan your SIP, FD, and stock investment to reach FIRE faster. It is 100% free, no login, and best for retirement planning. <a href="/fire-calculator">Try FIRE Calculator →</a></P>
+</div>)}
+
+<Head title="26. Mortgage Calculator - Home Loan EMI Calculator" k="mortgage" />
+{open.mortgage && (<div>
+  <P>Mortgage Calculator is a free Home Loan EMI calculator. Enter loan amount, interest rate, and loan tenure, and you will get monthly EMI, total interest, and total payment instantly. For example, if you take ₹50 Lakh home loan at 8.5% for 20 years, your EMI will be calculated in one second. It also helps you compare different banks and decide which loan is cheaper. Home loan is the biggest loan in most people life, so checking EMI before taking loan is very important. This tool is 100% free, accurate, and works on mobile without login. <a href="/mortgage-calculator">Try Mortgage Calculator →</a></P>
+</div>)}
+
+<Head title="27. Personal Loan EMI Calculator" k="loan" />
+{open.loan && (<div>
+  <P>Personal Loan EMI Calculator helps you calculate EMI for personal loan, car loan, and bike loan. Enter loan amount, interest rate, and months, and you will get monthly EMI, total interest, and total payable amount. For example, if you take ₹2 Lakh personal loan at 12% for 2 years, you will know your monthly EMI before going to bank. This saves you from hidden charges and wrong EMI calculation by agents. It is very useful for people planning wedding loan, travel loan, or emergency loan. It is 100% free, instant, and no login needed. <a href="/personal-loan-emi-calculator">Try Personal Loan EMI Calculator →</a></P>
+</div>)}
+
+<Head title="28. Income Tax Calculator India - New & Old Regime" k="tax" />
+{open.tax && (<div>
+  <P>Income Tax Calculator India is a free tool to calculate income tax in New Regime and Old Regime. Enter your salary, deductions like 80C, HRA, and home loan, and it will show tax in both regimes and tell you which regime saves more tax. For example, if your salary is ₹10 Lakh, you will see tax in new regime vs old regime side by side. This tool is updated for latest Indian tax slabs and helps salaried employees, business owners, and freelancers file ITR correctly. It is 100% free, private, and no login needed. Your salary data is not saved anywhere. <a href="/income-tax-calculator">Try Income Tax Calculator →</a></P>
+</div>)}
+
+<Head title="29. Slug Generator - SEO Friendly URL Slug Maker" k="slug" />
+{open.slug && (<div>
+  <P>Slug Generator is a free SEO tool that converts your blog title into clean, SEO-friendly URL slug. For example, Best FD Calculator in India becomes best-fd-calculator-in-india. A good slug helps Google understand your page and rank it higher. It also makes your link look clean and easy to share. This tool removes spaces, special characters, and capital letters automatically. It is used by bloggers, WordPress users, YouTubers, and SEO experts to create perfect URLs. It is 100% free, instant, and no login needed. <a href="/slug-generator">Try Slug Generator →</a></P>
+</div>)}
+
+<Head title="30. Resume Builder - Free Resume Maker" k="resume" />
+{open.resume && (<div>
+  <P>Resume Builder is a free tool to create a professional resume in 2 minutes. Enter your name, education, skills, and experience, and you will get a clean, ATS-friendly resume ready to download. No need for Word or Photoshop. It is perfect for freshers, students, and job seekers applying for jobs in India. A good resume is the first step to get an interview. This tool gives you modern templates that pass ATS software used by companies. It is 100% free, no login, and no watermark. <a href="/resume-builder">Try Resume Builder →</a></P>
+</div>)}
+
+<Head title="31. YouTube Title Generator - Viral Title Maker" k="yttitle" />
+{open.yttitle && (<div>
+  <P>YouTube Title Generator is a free AI tool to generate viral, clickable YouTube titles. Enter your video topic, and it will give you 20+ titles with high CTR. For example, if your video is about FD Calculator, it will suggest titles like I Tried FD Calculator for 30 Days, You Won't Believe Result. A good title can double your views. YouTube algorithm loves titles with curiosity, numbers, and emotion. This tool helps small YouTubers grow faster. It is 100% free, no login, and works for Hindi and English channels. <a href="/youtube-title-generator">Try YouTube Title Generator →</a></P>
+</div>)}
+
+<Head title="32. YouTube Earnings Calculator - YouTube Money Calculator" k="ytearn" />
+{open.ytearn && (<div>
+  <P>YouTube Earnings Calculator tells you how much money a YouTube channel makes from views. Enter views, CPM, and niche, and you will get estimated monthly and yearly earnings. For example, 1 Lakh views in Finance niche can earn ₹8,000 to ₹15,000, while same views in Entertainment can earn less. This tool helps creators plan content and brands check influencer price. It is very useful for new YouTubers who want to know YouTube se kitna paisa milta hai. It is 100% free and no login needed. <a href="/youtube-earnings-calculator">Try YouTube Earnings Calculator →</a></P>
+</div>)}
+
+<Head title="33. YouTube Thumbnail Downloader - HD Thumbnail Download" k="ytthumb" />
+{open.ytthumb && (<div>
+  <P>YouTube Thumbnail Downloader is a free tool to download any YouTube video thumbnail in HD, Full HD, and 4K quality. Just paste YouTube video link, and you will get thumbnail in 120x90, 480x360, 1280x720, and 1920x1080 sizes. It is useful for designers, editors, and creators who want to study viral thumbnails or reuse their own thumbnail. Downloading is instant, free, and no login needed. <a href="/youtube-thumbnail-downloader">Try YouTube Thumbnail Downloader →</a></P>
+</div>)}
+
+<Head title="34. Hashtag Generator - Viral Hashtags for Instagram & YouTube" k="hashtag" />
+{open.hashtag && (<div>
+  <P>Hashtag Generator is a free tool to generate viral hashtags for Instagram, YouTube, TikTok, and Facebook. Enter your topic, and it will give you 30 trending hashtags to increase reach. For example, for FD Calculator, it will give #FDCalculator #SIP #MoneyTips #Finance. Right hashtags can increase your Reels and Shorts views by 3x. This tool is used by creators, influencers, and businesses to grow on social media. It is 100% free and no login needed. <a href="/hashtag-generator">Try Hashtag Generator →</a></P>
+</div>)}
+
+<Head title="35. AI Detector - Check AI or Human Written Text" k="aidetector" />
+{open.aidetector && (<div>
+  <P>AI Detector is a free tool to check if a text was written by AI like ChatGPT or by a human. Paste your text, and it will show AI percentage, human percentage, and sentence-wise analysis. It is very important for teachers, bloggers, and students in 2026. Teachers use it to check assignments, bloggers use it to check if their content will be penalized by Google, and students use it to make their content look more human. It is 100% free, private, and no login needed. <a href="/ai-detector">Try AI Detector →</a></P>
+</div>)}
+
+<Head title="36. Color Palette Generator - Best Color Combinations" k="color" />
+{open.color && (<div>
+  <P>Color Palette Generator is a free design tool to generate beautiful color palettes for websites, apps, logos, and posters. Click generate, and you will get 5 perfect color combinations with HEX codes. Designers use it to choose colors that look professional and modern. For example, for a finance website, blue + white + grey looks trustworthy. For a food website, red + yellow looks tasty. You can copy HEX code in one click and use it in Figma, Photoshop, or CSS. It is 100% free and no login needed. <a href="/color-palette">Try Color Palette Generator →</a></P>
+</div>)}
+      
       <Head title="23. Frequently Asked Questions (FAQ)" k="faq" />
       {open.faq && (<div>
         <h4>Is Lorem Ipsum Generator free?</h4><P>Yes, 100% free. No login, no signup, no watermark, unlimited generation. You can generate 1 to 100 items, any number of times, for free, forever.</P>
