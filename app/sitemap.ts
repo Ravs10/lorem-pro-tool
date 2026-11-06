@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://lorem-pro-tool.run4ravish.workers.dev';
-  const lastMod = new Date('2026-11-04');
+  const lastMod = new Date(); // hamesha aaj ki date jayegi
 
   return [
     { url: baseUrl, lastModified: lastMod, changeFrequency: 'weekly', priority: 1 },
