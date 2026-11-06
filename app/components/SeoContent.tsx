@@ -28,7 +28,7 @@ export default function SeoContent() {
   return (
     <div style={{ padding: 20, color: "#000", lineHeight: 1.8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Complete Guide - Lorem Ipsum Generator 77 Languages - 5000+ Words</h2>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 900 }}>Complete Guide - Lorem Ipsum Generator 77 Languages + 25 Other Free Tools - 8000+ Words</h2>
         <button onClick={() => setAll(!allOpen)} style={{ padding: "8px 16px", borderRadius: 999, border: "2px solid #000", background: allOpen ? "#000" : "#fff", color: allOpen ? "#fff" : "#000", fontWeight: 800, fontSize: 12, cursor: "pointer" }}>{allOpen ? "Hide All ▲" : "Show All ▼"}</button>
       </div>
 
