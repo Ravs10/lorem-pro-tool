@@ -2,13 +2,15 @@ export default function About() {
   return (
     <div style={{padding:"40px", maxWidth:"800px", margin:"auto", lineHeight:"1.8", textAlign:"center"}}>
       
-      {/* Velora Logo */}
-      <img 
-        src="/velora-logo.png" 
-        alt="Velora Logo - Lorem Pro Tool by Yadav Ravish" 
-        style={{width:"180px", height:"auto", margin:"0 auto 10px", borderRadius:"16px"}} 
-      />
-      <p style={{fontSize:"14px", color:"#555", marginTop:"0"}}>Developed By Velora</p>
+      {/* Velora Logo - Click To Visit Developer Website */}
+      <a href="https://velora-cloud.run4ravish.workers.dev/" target="_blank" rel="noopener noreferrer" title="Visit Velora - Developed by Yadav Ravish">
+        <img 
+          src="/velora-logo.png" 
+          alt="Velora Logo - Lorem Pro Tool by Yadav Ravish" 
+          style={{width:"180px", height:"auto", margin:"0 auto 5px", borderRadius:"16px", cursor:"pointer"}} 
+        />
+      </a>
+      <p style={{fontSize:"13px", color:"#2563eb", marginTop:"0", fontWeight:"600"}}>Developed By Velora - Click Logo To Visit Developer Website</p>
 
       <div style={{textAlign:"left"}}>
       <h1>About Lorem Pro Tool - 25+ Free Online Tools In One Place</h1>
@@ -20,7 +22,7 @@ export default function About() {
 
       <h2>Developed By Velora - Founded By Yadav Ravish</h2>
       <p>
-        <strong>Lorem Pro Tool is developed by Velora</strong>, a growing digital brand focused on building simple, 
+        <strong>Lorem Pro Tool is developed by <a href="https://velora-cloud.run4ravish.workers.dev/" target="_blank" rel="noopener noreferrer">Velora</a></strong>, a growing digital brand focused on building simple, 
         fast, and free tools for everyone. <strong>Velora was founded by Yadav Ravish</strong>, with a vision to 
         make powerful online tools accessible to every student, creator, and small business owner in India - 
         without any cost or login barrier.
@@ -62,7 +64,7 @@ export default function About() {
         should have access to premium-quality tools without paying anything.
       </p>
       <p>
-        Thank you for visiting Lorem Pro Tool by Velora. Explore all our free tools: <a href="https://lorem-pro-tool.run4ravish.workers.dev/">Lorem Pro Tool - Home</a>
+        Want your own website like this? Visit <a href="https://velora-cloud.run4ravish.workers.dev/" target="_blank" rel="noopener noreferrer">Velora - Developer Website</a> to contact us.
       </p>
       </div>
     </div>
