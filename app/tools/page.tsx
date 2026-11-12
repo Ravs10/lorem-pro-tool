@@ -19,15 +19,21 @@ export default function AllTools(){
     fetchTools()
   },[])
 
-  // Slug ko sahi karo - /admin wala slug kabhi Link nahi banega
+  // ✅ FINAL FIX - Slug chahe kaisa bhi ho, hamesha /tools/slug banega
   function getLink(slug: string | null){
     if(!slug) return "/tools"
-    let s = slug.trim()
-    // Agar slug me /admin hai to wo Tool nahi hai, usko mat kholo
+    let s = String(slug).trim()
+    if(!s) return "/tools"
+    // Agar slug me /admin hai to wo Tool nahi hai
     if(s.includes("admin")) return "/tools"
-    // Agar / nahi hai to laga do
-    if(!s.startsWith("/")) s = "/" + s
-    return s
+    // Aage ka / hatao
+    s = s.replace(/^\/+/,"")
+    // Agar pehle se tools/ likha hai to dobara mat lagao
+    s = s.replace(/^tools\//,"")
+    // Aakhir me / hatao
+    s = s.replace(/\/+$/,"")
+    if(!s) return "/tools"
+    return `/tools/${s}`
   }
 
   return(
