@@ -67,7 +67,8 @@ export default function AdminPage() {
     if (data) setPosts(data);
   };
   const getToolKey = (t:any) => (t.slug && String(t.slug).trim()!==""? String(t.slug).trim() : String(t.id));
-  const cleanSlug = (s:any) => String(s || "").trim().replace(/^\/+/,"").replace(/^tools\//,"");
+  // ✅ FIXED: tools/ hatake sirf /slug banega - jaise Tools Page me hai
+  const cleanSlug = (s:any) => String(s || "").trim().toLowerCase().replace(/\s+/g, '-').replace(/^\/+/,"").replace(/^tools\//,"");
 
   const handleLogin = async () => {
     if(!pass) return alert("Password likho");
@@ -198,7 +199,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex gap-2">
                       {tool.slug && String(tool.slug).trim()!=="" ? (
-                        <a href={`/tools/${cleanSlug(tool.slug)}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>
+                        <a href={`/${cleanSlug(tool.slug)}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>
                       ) : (
                         <button onClick={()=>alert("Slug khali hai - Pehle Edit karke Slug dalo")} className="text-xs px-3 py-2 bg-gray-400 text-white rounded-full">View</button>
                       )}
