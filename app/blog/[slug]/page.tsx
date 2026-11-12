@@ -23,6 +23,12 @@ function renderContent(text: string) {
   html = html.replace(/^# (.*)$/gm, '<h1 class="text-3xl font-bold mt-6 mb-2">$1</h1>')
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
+
+  // ✅ FIX: [https://poora-link](https://) - agar bracket ke andar adhoora https:// hai to [...] wala hi link bana do
+  html = html.replace(/\[(https?:\/\/[^\]]+)\]\(https?:\/?\/?\)/g, '<a href="$1" target="_blank" class="text-orange-600 underline font-bold break-all">$1</a>')
+  // ✅ FIX: [koi text](https://) - agar link adhoora hai to sirf text dikhao, 404 wala link mat banao
+  html = html.replace(/\[([^\]]+)\]\(https?:\/?\/?\)/g, '$1')
+
   html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" class="text-orange-600 underline font-bold">$1</a>')
   // Plain link - lekin jo pehle se <a> me hai usko dobara mat chhedo, isliye yaha pehle se link wale ko skip karte hai
   html = html.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" class="text-orange-600 underline break-all">$1</a>')
