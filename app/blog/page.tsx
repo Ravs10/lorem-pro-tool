@@ -25,6 +25,7 @@ export default async function BlogPage() {
   const { data: blogs } = await supabase
    .from('blogs')
    .select('*')
+   .neq('is_deleted', true)
    .order('created_at', { ascending: false })
 
   return (
