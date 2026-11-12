@@ -6,6 +6,7 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const [pass, setPass] = useState("");
   const [isMaster, setIsMaster] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
@@ -36,7 +37,7 @@ export default function AdminPage() {
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
   const [newMasterEmail, setNewMasterEmail] = useState("");
 
-  // --- SECURE FIX ---
+  // --- SECURE FIX + 1 SEC LOGIN FLASH FIX ---
   useEffect(() => {
     (async () => {
       try {
@@ -49,6 +50,7 @@ export default function AdminPage() {
           fetchOffers();
         }
       } catch {}
+      setAuthChecked(true);
     })();
   }, []);
 
@@ -105,6 +107,15 @@ export default function AdminPage() {
     setIsMaster(false);
     window.location.href = "/admin";
   };
+
+  // ✅ FIX: Jab tak /api/admin/me check nahi hua, Login Page mat dikhao
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
+        <p className="text-white font-bold text-lg animate-pulse">Loading Admin...</p>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
@@ -182,7 +193,7 @@ export default function AdminPage() {
                       <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug? tool.slug : "❌ SLUG KHALI - Fix button dabao"}</p></div>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={()=>window.open(`/${tool.slug}`, '_blank')} className="text-xs px-3 py-2 bg-black text-white rounded-full">View</button>
+                      <button onClick={()=>{ if(!tool.slug || String(tool.slug).trim()==="") return alert("Slug khali hai - Pehle Edit karke Slug dalo"); window.open(`/${String(tool.slug).trim().replace(/^\/+/,"")}`, '_blank') }} className="text-xs px-3 py-2 bg-black text-white rounded-full">View</button>
                       <button onClick={()=>setEditTool(tool)} className="text-xs px-3 py-2 bg-white border rounded-full">Edit</button>
                     </div>
                   </div>
