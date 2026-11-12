@@ -9,6 +9,7 @@ export default function Comments({ slug }: { slug: string }) {
   const [name, setName] = useState("")
   const [text, setText] = useState("")
   const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
 
   useEffect(() => { fetchComments() }, [])
 
@@ -18,10 +19,12 @@ export default function Comments({ slug }: { slug: string }) {
   }
 
   async function handleSubmit() {
-    if (!name ||!text) return alert("Name aur comment likho")
+    if (!name || !text) return alert("Name aur comment likho")
     setLoading(true)
-    const { error } = await supabase.from('comments').insert([{ blog_slug: slug, name, comment: text, is_approved: true }])
+    // ✅ FIX: Ab comment Pending me jayega, Admin Approve karega tabhi dikhega
+    const { error } = await supabase.from('comments').insert([{ blog_slug: slug, name, comment: text, is_approved: false }])
     if (error) alert(error.message)
+    else setSent(true)
     setLoading(false); setText(""); fetchComments()
   }
 
@@ -32,6 +35,7 @@ export default function Comments({ slug }: { slug: string }) {
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Your Name" className="w-full p-3 rounded-lg border mb-2" />
         <textarea value={text} onChange={e => setText(e.target.value)} placeholder="Comment likho..." className="w-full p-3 rounded-lg border h-20" />
         <button onClick={handleSubmit} className="w-full bg-black text-white p-3 rounded-full font-bold mt-2">{loading? "Posting..." : "Post Comment"}</button>
+        {sent && <p className="text-green-600 text-sm font-bold mt-2 text-center">✅ Comment bhej diya! Admin Approve ke baad dikhega.</p>}
       </div>
       <div className="space-y-3">
         {comments.map(c => (
@@ -40,6 +44,7 @@ export default function Comments({ slug }: { slug: string }) {
             <p className="text-gray-700 mt-1">{c.comment}</p>
           </div>
         ))}
+        {comments.length === 0 && <p className="text-gray-400 text-sm text-center">Abhi koi comment nahi hai.</p>}
       </div>
     </div>
   )
