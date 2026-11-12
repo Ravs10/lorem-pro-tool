@@ -1,8 +1,5 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
 
 export default function Comments({ slug }: { slug: string }) {
   const [comments, setComments] = useState<any[]>([])
@@ -14,16 +11,17 @@ export default function Comments({ slug }: { slug: string }) {
   useEffect(() => { fetchComments() }, [])
 
   async function fetchComments() {
-    const { data } = await supabase.from('comments').select('*').eq('blog_slug', slug).eq('is_approved', true).order('created_at', { ascending: false })
-    if (data) setComments(data)
+    const res = await fetch(`/api/comments?slug=${slug}`, { cache: "no-store" })
+    const d = await res.json()
+    if (d.comments) setComments(d.comments)
   }
 
   async function handleSubmit() {
     if (!name || !text) return alert("Name aur comment likho")
     setLoading(true)
-    // ✅ FIX: Ab comment Pending me jayega, Admin Approve karega tabhi dikhega
-    const { error } = await supabase.from('comments').insert([{ blog_slug: slug, name, comment: text, is_approved: false }])
-    if (error) alert(error.message)
+    const res = await fetch("/api/comments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ blog_slug: slug, name, comment: text }) })
+    const d = await res.json()
+    if (!res.ok) alert(d.error)
     else setSent(true)
     setLoading(false); setText(""); fetchComments()
   }
