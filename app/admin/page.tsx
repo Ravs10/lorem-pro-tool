@@ -40,10 +40,12 @@ export default function AdminPage() {
   const [editPost, setEditPost] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [commentFilter, setCommentFilter] = useState<"all"|"pending"|"approved">("all");
-  // ✅ TRASH
   const [trashPosts, setTrashPosts] = useState<any[]>([]);
   const [trashComments, setTrashComments] = useState<any[]>([]);
   const [trashTab, setTrashTab] = useState<"posts"|"comments">("posts");
+  // ✅ FIX: Trash count sabko dikhega, Trash kholega sirf Master
+  const [trashCount, setTrashCount] = useState(0);
+  const [lastTrashMsg, setLastTrashMsg] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -53,7 +55,7 @@ export default function AdminPage() {
         if (d.role) {
           setIsLoggedIn(true);
           setIsMaster(d.role === "master");
-          fetchTools(); fetchOffers(); fetchPosts(); fetchComments();
+          fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); fetchTrashCount();
           if(d.role==="master"){ fetchTrash(); }
         }
       } catch {}
@@ -63,13 +65,21 @@ export default function AdminPage() {
 
   const fetchTools = async () => { const { data } = await supabase.from("tools").select("*").order("name"); if (data) setTools(data); };
   const fetchOffers = async () => { const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false }); if (data) setOffers(data); };
-  const fetchPosts = async () => { const { data } = await supabase.from("blogs").select("*").eq("is_deleted", false).order("created_at", { ascending: false }); if (data) setPosts(data); };
-  const fetchComments = async () => { const { data } = await supabase.from("comments").select("*").eq("is_deleted", false).order("created_at", { ascending: false }); if (data) setComments(data); };
+  // ✅ FIX: is_deleted = false ki jagah != true, taaki NULL wale bhi Live me aaye
+  const fetchPosts = async () => { const { data } = await supabase.from("blogs").select("*").neq("is_deleted", true).order("created_at", { ascending: false }); if (data) setPosts(data); };
+  const fetchComments = async () => { const { data } = await supabase.from("comments").select("*").neq("is_deleted", true).order("created_at", { ascending: false }); if (data) setComments(data); };
+  // ✅ FIX: Sirf Count - Admin aur Master dono ko dikhega
+  const fetchTrashCount = async () => {
+    const { count: c1 } = await supabase.from("blogs").select("id", { count: "exact", head: true }).eq("is_deleted", true);
+    const { count: c2 } = await supabase.from("comments").select("id", { count: "exact", head: true }).eq("is_deleted", true);
+    setTrashCount((c1||0) + (c2||0));
+  };
   const fetchTrash = async () => {
     const { data: tp } = await supabase.from("blogs").select("*").eq("is_deleted", true).order("deleted_at", { ascending: false });
     if(tp) setTrashPosts(tp);
     const { data: tc } = await supabase.from("comments").select("*").eq("is_deleted", true).order("deleted_at", { ascending: false });
     if(tc) setTrashComments(tc);
+    setTrashCount((tp?.length||0) + (tc?.length||0));
   };
   const getToolKey = (t:any) => (t.slug && String(t.slug).trim()!==""? String(t.slug).trim() : String(t.id));
   const cleanSlug = (s:any) => String(s || "").trim().toLowerCase().replace(/\s+/g, '-').replace(/^\/+/,"").replace(/^tools\//,"");
@@ -79,7 +89,7 @@ export default function AdminPage() {
     setLoading(true);
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", password: pass }) });
     const d = await res.json();
-    if (d.success) { setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); if(d.role==="master") fetchTrash(); setPass(""); setActiveTab("tools"); } else alert(d.error || "Wrong password");
+    if (d.success) { setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); fetchTrashCount(); if(d.role==="master") fetchTrash(); setPass(""); setActiveTab("tools"); } else alert(d.error || "Wrong password");
     setLoading(false);
   };
   const handleSendOtp = async () => {
@@ -93,7 +103,7 @@ export default function AdminPage() {
     setLoading(true);
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "verify-otp", otp }) });
     const d = await res.json(); setLoading(false);
-    if(d.success){ setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); if(d.role==="master") fetchTrash(); } else alert(d.error || "Wrong OTP");
+    if(d.success){ setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); fetchTrashCount(); if(d.role==="master") fetchTrash(); } else alert(d.error || "Wrong OTP");
   };
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
   const handleToolUpdate = async () => { const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id); if (error) alert(error.message); else { setEditTool(null); fetchTools(); } };
@@ -108,22 +118,35 @@ export default function AdminPage() {
     const { error } = await supabase.from("comments").update({ is_approved: val }).eq("id", c.id);
     if(error) { alert(error.message); fetchComments(); }
   };
-  // ✅ TRASH - Post Delete = Trash me bhejo, Seedha Delete nahi
   const movePostToTrash = async (p:any) => {
     if(!confirm(`"${p.title}" ko Trash me bheju? Master wapas Restore kar payega.`)) return;
+    // Pehle UI se hatao taaki Admin ko turant pata chale
+    setPosts(prev=>prev.filter(x=>x.id!==p.id));
     const { error } = await supabase.from("blogs").update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: isMaster? "master":"admin" }).eq("id", p.id);
-    if(error) alert(error.message); else { alert("🗑️ Trash me chala gaya - Master Restore kar sakta hai"); fetchPosts(); if(isMaster) fetchTrash(); }
+    if(error){ alert("❌ Trash nahi hua: "+error.message+" | SQL chalaya hai?"); fetchPosts(); return; }
+    const newCount = trashCount + 1;
+    setTrashCount(newCount);
+    setLastTrashMsg(`✅ "${p.title}" Trash me gaya! Total Trash: ${newCount}`);
+    setTimeout(()=>setLastTrashMsg(""), 4000);
+    fetchTrashCount();
+    if(isMaster) fetchTrash();
   };
   const moveCommentToTrash = async (c:any) => {
     if(!confirm("Is comment ko Trash me bheju? Master Restore kar payega.")) return;
+    setComments(prev=>prev.filter(x=>x.id!==c.id));
     const { error } = await supabase.from("comments").update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: isMaster? "master":"admin" }).eq("id", c.id);
-    if(error) alert(error.message); else { alert("🗑️ Comment Trash me chala gaya"); fetchComments(); if(isMaster) fetchTrash(); }
+    if(error){ alert("❌ Trash nahi hua: "+error.message); fetchComments(); return; }
+    const newCount = trashCount + 1;
+    setTrashCount(newCount);
+    setLastTrashMsg(`✅ Comment Trash me gaya! Total Trash: ${newCount}`);
+    setTimeout(()=>setLastTrashMsg(""), 4000);
+    fetchTrashCount();
+    if(isMaster) fetchTrash();
   };
-  // ✅ MASTER ONLY - Restore / Permanent Delete
-  const restorePost = async (id:string) => { const { error } = await supabase.from("blogs").update({ is_deleted: false, deleted_at: null, deleted_by: null }).eq("id", id); if(error) alert(error.message); else { alert("♻️ Post Restore ho gaya!"); fetchPosts(); fetchTrash(); } };
-  const permanentDeletePost = async (p:any) => { if(!confirm(`"${p.title}" ko HAMESHA ke liye delete kar du? Ye wapas nahi aayega!`)) return; const { error } = await supabase.from("blogs").delete().eq("id", p.id); if(error) alert(error.message); else { alert("❌ Permanent Delete ho gaya"); fetchTrash(); } };
-  const restoreComment = async (id:string) => { const { error } = await supabase.from("comments").update({ is_deleted: false, deleted_at: null, deleted_by: null }).eq("id", id); if(error) alert(error.message); else { alert("♻️ Comment Restore ho gaya!"); fetchComments(); fetchTrash(); } };
-  const permanentDeleteComment = async (c:any) => { if(!confirm("Is comment ko HAMESHA ke liye delete kar du?")) return; const { error } = await supabase.from("comments").delete().eq("id", c.id); if(error) alert(error.message); else { alert("❌ Comment Permanent Delete"); fetchTrash(); } };
+  const restorePost = async (id:string) => { const { error } = await supabase.from("blogs").update({ is_deleted: false, deleted_at: null, deleted_by: null }).eq("id", id); if(error) alert(error.message); else { alert("♻️ Post Restore ho gaya!"); fetchPosts(); fetchTrash(); fetchTrashCount(); } };
+  const permanentDeletePost = async (p:any) => { if(!confirm(`"${p.title}" ko HAMESHA ke liye delete kar du? Ye wapas nahi aayega!`)) return; const { error } = await supabase.from("blogs").delete().eq("id", p.id); if(error) alert(error.message); else { alert("❌ Permanent Delete ho gaya"); fetchTrash(); fetchTrashCount(); } };
+  const restoreComment = async (id:string) => { const { error } = await supabase.from("comments").update({ is_deleted: false, deleted_at: null, deleted_by: null }).eq("id", id); if(error) alert(error.message); else { alert("♻️ Comment Restore ho gaya!"); fetchComments(); fetchTrash(); fetchTrashCount(); } };
+  const permanentDeleteComment = async (c:any) => { if(!confirm("Is comment ko HAMESHA ke liye delete kar du?")) return; const { error } = await supabase.from("comments").delete().eq("id", c.id); if(error) alert(error.message); else { alert("❌ Comment Permanent Delete"); fetchTrash(); fetchTrashCount(); } };
 
   const contentRef = useRef(null)
   const renderPreview = (text:any) => { return text.split('\n').map((line:any, i:any) => { if(line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold my-2">{line.slice(4)}</h3>; if(line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold my-3">{line.slice(3)}</h2>; if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>; let parts = line.split(/(\*\*.*?\*\*)/g); return <p key={i} className="my-1">{parts.map((p:any, j:any) => { if(p.startsWith('**') && p.endsWith('**')) return <b key={j}>{p.slice(2,-2)}</b>; let linkMatch = p.match(/\[(.*)\]\((.*)\)/); if(linkMatch) return <a key={j} href={linkMatch[2]} target="_blank" className="text-blue-600 underline">{linkMatch[1]}</a>; return p })}</p> }) }
@@ -150,12 +173,13 @@ export default function AdminPage() {
     <div className="min-h-screen p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
       <div className="max-w-3xl mx-auto">
         <div className="flex justify-between items-center mb-6"><h1 className="text-2xl font-bold text-white">⚡ Lorem Pro Tool {isMaster? "👑 MASTER" : "🛡️ ADMIN"}</h1><button onClick={handleLogout} className="px-4 py-2 bg-white/90 rounded-full shadow text-sm">Logout</button></div>
+        {lastTrashMsg && <div className="mb-4 p-3 bg-green-500 text-white rounded-xl font-bold text-sm text-center animate-pulse">{lastTrashMsg}</div>}
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30 flex-wrap">
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools</button>
           <button onClick={()=>setActiveTab("blog")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="blog"?"bg-white text-black shadow":"text-white/80"}`}>Blog</button>
           <button onClick={()=>{setActiveTab("posts"); fetchPosts();}} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="posts"?"bg-black text-white shadow":"bg-black text-white"}`}>📝 Posts ({posts.length})</button>
           <button onClick={()=>{setActiveTab("comments"); fetchComments();}} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="comments"?"bg-white text-black shadow":"text-white/80"}`}>💬 Comments ({comments.length})</button>
-          {isMaster && <button onClick={()=>{setActiveTab("trash"); fetchTrash();}} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="trash"?"bg-red-500 text-white shadow":"bg-red-500 text-white"}`}>🗑️ Trash ({trashPosts.length + trashComments.length})</button>}
+          <button onClick={()=>{ if(!isMaster){ alert("🗑️ Trash sirf Master dekh sakta hai. Tumne Trash me bheja hai, Master Restore kar dega."); return; } setActiveTab("trash"); fetchTrash(); }} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="trash"?"bg-red-600 text-white shadow":"bg-red-500 text-white"}`}>🗑️ Trash ({trashCount})</button>
           {!isMaster && <button onClick={()=>setActiveTab("myaccount")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="myaccount"?"bg-white text-black shadow":"text-white/80"}`}>👤 My Account</button>}
           {isMaster && <button onClick={()=>setActiveTab("settings")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="settings"?"bg-white text-black shadow":"text-white/80"}`}>⚙️ Settings</button>}
           {isMaster && <button onClick={()=>setActiveTab("announcements")} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="announcements"?"bg-yellow-400 text-black shadow":"text-white/80 bg-black/20"}`}>📢 Offers</button>}
@@ -168,17 +192,11 @@ export default function AdminPage() {
               <div className="grid gap-3">{tools.map((tool:any)=>(<div key={tool.id} className={`p-4 rounded-2xl backdrop-blur border shadow-sm flex justify-between items-center transition-all ${tool.is_active? "bg-white/90 border-white/50" : "bg-red-50/80 border-red-200 opacity-70"}`}><div className="flex items-center gap-3"><button onClick={()=>toggleTool(tool)} className={`w-12 h-7 rounded-full p-1 transition-all ${tool.is_active? "bg-green-500" : "bg-gray-300"}`}><div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${tool.is_active? "translate-x-5" : "translate-x-0"}`}></div></button><div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug? tool.slug : "❌ SLUG KHALI - Fix button dabao"}</p><p className="text-[10px] text-blue-500">/{cleanSlug(tool.slug)}</p></div></div><div className="flex gap-2">{tool.slug && String(tool.slug).trim()!=="" ? (<a href={`/${cleanSlug(tool.slug)}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>) : (<button onClick={()=>alert("Slug khali hai - Pehle Edit karke Slug dalo")} className="text-xs px-3 py-2 bg-gray-400 text-white rounded-full">View</button>)}<button onClick={()=>setEditTool(tool)} className="text-xs px-3 py-2 bg-white border rounded-full">Edit</button></div></div>))}</div>
             </>
           ): activeTab==="posts"? (
-            <div className="space-y-3 bg-white/90 p-5 rounded-2xl"><h2 className="font-bold text-lg">📝 All Posts ({posts.length})</h2>{posts.length===0 && <p className="text-sm text-gray-500">Koi Post nahi hai. Blog Tab se Post karo.</p>}{posts.map((p:any)=>(<div key={p.id} className="p-3 border rounded-xl flex justify-between items-center gap-3"><div><p className="font-bold text-sm">{p.title}</p><p className="text-[11px] text-gray-500">/blog/{p.slug}</p></div><div className="flex gap-2 flex-wrap justify-end"><a href={`/blog/${p.slug}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold">View</a><button onClick={()=>{ setEditPost({...p}); setEditingPostId(p.id); }} className="px-3 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button><button onClick={()=>movePostToTrash(p)} className="px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">🗑️ Trash</button></div></div>))}</div>
+            <div className="space-y-3 bg-white/90 p-5 rounded-2xl"><h2 className="font-bold text-lg">📝 All Posts ({posts.length})</h2><p className="text-xs text-gray-500">🗑️ Trash me abhi: <b>{trashCount}</b> item hai - Master ke paas hai</p>{posts.length===0 && <p className="text-sm text-gray-500">Koi Post nahi hai. Blog Tab se Post karo.</p>}{posts.map((p:any)=>(<div key={p.id} className="p-3 border rounded-xl flex justify-between items-center gap-3"><div><p className="font-bold text-sm">{p.title}</p><p className="text-[11px] text-gray-500">/blog/{p.slug}</p></div><div className="flex gap-2 flex-wrap justify-end"><a href={`/blog/${p.slug}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold">View</a><button onClick={()=>{ setEditPost({...p}); setEditingPostId(p.id); }} className="px-3 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button><button onClick={()=>movePostToTrash(p)} className="px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">🗑️ Trash</button></div></div>))}</div>
           ): activeTab==="comments"? (
-            <div className="space-y-3 bg-white/90 p-5 rounded-2xl"><div className="flex justify-between items-center flex-wrap gap-2"><h2 className="font-bold text-lg">💬 Comments ({filteredComments.length}/{comments.length})</h2><div className="flex gap-1 bg-gray-100 p-1 rounded-full"><button onClick={()=>setCommentFilter("all")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="all"?"bg-black text-white":""}`}>All</button><button onClick={()=>setCommentFilter("pending")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="pending"?"bg-yellow-400 text-black":""}`}>⏳ Pending</button><button onClick={()=>setCommentFilter("approved")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="approved"?"bg-green-600 text-white":""}`}>✅ Approved</button></div></div>{filteredComments.length===0 && <p className="text-sm text-gray-500">Koi comment nahi hai is filter me.</p>}{filteredComments.map((c:any)=>{ const approved = c.is_approved===true || c.approved===true || c.status==="approved"; return (<div key={c.id} className={`p-3 border rounded-xl ${approved? "bg-green-50 border-green-200":"bg-yellow-50 border-yellow-200"}`}><div className="flex justify-between gap-2 flex-wrap"><p className="font-bold text-sm">{c.name || c.author || c.user_name || "Anonymous"} <span className={`text-[10px] px-2 py-0.5 rounded-full ml-1 ${approved?"bg-green-200 text-green-800":"bg-yellow-200 text-yellow-800"}`}>{approved?"✅ Approved":"⏳ Pending"}</span></p><p className="text-[11px] text-gray-500">{c.created_at? new Date(c.created_at).toLocaleString() : ""}</p></div><p className="text-sm text-gray-700 mt-1">{c.comment || c.message || c.text || c.content}</p><p className="text-[11px] text-blue-600 mt-1">Post: {c.blog_slug || c.blog_id || c.post_slug || c.slug || "-"}</p><div className="flex gap-2 mt-2">{!approved ? (<button onClick={()=>approveComment(c, true)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">✅ Approve</button>) : (<button onClick={()=>approveComment(c, false)} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">⏳ Unapprove</button>)}<button onClick={()=>moveCommentToTrash(c)} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">🗑️ Trash</button></div></div>); })}</div>
+            <div className="space-y-3 bg-white/90 p-5 rounded-2xl"><div className="flex justify-between items-center flex-wrap gap-2"><h2 className="font-bold text-lg">💬 Comments ({filteredComments.length}/{comments.length})</h2><div className="flex gap-1 bg-gray-100 p-1 rounded-full"><button onClick={()=>setCommentFilter("all")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="all"?"bg-black text-white":""}`}>All</button><button onClick={()=>setCommentFilter("pending")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="pending"?"bg-yellow-400 text-black":""}`}>⏳ Pending</button><button onClick={()=>setCommentFilter("approved")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="approved"?"bg-green-600 text-white":""}`}>✅ Approved</button></div></div><p className="text-xs text-gray-500">🗑️ Trash me abhi: <b>{trashCount}</b> item hai</p>{filteredComments.length===0 && <p className="text-sm text-gray-500">Koi comment nahi hai is filter me.</p>}{filteredComments.map((c:any)=>{ const approved = c.is_approved===true || c.approved===true || c.status==="approved"; return (<div key={c.id} className={`p-3 border rounded-xl ${approved? "bg-green-50 border-green-200":"bg-yellow-50 border-yellow-200"}`}><div className="flex justify-between gap-2 flex-wrap"><p className="font-bold text-sm">{c.name || c.author || c.user_name || "Anonymous"} <span className={`text-[10px] px-2 py-0.5 rounded-full ml-1 ${approved?"bg-green-200 text-green-800":"bg-yellow-200 text-yellow-800"}`}>{approved?"✅ Approved":"⏳ Pending"}</span></p><p className="text-[11px] text-gray-500">{c.created_at? new Date(c.created_at).toLocaleString() : ""}</p></div><p className="text-sm text-gray-700 mt-1">{c.comment || c.message || c.text || c.content}</p><p className="text-[11px] text-blue-600 mt-1">Post: {c.blog_slug || c.blog_id || c.post_slug || c.slug || "-"}</p><div className="flex gap-2 mt-2">{!approved ? (<button onClick={()=>approveComment(c, true)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">✅ Approve</button>) : (<button onClick={()=>approveComment(c, false)} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">⏳ Unapprove</button>)}<button onClick={()=>moveCommentToTrash(c)} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">🗑️ Trash</button></div></div>); })}</div>
           ): activeTab==="trash" && isMaster? (
-            <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
-              <h2 className="font-bold text-lg">🗑️ Master Trash - 👑 Sirf Master Control</h2>
-              <p className="text-xs text-gray-500">Admin ne jo Delete kiya, wo yaha hai. Restore karo ya Permanent Delete karo.</p>
-              <div className="flex gap-2"><button onClick={()=>setTrashTab("posts")} className={`px-4 py-2 rounded-full text-xs font-bold ${trashTab==="posts"?"bg-black text-white":"bg-gray-100"}`}>📝 Trash Posts ({trashPosts.length})</button><button onClick={()=>setTrashTab("comments")} className={`px-4 py-2 rounded-full text-xs font-bold ${trashTab==="comments"?"bg-black text-white":"bg-gray-100"}`}>💬 Trash Comments ({trashComments.length})</button></div>
-              {trashTab==="posts" && (<div className="space-y-2">{trashPosts.length===0 && <p className="text-sm text-gray-500">Trash khali hai ✅</p>}{trashPosts.map((p:any)=>(<div key={p.id} className="p-3 border border-red-200 bg-red-50 rounded-xl"><p className="font-bold text-sm">{p.title}</p><p className="text-[11px] text-gray-500">Deleted by: <b>{p.deleted_by || "admin"}</b> | {p.deleted_at? new Date(p.deleted_at).toLocaleString() : ""} | /blog/{p.slug}</p><div className="flex gap-2 mt-2"><button onClick={()=>restorePost(p.id)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">♻️ Restore</button><button onClick={()=>permanentDeletePost(p)} className="px-4 py-1.5 bg-red-600 text-white rounded-full text-xs font-bold">❌ Permanent Delete</button></div></div>))}</div>)}
-              {trashTab==="comments" && (<div className="space-y-2">{trashComments.length===0 && <p className="text-sm text-gray-500">Trash khali hai ✅</p>}{trashComments.map((c:any)=>(<div key={c.id} className="p-3 border border-red-200 bg-red-50 rounded-xl"><p className="font-bold text-sm">{c.name || c.author || "Anonymous"}</p><p className="text-sm text-gray-700">{c.comment || c.message || c.text || c.content}</p><p className="text-[11px] text-gray-500">Deleted by: <b>{c.deleted_by || "admin"}</b> | {c.deleted_at? new Date(c.deleted_at).toLocaleString() : ""}</p><div className="flex gap-2 mt-2"><button onClick={()=>restoreComment(c.id)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">♻️ Restore</button><button onClick={()=>permanentDeleteComment(c)} className="px-4 py-1.5 bg-red-600 text-white rounded-full text-xs font-bold">❌ Permanent Delete</button></div></div>))}</div>)}
-            </div>
+            <div className="space-y-4 bg-white/90 p-5 rounded-2xl"><h2 className="font-bold text-lg">🗑️ Master Trash - 👑 Sirf Master Control ({trashCount})</h2><p className="text-xs text-gray-500">Admin ne jo Delete kiya, wo yaha hai. Restore karo ya Permanent Delete karo.</p><div className="flex gap-2"><button onClick={()=>setTrashTab("posts")} className={`px-4 py-2 rounded-full text-xs font-bold ${trashTab==="posts"?"bg-black text-white":"bg-gray-100"}`}>📝 Trash Posts ({trashPosts.length})</button><button onClick={()=>setTrashTab("comments")} className={`px-4 py-2 rounded-full text-xs font-bold ${trashTab==="comments"?"bg-black text-white":"bg-gray-100"}`}>💬 Trash Comments ({trashComments.length})</button><button onClick={()=>fetchTrash()} className="px-4 py-2 rounded-full text-xs font-bold bg-blue-100">🔄 Refresh</button></div>{trashTab==="posts" && (<div className="space-y-2">{trashPosts.length===0 && <p className="text-sm text-gray-500">Trash khali hai ✅</p>}{trashPosts.map((p:any)=>(<div key={p.id} className="p-3 border border-red-200 bg-red-50 rounded-xl"><p className="font-bold text-sm">{p.title}</p><p className="text-[11px] text-gray-500">Deleted by: <b>{p.deleted_by || "admin"}</b> | {p.deleted_at? new Date(p.deleted_at).toLocaleString() : ""} | /blog/{p.slug}</p><div className="flex gap-2 mt-2"><button onClick={()=>restorePost(p.id)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">♻️ Restore</button><button onClick={()=>permanentDeletePost(p)} className="px-4 py-1.5 bg-red-600 text-white rounded-full text-xs font-bold">❌ Permanent Delete</button></div></div>))}</div>)}{trashTab==="comments" && (<div className="space-y-2">{trashComments.length===0 && <p className="text-sm text-gray-500">Trash khali hai ✅</p>}{trashComments.map((c:any)=>(<div key={c.id} className="p-3 border border-red-200 bg-red-50 rounded-xl"><p className="font-bold text-sm">{c.name || c.author || "Anonymous"}</p><p className="text-sm text-gray-700">{c.comment || c.message || c.text || c.content}</p><p className="text-[11px] text-gray-500">Deleted by: <b>{c.deleted_by || "admin"}</b> | {c.deleted_at? new Date(c.deleted_at).toLocaleString() : ""}</p><div className="flex gap-2 mt-2"><button onClick={()=>restoreComment(c.id)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">♻️ Restore</button><button onClick={()=>permanentDeleteComment(c)} className="px-4 py-1.5 bg-red-600 text-white rounded-full text-xs font-bold">❌ Permanent Delete</button></div></div>))}</div>)}</div>
           ): activeTab==="myaccount"? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl"><h2 className="font-bold text-lg">👤 Admin Control Panel</h2><input type="password" value={adminOldPass} onChange={e=>setAdminOldPass(e.target.value)} placeholder="Old Admin Password" className="w-full p-3 rounded-xl border" /><input type="password" value={adminSelfNewPass} onChange={e=>setAdminSelfNewPass(e.target.value)} placeholder="New Admin Password" className="w-full p-3 rounded-xl border" /><button onClick={adminSelfChange} className="w-full bg-black text-white p-4 rounded-xl font-bold">🔑 Change My Password</button></div>
           ): activeTab==="announcements" && isMaster? (
