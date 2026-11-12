@@ -1,5 +1,4 @@
 "use client";
-import Link from 'next/link'
 import { useState, useEffect, useRef} from "react";
 import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
@@ -36,8 +35,8 @@ export default function AdminPage() {
   const [adminOldPass, setAdminOldPass] = useState("");
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
   const [newMasterEmail, setNewMasterEmail] = useState("");
+  const [posts, setPosts] = useState<any[]>([]);
 
-  // --- SECURE FIX + 1 SEC LOGIN FLASH FIX ---
   useEffect(() => {
     (async () => {
       try {
@@ -48,6 +47,7 @@ export default function AdminPage() {
           setIsMaster(d.role === "master");
           fetchTools();
           fetchOffers();
+          fetchPosts();
         }
       } catch {}
       setAuthChecked(true);
@@ -62,7 +62,12 @@ export default function AdminPage() {
     const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false });
     if (data) setOffers(data);
   };
+  const fetchPosts = async () => {
+    const { data } = await supabase.from("blogs").select("*").order("created_at", { ascending: false });
+    if (data) setPosts(data);
+  };
   const getToolKey = (t:any) => (t.slug && String(t.slug).trim()!==""? String(t.slug).trim() : String(t.id));
+  const cleanSlug = (s:any) => String(s || "").trim().replace(/^\/+/,"").replace(/^tools\//,"");
 
   const handleLogin = async () => {
     if(!pass) return alert("Password likho");
@@ -70,7 +75,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", password: pass }) });
     const d = await res.json();
     if (d.success) {
-      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); setPass(""); setActiveTab("tools");
+      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); setPass(""); setActiveTab("tools");
     } else alert(d.error || "Wrong password");
     setLoading(false);
   };
@@ -90,7 +95,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "verify-otp", otp }) });
     const d = await res.json(); setLoading(false);
     if(d.success){
-      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers();
+      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts();
     } else alert(d.error || "Wrong OTP");
   };
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
@@ -98,7 +103,7 @@ export default function AdminPage() {
   const contentRef = useRef(null)
   const renderPreview = (text:any) => { return text.split('\n').map((line:any, i:any) => { if(line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold my-2">{line.slice(4)}</h3>; if(line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold my-3">{line.slice(3)}</h2>; if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>; let parts = line.split(/(\*\*.*?\*\*)/g); return <p key={i} className="my-1">{parts.map((p:any, j:any) => { if(p.startsWith('**') && p.endsWith('**')) return <b key={j}>{p.slice(2,-2)}</b>; let linkMatch = p.match(/\[(.*)\]\((.*)\)/); if(linkMatch) return <a key={j} href={linkMatch[2]} target="_blank" className="text-blue-600 underline">{linkMatch[1]}</a>; return p })}</p> }) }
   const insertFormat = (b:any, a="") => { const el:any = contentRef.current; if(!el) return; const s = el.selectionStart, e = el.selectionEnd; const sel = content.substring(s,e); const newText = content.substring(0,s) + b + (sel||"text") + a + content.substring(e); setContent(newText); }
-  const updatePasswordSecure = async (type: string, newValue: string) => { if(!newValue) return alert("Naya password likho"); if(!authForChange && type!=="admin_password" && type!=="master_key") {} ; const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) }); const d = await res.json(); if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); setAuthForChange(""); } else alert("❌ "+d.message); }
+  const updatePasswordSecure = async (type: string, newValue: string) => { if(!newValue) return alert("Naya password likho"); const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type, newValue, authKey: authForChange }) }); const d = await res.json(); if(d.success){ alert("✅ "+d.message); setNewAdminPass(""); setNewMasterKey(""); setAuthForChange(""); } else alert("❌ "+d.message); }
   const adminSelfChange = async () => { if(!adminOldPass ||!adminSelfNewPass) return alert("Old aur New dono likho"); const res = await fetch("/api/admin-change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "admin_self", oldValue: adminOldPass, newValue: adminSelfNewPass }) }); const d = await res.json(); if(d.success){ alert("✅ Password changed!"); setAdminOldPass(""); setAdminSelfNewPass(""); } else alert("❌ "+d.message); }
 
   const handleLogout = async () => {
@@ -108,7 +113,6 @@ export default function AdminPage() {
     window.location.href = "/admin";
   };
 
-  // ✅ FIX: Jab tak /api/admin/me check nahi hua, Login Page mat dikhao
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"}}>
@@ -160,10 +164,10 @@ export default function AdminPage() {
         <div className="flex gap-2 mb-6 p-1.5 bg-white/20 backdrop-blur-xl rounded-full w-fit border border-white/30 flex-wrap">
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools</button>
           <button onClick={()=>setActiveTab("blog")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="blog"?"bg-white text-black shadow":"text-white/80"}`}>Blog</button>
+          <button onClick={()=>{setActiveTab("posts"); fetchPosts();}} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="posts"?"bg-black text-white shadow":"bg-black text-white"}`}>📝 Posts ({posts.length})</button>
           {!isMaster && <button onClick={()=>setActiveTab("myaccount")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="myaccount"?"bg-white text-black shadow":"text-white/80"}`}>👤 My Account</button>}
           {isMaster && <button onClick={()=>setActiveTab("settings")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="settings"?"bg-white text-black shadow":"text-white/80"}`}>⚙️ Settings</button>}
           {isMaster && <button onClick={()=>setActiveTab("announcements")} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="announcements"?"bg-yellow-400 text-black shadow":"text-white/80 bg-black/20"}`}>📢 Offers</button>}
-          <Link href="/admin/posts" className="px-6 py-2 rounded-full bg-black text-white font-bold text-center">📝 Posts</Link>
         </div>
 
         <div className="backdrop-blur-xl bg-white/20 border border-white/30 rounded-[24px] p-6 shadow-xl">
@@ -193,13 +197,31 @@ export default function AdminPage() {
                       <div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug? tool.slug : "❌ SLUG KHALI - Fix button dabao"}</p></div>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={()=>{ if(!tool.slug || String(tool.slug).trim()==="") return alert("Slug khali hai - Pehle Edit karke Slug dalo"); window.open(`/${String(tool.slug).trim().replace(/^\/+/,"")}`, '_blank') }} className="text-xs px-3 py-2 bg-black text-white rounded-full">View</button>
+                      {tool.slug && String(tool.slug).trim()!=="" ? (
+                        <a href={`/tools/${cleanSlug(tool.slug)}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>
+                      ) : (
+                        <button onClick={()=>alert("Slug khali hai - Pehle Edit karke Slug dalo")} className="text-xs px-3 py-2 bg-gray-400 text-white rounded-full">View</button>
+                      )}
                       <button onClick={()=>setEditTool(tool)} className="text-xs px-3 py-2 bg-white border rounded-full">Edit</button>
                     </div>
                   </div>
                 ))}
               </div>
             </>
+          ): activeTab==="posts"? (
+            <div className="space-y-3 bg-white/90 p-5 rounded-2xl">
+              <h2 className="font-bold text-lg">📝 All Posts ({posts.length})</h2>
+              {posts.length===0 && <p className="text-sm text-gray-500">Koi Post nahi hai. Blog Tab se Post karo.</p>}
+              {posts.map((p:any)=>(
+                <div key={p.id} className="p-3 border rounded-xl flex justify-between items-center gap-3">
+                  <div><p className="font-bold text-sm">{p.title}</p><p className="text-[11px] text-gray-500">/{p.slug}</p></div>
+                  <div className="flex gap-2">
+                    <a href={`/blog/${p.slug}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold">View</a>
+                    <button onClick={async()=>{ if(!confirm("Delete this post?")) return; await supabase.from("blogs").delete().eq("id", p.id); fetchPosts(); }} className="px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
           ): activeTab==="myaccount"? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
               <h2 className="font-bold text-lg">👤 Admin Control Panel</h2>
@@ -215,7 +237,6 @@ export default function AdminPage() {
               <select value={notifType} onChange={e=>setNotifType(e.target.value)} className="w-full p-3 rounded-xl border font-bold bg-white">
                 <option value="info">🔵 Info - Blue</option><option value="offer">🟢 Offer - Green</option><option value="alert">🔴 Alert - Red</option><option value="warning">🟡 Warning - Orange</option><option value="premium">⚫ Premium - Black Gold</option><option value="diwali">💜 Diwali - Purple</option>
               </select>
-
               <div className="bg-gray-50 p-3 rounded-xl border">
                 <label className="flex items-center gap-2 text-sm font-bold mb-3 cursor-pointer">
                   <input type="checkbox" checked={isAllTools} onChange={e=>{ const c=e.target.checked; setIsAllTools(c); if(c) setSelectedTools([]); }} className="w-5 h-5" />
@@ -249,12 +270,10 @@ export default function AdminPage() {
                 )}
                 <p className="text-[11px] mt-2 font-bold text-blue-600">{isAllTools? '✓ ALL par dikhega' : selectedTools.length>0? `✓ ${selectedTools.length} selected: ${selectedTools.join(', ')}` : '❌ Koi select nahi'}</p>
               </div>
-
               <div className="bg-gray-50 p-3 rounded-xl border">
                 <label className="flex items-center gap-2 text-sm font-bold mb-2 cursor-pointer"><input type="checkbox" checked={noExpiry} onChange={e=>{ setNoExpiry(e.target.checked); if(e.target.checked) setNotifExpiry(""); }} className="w-4 h-4" />♾️ Lifetime</label>
                 {!noExpiry && <input type="datetime-local" value={notifExpiry} onChange={e=>setNotifExpiry(e.target.value)} className="w-full p-3 rounded-xl border mt-1 bg-white" />}
               </div>
-
               <div className="flex gap-2">
                 <button onClick={async()=>{
                   const finalTarget = isAllTools? "all" : selectedTools.join(',');
@@ -270,7 +289,6 @@ export default function AdminPage() {
                 }} className="flex-1 bg-black text-white p-4 rounded-xl font-bold">{loading? "..." : editingOfferId? "💾 Update" : "🚀 Publish"}</button>
                 {editingOfferId && <button onClick={()=>{ setEditingOfferId(null); setNotifTitle(""); setNotifMsg(""); setNotifExpiry(""); setNoExpiry(true); setIsAllTools(true); setSelectedTools([]); }} className="px-6 bg-gray-200 rounded-xl font-bold">Cancel</button>}
               </div>
-
               <div className="mt-6 border-t pt-4">
                 <h3 className="font-bold text-base mb-3">📋 Live Offers ({offers.length}) - Tick karke ON/OFF karo</h3>
                 <div className="grid gap-2">
@@ -311,7 +329,6 @@ export default function AdminPage() {
               </div>
               <div className="bg-white/90 p-5 rounded-2xl"><div className="flex gap-2"><input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} placeholder="New Admin Password" className="flex-1 p-3 rounded-xl border" /><button onClick={()=>updatePasswordSecure("admin_password", newAdminPass)} className="px-6 bg-black text-white rounded-xl font-bold">Reset</button></div></div>
               <div className="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl"><div className="flex gap-2"><input value={newMasterKey} onChange={e=>setNewMasterKey(e.target.value)} placeholder="New Master Key" className="flex-1 p-3 rounded-xl border" /><button onClick={()=>updatePasswordSecure("master_key", newMasterKey)} className="px-6 bg-yellow-400 text-black rounded-xl font-bold">Update</button></div></div>
-
               <div className="bg-blue-50 border border-blue-300 p-5 rounded-2xl">
                 <h3 className="font-bold text-sm mb-2">📧 Emergency Email Change</h3>
                 <p className="text-xs text-gray-500 mb-2">Master Key bhool gaye? OTP se login hai to yahan se email change kar sakte ho</p>
@@ -335,7 +352,7 @@ export default function AdminPage() {
               <button type="button" onClick={()=>insertFormat("**","**")}>B</button><button type="button" onClick={()=>insertFormat("\n## ","")}>H2</button><button type="button" onClick={()=>insertFormat("\n### ","")}>H3</button><button type="button" onClick={()=>insertFormat("\n- ","")}>List</button><button type="button" onClick={()=>insertFormat("[", "](https://)")} >Link</button><button type="button" onClick={()=>setShowPreview(!showPreview)} className="ml-auto px-3 py-1 bg-purple-600 text-white rounded-lg">{showPreview? "Edit" : "Preview"}</button>
               </div>
               {!showPreview? (<textarea ref={contentRef} value={content} onChange={e=>setContent(e.target.value)} placeholder="Blog Content..." className="w-full h-[300px] p-4 rounded-xl border" />) : (<div className="w-full h-[300px] p-4 rounded-xl border bg-white overflow-y-auto whitespace-pre-wrap"><h2 className="font-bold text-lg mb-2">{title}</h2><div>{renderPreview(content)}</div></div>)}
-              <button onClick={async()=>{ if(!title ||!content) return alert("Fill all"); setLoading(true); const slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); const { error } = await supabase.from("blogs").insert([{title, content, slug}]); if(error){ alert("❌ "+error.message); } else { alert("✅ Posted!"); setTitle(""); setContent(""); } setLoading(false); }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">{loading? "Posting..." : "Post Blog"}</button>
+              <button onClick={async()=>{ if(!title ||!content) return alert("Fill all"); setLoading(true); const slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); const { error } = await supabase.from("blogs").insert([{title, content, slug}]); if(error){ alert("❌ "+error.message); } else { alert("✅ Posted!"); setTitle(""); setContent(""); fetchPosts(); } setLoading(false); }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">{loading? "Posting..." : "Post Blog"}</button>
             </>
           )}
         </div>
