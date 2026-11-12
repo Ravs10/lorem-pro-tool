@@ -36,9 +36,11 @@ export default function AdminPage() {
   const [adminSelfNewPass, setAdminSelfNewPass] = useState("");
   const [newMasterEmail, setNewMasterEmail] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
-  // ✅ NAYA - Post Edit ke liye
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editPost, setEditPost] = useState<any>(null);
+  // ✅ NAYA - Comments ke liye
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentFilter, setCommentFilter] = useState<"all"|"pending"|"approved">("all");
 
   useEffect(() => {
     (async () => {
@@ -51,6 +53,7 @@ export default function AdminPage() {
           fetchTools();
           fetchOffers();
           fetchPosts();
+          fetchComments();
         }
       } catch {}
       setAuthChecked(true);
@@ -69,6 +72,11 @@ export default function AdminPage() {
     const { data } = await supabase.from("blogs").select("*").order("created_at", { ascending: false });
     if (data) setPosts(data);
   };
+  const fetchComments = async () => {
+    // Table ka naam "comments" hai, agar tumhara alag hai to yaha badal dena
+    const { data } = await supabase.from("comments").select("*").order("created_at", { ascending: false });
+    if (data) setComments(data);
+  };
   const getToolKey = (t:any) => (t.slug && String(t.slug).trim()!==""? String(t.slug).trim() : String(t.id));
   const cleanSlug = (s:any) => String(s || "").trim().toLowerCase().replace(/\s+/g, '-').replace(/^\/+/,"").replace(/^tools\//,"");
 
@@ -78,7 +86,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "login", password: pass }) });
     const d = await res.json();
     if (d.success) {
-      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); setPass(""); setActiveTab("tools");
+      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); setPass(""); setActiveTab("tools");
     } else alert(d.error || "Wrong password");
     setLoading(false);
   };
@@ -98,7 +106,7 @@ export default function AdminPage() {
     const res = await fetch("/api/admin-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "verify-otp", otp }) });
     const d = await res.json(); setLoading(false);
     if(d.success){
-      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts();
+      setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments();
     } else alert(d.error || "Wrong OTP");
   };
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
@@ -109,6 +117,18 @@ export default function AdminPage() {
     const { error } = await supabase.from("blogs").update({ title: editPost.title, content: editPost.content, slug }).eq("id", editPost.id);
     if(error) alert("❌ "+error.message); else { alert("✅ Post Updated!"); setEditPost(null); setEditingPostId(null); fetchPosts(); }
   };
+  // ✅ Comments - Approve / Delete
+  const approveComment = async (c:any, val:boolean) => {
+    setComments(prev=>prev.map(x=>x.id===c.id? {...x, is_approved: val, approved: val, status: val? "approved":"pending"}: x));
+    const { error } = await supabase.from("comments").update({ is_approved: val }).eq("id", c.id);
+    if(error) { alert(error.message); fetchComments(); }
+  };
+  const deleteComment = async (id:string) => {
+    if(!confirm("Ye comment delete kar du?")) return;
+    const { error } = await supabase.from("comments").delete().eq("id", id);
+    if(error) alert(error.message); else fetchComments();
+  };
+
   const contentRef = useRef(null)
   const renderPreview = (text:any) => { return text.split('\n').map((line:any, i:any) => { if(line.startsWith('### ')) return <h3 key={i} className="text-lg font-bold my-2">{line.slice(4)}</h3>; if(line.startsWith('## ')) return <h2 key={i} className="text-xl font-bold my-3">{line.slice(3)}</h2>; if(line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.replace('- ','')}</li>; let parts = line.split(/(\*\*.*?\*\*)/g); return <p key={i} className="my-1">{parts.map((p:any, j:any) => { if(p.startsWith('**') && p.endsWith('**')) return <b key={j}>{p.slice(2,-2)}</b>; let linkMatch = p.match(/\[(.*)\]\((.*)\)/); if(linkMatch) return <a key={j} href={linkMatch[2]} target="_blank" className="text-blue-600 underline">{linkMatch[1]}</a>; return p })}</p> }) }
   const insertFormat = (b:any, a="") => { const el:any = contentRef.current; if(!el) return; const s = el.selectionStart, e = el.selectionEnd; const sel = content.substring(s,e); const newText = content.substring(0,s) + b + (sel||"text") + a + content.substring(e); setContent(newText); }
@@ -121,6 +141,13 @@ export default function AdminPage() {
     setIsMaster(false);
     window.location.href = "/admin";
   };
+
+  const filteredComments = comments.filter((c:any)=>{
+    const approved = c.is_approved===true || c.approved===true || c.status==="approved";
+    if(commentFilter==="pending") return !approved;
+    if(commentFilter==="approved") return approved;
+    return true;
+  });
 
   if (!authChecked) {
     return (
@@ -174,6 +201,7 @@ export default function AdminPage() {
           <button onClick={()=>setActiveTab("tools")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="tools"?"bg-white text-black shadow":"text-white/80"}`}>Tools</button>
           <button onClick={()=>setActiveTab("blog")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="blog"?"bg-white text-black shadow":"text-white/80"}`}>Blog</button>
           <button onClick={()=>{setActiveTab("posts"); fetchPosts();}} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="posts"?"bg-black text-white shadow":"bg-black text-white"}`}>📝 Posts ({posts.length})</button>
+          <button onClick={()=>{setActiveTab("comments"); fetchComments();}} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="comments"?"bg-white text-black shadow":"text-white/80"}`}>💬 Comments ({comments.length})</button>
           {!isMaster && <button onClick={()=>setActiveTab("myaccount")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="myaccount"?"bg-white text-black shadow":"text-white/80"}`}>👤 My Account</button>}
           {isMaster && <button onClick={()=>setActiveTab("settings")} className={`px-6 py-2.5 rounded-full font-medium ${activeTab==="settings"?"bg-white text-black shadow":"text-white/80"}`}>⚙️ Settings</button>}
           {isMaster && <button onClick={()=>setActiveTab("announcements")} className={`px-6 py-2.5 rounded-full font-bold ${activeTab==="announcements"?"bg-yellow-400 text-black shadow":"text-white/80 bg-black/20"}`}>📢 Offers</button>}
@@ -231,6 +259,39 @@ export default function AdminPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          ): activeTab==="comments"? (
+            <div className="space-y-3 bg-white/90 p-5 rounded-2xl">
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <h2 className="font-bold text-lg">💬 Comments ({filteredComments.length}/{comments.length})</h2>
+                <div className="flex gap-1 bg-gray-100 p-1 rounded-full">
+                  <button onClick={()=>setCommentFilter("all")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="all"?"bg-black text-white":""}`}>All</button>
+                  <button onClick={()=>setCommentFilter("pending")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="pending"?"bg-yellow-400 text-black":""}`}>⏳ Pending</button>
+                  <button onClick={()=>setCommentFilter("approved")} className={`px-3 py-1 rounded-full text-xs font-bold ${commentFilter==="approved"?"bg-green-600 text-white":""}`}>✅ Approved</button>
+                </div>
+              </div>
+              {filteredComments.length===0 && <p className="text-sm text-gray-500">Koi comment nahi hai is filter me.</p>}
+              {filteredComments.map((c:any)=>{
+                const approved = c.is_approved===true || c.approved===true || c.status==="approved";
+                return (
+                  <div key={c.id} className={`p-3 border rounded-xl ${approved? "bg-green-50 border-green-200":"bg-yellow-50 border-yellow-200"}`}>
+                    <div className="flex justify-between gap-2 flex-wrap">
+                      <p className="font-bold text-sm">{c.name || c.author || c.user_name || "Anonymous"} <span className={`text-[10px] px-2 py-0.5 rounded-full ml-1 ${approved?"bg-green-200 text-green-800":"bg-yellow-200 text-yellow-800"}`}>{approved?"✅ Approved":"⏳ Pending"}</span></p>
+                      <p className="text-[11px] text-gray-500">{c.created_at? new Date(c.created_at).toLocaleString() : ""}</p>
+                    </div>
+                    <p className="text-sm text-gray-700 mt-1">{c.comment || c.message || c.text || c.content}</p>
+                    <p className="text-[11px] text-blue-600 mt-1">Post: {c.blog_slug || c.blog_id || c.post_slug || c.slug || "-"}</p>
+                    <div className="flex gap-2 mt-2">
+                      {!approved ? (
+                        <button onClick={()=>approveComment(c, true)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">✅ Approve</button>
+                      ) : (
+                        <button onClick={()=>approveComment(c, false)} className="px-4 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">⏳ Unapprove</button>
+                      )}
+                      <button onClick={()=>deleteComment(c.id)} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">🗑️ Delete</button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ): activeTab==="myaccount"? (
             <div className="space-y-4 bg-white/90 p-5 rounded-2xl">
