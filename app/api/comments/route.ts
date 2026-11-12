@@ -16,7 +16,8 @@ export async function GET(req: Request) {
     .from("comments")
     .select("*")
     .eq("blog_slug", slug)
-    .eq("status", "approved")
+    .neq("is_deleted", true)
+    .or("status.eq.approved,is_approved.eq.true")
     .order("created_at", { ascending: false });
 
   return NextResponse.json({ comments: data || [] });
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Comment bahut lamba hai" }, { status: 400 });
 
   const { error } = await supabaseAdmin.from("comments").insert([
-    { blog_slug, name: name.trim(), comment: comment.trim(), status: "pending", is_approved: false },
+    { blog_slug, name: name.trim(), comment: comment.trim(), status: "pending", is_approved: false, approved: false, is_deleted: false },
   ]);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true, message: "Pending me gaya, Admin Approve karega" });
