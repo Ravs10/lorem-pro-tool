@@ -13,12 +13,22 @@ export default function AllTools(){
 
   useEffect(()=>{
     const fetchTools=async()=>{
-      // sirf active = true wale tools dikhenge, admin OFF karega to hide
       const {data} = await supabase.from("tools").select("*").eq("is_active", true).order("id", {ascending: true})
       setTools(data || [])
     }
     fetchTools()
   },[])
+
+  // Slug ko sahi karo - /admin wala slug kabhi Link nahi banega
+  function getLink(slug: string | null){
+    if(!slug) return "/tools"
+    let s = slug.trim()
+    // Agar slug me /admin hai to wo Tool nahi hai, usko mat kholo
+    if(s.includes("admin")) return "/tools"
+    // Agar / nahi hai to laga do
+    if(!s.startsWith("/")) s = "/" + s
+    return s
+  }
 
   return(
     <div className="min-h-screen bg-black text-white px-6 py-10">
@@ -32,10 +42,11 @@ export default function AllTools(){
 
         <div className="grid md:grid-cols-3 sm:grid-cols-2 gap-4">
           {tools.map(t=>(
-            <Link key={t.id} href={t.slug || "/"}>
+            <Link key={t.id} href={getLink(t.slug)}>
               <div className="group h-full p-5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-orange-500 hover:bg-zinc-900/80 transition-all hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(249,115,22,0.3)]">
                 <h3 className="font-bold text-white group-hover:text-orange-400 transition-colors">{t.name}</h3>
                 <p className="text-zinc-500 text-[13px] mt-1 line-clamp-2">{t.description || t.desc || "Use this tool for free"}</p>
+                <p className="text-[10px] text-zinc-600 mt-2">Link: {getLink(t.slug)}</p>
                 <span className="inline-block mt-3 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[11px] font-bold">OPEN →</span>
               </div>
             </Link>
