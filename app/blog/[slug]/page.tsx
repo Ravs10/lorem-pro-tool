@@ -7,33 +7,27 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-// Markdown ko HTML me badalne wala function
-function markdownToHtml(text: string) {
+function renderContent(text: string) {
   if (!text) return ""
-  let html = text
-    // pehle HTML escape karo taaki galat tag na chale
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
 
-  // Headings
+  // 1. Agar content me pehle se HTML hai - <p>, <h2>, <b> etc - to usko aise hi dikhao, chhedo mat
+  const isHtml = /<(p|h1|h2|h3|b|strong|a|ul|li|div)[\s>]/.test(text)
+  if (isHtml) {
+    return text
+  }
+
+  // 2. Warna Markdown hai - usko HTML me badlo
+  let html = text
   html = html.replace(/^### (.*)$/gm, '<h3 class="text-xl font-bold mt-6 mb-2">$1</h3>')
   html = html.replace(/^## (.*)$/gm, '<h2 class="text-2xl font-bold mt-6 mb-2">$1</h2>')
   html = html.replace(/^# (.*)$/gm, '<h1 class="text-3xl font-bold mt-6 mb-2">$1</h1>')
-
-  // Bold + Italic
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
-
-  // Links: [text](url) -> <a>
   html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" class="text-orange-600 underline font-bold">$1</a>')
-  // Bina bracket wala plain link
-  html = html.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" class="text-orange-600 underline break-all">$1</a>')
-
-  // Lists: - item
+  // Plain link - lekin jo pehle se <a> me hai usko dobara mat chhedo, isliye yaha pehle se link wale ko skip karte hai
+  html = html.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" class="text-orange-600 underline break-all">$1</a>')
   html = html.replace(/^- (.*)$/gm, '<li class="ml-5 list-disc">$1</li>')
 
-  // Paragraphs - double line break
   html = html.split(/\n\s*\n/).map(p => {
     if (p.trim().startsWith('<h') || p.trim().startsWith('<li')) return p
     return `<p class="my-3 leading-relaxed">${p.replace(/\n/g, '<br/>')}</p>`
@@ -44,7 +38,6 @@ function markdownToHtml(text: string) {
 
 export default async function Page({ params }: { params: { slug: string } }) {
   const slug = params.slug
-
   const { data: blog } = await supabase.from('blogs').select('*').eq('slug', slug).single()
 
   if (!blog) {
@@ -68,8 +61,8 @@ export default async function Page({ params }: { params: { slug: string } }) {
       <p className="text-gray-500 mb-6">{new Date(blog.created_at).toLocaleDateString()} | By Ravish</p>
       
       <div 
-        className="prose max-w-none leading-relaxed"
-        dangerouslySetInnerHTML={{ __html: markdownToHtml(blog.content) }}
+        className="prose max-w-none leading-relaxed prose-p:my-3 prose-a:text-orange-600 prose-a:underline prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-6 prose-strong:text-black"
+        dangerouslySetInnerHTML={{ __html: renderContent(blog.content) }}
       />
 
       <Comments slug={slug} />
