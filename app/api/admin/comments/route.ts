@@ -1,17 +1,37 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+function getAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
-export async function GET() {
-  const { data } = await supabaseAdmin.from("comments").select("*").order("created_at", { ascending: false });
+export async function GET(req: Request) {
+  const supabaseAdmin = getAdmin();
+  const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
+  const action = searchParams.get("action");
+
+  // TEST MODE: Browser se hi Approve karne ke liye
+  // /api/admin/comments?id=XXX&action=approve kholo to ho jayega
+  if (id && action) {
+    const { error } = await supabaseAdmin
+      .from("comments")
+      .update({ status: "approved", is_approved: true })
+      .eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, via: "GET-test" });
+  }
+
+  const { data, error } = await supabaseAdmin.from("comments").select("*").order("created_at", { ascending: false });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ comments: data || [] });
 }
 
 export async function POST(req: Request) {
+  const supabaseAdmin = getAdmin();
   const { id, action, text } = await req.json();
   if (!id || !action) return NextResponse.json({ error: "id/action chahiye" }, { status: 400 });
 
@@ -26,9 +46,7 @@ export async function POST(req: Request) {
     if (!text?.trim()) return NextResponse.json({ error: "Text likho" }, { status: 400 });
     update = { comment: text.trim() };
   }
-  if (action === "delete_permanent") {
-    shouldDelete = true;
-  }
+  if (action === "delete_permanent") shouldDelete = true;
 
   if (shouldDelete) {
     const { error } = await supabaseAdmin.from("comments").delete().eq("id", id);
@@ -37,9 +55,11 @@ export async function POST(req: Request) {
   }
   if (!update) return NextResponse.json({ error: "Galat action" }, { status: 400 });
 
-  const { error } = await supabaseAdmin.from("comments").update(update).eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
+  const { data, error } = await supabaseAdmin.from("comments").update(update).eq("id", id).select();
+  if (error) return NextResponse.json({ error: error.message, update }, { status: 500 });
+  // Agar data khali aaya to matlab ID hi nahi mili
+  if (!data || data.length === 0) return NextResponse.json({ error: "ID nahi mili, update hua hi nahi", id }, { status: 404 });
+  return NextResponse.json({ success: true, updated: data[0] });
 }
 
 export async function PATCH(req: Request) {
