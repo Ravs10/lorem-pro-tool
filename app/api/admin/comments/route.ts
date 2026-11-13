@@ -13,16 +13,34 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   const action = searchParams.get("action");
+  const text = searchParams.get("text");
 
-  // TEST MODE: Browser se hi Approve karne ke liye
-  // /api/admin/comments?id=XXX&action=approve kholo to ho jayega
+  // Button ab GET se hi kaam karega - POST Cloudflare par atak raha tha
   if (id && action) {
+    // Permanent Delete
+    if (action === "delete_permanent") {
+      const { error } = await supabaseAdmin.from("comments").delete().eq("id", id);
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ success: true, via: "GET" });
+    }
+
+    let update: any = {};
+    if (action === "approve") update = { status: "approved", is_approved: true };
+    if (action === "reject") update = { status: "rejected", is_approved: false };
+    if (action === "trash") update = { status: "trash", is_approved: false };
+    if (action === "restore") update = { status: "pending", is_approved: false };
+    if (action === "edit" && text) update = { comment: text };
+
+    if (Object.keys(update).length === 0) {
+      return NextResponse.json({ error: "Galat action" }, { status: 400 });
+    }
+
     const { error } = await supabaseAdmin
       .from("comments")
-      .update({ status: "approved", is_approved: true })
+      .update(update)
       .eq("id", id);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json({ success: true, via: "GET-test" });
+    return NextResponse.json({ success: true, via: "GET" });
   }
 
   const { data, error } = await supabaseAdmin.from("comments").select("*").order("created_at", { ascending: false });
@@ -57,7 +75,6 @@ export async function POST(req: Request) {
 
   const { data, error } = await supabaseAdmin.from("comments").update(update).eq("id", id).select();
   if (error) return NextResponse.json({ error: error.message, update }, { status: 500 });
-  // Agar data khali aaya to matlab ID hi nahi mili
   if (!data || data.length === 0) return NextResponse.json({ error: "ID nahi mili, update hua hi nahi", id }, { status: 404 });
   return NextResponse.json({ success: true, updated: data[0] });
 }
