@@ -25,12 +25,17 @@ export default function AdminComments(){
   }
 
   async function doAction(id:string, action:string, text?:string){
-    // FIX: fetch ki jagah window.open - Sujata Address Bar se hui thi, fetch Server tak nahi pahunch raha tha
-    const url = `/api/admin/comments?id=${id}&action=${action}&t=${Date.now()}` + (text ? `&text=${encodeURIComponent(text)}` : "");
-    window.open(url, "_blank");
-    setTimeout(async () => {
-      await fetchData()
-    }, 1500);
+    // PERMANENT FIX: GET / window.open ki jagah POST - Cache kabhi nahi hoga, Server tak pakka pahuchega
+    const res = await fetch("/api/admin/comments", {
+      method: "POST",
+      credentials: "include",
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action, text })
+    });
+    const d = await res.json()
+    if(!res.ok) return alert("❌ "+(d.error || "Fail ho gaya"))
+    await fetchData() // List fresh karo
   }
 
   async function approve(id:string){ await doAction(id, "approve") }
