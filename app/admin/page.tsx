@@ -115,7 +115,7 @@ export default function AdminPage() {
   };
   const approveComment = async (c:any, val:boolean) => {
     setComments(prev=>prev.map(x=>x.id===c.id? {...x, is_approved: val, approved: val, status: val? "approved":"pending"}: x));
-    const { error } = await supabase.from("comments").update({ is_approved: val }).eq("id", c.id);
+    const { error } = await supabase.from("comments").update({ is_approved: val, status: val ? "approved" : "pending" }).eq("id", c.id);
     if(error) { alert(error.message); fetchComments(); }
   };
   const movePostToTrash = async (p:any) => {
