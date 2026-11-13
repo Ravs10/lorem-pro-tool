@@ -10,17 +10,13 @@ const supabaseAdmin = createClient(
 async function getRole() {
   const cookieStore = await cookies();
   const all = cookieStore.getAll();
-
   for (const c of all) {
-    // 1. Seedha "admin" / "master" likha ho to
     if (c.value === "admin" || c.value === "master") return c.value;
-    // 2. JSON me role ho to {"role":"admin"}
     try {
       const v = JSON.parse(c.value);
       if (v.role === "admin" || v.role === "master") return v.role;
       if (v.user?.role === "admin" || v.user?.role === "master") return v.user.role;
     } catch {}
-    // 3. Cookie ka naam hi role bata raha ho
     if (c.name.includes("master")) return "master";
     if (c.name.includes("admin")) return "admin";
   }
@@ -31,7 +27,6 @@ export async function GET() {
   const role = await getRole();
   if (role !== "admin" && role !== "master")
     return NextResponse.json({ error: "Login karo" }, { status: 401 });
-
   const { data } = await supabaseAdmin.from("comments").select("*").order("created_at", { ascending: false });
   return NextResponse.json({ comments: data || [] });
 }
@@ -47,16 +42,15 @@ export async function POST(req: Request) {
   let update: any = null;
   let shouldDelete = false;
 
-  // ✅ FIX: Har action me status + is_approved + is_deleted - teeno ek sath update karo, taaki Public wali File se match kare
-  if (action === "approve") update = { status: "approved", is_approved: true, approved: true, is_deleted: false };
-  if (action === "reject") update = { status: "rejected", is_approved: false, approved: false, is_deleted: false };
-  if (action === "trash") update = { status: "trash", is_approved: false, approved: false, is_deleted: true };
-  if (action === "restore") update = { status: "pending", is_approved: false, approved: false, is_deleted: false };
+  // ✅ SIRF 2 COLUMN - status aur is_approved. Koi extra column nahi, taaki Update Fail na ho
+  if (action === "approve") update = { status: "approved", is_approved: true };
+  if (action === "reject") update = { status: "rejected", is_approved: false };
+  if (action === "trash") update = { status: "trash", is_approved: false };
+  if (action === "restore") update = { status: "pending", is_approved: false };
   if (action === "edit") {
     if (!text?.trim()) return NextResponse.json({ error: "Text likho" }, { status: 400 });
     update = { comment: text.trim() };
   }
-  // Permanent Delete - SIRF MASTER kar sakta hai, Admin nahi
   if (action === "delete_permanent") {
     if (role !== "master") return NextResponse.json({ error: "Sirf Master kar sakta hai" }, { status: 403 });
     shouldDelete = true;
