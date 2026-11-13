@@ -7,22 +7,24 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// ⚠️ IMPORTANT: Ye check tumhari /api/admin/me wali file se match karna chahiye.
-// Agar tumhari login API cookie ka naam alag hai (jaise 'admin_token'), to yaha wahi naam daalo.
 async function getRole() {
-  const cookieStore = cookies();
-  // Tumhari /api/admin/me jo cookie check karti hai, wahi yaha check hogi.
-  // Agar /api/admin/me me JWT verify hota hai, to yaha bhi wahi logic copy karo.
-  // Abhi ke liye: agar cookie me role hai to use karo, nahi to null.
-  // Sabse safe: apni /api/admin-login wali file bhej do, main exact likh dunga.
-  const c: any = cookieStore.get("admin_session") || cookieStore.get("admin_token") || cookieStore.get("role");
-  if (!c) return null;
-  try {
-    const v = JSON.parse(c.value);
-    return v.role || v;
-  } catch {
-    return c.value; // "admin" ya "master" seedha likha ho to
+  const cookieStore = await cookies();
+  const all = cookieStore.getAll();
+
+  for (const c of all) {
+    // 1. Seedha "admin" / "master" likha ho to
+    if (c.value === "admin" || c.value === "master") return c.value;
+    // 2. JSON me role ho to {"role":"admin"}
+    try {
+      const v = JSON.parse(c.value);
+      if (v.role === "admin" || v.role === "master") return v.role;
+      if (v.user?.role === "admin" || v.user?.role === "master") return v.user.role;
+    } catch {}
+    // 3. Cookie ka naam hi role bata raha ho
+    if (c.name.includes("master")) return "master";
+    if (c.name.includes("admin")) return "admin";
   }
+  return null;
 }
 
 export async function GET() {
@@ -45,10 +47,11 @@ export async function POST(req: Request) {
   let update: any = null;
   let shouldDelete = false;
 
-  if (action === "approve") update = { status: "approved", is_approved: true };
-  if (action === "reject") update = { status: "rejected", is_approved: false };
-  if (action === "trash") update = { status: "trash", is_approved: false };
-  if (action === "restore") update = { status: "pending", is_approved: false }; // Trash se wapas Pending
+  // ✅ FIX: Har action me status + is_approved + is_deleted - teeno ek sath update karo, taaki Public wali File se match kare
+  if (action === "approve") update = { status: "approved", is_approved: true, approved: true, is_deleted: false };
+  if (action === "reject") update = { status: "rejected", is_approved: false, approved: false, is_deleted: false };
+  if (action === "trash") update = { status: "trash", is_approved: false, approved: false, is_deleted: true };
+  if (action === "restore") update = { status: "pending", is_approved: false, approved: false, is_deleted: false };
   if (action === "edit") {
     if (!text?.trim()) return NextResponse.json({ error: "Text likho" }, { status: 400 });
     update = { comment: text.trim() };
