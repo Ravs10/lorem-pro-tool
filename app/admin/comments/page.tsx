@@ -18,19 +18,19 @@ export default function AdminComments(){
       const me = await fetch("/api/admin/me", { credentials: "include" }).then(r=>r.json())
       if(me.role) setIsMaster(me.role === "master")
     }catch{}
-    const res = await fetch("/api/admin/comments", { credentials: "include", cache: "no-store" })
+    const res = await fetch(`/api/admin/comments?t=${Date.now()}`, { credentials: "include", cache: "no-store" })
     const d = await res.json()
     if(d.comments) setComments(d.comments)
     setLoading(false)
   }
 
   async function doAction(id:string, action:string, text?:string){
-    // FIX: POST ki jagah GET - Cloudflare par POST atak raha tha, GET Markr par chal gaya tha
-    const url = `/api/admin/comments?id=${id}&action=${action}` + (text ? `&text=${encodeURIComponent(text)}` : "");
-    const res = await fetch(url, { credentials: "include", cache: "no-store" });
-    const d = await res.json()
-    if(!res.ok) return alert("❌ "+(d.error || "Fail ho gaya"))
-    fetchData() // List fresh karo
+    // FIX: fetch ki jagah window.open - Sujata Address Bar se hui thi, fetch Server tak nahi pahunch raha tha
+    const url = `/api/admin/comments?id=${id}&action=${action}&t=${Date.now()}` + (text ? `&text=${encodeURIComponent(text)}` : "");
+    window.open(url, "_blank");
+    setTimeout(async () => {
+      await fetchData()
+    }, 1500);
   }
 
   async function approve(id:string){ await doAction(id, "approve") }
