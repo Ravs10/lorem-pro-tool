@@ -25,12 +25,9 @@ export default function AdminComments(){
   }
 
   async function doAction(id:string, action:string, text?:string){
-    const res = await fetch("/api/admin/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ id, action, text })
-    })
+    // FIX: POST ki jagah GET - Cloudflare par POST atak raha tha, GET Markr par chal gaya tha
+    const url = `/api/admin/comments?id=${id}&action=${action}` + (text ? `&text=${encodeURIComponent(text)}` : "");
+    const res = await fetch(url, { credentials: "include", cache: "no-store" });
     const d = await res.json()
     if(!res.ok) return alert("❌ "+(d.error || "Fail ho gaya"))
     fetchData() // List fresh karo
