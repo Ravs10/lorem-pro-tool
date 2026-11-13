@@ -1,3 +1,11 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -14,8 +22,8 @@ export async function GET(req: Request) {
     .from("comments")
     .select("*")
     .eq("blog_slug", slug)
-    .eq("status", "approved")
-    .eq("is_deleted", false)
+    .or("status.eq.approved,is_approved.eq.true")
+    .or("is_deleted.is.null,is_deleted.eq.false")
     .order("created_at", { ascending: false });
 
   return NextResponse.json({ comments: data || [] });
