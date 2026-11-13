@@ -67,3 +67,8 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ success: true });
 }
+
+// ✅ NAYA JODA HUA - Agar Admin Panel PATCH bhejta hai to bhi POST wala hi kaam karega
+export async function PATCH(req: Request) {
+  return POST(req);
+}
