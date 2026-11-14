@@ -46,6 +46,14 @@ export default function AdminPage() {
   // ✅ FIX: Trash count sabko dikhega, Trash kholega sirf Master
   const [trashCount, setTrashCount] = useState(0);
   const [lastTrashMsg, setLastTrashMsg] = useState("");
+  // NEW: Tool Control States
+  const [showOffModal, setShowOffModal] = useState<any>(null);
+  const [offReason, setOffReason] = useState("");
+  const [offValue, setOffValue] = useState("2");
+  const [offUnit, setOffUnit] = useState("hour");
+  const [offForever, setOffForever] = useState(false);
+  const [toolHistory, setToolHistory] = useState<any[]>([]);
+  const [showHistoryFor, setShowHistoryFor] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -63,12 +71,10 @@ export default function AdminPage() {
     })();
   }, []);
 
-  const fetchTools = async () => { const { data } = await supabase.from("tools").select("*").order("name"); if (data) setTools(data); };
+  const fetchTools = async () => { const { data } = await supabase.from("tools").select("*").order("name"); if (data) setTools(data.map((t:any)=>({ ...t, menu_visible: t.menu_visible ?? t.is_active ?? true, public_open: t.public_open ?? t.is_active ?? true }))); };
   const fetchOffers = async () => { const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false }); if (data) setOffers(data); };
-  // ✅ FIX: is_deleted = false ki jagah != true, taaki NULL wale bhi Live me aaye
   const fetchPosts = async () => { const { data } = await supabase.from("blogs").select("*").neq("is_deleted", true).order("created_at", { ascending: false }); if (data) setPosts(data); };
   const fetchComments = async () => { const { data } = await supabase.from("comments").select("*").neq("is_deleted", true).order("created_at", { ascending: false }); if (data) setComments(data); };
-  // ✅ FIX: Sirf Count - Admin aur Master dono ko dikhega
   const fetchTrashCount = async () => {
     const { count: c1 } = await supabase.from("blogs").select("id", { count: "exact", head: true }).eq("is_deleted", true);
     const { count: c2 } = await supabase.from("comments").select("id", { count: "exact", head: true }).eq("is_deleted", true);
@@ -106,6 +112,44 @@ export default function AdminPage() {
     if(d.success){ setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); fetchTrashCount(); if(d.role==="master") fetchTrash(); } else alert(d.error || "Wrong OTP");
   };
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
+  // NEW: Menu Toggle - Only hides from menu, direct link works
+  const toggleMenu = async (tool: any) => {
+    const n = !tool.menu_visible;
+    setTools((p: any) => p.map((t: any) => t.id === tool.id ? { ...t, menu_visible: n } : t));
+    const { error } = await supabase.from('tools').update({ menu_visible: n, is_active: n }).eq('id', tool.id);
+    if (error) { alert(error.message); fetchTools(); }
+    else { try{ await supabase.from('tool_history').insert([{ tool_id: tool.id, tool_name: tool.name, action: n ? "Menu ON" : "Menu OFF", by_role: isMaster ? "master" : "admin" }]); }catch{} }
+  };
+  // NEW: Public OFF - With Reason + Custom Time
+  const publicOff = async () => {
+    if (!showOffModal) return;
+    if (!offReason.trim()) return alert("Reason likho");
+    let autoOnAt = null;
+    if (!offForever) {
+      const v = parseInt(offValue) || 0;
+      if (v <= 0) return alert("Time 0 se bada likho ya Forever tick karo");
+      const ms = v * (offUnit === "minute" ? 60000 : offUnit === "hour" ? 3600000 : 86400000);
+      autoOnAt = new Date(Date.now() + ms).toISOString();
+    }
+    const { error } = await supabase.from('tools').update({ public_open: false, public_reason: offReason, public_off_at: new Date().toISOString(), public_auto_on_at: autoOnAt, public_locked_by: isMaster ? "master" : null }).eq('id', showOffModal.id);
+    if (error) return alert(error.message);
+    try{ await supabase.from('tool_history').insert([{ tool_id: showOffModal.id, tool_name: showOffModal.name, action: "Public OFF", by_role: isMaster ? "master" : "admin", reason: offReason, auto_on_at: autoOnAt }]); }catch{}
+    setShowOffModal(null); setOffReason(""); setOffValue("2"); setOffForever(false);
+    fetchTools(); alert("✅ Public OFF ho gaya!");
+  };
+  // NEW: Public ON - Master Lock Rule
+  const publicOn = async (tool: any) => {
+    if (tool.public_locked_by === "master" && !isMaster) { return alert("🔒 Master ne Lock kiya hai. Admin ON nahi kar sakta."); }
+    const { error } = await supabase.from('tools').update({ public_open: true, public_reason: '', public_auto_on_at: null, public_locked_by: null }).eq('id', tool.id);
+    if (error) return alert(error.message);
+    try{ await supabase.from('tool_history').insert([{ tool_id: tool.id, tool_name: tool.name, action: "Public ON", by_role: isMaster ? "master" : "admin" }]); }catch{}
+    fetchTools();
+  };
+  // NEW: History Fetch
+  const fetchToolHistory = async (toolId: string) => {
+    const { data } = await supabase.from("tool_history").select("*").eq("tool_id", toolId).order("created_at", { ascending: false }).limit(10);
+    if (data) setToolHistory(data);
+  };
   const handleToolUpdate = async () => { const { error } = await supabase.from("tools").update({ name: editTool.name, slug: editTool.slug }).eq("id", editTool.id); if (error) alert(error.message); else { setEditTool(null); fetchTools(); } };
   const handlePostUpdate = async () => {
     if(!editPost.title || !editPost.content) return alert("Title + Content likho");
@@ -120,7 +164,6 @@ export default function AdminPage() {
   };
   const movePostToTrash = async (p:any) => {
     if(!confirm(`"${p.title}" ko Trash me bheju? Master wapas Restore kar payega.`)) return;
-    // Pehle UI se hatao taaki Admin ko turant pata chale
     setPosts(prev=>prev.filter(x=>x.id!==p.id));
     const { error } = await supabase.from("blogs").update({ is_deleted: true, deleted_at: new Date().toISOString(), deleted_by: isMaster? "master":"admin" }).eq("id", p.id);
     if(error){ alert("❌ Trash nahi hua: "+error.message+" | SQL chalaya hai?"); fetchPosts(); return; }
@@ -189,7 +232,34 @@ export default function AdminPage() {
           {activeTab==="tools"?(
             <>
               <div className="flex justify-between items-center mb-4"><h2 className="font-bold text-white text-lg">Tools Control ({tools.length})</h2><button onClick={async()=>{ if(!confirm("Saare khali slugs ko naam se auto-generate kar du?")) return; setLoading(true); for(const t of tools){ if(!t.slug || String(t.slug).trim()===""){ const newSlug = String(t.name).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); await supabase.from("tools").update({slug:newSlug}).eq("id", t.id); } } setLoading(false); alert("✅ Saare slugs fix ho gaye!"); fetchTools(); }} className="px-4 py-2 bg-yellow-400 text-black rounded-full text-xs font-bold">{loading? "..." : "🛠️ Fix Empty Slugs (1 Click)"}</button></div>
-              <div className="grid gap-3">{tools.map((tool:any)=>(<div key={tool.id} className={`p-4 rounded-2xl backdrop-blur border shadow-sm flex justify-between items-center transition-all ${tool.is_active? "bg-white/90 border-white/50" : "bg-red-50/80 border-red-200 opacity-70"}`}><div className="flex items-center gap-3"><button onClick={()=>toggleTool(tool)} className={`w-12 h-7 rounded-full p-1 transition-all ${tool.is_active? "bg-green-500" : "bg-gray-300"}`}><div className={`w-5 h-5 bg-white rounded-full shadow transition-all ${tool.is_active? "translate-x-5" : "translate-x-0"}`}></div></button><div><p className="font-semibold">{tool.name}</p><p className="text-xs text-gray-500">{tool.is_active? "🟢 Live" : "🔴 Disabled"} - {tool.slug? tool.slug : "❌ SLUG KHALI - Fix button dabao"}</p><p className="text-[10px] text-blue-500">/{cleanSlug(tool.slug)}</p></div></div><div className="flex gap-2">{tool.slug && String(tool.slug).trim()!=="" ? (<a href={`/${cleanSlug(tool.slug)}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>) : (<button onClick={()=>alert("Slug khali hai - Pehle Edit karke Slug dalo")} className="text-xs px-3 py-2 bg-gray-400 text-white rounded-full">View</button>)}<button onClick={()=>setEditTool(tool)} className="text-xs px-3 py-2 bg-white border rounded-full">Edit</button></div></div>))}</div>
+              <div className="grid gap-3">{tools.map((tool:any)=>(
+                <div key={tool.id} className={`p-4 rounded-2xl backdrop-blur border shadow-sm ${tool.public_open ? "bg-white/90 border-white/50" : "bg-red-50/90 border-red-200"}`}>
+                  <div className="flex justify-between items-start gap-2">
+                    <div>
+                      <p className="font-semibold">{tool.name} {tool.public_locked_by==="master" && <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full ml-1">🔒 Locked by Master</span>}</p>
+                      <p className="text-xs text-gray-500">{tool.public_open ? "🟢 Public Open" : `🔴 Public Closed - ${tool.public_reason || ""}`} - {tool.slug? tool.slug : "❌ SLUG KHALI"}</p>
+                      <p className="text-[10px] text-blue-500">/{cleanSlug(tool.slug)} | Menu: {tool.menu_visible ? "Shown" : "Hidden"}</p>
+                      {!tool.public_open && tool.public_auto_on_at && <p className="text-[11px] font-bold text-red-600">Auto ON: {new Date(tool.public_auto_on_at).toLocaleString()}</p>}
+                      {!tool.public_open && !tool.public_auto_on_at && <p className="text-[11px] font-bold text-red-600">Closed Forever</p>}
+                    </div>
+                    <div className="flex gap-1 flex-wrap justify-end">
+                      {tool.slug && String(tool.slug).trim()!=="" ? (<a href={`/${cleanSlug(tool.slug)}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>) : (<button onClick={()=>alert("Slug khali hai - Pehle Edit karke Slug dalo")} className="text-xs px-3 py-2 bg-gray-400 text-white rounded-full">View</button>)}
+                      <button onClick={()=>setEditTool(tool)} className="text-xs px-3 py-2 bg-white border rounded-full">Edit</button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    <button onClick={()=>toggleMenu(tool)} className={`text-xs px-3 py-2 rounded-full font-bold ${tool.menu_visible ? "bg-green-500 text-white" : "bg-gray-300"}`}>{tool.menu_visible ? "✅ Menu ON" : "Menu OFF"}</button>
+                    {tool.public_open ? (<button onClick={()=>setShowOffModal(tool)} className="text-xs px-3 py-2 rounded-full font-bold bg-green-600 text-white">✅ Public ON - Click to OFF</button>) : (<button onClick={()=>publicOn(tool)} className="text-xs px-3 py-2 rounded-full font-bold bg-red-500 text-white">🔒 Public OFF - Click to ON</button>)}
+                    <button onClick={()=>{ setShowHistoryFor(tool.id); fetchToolHistory(tool.id); }} className="text-xs px-3 py-2 rounded-full bg-blue-100 font-bold">📜 History</button>
+                  </div>
+                  {showHistoryFor===tool.id && (
+                    <div className="mt-3 bg-gray-50 p-3 rounded-xl text-xs">
+                      <div className="flex justify-between"><b>History</b><button onClick={()=>setShowHistoryFor(null)}>Close</button></div>
+                      {toolHistory.length===0 ? <p>No history</p> : toolHistory.map((h:any)=>(<p key={h.id} className="py-1 border-b">{new Date(h.created_at).toLocaleString()} | {h.by_role} | {h.action} | {h.reason || "-"} | Auto ON: {h.auto_on_at ? new Date(h.auto_on_at).toLocaleString() : "-"}</p>))}
+                    </div>
+                  )}
+                </div>
+              ))}</div>
             </>
           ): activeTab==="posts"? (
             <div className="space-y-3 bg-white/90 p-5 rounded-2xl"><h2 className="font-bold text-lg">📝 All Posts ({posts.length})</h2><p className="text-xs text-gray-500">🗑️ Trash me abhi: <b>{trashCount}</b> item hai - Master ke paas hai</p>{posts.length===0 && <p className="text-sm text-gray-500">Koi Post nahi hai. Blog Tab se Post karo.</p>}{posts.map((p:any)=>(<div key={p.id} className="p-3 border rounded-xl flex justify-between items-center gap-3"><div><p className="font-bold text-sm">{p.title}</p><p className="text-[11px] text-gray-500">/blog/{p.slug}</p></div><div className="flex gap-2 flex-wrap justify-end"><a href={`/blog/${p.slug}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold">View</a><button onClick={()=>{ setEditPost({...p}); setEditingPostId(p.id); }} className="px-3 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button><button onClick={()=>movePostToTrash(p)} className="px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">🗑️ Trash</button></div></div>))}</div>
@@ -207,6 +277,27 @@ export default function AdminPage() {
             <><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Blog Title" className="w-full p-4 rounded-xl border mb-2" /><div className="flex flex-wrap gap-2 bg-gray-100 p-2 rounded-xl mb-2 items-center"><button type="button" onClick={()=>insertFormat("**","**")}>B</button><button type="button" onClick={()=>insertFormat("\n## ","")}>H2</button><button type="button" onClick={()=>insertFormat("\n### ","")}>H3</button><button type="button" onClick={()=>insertFormat("\n- ","")}>List</button><button type="button" onClick={()=>insertFormat("[", "](https://)")} >Link</button><button type="button" onClick={()=>setShowPreview(!showPreview)} className="ml-auto px-3 py-1 bg-purple-600 text-white rounded-lg">{showPreview? "Edit" : "Preview"}</button></div>{!showPreview? (<textarea ref={contentRef} value={content} onChange={e=>setContent(e.target.value)} placeholder="Blog Content..." className="w-full h-[300px] p-4 rounded-xl border" />) : (<div className="w-full h-[300px] p-4 rounded-xl border bg-white overflow-y-auto whitespace-pre-wrap"><h2 className="font-bold text-lg mb-2">{title}</h2><div>{renderPreview(content)}</div></div>)}<button onClick={async()=>{ if(!title ||!content) return alert("Fill all"); setLoading(true); const slug = title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); const { error } = await supabase.from("blogs").insert([{title, content, slug}]); if(error){ alert("❌ "+error.message); } else { alert("✅ Posted!"); setTitle(""); setContent(""); fetchPosts(); } setLoading(false); }} className="w-full bg-black text-white p-4 rounded-xl font-bold mt-2">{loading? "Posting..." : "Post Blog"}</button></>
           )}
         </div>
+        {showOffModal && (
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-[24px] p-6 w-full max-w-md shadow-2xl">
+              <h3 className="font-bold text-lg mb-1">🔒 Public OFF - {showOffModal.name}</h3>
+              <p className="text-xs text-gray-500 mb-4">Public ko band hoga, Menu wala alag hai.</p>
+              <label className="text-xs font-bold">Reason (Public ko dikhega)</label>
+              <input value={offReason} onChange={e=>setOffReason(e.target.value)} placeholder="Ex: Maintenance, Update chal raha hai" className="w-full p-3 rounded-xl border mb-3" />
+              <label className="flex items-center gap-2 text-sm font-bold mb-3"><input type="checkbox" checked={offForever} onChange={e=>setOffForever(e.target.checked)} /> Forever OFF (Manual ON karna hoga)</label>
+              {!offForever && (
+                <div className="flex gap-2 mb-4">
+                  <input type="number" value={offValue} onChange={e=>setOffValue(e.target.value)} className="flex-1 p-3 rounded-xl border" />
+                  <select value={offUnit} onChange={e=>setOffUnit(e.target.value)} className="p-3 rounded-xl border bg-white font-bold"><option value="minute">Minute</option><option value="hour">Hour</option><option value="day">Day</option></select>
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button onClick={()=>setShowOffModal(null)} className="flex-1 p-3 rounded-xl border">Cancel</button>
+                <button onClick={publicOff} className="flex-1 p-3 rounded-xl bg-red-600 text-white font-bold">Confirm OFF</button>
+              </div>
+            </div>
+          </div>
+        )}
         {editTool && (<div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 z-50"><div className="bg-white rounded-[24px] p-6 w-full max-w-md shadow-2xl"><h3 className="font-bold text-lg mb-4">Edit Tool</h3><input value={editTool.name} onChange={e=>setEditTool({...editTool, name:e.target.value})} className="w-full p-3 rounded-xl border mb-3"/><input value={editTool.slug} onChange={e=>setEditTool({...editTool, slug:e.target.value})} className="w-full p-3 rounded-xl border mb-3"/><div className="flex gap-2"><button onClick={()=>setEditTool(null)} className="flex-1 p-3 rounded-xl border">Cancel</button><button onClick={handleToolUpdate} className="flex-1 p-3 rounded-xl bg-black text-white">Save</button></div></div></div>)}
         {editPost && (<div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 z-50"><div className="bg-white rounded-[24px] p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto"><h3 className="font-bold text-lg mb-4">✏️ Edit Post</h3><input value={editPost.title} onChange={e=>setEditPost({...editPost, title:e.target.value})} placeholder="Post Title" className="w-full p-3 rounded-xl border mb-3"/><textarea value={editPost.content} onChange={e=>setEditPost({...editPost, content:e.target.value})} placeholder="Post Content" className="w-full h-[250px] p-3 rounded-xl border mb-3"/><div className="flex gap-2"><button onClick={()=>{setEditPost(null); setEditingPostId(null);}} className="flex-1 p-3 rounded-xl border">Cancel</button><button onClick={handlePostUpdate} className="flex-1 p-3 rounded-xl bg-black text-white font-bold">💾 Update Post</button></div></div></div>)}
       </div>
