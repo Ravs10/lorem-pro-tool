@@ -10,7 +10,8 @@ function makeSlug(t: string) {
 }
 
 export default function WriteBlog() {
-  const [form, setForm] = useState({ name: "", email: "", title: "", category: "General", excerpt: "", cover_image: "", content: "" });
+  // ✅ 1. YAHAN ADD KIYA - form state me seo wale 3 field
+  const [form, setForm] = useState({ name: "", email: "", title: "", category: "General", excerpt: "", cover_image: "", content: "", seo_title: "", seo_description: "", tags: "" });
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -31,6 +32,10 @@ export default function WriteBlog() {
       author_email: form.email,
       status: "pending", // Admin approve karega tabhi live hoga
       is_deleted: false,
+      // ✅ 2. YAHAN ADD KIYA - submit me SEO bhej diya
+      seo_title: form.seo_title || form.title,
+      seo_description: form.seo_description || form.excerpt || form.content.slice(0, 155),
+      tags: form.tags,
     }]);
     setLoading(false);
     if (error) alert("Error: " + error.message);
@@ -65,6 +70,27 @@ export default function WriteBlog() {
       <textarea placeholder="Short Excerpt - 1-2 line me kya hai blog me" value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })} className="w-full border p-3 rounded-xl mt-4 h-[70px]" />
       <textarea placeholder="Yahan poora blog likho... kam se kam 200 characters *" value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} className="w-full border p-3 rounded-xl mt-4 h-[300px]" />
       <p className="text-xs text-gray-500 mt-1">{form.content.length} characters</p>
+
+      {/* ✅ 3. YAHAN ADD KIYA - SEO Box - Content ke baad, Submit button ke pehle */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mt-4">
+        <p className="font-bold">🔍 SEO Settings - Google Ke Liye (Blogger Jaisa)</p>
+        <p className="text-xs text-gray-500 mt-1">Ye nahi bharoge to Title aur Excerpt se apne aap ban jayega!</p>
+        <input placeholder="SEO Title - Google me ye dikhega (60 chars tak)" maxLength={60} value={form.seo_title} onChange={e => setForm({ ...form, seo_title: e.target.value })} className="w-full border p-3 rounded-xl mt-3 bg-white" />
+        <p className="text-[11px] text-gray-500 mt-1">{form.seo_title.length}/60 - {form.seo_title.length > 60 ? '❌ Lamba hai' : '✅ Perfect'}</p>
+        <textarea placeholder="SEO Description - Google me neeche ye dikhega (155 chars tak) - e.g. SIP se 10 saal me 1 Crore kaise banaye? Poora guide Hindi me..." maxLength={160} value={form.seo_description} onChange={e => setForm({ ...form, seo_description: e.target.value })} className="w-full border p-3 rounded-xl mt-3 h-[70px] bg-white" />
+        <p className="text-[11px] text-gray-500 mt-1">{form.seo_description.length}/160</p>
+        <input placeholder="Tags - comma se alag likho - e.g. sip, mutual fund, paisa, finance" value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} className="w-full border p-3 rounded-xl mt-3 bg-white" />
+        {/* Live Google Preview */}
+        {(form.seo_title || form.title) && (
+          <div className="bg-white border rounded-xl p-3 mt-4">
+            <p className="text-[11px] text-gray-500">GOOGLE PREVIEW 👇</p>
+            <p className="text-blue-700 text-lg leading-tight mt-1">{form.seo_title || form.title}</p>
+            <p className="text-green-700 text-xs">lorem-pro-tool.run4ravish.workers.dev › blog › ...</p>
+            <p className="text-sm text-gray-600 line-clamp-2">{form.seo_description || form.excerpt || form.content.slice(0, 155)}</p>
+          </div>
+        )}
+      </div>
+
       <button onClick={submit} disabled={loading} className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3.5 rounded-xl font-bold mt-4">{loading ? "Submitting..." : "Submit for Review →"}</button>
       <p className="text-xs text-center text-gray-500 mt-3">Spam / Copy / Ganda content approve nahi hoga.</p>
     </div>
