@@ -1,54 +1,46 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const slug = req.nextUrl.pathname.replace("/", "").split("/")[0];
-  
-  // Admin, API, Blog, Static files ko chhedo mat
-  if (!slug || slug.startsWith("admin") || slug.startsWith("api") || slug.startsWith("blog") || slug.startsWith("_next") || slug.includes(".")) {
-    return NextResponse.next();
-  }
+export async function middleware(req) {
+  const url = req.nextUrl;
+  const path = url.pathname;
 
-  // Supabase se sirf is tool ka status check karo
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (path.startsWith("/admin") || path.startsWith("/api") || path.startsWith("/_next") || path.startsWith("/tool-closed") || path === "/" || path === "/favicon.ico") return NextResponse.next();
+
+  const slug = path.replace(/^\/+/, "").split("/")[0];
+  if (!slug) return NextResponse.next();
+
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const SUPA_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!SUPA_URL || !SUPA_KEY) return NextResponse.next();
 
   try {
-    const res = await fetch(`${url}/rest/v1/tools?slug=eq.${slug}&select=public_open,public_auto_on_at,public_reason,name`, {
-      headers: { apikey: key!, Authorization: `Bearer ${key}` },
-      next: { revalidate: 0 }
+    const res = await fetch(`${SUPA_URL}/rest/v1/tools?slug=eq.${slug}&select=*`, {
+      headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}` },
     });
-    const data = await res.json();
-    const tool = data?.[0];
+    const arr = await res.json();
+    const data = arr?.[0];
+    if (!data) return NextResponse.next();
 
-    // Tool hi nahi hai to jaane do (Blog / Page hoga)
-    if (!tool) return NextResponse.next();
-
-    // Agar Public Open hai to jaane do
-    if (tool.public_open) return NextResponse.next();
-
-    // Auto ON Time Khatam ho gaya? To khol do
-    if (tool.public_auto_on_at && Date.now() >= new Date(tool.public_auto_on_at).getTime()) {
-      // Auto ON ko background me update karo (Middleware me wait mat karo)
-      fetch(`${url}/rest/v1/tools?slug=eq.${slug}`, {
+    if (!data.public_open && data.public_auto_on_at && Date.now() >= new Date(data.public_auto_on_at).getTime()) {
+      await fetch(`${SUPA_URL}/rest/v1/tools?id=eq.${data.id}`, {
         method: "PATCH",
-        headers: { apikey: key!, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+        headers: { apikey: SUPA_KEY, Authorization: `Bearer ${SUPA_KEY}`, "Content-Type": "application/json", Prefer: "return=minimal" },
         body: JSON.stringify({ public_open: true, public_auto_on_at: null, public_reason: "", public_locked_by: null }),
-      }).catch(() => {});
+      });
       return NextResponse.next();
     }
 
-    // Band hai to Closed Page pe bhej do
-    const closedUrl = req.nextUrl.clone();
-    closedUrl.pathname = "/tool-closed";
-    closedUrl.searchParams.set("slug", slug);
-    return NextResponse.rewrite(closedUrl);
+    if (!data.public_open) {
+      const closed = new URL("/tool-closed", req.url);
+      closed.searchParams.set("slug", slug);
+      closed.searchParams.set("name", data.name || slug);
+      closed.searchParams.set("reason", data.public_reason || "Maintenance chal raha hai");
+      if (data.public_auto_on_at) closed.searchParams.set("auto_on", data.public_auto_on_at);
+      return NextResponse.redirect(closed);
+    }
+  } catch (e) { return NextResponse.next(); }
 
-  } catch {
-    return NextResponse.next();
-  }
+  return NextResponse.next();
 }
 
-export const config = {
-  matcher: ["/:slug*"],
-};
+export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"] };
