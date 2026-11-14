@@ -22,7 +22,8 @@ export default function Header() {
       const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
       if(!url || !key) return;
       const supabase = createClient(url, key);
-      supabase.from('tools').select('*').eq('is_active', true).order('name').then(({data})=>{
+      // ✅ FIXED: Ab menu_visible dekhega, is_active nahi!
+      supabase.from('tools').select('*').eq('menu_visible', true).order('name').then(({data})=>{
         if(data) setTools(data as Tool[])
       });
     }
