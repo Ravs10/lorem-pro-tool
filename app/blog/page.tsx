@@ -1,85 +1,76 @@
-import Link from 'next/link'
-import { createClient } from '@supabase/supabase-js'
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
 
-export const revalidate = 0
-export const dynamic = 'force-dynamic'
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+export default function BlogPage() {
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
+  const [cat, setCat] = useState("All");
 
-// ✅ STRONGEST SEO - Blog List Page
-export const metadata = {
-  title: 'Blog | Lorem Pro Tool - 26+ Free Online Tools, Tips & Guides',
-  description: 'Read Lorem Pro Tool Blog by Admin - Best free tool to generate viral YouTube titles, tags & descriptions, Lorem Ipsum history, 26+ free online tools in one place. No login, no ads.',
-  keywords: ['Lorem Pro Tool Blog', 'Free Online Tools', 'Viral YouTube Titles', 'Lorem Ipsum History', 'Free Tools Blog', 'Lorem Pro'],
-  authors: [{ name: 'Admin', url: 'https://lorem-pro-tool.run4ravish.workers.dev/blog' }],
-  openGraph: {
-    title: 'Blog | Lorem Pro Tool - 26+ Free Online Tools',
-    description: 'Best free tool to generate viral YouTube titles, Lorem Ipsum history & more. Read blogs by Admin.',
-    type: 'website',
-    url: 'https://lorem-pro-tool.run4ravish.workers.dev/blog',
-    siteName: 'Lorem Pro Tool',
-    locale: 'en_US',
-    images: [{ url: 'https://lorem-pro-tool.run4ravish.workers.dev/og-image.png', width: 1200, height: 630, alt: 'Lorem Pro Tool Blog' }],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Blog | Lorem Pro Tool',
-    description: '26+ Free Online Tools, Tips & Guides by Admin',
-    images: ['https://lorem-pro-tool.run4ravish.workers.dev/og-image.png'],
-  },
-  alternates: { canonical: 'https://lorem-pro-tool.run4ravish.workers.dev/blog' },
-  robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large' } },
-}
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("blogs").select("*").eq("status", "approved").eq("is_deleted", false).order("created_at", { ascending: false });
+      setBlogs(data || []);
+    })();
+  }, []);
 
-function cleanExcerpt(text: string) {
-  if (!text) return ""
-  return text.replace(/<[^>]*>?/gm, "").replace(/#{1,3}\s/g, "").replace(/\*\*/g, "").replace(/-\s/g, "").trim().slice(0, 150) + "..."
-}
-
-export default async function BlogPage() {
-  const { data: blogs } = await supabase.from('blogs').select('*').neq('is_deleted', true).order('created_at', { ascending: false })
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Blog",
-    "name": "Lorem Pro Tool Blog",
-    "url": "https://lorem-pro-tool.run4ravish.workers.dev/blog",
-    "author": { "@type": "Person", "name": "Admin" },
-    "publisher": { "@type": "Organization", "name": "Lorem Pro Tool", "url": "https://lorem-pro-tool.run4ravish.workers.dev" },
-    "blogPost": (blogs || []).map((b: any) => ({
-      "@type": "BlogPosting",
-      "headline": b.title,
-      "url": `https://lorem-pro-tool.run4ravish.workers.dev/blog/${b.slug}`,
-      "datePublished": b.created_at,
-      "dateModified": b.created_at,
-      "author": { "@type": "Person", "name": "Admin" },
-    }))
-  }
+  const cats = ["All", ...new Set(blogs.map(b => b.category || "General"))];
+  const filtered = blogs.filter(b => 
+    (cat === "All" || (b.category || "General") === cat) &&
+    (b.title.toLowerCase().includes(search.toLowerCase()) || b.excerpt?.toLowerCase().includes(search.toLowerCase()))
+  );
+  const featured = filtered[0];
+  const rest = filtered.slice(1);
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-[#fffaf0] min-h-screen">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-black">Blog</h1>
-        <Link href="/" className="px-5 py-2.5 rounded-full bg-orange-500 text-white font-bold">🏠 Home</Link>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-4xl font-bold">Our Blog</h1>
+          <p className="text-gray-600 mt-1">Tips, Guides & Free Tools - By Admin & Our Community</p>
+        </div>
+        <Link href="/blog/write" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold shadow">✍️ Write a Blog</Link>
       </div>
-      <div className="grid gap-6">
-        {blogs?.map((blog: any) => (
-          <Link key={blog.slug} href={`/blog/${blog.slug}`} className="block bg-[#fff7e6] p-6 rounded-[24px] border border-orange-100 shadow-sm hover:shadow-md transition">
-            <h2 className="text-2xl font-bold text-gray-900 leading-tight">{blog.title}</h2>
-            {/* ✅ CHANGE: Ab By Admin Hai, By Ravish Nahi */}
-            <p className="text-orange-500 text-sm font-bold mt-2">{new Date(blog.created_at).toLocaleDateString()} | By Admin</p>
-            <p className="text-gray-600 mt-3 leading-relaxed">{cleanExcerpt(blog.content)}</p>
+
+      {/* Search + Category */}
+      <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search blog... e.g. SIP, YouTube..." className="w-full border p-3 rounded-xl mb-4 outline-none focus:ring-2 ring-orange-300" />
+      <div className="flex gap-2 flex-wrap mb-8">
+        {cats.map(c => (
+          <button key={c} onClick={() => setCat(c)} className={`px-4 py-1.5 rounded-full text-sm border ${cat === c ? "bg-black text-white" : "bg-white"}`}>{c}</button>
+        ))}
+      </div>
+
+      {/* Featured */}
+      {featured && search === "" && cat === "All" && (
+        <Link href={`/blog/${featured.slug}`} className="block bg-[#fffaf0] border rounded-2xl overflow-hidden mb-8 hover:shadow-lg transition">
+          {featured.cover_image && <img src={featured.cover_image} className="w-full h-[280px] object-cover" />}
+          <div className="p-6">
+            <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold">⭐ FEATURED • {featured.category || "General"}</span>
+            <h2 className="text-3xl font-bold mt-3">{featured.title}</h2>
+            <p className="text-gray-600 mt-2 line-clamp-2">{featured.excerpt}</p>
+            <p className="text-sm text-gray-500 mt-3">By {featured.author_name || "Admin"} • {new Date(featured.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} • {Math.max(1, Math.ceil((featured.content?.length || 500) / 1000))} min read</p>
+          </div>
+        </Link>
+      )}
+
+      {/* Grid */}
+      <div className="grid md:grid-cols-3 gap-5">
+        {rest.map(b => (
+          <Link key={b.id} href={`/blog/${b.slug}`} className="bg-white border rounded-2xl overflow-hidden hover:shadow-lg transition">
+            {b.cover_image ? <img src={b.cover_image} className="w-full h-[170px] object-cover" /> : <div className="h-[170px] bg-orange-50 flex items-center justify-center text-5xl">📝</div>}
+            <div className="p-4">
+              <span className="text-[11px] bg-gray-100 px-2 py-1 rounded-full">{b.category || "General"}</span>
+              <h3 className="font-bold text-lg mt-2 line-clamp-2 leading-snug">{b.title}</h3>
+              <p className="text-sm text-gray-600 mt-1 line-clamp-2">{b.excerpt}</p>
+              <p className="text-xs text-gray-500 mt-3">By {b.author_name || "Admin"} • {new Date(b.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</p>
+            </div>
           </Link>
         ))}
       </div>
-      <div className="flex flex-wrap gap-3 mt-8">
-        <Link href="/" className="px-8 py-3 rounded-full bg-black text-white font-bold">← Go to Home</Link>
-        <Link href="/" className="px-8 py-3 rounded-full bg-orange-500 text-white font-bold">🏠 Home Page</Link>
-      </div>
+      {filtered.length === 0 && <p className="text-center text-gray-500 py-10">Koi blog nahi mila. Pehla blog tum likho! ✍️</p>}
     </div>
-  )
+  );
 }
