@@ -4,9 +4,28 @@ export async function middleware(req) {
   const url = req.nextUrl;
   const path = url.pathname;
 
-  if (path.startsWith("/admin") || path.startsWith("/api") || path.startsWith("/_next") || path.startsWith("/tool-closed") || path === "/" || path === "/favicon.ico") return NextResponse.next();
+  // 1. Inko kabhi mat roko
+  if (
+    path.startsWith("/admin") ||
+    path.startsWith("/api") ||
+    path.startsWith("/_next") ||
+    path.startsWith("/tool-closed") ||
+    path === "/" ||
+    path === "/favicon.ico" ||
+    path.startsWith("/blog")
+  ) return NextResponse.next();
 
-  const slug = path.replace(/^\/+/, "").split("/")[0];
+  // 2. ✅ NEW: Admin / Master Bypass - View Button se khologe to OFF bhi khulega
+  // Admin panel se View dabane pe URL hoga: /ai-detector?preview=admin
+  if (url.searchParams.get("preview") === "admin") return NextResponse.next();
+  if (req.cookies.get("admin_bypass")?.value === "1") return NextResponse.next();
+  if (req.cookies.get("admin_session")?.value) return NextResponse.next();
+
+  // 3. Agar referer Admin se aa raha hai to bhi jaane do
+  const referer = req.headers.get("referer") || "";
+  if (referer.includes("/admin") && url.searchParams.get("from") === "admin") return NextResponse.next();
+
+  const slug = path.replace(/^\/+/, "").replace(/^tools\//, "").split("/")[0];
   if (!slug) return NextResponse.next();
 
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -21,6 +40,7 @@ export async function middleware(req) {
     const data = arr?.[0];
     if (!data) return NextResponse.next();
 
+    // 4. Auto ON - Time ho gaya to khud ON kar do
     if (!data.public_open && data.public_auto_on_at && Date.now() >= new Date(data.public_auto_on_at).getTime()) {
       await fetch(`${SUPA_URL}/rest/v1/tools?id=eq.${data.id}`, {
         method: "PATCH",
@@ -30,6 +50,7 @@ export async function middleware(req) {
       return NextResponse.next();
     }
 
+    // 5. Public OFF hai to sirf Public ko roko - Admin ko upar hi jaane diya
     if (!data.public_open) {
       const closed = new URL("/tool-closed", req.url);
       closed.searchParams.set("slug", slug);
