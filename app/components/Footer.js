@@ -20,7 +20,7 @@ export default function Footer() {
     }
     fetchBlogs()
     async function fetchTools(){
-      const { data } = await supabase.from('tools').select('*').eq('is_active', true).order('name')
+      const { data } = await supabase.from('tools').select('*').eq('menu_visible', true).order('name')
       if (data) setAllTools(data)
     }
     fetchTools()
