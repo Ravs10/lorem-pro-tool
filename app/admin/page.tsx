@@ -43,10 +43,8 @@ export default function AdminPage() {
   const [trashPosts, setTrashPosts] = useState<any[]>([]);
   const [trashComments, setTrashComments] = useState<any[]>([]);
   const [trashTab, setTrashTab] = useState<"posts"|"comments">("posts");
-  // ✅ FIX: Trash count sabko dikhega, Trash kholega sirf Master
   const [trashCount, setTrashCount] = useState(0);
   const [lastTrashMsg, setLastTrashMsg] = useState("");
-  // NEW: Tool Control States
   const [showOffModal, setShowOffModal] = useState<any>(null);
   const [offReason, setOffReason] = useState("");
   const [offValue, setOffValue] = useState("2");
@@ -112,15 +110,14 @@ export default function AdminPage() {
     if(d.success){ setIsLoggedIn(true); setIsMaster(d.role === "master"); fetchTools(); fetchOffers(); fetchPosts(); fetchComments(); fetchTrashCount(); if(d.role==="master") fetchTrash(); } else alert(d.error || "Wrong OTP");
   };
   const toggleTool = async (tool: any) => { const n =!tool.is_active; setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: n } : t)); const { error } = await supabase.from('tools').update({ is_active: n }).eq('id', tool.id); if (error) { alert(error.message); setTools((p: any) => p.map((t: any) => t.id === tool.id? {...t, is_active: tool.is_active } : t)); } };
-  // NEW: Menu Toggle - Only hides from menu, direct link works
+  // ✅ FIXED: Menu Toggle - Sirf menu_visible badlega, is_active / public_open nahi badlega
   const toggleMenu = async (tool: any) => {
     const n = !tool.menu_visible;
     setTools((p: any) => p.map((t: any) => t.id === tool.id ? { ...t, menu_visible: n } : t));
-    const { error } = await supabase.from('tools').update({ menu_visible: n, is_active: n }).eq('id', tool.id);
+    const { error } = await supabase.from('tools').update({ menu_visible: n }).eq('id', tool.id);
     if (error) { alert(error.message); fetchTools(); }
     else { try{ await supabase.from('tool_history').insert([{ tool_id: tool.id, tool_name: tool.name, action: n ? "Menu ON" : "Menu OFF", by_role: isMaster ? "master" : "admin" }]); }catch{} }
   };
-  // NEW: Public OFF - With Reason + Custom Time
   const publicOff = async () => {
     if (!showOffModal) return;
     if (!offReason.trim()) return alert("Reason likho");
@@ -137,7 +134,6 @@ export default function AdminPage() {
     setShowOffModal(null); setOffReason(""); setOffValue("2"); setOffForever(false);
     fetchTools(); alert("✅ Public OFF ho gaya!");
   };
-  // NEW: Public ON - Master Lock Rule
   const publicOn = async (tool: any) => {
     if (tool.public_locked_by === "master" && !isMaster) { return alert("🔒 Master ne Lock kiya hai. Admin ON nahi kar sakta."); }
     const { error } = await supabase.from('tools').update({ public_open: true, public_reason: '', public_auto_on_at: null, public_locked_by: null }).eq('id', tool.id);
@@ -145,7 +141,6 @@ export default function AdminPage() {
     try{ await supabase.from('tool_history').insert([{ tool_id: tool.id, tool_name: tool.name, action: "Public ON", by_role: isMaster ? "master" : "admin" }]); }catch{}
     fetchTools();
   };
-  // NEW: History Fetch
   const fetchToolHistory = async (toolId: string) => {
     const { data } = await supabase.from("tool_history").select("*").eq("tool_id", toolId).order("created_at", { ascending: false }).limit(10);
     if (data) setToolHistory(data);
@@ -243,7 +238,7 @@ export default function AdminPage() {
                       {!tool.public_open && !tool.public_auto_on_at && <p className="text-[11px] font-bold text-red-600">Closed Forever</p>}
                     </div>
                     <div className="flex gap-1 flex-wrap justify-end">
-                      {tool.slug && String(tool.slug).trim()!=="" ? (<a href={`/${cleanSlug(tool.slug)}`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>) : (<button onClick={()=>alert("Slug khali hai - Pehle Edit karke Slug dalo")} className="text-xs px-3 py-2 bg-gray-400 text-white rounded-full">View</button>)}
+                      {tool.slug && String(tool.slug).trim()!=="" ? (<a href={`/${cleanSlug(tool.slug)}?preview=admin`} target="_blank" rel="noopener noreferrer" className="text-xs px-3 py-2 bg-black text-white rounded-full">View</a>) : (<button onClick={()=>alert("Slug khali hai - Pehle Edit karke Slug dalo")} className="text-xs px-3 py-2 bg-gray-400 text-white rounded-full">View</button>)}
                       <button onClick={()=>setEditTool(tool)} className="text-xs px-3 py-2 bg-white border rounded-full">Edit</button>
                     </div>
                   </div>
