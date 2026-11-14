@@ -6,15 +6,26 @@ import { createClient } from "@supabase/supabase-js";
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
 function ClosedContent() {
-  const slug = useSearchParams().get("slug");
+  const search = useSearchParams();
+  const slug = search.get("slug") || search.get("tool") || "";
   const [tool, setTool] = useState(null);
   const [left, setLeft] = useState("");
+  const [tried, setTried] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) { setTried(true); return; }
     (async () => {
-      const { data } = await supabase.from("tools").select("*").eq("slug", slug).single();
-      if (data) setTool(data);
+      const clean = String(slug).trim().toLowerCase().replace(/^\/+/, "").replace(/^tools\//, "");
+      // 1st try - exact slug
+      let { data } = await supabase.from("tools").select("*").eq("slug", clean).maybeSingle();
+      // 2nd try - original slug
+      if (!data) { const r2 = await supabase.from("tools").select("*").eq("slug", slug).maybeSingle(); data = r2.data; }
+      // 3rd try - agar phir bhi nahi mila to fallback banao, Loading pe mat atko
+      if (!data) {
+        data = { name: clean.replace(/-/g, " ").toUpperCase() || "Tool", slug: clean, public_reason: "Maintenance chal raha hai. Thodi der baad try karo.", public_auto_on_at: null };
+      }
+      setTool(data);
+      setTried(true);
     })();
   }, [slug]);
 
@@ -33,7 +44,7 @@ function ClosedContent() {
     return () => clearInterval(id);
   }, [tool]);
 
-  if (!tool) return <div className="min-h-screen flex items-center justify-center"><p className="font-bold animate-pulse">Loading...</p></div>;
+  if (!tried || !tool) return <div className="min-h-screen flex items-center justify-center"><p className="font-bold animate-pulse">Loading... {slug}</p></div>;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
@@ -44,7 +55,7 @@ function ClosedContent() {
         {tool?.public_auto_on_at ? (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
             <p className="text-xs font-bold text-red-500">AUTO RE-OPEN IN</p>
-            <p className="text-2xl font-bold text-red-600">{left}</p>
+            <p className="text-2xl font-bold text-red-600">{left || "Calculating..."}</p>
             <p className="text-[11px] text-gray-500 mt-1">Auto ON: {new Date(tool.public_auto_on_at).toLocaleString()}</p>
           </div>
         ) : (
@@ -54,6 +65,7 @@ function ClosedContent() {
         )}
         <button onClick={() => window.location.reload()} className="w-full bg-black text-white p-4 rounded-2xl font-bold mb-2">🔄 Check Again</button>
         <a href="/" className="block w-full bg-gray-100 p-4 rounded-2xl font-bold text-sm">🏠 Home Jao</a>
+        <p className="text-[10px] text-gray-400 mt-2">Slug: {slug}</p>
       </div>
     </div>
   );
