@@ -8,14 +8,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://lorem-pro-tool.run4ravish.workers.dev';
   const lastMod = new Date();
 
-  // ✅ DYNAMIC - Supabase Se Saare Blog Uthao
+  // ✅ DYNAMIC - Supabase Se Sirf APPROVED Blog Uthao
   let blogUrls: MetadataRoute.Sitemap = []
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-    const { data: blogs } = await supabase.from('blogs').select('slug, created_at').neq('is_deleted', true)
+    // ✅ FIX YAHIN HAI - Pending / Rejected / Deleted Wale Google Ko Nahi Jayenge!
+    const { data: blogs } = await supabase
+      .from('blogs')
+      .select('slug, created_at')
+      .eq('status', 'approved')
+      .eq('is_deleted', false)
     blogUrls = (blogs || []).map((b: any) => ({
       url: `${baseUrl}/blog/${b.slug}`,
       lastModified: new Date(b.created_at),
@@ -39,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/youtube-title-generator`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${baseUrl}/youtube-thumbnail-downloader`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.85 },
     { url: `${baseUrl}/blog`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.8 },
-    // ✅ YE NAYA HAI - Saare Blog Post Apne Aap Aa Jayenge
+    // ✅ YE NAYA HAI - Saare APPROVED Blog Post Apne Aap Aa Jayenge
     ...blogUrls,
     { url: `${baseUrl}/word-counter`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/character-counter`, lastModified: lastMod, changeFrequency: 'weekly', priority: 0.8 },
