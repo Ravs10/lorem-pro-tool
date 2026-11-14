@@ -1,31 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Service Key - Sirf Server Pe Chalega
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function checkAuth(req: NextRequest) {
-  // Tumhara purana /api/admin/me wala auth yahan use karo
-  // Cookie se role nikalna hai
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/api/admin/me`, {
-    headers: { cookie: req.headers.get("cookie") || "" },
-    cache: "no-store",
-  });
-  const d = await res.json();
-  return d.role ? d : null;
+// ✅ Tumhare /api/admin/me jaisa hi auth - Cookie se role check
+function checkAuth(req: NextRequest) {
+  const role = req.cookies.get("role")?.value || null;
+  if (!role) return null;
+  if (role !== "admin" && role !== "master") return null;
+  return { role, isMaster: role === "master" };
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await checkAuth(req);
+  const auth = checkAuth(req);
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const { action } = body;
-  const isMaster = auth.role === "master";
-  let result: any = {};
+  const isMaster = auth.isMaster;
 
   try {
     if (action === "get-all") {
@@ -71,7 +66,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === "public-on") {
-      // Master lock check
       const { data } = await supabaseAdmin.from("tools").select("public_locked_by").eq("id", body.id).single();
       if (data?.public_locked_by === "master" && !isMaster) return NextResponse.json({ error: "Master locked" }, { status: 403 });
       const { error } = await supabaseAdmin.from("tools").update({ public_open: true, public_reason: "", public_auto_on_at: null, public_locked_by: null }).eq("id", body.id);
