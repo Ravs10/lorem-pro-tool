@@ -41,31 +41,41 @@ function addAttempt(map: Map<string, any>, ip: string, max: number) {
 }
 function maskEmail(email: string) {
   const [name, domain] = email.split('@');
-  if (!name ||!domain) return "***@***";
+  if (!name || !domain) return "***@***";
   return name[0] + '***' + name.slice(-1) + '@' + domain;
 }
 
 export async function POST(req: NextRequest) {
-  const { action, password, otp, newEmail } = await req.json();
+  const { action, password, otp, newEmail, loginMode, recoverType, recovery_role } = await req.json();
   const ip = getIP(req);
 
   const { data: configs } = await supabase.from("admin_config").select("*");
   const adminPass = configs?.find((c:any)=>c.key==="admin_password")?.value;
   const masterKey = configs?.find((c:any)=>c.key==="master_key")?.value;
   const masterEmail = configs?.find((c:any)=>c.key==="master_email")?.value || FALLBACK_EMAIL;
+  const adminEmail = configs?.find((c:any)=>c.key==="admin_email")?.value || masterEmail;
 
-  // 1. LOGIN
+  // 1. LOGIN - FIX: loginMode ke hisab se hi check hoga
   if (action === "login") {
     const blockedMin = isBlocked(loginAttempts, ip);
     if (blockedMin) return NextResponse.json({ success: false, error: `Too many attempts! ${blockedMin} min baad try karo.` }, { status: 429 });
 
-    if (password === masterKey) {
-      loginAttempts.delete(ip);
-      const res = NextResponse.json({ success: true, role: "master" });
-      res.cookies.set("role", "master", { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
-      res.cookies.set("auth_method", "master_key", { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
-      return res;
+    // MASTER BOX se login - Sirf Master Key chalegi
+    if (loginMode === "master") {
+      if (password === masterKey) {
+        loginAttempts.delete(ip);
+        const res = NextResponse.json({ success: true, role: "master" });
+        res.cookies.set("role", "master", { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
+        res.cookies.set("auth_method", "master_key", { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
+        return res;
+      }
+      const nowBlocked = addAttempt(loginAttempts, ip, MAX_LOGIN_ATTEMPTS);
+      if (nowBlocked) return NextResponse.json({ success: false, error: `5 galat try! ${BLOCK_TIME_MIN} min block.` }, { status: 429 });
+      const left = MAX_LOGIN_ATTEMPTS - (loginAttempts.get(ip)?.count || 0);
+      return NextResponse.json({ success: false, error: `Wrong password! ${left} try bache hain.` }, { status: 401 });
     }
+
+    // ADMIN BOX se login - Sirf Admin Password chalega, Master Key NAHI
     if (password === adminPass) {
       loginAttempts.delete(ip);
       const res = NextResponse.json({ success: true, role: "admin" });
@@ -79,30 +89,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: `Wrong password! ${left} try bache hain.` }, { status: 401 });
   }
 
-  // 2. SEND OTP
+  // 2. SEND OTP - FIX: recoverType ke hisab se email aur role
   if (action === "send-otp") {
     const blockedMin = isBlocked(otpSendAttempts, ip);
     if (blockedMin) return NextResponse.json({ success: false, error: `OTP limit! ${blockedMin} min baad.` }, { status: 429 });
     const nowBlocked = addAttempt(otpSendAttempts, ip, MAX_OTP_SEND);
     if (nowBlocked) return NextResponse.json({ success: false, error: `3 OTP bhej diye! ${BLOCK_TIME_MIN} min baad.` }, { status: 429 });
 
+    const targetRole = (recoverType || recovery_role || "admin") === "master" ? "master" : "admin";
+    const targetEmail = targetRole === "master" ? masterEmail : adminEmail;
+
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    await supabase.from("otp_store").delete().eq("email", masterEmail);
-    await supabase.from("otp_store").insert([{ email: masterEmail, otp: newOtp, role: "master", created_at: new Date().toISOString() }]);
+    await supabase.from("otp_store").delete().eq("email", targetEmail);
+    await supabase.from("otp_store").insert([{ email: targetEmail, otp: newOtp, role: targetRole, created_at: new Date().toISOString() }]);
 
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "Authorization": `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         from: "Lorem Pro Tool <onboarding@resend.dev>",
-        to: masterEmail,
+        to: targetEmail,
         subject: `🔐 Lorem Pro Tool - Recovery Code ${newOtp}`,
         html: `
           <div style="font-family: Inter, sans-serif; background:#f6f5ff; padding:30px;">
             <div style="background:white; max-width:420px; margin:auto; padding:32px; border-radius:20px; text-align:center; border:1px solid #eee;">
               <h2 style="margin:0; font-size:22px;">⚡ Lorem Pro Tool</h2>
               <p style="color:#6b7280; font-size:14px; margin-top:6px;">Admin Recovery Request</p>
-              <p style="color:#111; font-size:14px; margin-top:20px;">Your OTP for <b>Master Recovery</b> is:</p>
+              <p style="color:#111; font-size:14px; margin-top:20px;">Your OTP for <b>${targetRole === "master" ? "Master" : "Admin"} Recovery</b> is:</p>
               <div style="font-size:32px; font-weight:800; letter-spacing:10px; margin:20px 0; background:#f3f4f6; padding:16px; border-radius:14px; color:#111;">${newOtp}</div>
               <p style="color:#9ca3af; font-size:12px;">Valid for ${OTP_EXPIRY_MIN} minutes. Do not share this code with anyone.</p>
             </div>
@@ -110,15 +123,15 @@ export async function POST(req: NextRequest) {
         `
       })
     });
-    return NextResponse.json({ success: true, maskedEmail: maskEmail(masterEmail) });
+    return NextResponse.json({ success: true, maskedEmail: maskEmail(targetEmail) });
   }
 
-  // 3. VERIFY OTP
+  // 3. VERIFY OTP - FIX: OTP ke saath saved role wapas milega
   if (action === "verify-otp") {
     const blockedMin = isBlocked(loginAttempts, `otp-${ip}`);
     if (blockedMin) return NextResponse.json({ success: false, error: `Too many OTP try! ${blockedMin} min baad.` }, { status: 429 });
 
-    const { data } = await supabase.from("otp_store").select("*").eq("email", masterEmail).eq("otp", otp).single();
+    const { data } = await supabase.from("otp_store").select("*").eq("otp", otp).single();
     if (!data) {
       const nowBlocked = addAttempt(loginAttempts, `otp-${ip}`, MAX_OTP_VERIFY);
       if (nowBlocked) return NextResponse.json({ success: false, error: `5 galat OTP! ${BLOCK_TIME_MIN} min block.` }, { status: 429 });
@@ -134,9 +147,11 @@ export async function POST(req: NextRequest) {
     loginAttempts.delete(`otp-${ip}`);
     otpSendAttempts.delete(ip);
 
-    const res = NextResponse.json({ success: true, role: "master" });
-    res.cookies.set("role", "master", { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
-    res.cookies.set("auth_method", "email_otp", { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
+    const role = data.role === "master" ? "master" : "admin";
+    const authMethod = role === "master" ? "email_otp" : "email_otp";
+    const res = NextResponse.json({ success: true, role });
+    res.cookies.set("role", role, { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
+    res.cookies.set("auth_method", authMethod, { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 86400 });
     return res;
   }
 
@@ -144,11 +159,11 @@ export async function POST(req: NextRequest) {
   if (action === "change-master-email") {
     const role = req.cookies.get("role")?.value;
     const authMethod = req.cookies.get("auth_method")?.value;
-    if (role!== "master") return NextResponse.json({ success: false, error: "Only master can change email" }, { status: 403 });
-    if (authMethod!== "master_key" && authMethod!== "email_otp") {
+    if (role !== "master") return NextResponse.json({ success: false, error: "Only master can change email" }, { status: 403 });
+    if (authMethod !== "master_key" && authMethod !== "email_otp") {
       return NextResponse.json({ success: false, error: "Verify with Master key or OTP first" }, { status: 403 });
     }
-    if (!newEmail ||!newEmail.includes("@")) return NextResponse.json({ success: false, error: "Valid email do" }, { status: 400 });
+    if (!newEmail || !newEmail.includes("@")) return NextResponse.json({ success: false, error: "Valid email do" }, { status: 400 });
 
     const exists = configs?.find((c:any)=>c.key==="master_email");
     if (exists) {
