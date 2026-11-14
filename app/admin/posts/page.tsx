@@ -24,8 +24,6 @@ export default function AdminPostsPage() {
     if (p) setPosts(p); if (c) setComments(c)
   }
 
-  // --- FILTER ---
-  // Purane blogs me status nahi hoga, unko Approved maanenge
   const approvedPosts = posts.filter(x => x.status !== 'pending' && x.status !== 'rejected')
   const pendingPosts = posts.filter(x => x.status === 'pending')
   const rejectedPosts = posts.filter(x => x.status === 'rejected')
@@ -44,8 +42,6 @@ export default function AdminPostsPage() {
     await supabase.from('comments').update({ is_approved:!c.is_approved }).eq('id', c.id)
     fetchAll()
   }
-
-  // --- NEW: PENDING APPROVE / REJECT ---
   async function approvePost(id: string) {
     if (!confirm("Approve karke live kar du?")) return
     await supabase.from('blogs').update({ status: 'approved' }).eq('id', id)
@@ -87,9 +83,11 @@ export default function AdminPostsPage() {
             <div className="grid gap-3">
               {approvedPosts.map(p=>(
                 <div key={p.id} className="p-4 rounded-2xl backdrop-blur border bg-white/90 border-white/50 shadow-sm flex justify-between items-center gap-3">
-                  <div className="flex-1"><p className="font-semibold">{p.title}</p><p className="text-xs text-gray-500">{p.slug} • By {p.author_name || 'Admin'} • {p.category || 'General'}</p></div>
-                  <div className="flex gap-2">
+                  <div className="flex-1"><p className="font-semibold">{p.title}</p><p className="text-xs text-gray-500">{p.slug} • By {p.author_name || 'Admin'} • {p.category || 'General'} {p.tags ? `• 🏷️ ${p.tags}` : ''}</p></div>
+                  <div className="flex gap-2 flex-wrap justify-end">
                     <Link href={`/blog/${p.slug}`} className="px-3 py-1.5 bg-black text-white rounded-full text-xs">View</Link>
+                    {/* ✅ YAHAN LAGAYA - SEO Edit Button - Approved me */}
+                    <Link href={`/admin/edit-blog/${p.id}`} className="px-3 py-1.5 bg-orange-500 text-white rounded-full text-xs font-bold">🔍 SEO Edit</Link>
                     <button onClick={()=>deletePost(p.id)} className="px-3 py-1.5 bg-red-500 text-white rounded-full text-xs">Delete</button>
                   </div>
                 </div>
@@ -108,6 +106,7 @@ export default function AdminPostsPage() {
                       <p className="font-bold mt-1.5">{p.title}</p>
                       <p className="text-xs text-gray-500">By {p.author_name || 'Unknown'} ({p.author_email || 'no email'}) • {new Date(p.created_at).toLocaleString('en-IN')} • {p.content?.length || 0} chars</p>
                       <p className="text-sm text-gray-700 mt-2 line-clamp-3">{p.excerpt || p.content?.slice(0,150)}</p>
+                      {p.tags && <p className="text-xs text-orange-600 mt-1">🏷️ Tags: {p.tags}</p>}
                       <details className="mt-2"><summary className="text-xs text-orange-600 font-bold cursor-pointer">Full Blog Padho ↓</summary><p className="text-sm whitespace-pre-wrap bg-gray-50 p-3 rounded-xl mt-2 max-h-[250px] overflow-auto">{p.content}</p></details>
                     </div>
                     {p.cover_image && <img src={p.cover_image} className="w-[90px] h-[70px] object-cover rounded-xl" />}
@@ -116,6 +115,8 @@ export default function AdminPostsPage() {
                     <button onClick={()=>approvePost(p.id)} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">✅ Approve & Publish</button>
                     <button onClick={()=>rejectPost(p.id)} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">❌ Reject</button>
                     <Link href={`/blog/${p.slug}`} className="px-3 py-1.5 bg-black text-white rounded-full text-xs">Preview</Link>
+                    {/* ✅ YAHAN BHI LAGAYA - Pending me bhi SEO Edit */}
+                    <Link href={`/admin/edit-blog/${p.id}`} className="px-3 py-1.5 bg-orange-500 text-white rounded-full text-xs font-bold">🔍 SEO Edit</Link>
                     <button onClick={()=>deletePost(p.id)} className="px-3 py-1.5 bg-gray-200 text-red-600 rounded-full text-xs font-bold">🗑️ Delete</button>
                   </div>
                 </div>
@@ -127,12 +128,14 @@ export default function AdminPostsPage() {
                   <p className="text-white/70 text-sm">Jab koi user blog likhega to yahan aa jayega.</p>
                 </div>
               )}
-              {/* Rejected bhi yahi dikha dete hai taaki galti se reject wala wapas la sako */}
               {rejectedPosts.length > 0 && <p className="text-white/80 text-sm font-bold mt-2">Rejected ({rejectedPosts.length}) - Wapas laane ke liye:</p>}
               {rejectedPosts.map(p=>(
                 <div key={p.id} className="p-3 rounded-2xl bg-black/20 border border-white/20 flex justify-between items-center">
                   <p className="text-white text-sm font-semibold flex-1">{p.title} <span className="text-white/60 text-xs">- By {p.author_name}</span></p>
-                  <button onClick={()=>backToPending(p.id)} className="px-3 py-1 bg-yellow-400 rounded-full text-xs font-bold">Back to Pending</button>
+                  <div className="flex gap-2">
+                    <Link href={`/admin/edit-blog/${p.id}`} className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs font-bold">SEO Edit</Link>
+                    <button onClick={()=>backToPending(p.id)} className="px-3 py-1 bg-yellow-400 rounded-full text-xs font-bold">Back to Pending</button>
+                  </div>
                 </div>
               ))}
             </div>
