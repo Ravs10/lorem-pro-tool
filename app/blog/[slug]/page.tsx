@@ -69,16 +69,11 @@ export default async function Page({ params }: { params: { slug: string } }) {
       </div>
     )
   }
-  const { data: related } = await supabase.from('blogs').select('*').eq('is_deleted', false).eq('status', 'approved').neq('slug', slug).eq('category', blog.category || 'General').order('created_at', { ascending: false }).limit(3)
+  const { data: related } = await supabase.from('blogs').select('*').eq('is_deleted', false).in('status', ['published', 'approved']).neq('slug', slug).eq('category', blog.category || 'General').order('created_at', { ascending: false }).limit(3)
   let relatedFinal = related || []
   if (relatedFinal.length === 0) {
-    const { data: rel2 } = await supabase.from('blogs').select('*').eq('is_deleted', false).eq('status', 'approved').neq('slug', slug).order('created_at', { ascending: false }).limit(3)
+    const { data: rel2 } = await supabase.from('blogs').select('*').eq('is_deleted', false).in('status', ['published', 'approved']).neq('slug', slug).order('created_at', { ascending: false }).limit(3)
     relatedFinal = rel2 || []
-  }
-  // Also support published status - In case status is published instead of approved
-  if (relatedFinal.length === 0) {
-    const { data: rel3 } = await supabase.from('blogs').select('*').eq('is_deleted', false).eq('status', 'published').neq('slug', slug).order('created_at', { ascending: false }).limit(3)
-    relatedFinal = rel3 || []
   }
   const toc = getTOC(blog.content || '')
   const readTime = Math.max(1, Math.ceil((blog.content?.length || 500) / 1000))
@@ -115,7 +110,6 @@ export default async function Page({ params }: { params: { slug: string } }) {
             )}
             <div className="prose max-w-none leading-relaxed prose-p:my-3 prose-a:text-orange-600 prose-a:underline prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-6 prose-strong:text-black mt-4" dangerouslySetInnerHTML={{ __html: renderContent(blog.content) }} />
 
-            {/* ✅ TAGS - Content ke baad, Author Box ke pehle */}
             {tags.length > 0 && (
               <div className="flex gap-2 flex-wrap mt-8">
                 <span className="text-sm font-bold">🏷️ Tags:</span>
@@ -125,8 +119,6 @@ export default async function Page({ params }: { params: { slug: string } }) {
               </div>
             )}
 
-            {/* ✅ NEW: AUTHOR BIO BOX - Like Medium / Quora - Auto Banega */}
-            {/* Writer ne Write Blog me jo Website + Bio likha tha, wahi yahan dikhega */}
             {blog.author_name && (
               <div className="bg-white border rounded-2xl p-5 mt-8 flex gap-4 items-start">
                 <div className="w-16 h-16 bg-orange-500 text-white rounded-full flex items-center justify-center text-2xl font-bold shrink-0">
@@ -174,5 +166,28 @@ export default async function Page({ params }: { params: { slug: string } }) {
                 {relatedFinal.map((r: any) => (
                   <Link key={r.id} href={`/blog/${r.slug}`} className="flex gap-3 group">
                     {r.cover_image ? <img src={r.cover_image} className="w-[70px] h-[55px] object-cover rounded-lg shrink-0" /> : <div className="w-[70px] h-[55px] bg-orange-50 rounded-lg flex items-center justify-center text-2xl shrink-0">📝</div>}
-                    <div><p className="text-sm font-bold leading-snug group-hover:text-orange-600 line-clamp-2">{r.title}</p><p className="text-[11px] text-gray-500 mt-1">By {r.author_name || 'Admin'} • {r.category || 'General'}</p></div>
-                  </
+                    <div>
+                      <p className="text-sm font-bold leading-snug group-hover:text-orange-600 line-clamp-2">{r.title}</p>
+                      <p className="text-[11px] text-gray-500 mt-1">By {r.author_name || 'Admin'} • {r.category || 'General'}</p>
+                    </div>
+                  </Link>
+                ))}
+                {relatedFinal.length === 0 && <p className="text-sm text-gray-500">No related blogs yet.</p>}
+              </div>
+              <Link href="/blog" className="block text-center text-sm font-bold text-orange-600 mt-5">View All Blogs →</Link>
+            </div>
+            <div className="bg-black text-white rounded-2xl p-5 text-center">
+              <p className="text-2xl">🛠️</p><p className="font-bold mt-1">Try 26+ Free Tools!</p>
+              <Link href="/" className="inline-block bg-orange-500 text-white px-5 py-2.5 rounded-full text-sm font-bold mt-3">Explore Tools →</Link>
+            </div>
+            <Link href="/write-for-us" className="block bg-orange-500 text-white rounded-2xl p-5 text-center">
+              <p className="font-bold">✍️ Write For Us</p>
+              <p className="text-xs mt-1">Get 1 FREE DoFollow Backlink + Author Bio</p>
+              <p className="inline-block bg-black text-white px-5 py-2.5 rounded-full text-sm font-bold mt-3">Submit Blog →</p>
+            </Link>
+          </aside>
+        </div>
+      </div>
+    </div>
+  )
+}
