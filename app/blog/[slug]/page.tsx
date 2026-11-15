@@ -75,6 +75,11 @@ export default async function Page({ params }: { params: { slug: string } }) {
     const { data: rel2 } = await supabase.from('blogs').select('*').eq('is_deleted', false).eq('status', 'approved').neq('slug', slug).order('created_at', { ascending: false }).limit(3)
     relatedFinal = rel2 || []
   }
+  // Also support published status - In case status is published instead of approved
+  if (relatedFinal.length === 0) {
+    const { data: rel3 } = await supabase.from('blogs').select('*').eq('is_deleted', false).eq('status', 'published').neq('slug', slug).order('created_at', { ascending: false }).limit(3)
+    relatedFinal = rel3 || []
+  }
   const toc = getTOC(blog.content || '')
   const readTime = Math.max(1, Math.ceil((blog.content?.length || 500) / 1000))
   const isGuest = blog.author_name && blog.author_name !== 'Admin'
@@ -104,13 +109,13 @@ export default async function Page({ params }: { params: { slug: string } }) {
             {blog.cover_image && <img src={blog.cover_image} className="w-full rounded-2xl mt-6 max-h-[420px] object-cover" />}
             {toc.length > 0 && (
               <details className="lg:hidden bg-white border rounded-2xl p-4 mt-6">
-                <summary className="font-bold cursor-pointer">📑 Is Blog Me Kya Hai?</summary>
+                <summary className="font-bold cursor-pointer">📑 What Is In This Blog?</summary>
                 <ul className="mt-3 space-y-2">{toc.map((t, i) => <li key={i}><span className="text-sm text-orange-700">• {t}</span></li>)}</ul>
               </details>
             )}
             <div className="prose max-w-none leading-relaxed prose-p:my-3 prose-a:text-orange-600 prose-a:underline prose-h2:text-2xl prose-h2:font-bold prose-h2:mt-6 prose-strong:text-black mt-4" dangerouslySetInnerHTML={{ __html: renderContent(blog.content) }} />
 
-            {/* ✅ TAGS - YAHIN LAGA HUA HAI - Content ke baad, Author Box ke pehle - Dobara mat lagana! */}
+            {/* ✅ TAGS - Content ke baad, Author Box ke pehle */}
             {tags.length > 0 && (
               <div className="flex gap-2 flex-wrap mt-8">
                 <span className="text-sm font-bold">🏷️ Tags:</span>
@@ -120,15 +125,34 @@ export default async function Page({ params }: { params: { slug: string } }) {
               </div>
             )}
 
-            <div className="bg-white border rounded-2xl p-5 mt-8 flex gap-4 items-start">
-              <div className="w-14 h-14 rounded-full bg-black text-white flex items-center justify-center font-bold text-2xl shrink-0">{(blog.author_name || 'A')[0].toUpperCase()}</div>
-              <div>
-                <p className="text-xs text-gray-500 font-bold">WRITTEN BY</p>
-                <p className="font-bold text-lg">{blog.author_name || 'Admin'} {isGuest ? '(Community Writer)' : '(Founder)'}</p>
-                <p className="text-sm text-gray-600 mt-1">{isGuest ? 'Ye blog hamare community writer ne likha hai. Tum bhi likh sakte ho!' : 'Lorem Pro Tool pe 26+ Free Tools banaye hai.'}</p>
-                <Link href="/blog/write" className="inline-block mt-3 bg-black text-white text-sm px-4 py-2 rounded-full">✍️ Tum Bhi Likho</Link>
+            {/* ✅ NEW: AUTHOR BIO BOX - Like Medium / Quora - Auto Banega */}
+            {/* Writer ne Write Blog me jo Website + Bio likha tha, wahi yahan dikhega */}
+            {blog.author_name && (
+              <div className="bg-white border rounded-2xl p-5 mt-8 flex gap-4 items-start">
+                <div className="w-16 h-16 bg-orange-500 text-white rounded-full flex items-center justify-center text-2xl font-bold shrink-0">
+                  {(blog.author_name || 'A').charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-400 tracking-wide">WRITTEN BY</p>
+                  <p className="font-bold text-lg">{blog.author_name} {isGuest ? '(Community Writer)' : '(Founder)'}</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {blog.author_bio || (isGuest ? 'This blog was written by our community writer. You can also write!' : 'Created 26+ Free Tools on Lorem Pro Tool.')}
+                  </p>
+                  {blog.website && (
+                    <>
+                      <a href={blog.website} target="_blank" rel={blog.is_dofollow ? "dofollow" : "ugc"} className="inline-block mt-3 bg-black text-white text-sm px-4 py-2 rounded-full font-bold">🌐 Visit My Website →</a>
+                      <p className="text-[11px] text-gray-400 mt-2">
+                        {blog.is_dofollow ? "✅ DoFollow Link - Trusted Author" : "🔒 UGC Link - Under Review"}
+                      </p>
+                    </>
+                  )}
+                  {!blog.website && (
+                    <Link href="/write-blog" className="inline-block mt-3 bg-black text-white text-sm px-4 py-2 rounded-full">✍️ Write Yours Too</Link>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
+
             <Comments slug={slug} />
             <div className="flex flex-wrap gap-3 mt-10 border-t pt-6">
               <Link href="/blog" className="px-6 py-3 rounded-full bg-zinc-900 text-white font-bold">← Go Back</Link>
@@ -145,25 +169,10 @@ export default async function Page({ params }: { params: { slug: string } }) {
               </div>
             )}
             <div className="bg-white border rounded-2xl p-5">
-              <p className="font-bold text-lg">📚 Ye Bhi Padho</p>
+              <p className="font-bold text-lg">📚 Also Read</p>
               <div className="grid gap-4 mt-4">
                 {relatedFinal.map((r: any) => (
                   <Link key={r.id} href={`/blog/${r.slug}`} className="flex gap-3 group">
                     {r.cover_image ? <img src={r.cover_image} className="w-[70px] h-[55px] object-cover rounded-lg shrink-0" /> : <div className="w-[70px] h-[55px] bg-orange-50 rounded-lg flex items-center justify-center text-2xl shrink-0">📝</div>}
                     <div><p className="text-sm font-bold leading-snug group-hover:text-orange-600 line-clamp-2">{r.title}</p><p className="text-[11px] text-gray-500 mt-1">By {r.author_name || 'Admin'} • {r.category || 'General'}</p></div>
-                  </Link>
-                ))}
-                {relatedFinal.length === 0 && <p className="text-sm text-gray-500">Abhi related blog nahi hai.</p>}
-              </div>
-              <Link href="/blog" className="block text-center text-sm font-bold text-orange-600 mt-5">All Blogs Dekho →</Link>
-            </div>
-            <div className="bg-black text-white rounded-2xl p-5 text-center">
-              <p className="text-2xl">🛠️</p><p className="font-bold mt-1">26+ Free Tools Try Karo!</p>
-              <Link href="/" className="inline-block bg-orange-500 text-white px-5 py-2.5 rounded-full text-sm font-bold mt-3">Tools Dekho →</Link>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </div>
-  )
-}
+                  </
