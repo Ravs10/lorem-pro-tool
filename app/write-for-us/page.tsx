@@ -61,7 +61,7 @@ export default function WriteForUs() {
         <p className="text-xs text-gray-500 mt-2">↑ This box will appear below your blog. The website link in this box will be DoFollow.</p>
 
         {/* RULES */}
-        <h2 className="text-2xl font-bold mt-8">📋 Simple Rules - 2 Minute Me Samajh Lo</h2>
+        <h2 className="text-2xl font-bold mt-8">📋 Simple Rules - Understand in 2 minutes</h2>
         <div className="bg-white rounded-2xl border p-5 mt-4 space-y-3 text-sm">
           <p>✅ <b>Min 800 words</b> - Original, not copied from ChatGPT / other site.</p>
           <p>✅ <b>1 Link Only</b> - Only 1 link to your site, in Author Bio. No extra links in content.</p>
@@ -71,7 +71,7 @@ export default function WriteForUs() {
         </div>
 
         {/* STEPS */}
-        <h2 className="text-2xl font-bold mt-8">🪜 3 Steps - Itna Aasan Hai</h2>
+        <h2 className="text-2xl font-bold mt-8">🪜 3 Steps - It is that easy</h2>
         <div className="space-y-3 mt-4">
           <div className="bg-white p-4 rounded-2xl border flex gap-3"><span className="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">1</span><p className="text-sm"><b>Fill the form</b> - Name, Email, Website Link, Author Bio & Your Blog.</p></div>
           <div className="bg-white p-4 rounded-2xl border flex gap-3"><span className="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0">2</span><p className="text-sm"><b>Wait for approval</b> - We check quality & originality.</p></div>
