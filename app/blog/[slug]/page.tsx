@@ -79,6 +79,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
   const readTime = Math.max(1, Math.ceil((blog.content?.length || 500) / 1000))
   const isGuest = blog.author_name && blog.author_name !== 'Admin'
   const tags = (blog.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean)
+  const authorWebsite = blog.author_website || blog.website || ""
 
   return (
     <div className="min-h-screen bg-[#fffaf0]">
@@ -124,21 +125,20 @@ export default async function Page({ params }: { params: { slug: string } }) {
                 <div className="w-16 h-16 bg-orange-500 text-white rounded-full flex items-center justify-center text-2xl font-bold shrink-0">
                   {(blog.author_name || 'A').charAt(0).toUpperCase()}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-400 tracking-wide">WRITTEN BY</p>
                   <p className="font-bold text-lg">{blog.author_name} {isGuest ? '(Community Writer)' : '(Founder)'}</p>
                   <p className="text-sm text-gray-500 mt-1">
                     {blog.author_bio || (isGuest ? 'This blog was written by our community writer. You can also write!' : 'Created 26+ Free Tools on Lorem Pro Tool.')}
                   </p>
-                  {blog.website && (
+                  {authorWebsite ? (
                     <>
-                      <a href={blog.website} target="_blank" rel={blog.is_dofollow ? "dofollow" : "ugc"} className="inline-block mt-3 bg-black text-white text-sm px-4 py-2 rounded-full font-bold">🌐 Visit My Website →</a>
-                      <p className="text-[11px] text-gray-400 mt-2">
-                        {blog.is_dofollow ? "✅ DoFollow Link - Trusted Author" : "🔒 UGC Link - Under Review"}
+                      <a href={authorWebsite} target="_blank" rel={blog.is_dofollow ? "" : "ugc nofollow"} className="inline-block mt-3 bg-black text-white text-sm px-4 py-2 rounded-full font-bold">🌐 Visit My Website →</a>
+                      <p className="text-[11px] font-bold mt-2">
+                        {blog.is_dofollow ? "✅ Link Status: DoFollow - Vote Given by Lorem Pro Tool" : "🔒 Link Status: UGC - Admin Review ke baad DoFollow milega"}
                       </p>
                     </>
-                  )}
-                  {!blog.website && (
+                  ) : (
                     <Link href="/write-blog" className="inline-block mt-3 bg-black text-white text-sm px-4 py-2 rounded-full">✍️ Write Yours Too</Link>
                   )}
                 </div>
