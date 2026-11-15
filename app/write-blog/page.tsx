@@ -17,7 +17,7 @@ export default function WriteBlog() {
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Submit fail");
       setMsg("✅ Blog Submit Ho Gaya! Approve hone par aapko DoFollow milega.");
-      setForm({ title: "", slug: "", excerpt: "", content: "", tags: "", author_name: "", author_email: "", cover_image: "", author_website: "", author_bio: "" });
+      setForm({ ...form, title: "", slug: "", excerpt: "", content: "", category: "Finance", tags: "", author_name: "", author_email: "", cover_image: "", author_website: "", author_bio: "" });
     } catch (err: any) { setMsg("❌ Error: " + err.message); } finally { setLoading(false); }
   }
 
