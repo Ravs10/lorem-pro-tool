@@ -27,7 +27,7 @@ function BlogList() {
 
   const cats = ["All", ...new Set(blogs.map(b => b.category || "General"))];
 
-  // ✅ TAG FILTER - YAHIN LAGAYA
+  // ✅ TAG FILTER
   const filtered = blogs.filter(b =>
     (cat === "All" || (b.category || "General") === cat) &&
     (b.title.toLowerCase().includes(search.toLowerCase()) || b.excerpt?.toLowerCase().includes(search.toLowerCase())) &&
@@ -47,8 +47,14 @@ function BlogList() {
           <h1 className="text-4xl font-bold">Our Blog</h1>
           <p className="text-gray-600 mt-1">Tips, Guides & Free Tools - By Admin & Our Community</p>
         </div>
-        <Link href="/blog/write" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold shadow">✍️ Write a Blog</Link>
+        <Link href="/write-blog" className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-full font-semibold shadow">✍️ Write a Blog</Link>
       </div>
+
+      {/* ✅ NEW: WRITE FOR US BANNER - Heading Ke Neeche, Search Se Pehle - YAHAN LAGAYA HAI! */}
+      <Link href="/write-for-us" className="block bg-black text-white rounded-2xl p-5 mb-6 text-center hover:bg-zinc-900 transition">
+        <p className="font-bold text-lg">✍️ Are You a Blogger? Write For Us & Get 1 FREE DoFollow Backlink + Author Bio →</p>
+        <p className="text-xs text-gray-400 mt-1">Like Medium & Quora • No Fees • Approved in 24-48 Hours</p>
+      </Link>
 
       {/* ✅ TAG ACTIVE BANNER - Jab kisi tag pe click karke aayega to ye dikhega */}
       {tag && (
@@ -66,7 +72,7 @@ function BlogList() {
         ))}
       </div>
 
-      {/* ✅ POPULAR TAGS - Blogger Jaisa Tag Cloud */}
+      {/* ✅ POPULAR TAGS */}
       {allTags.length > 0 && (
         <div className="flex gap-2 flex-wrap mb-8 items-center">
           <span className="text-sm font-bold">🏷️ Popular:</span>
@@ -111,10 +117,16 @@ function BlogList() {
       </div>
       {filtered.length === 0 && (
         <div className="text-center py-10">
-          <p className="text-gray-500">Koi blog nahi mila {tag ? `Tag #${tag} ke liye` : ""}. Pehla blog tum likho! ✍️</p>
-          {tag && <Link href="/blog" className="inline-block mt-3 bg-black text-white px-5 py-2 rounded-full text-sm">All Blogs Dekho</Link>}
+          <p className="text-gray-500">No blogs found {tag ? `for Tag #${tag}` : ""}. Be the first to write one! ✍️</p>
+          {tag && <Link href="/blog" className="inline-block mt-3 bg-black text-white px-5 py-2 rounded-full text-sm">View All Blogs</Link>}
         </div>
       )}
+
+      {/* ✅ NEW: BOTTOM BANNER - Jo Neeche Tak Scroll Karega Uske Liye Bhi */}
+      <Link href="/write-for-us" className="block bg-orange-500 text-white rounded-2xl p-5 mt-10 text-center">
+        <p className="font-bold text-lg">✍️ Want a Free DoFollow Backlink? Write For Us →</p>
+        <p className="text-xs mt-1 opacity-90">800+ Words Original Blog = 1 DoFollow Link + Author Bio • Free Forever</p>
+      </Link>
     </div>
   );
 }
