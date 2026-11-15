@@ -153,11 +153,11 @@ export default function AdminPage() {
   };
   const handleToolUpdate = async () => { const d = await apiCall("update-tool", { id: editTool.id, name: editTool.name, slug: editTool.slug }); if (d.error) alert(d.error); else { setEditTool(null); fetchTools(); } };
 
-  // UPDATED: Edit will also save Category + Status
+  // UPDATED: Edit will also save Category + Status + Website + Bio + DoFollow
   const handlePostUpdate = async () => {
     if(!editPost.title || !editPost.content) return alert("Please enter Title + Content");
     const slug = String(editPost.title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-    const d = await apiCall("update-blog", { id: editPost.id, title: editPost.title, content: editPost.content, slug, category: editPost.category || "General", status: editPost.status || "pending", is_published: (editPost.status === "published" || editPost.status === "approved"), published: (editPost.status === "published" || editPost.status === "approved") });
+    const d = await apiCall("update-blog", { id: editPost.id, title: editPost.title, content: editPost.content, slug, category: editPost.category || "General", status: editPost.status || "pending", is_published: (editPost.status === "published" || editPost.status === "approved"), published: (editPost.status === "published" || editPost.status === "approved"), website: editPost.website || null, author_bio: editPost.author_bio || null, is_dofollow: editPost.is_dofollow || false });
     if(d.error) alert("❌ "+d.error); else { alert("✅ Post Updated!"); setEditPost(null); setEditingPostId(null); fetchPosts(); }
   };
 
@@ -175,6 +175,14 @@ export default function AdminPage() {
     setPosts(prev=>prev.map(x=>x.id===p.id? {...x, category: newCat}: x));
     const d = await apiCall("update-blog", { id: p.id, title: p.title, content: p.content, slug: p.slug, category: newCat, status: p.status || "pending" });
     if(d.error){ alert("❌ "+d.error); fetchPosts(); } else { fetchPosts(); }
+  };
+
+  // ✅ NEW: Give / Remove DoFollow - Admin ka Button
+  const handleDoFollow = async (p:any, val:boolean) => {
+    if (!confirm(val ? "Give DoFollow to this writer? Their link will now pass SEO vote to Google." : "Remove DoFollow? Link will become UGC.")) return;
+    setPosts(prev=>prev.map(x=>x.id===p.id? {...x, is_dofollow: val}: x));
+    const d = await apiCall("toggle-dofollow", { id: p.id, val });
+    if(d.error){ alert("❌ "+d.error); fetchPosts(); } else { alert(val ? "✅ DoFollow Given! Now their site will get SEO vote." : "🔒 DoFollow Removed! Now it is UGC."); fetchPosts(); }
   };
 
   const approveComment = async (c:any, val:boolean) => {
@@ -282,7 +290,7 @@ export default function AdminPage() {
               ))}</div>
             </>
           ): activeTab==="posts"? (
-            // UPDATED POSTS TAB - Approve + Category Added
+            // UPDATED POSTS TAB - Approve + Category + DoFollow Added
             <div className="space-y-3 bg-white/90 p-5 rounded-2xl"><h2 className="font-bold text-lg">📝 All Posts ({posts.length})</h2><p className="text-xs text-gray-500">🗑️ In Trash now: <b>{trashCount}</b> item - With Master</p>{posts.length===0 && <p className="text-sm text-gray-500">No posts yet. Create one from the Blog tab.</p>}{posts.map((p:any)=>{
               const isPub = p.status === "published" || p.status === "approved";
               return (
@@ -292,18 +300,33 @@ export default function AdminPage() {
                     <div className="flex gap-2 flex-wrap mt-2">
                       <span className={`px-2 py-1 rounded-full text-[11px] font-bold ${isPub ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>{isPub ? "✅ Published" : "⏳ Pending"}</span>
                       <span className="px-2 py-1 rounded-full text-[11px] bg-gray-100 font-bold">📂 {p.category || "General"}</span>
+                      <span className={`px-2 py-1 rounded-full text-[11px] font-bold ${p.is_dofollow ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>{p.is_dofollow ? "🔗 DoFollow ON" : "🔒 UGC Link"}</span>
                     </div>
                   </div>
                   <div className="flex gap-2 flex-wrap justify-end shrink-0"><a href={`/blog/${p.slug}`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-black text-white rounded-full text-xs font-bold">View</a><button onClick={()=>{ setEditPost({...p, category: p.category || "General", status: p.status || "pending"}); setEditingPostId(p.id); }} className="px-3 py-1.5 bg-yellow-400 text-black rounded-full text-xs font-bold">Edit</button><button onClick={()=>movePostToTrash(p)} className="px-3 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">🗑️ Trash</button></div>
                 </div>
+                {/* ✅ NEW: WEBSITE + BIO + DOFOLLOW - Admin Ke Liye */}
+                {(p.website || p.author_bio) && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-sm">
+                    {p.website && <p><b>🌐 Website:</b> <a href={p.website} target="_blank" className="text-blue-600 underline break-all">{p.website}</a></p>}
+                    {p.author_bio && <p className="mt-1"><b>👤 Bio:</b> {p.author_bio}</p>}
+                    <p className="mt-1"><b>Link Status:</b> {p.is_dofollow ? "✅ DoFollow - Vote Given" : "🔒 UGC - Vote Not Given Yet"}</p>
+                  </div>
+                )}
                 <div className="flex gap-2 flex-wrap items-center pt-1 border-t">
                   {!isPub ? (
                     <button onClick={()=>handlePostStatus(p, "published")} className="px-4 py-1.5 bg-green-600 text-white rounded-full text-xs font-bold">✅ Approve - Make Public</button>
                   ) : (
                     <button onClick={()=>handlePostStatus(p, "pending")} className="px-4 py-1.5 bg-yellow-500 text-white rounded-full text-xs font-bold">⏸️ Move to Pending</button>
                   )}
+                  {/* ✅ NEW: DoFollow Button */}
+                  {!p.is_dofollow ? (
+                    <button onClick={()=>handleDoFollow(p, true)} className="px-4 py-1.5 bg-green-700 text-white rounded-full text-xs font-bold">🔗 Give DoFollow</button>
+                  ) : (
+                    <button onClick={()=>handleDoFollow(p, false)} className="px-4 py-1.5 bg-red-500 text-white rounded-full text-xs font-bold">❌ Remove DoFollow</button>
+                  )}
                   <select value={p.category || "General"} onChange={(e)=>handlePostCategory(p, e.target.value)} className="border rounded-full px-2 py-1.5 text-xs bg-white font-bold">
-                    <option value="General">General</option><option value="Tools">Tools</option><option value="AI Tools">AI Tools</option><option value="YouTube">YouTube</option><option value="Finance">Finance</option><option value="Design">Design</option><option value="Blogging">Blogging</option><option value="SEO">SEO</option>
+                    <option value="General">General</option><option value="Finance">Finance</option><option value="YouTube">YouTube</option><option value="AI Tools">AI Tools</option><option value="Career">Career</option><option value="Study">Study</option><option value="Technology">Technology</option><option value="Blogging & SEO">Blogging & SEO</option><option value="Business & Startup">Business & Startup</option><option value="Health & Fitness">Health & Fitness</option><option value="Education">Education</option><option value="Travel">Travel</option><option value="Food & Recipe">Food & Recipe</option><option value="Sports & Cricket">Sports & Cricket</option><option value="Entertainment & Movies">Entertainment & Movies</option><option value="Tools & Apps">Tools & Apps</option>
                   </select>
                 </div>
               </div>
@@ -354,8 +377,8 @@ export default function AdminPage() {
           </div>
         )}
         {editTool && (<div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 z-50"><div className="bg-white rounded-[24px] p-6 w-full max-w-md shadow-2xl"><h3 className="font-bold text-lg mb-4">Edit Tool</h3><input value={editTool.name} onChange={e=>setEditTool({...editTool, name:e.target.value})} className="w-full p-3 rounded-xl border mb-3"/><input value={editTool.slug} onChange={e=>setEditTool({...editTool, slug:e.target.value})} className="w-full p-3 rounded-xl border mb-3"/><div className="flex gap-2"><button onClick={()=>setEditTool(null)} className="flex-1 p-3 rounded-xl border">Cancel</button><button onClick={handleToolUpdate} className="flex-1 p-3 rounded-xl bg-black text-white">Save</button></div></div></div>)}
-        {/* UPDATED EDIT POST MODAL - Category + Status */}
-        {editPost && (<div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 z-50"><div className="bg-white rounded-[24px] p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto"><h3 className="font-bold text-lg mb-4">✏️ Edit Post</h3><input value={editPost.title} onChange={e=>setEditPost({...editPost, title:e.target.value})} placeholder="Post Title" className="w-full p-3 rounded-xl border mb-3"/><div className="flex gap-2 mb-3"><select value={editPost.category || "General"} onChange={e=>setEditPost({...editPost, category: e.target.value})} className="flex-1 p-3 rounded-xl border bg-white font-bold"><option value="General">General</option><option value="Tools">Tools</option><option value="AI Tools">AI Tools</option><option value="YouTube">YouTube</option><option value="Finance">Finance</option><option value="Design">Design</option><option value="Blogging">Blogging</option><option value="SEO">SEO</option></select><select value={editPost.status || "pending"} onChange={e=>setEditPost({...editPost, status: e.target.value})} className="flex-1 p-3 rounded-xl border bg-white font-bold"><option value="pending">⏳ Pending</option><option value="published">✅ Published</option></select></div><textarea value={editPost.content} onChange={e=>setEditPost({...editPost, content:e.target.value})} placeholder="Post Content" className="w-full h-[250px] p-3 rounded-xl border mb-3"/><div className="flex gap-2"><button onClick={()=>{setEditPost(null); setEditingPostId(null);}} className="flex-1 p-3 rounded-xl border">Cancel</button><button onClick={handlePostUpdate} className="flex-1 p-3 rounded-xl bg-black text-white font-bold">💾 Update Post</button></div></div></div>)}
+        {/* UPDATED EDIT POST MODAL - Category + Status + Website + Bio + DoFollow */}
+        {editPost && (<div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 z-50"><div className="bg-white rounded-[24px] p-6 w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto"><h3 className="font-bold text-lg mb-4">✏️ Edit Post</h3><input value={editPost.title} onChange={e=>setEditPost({...editPost, title:e.target.value})} placeholder="Post Title" className="w-full p-3 rounded-xl border mb-3"/><div className="flex gap-2 mb-3"><select value={editPost.category || "General"} onChange={e=>setEditPost({...editPost, category: e.target.value})} className="flex-1 p-3 rounded-xl border bg-white font-bold"><option value="General">General</option><option value="Tools">Tools</option><option value="AI Tools">AI Tools</option><option value="YouTube">YouTube</option><option value="Finance">Finance</option><option value="Design">Design</option><option value="Blogging">Blogging</option><option value="SEO">SEO</option></select><select value={editPost.status || "pending"} onChange={e=>setEditPost({...editPost, status: e.target.value})} className="flex-1 p-3 rounded-xl border bg-white font-bold"><option value="pending">⏳ Pending</option><option value="published">✅ Published</option></select></div><textarea value={editPost.content} onChange={e=>setEditPost({...editPost, content:e.target.value})} placeholder="Post Content" className="w-full h-[250px] p-3 rounded-xl border mb-3"/><div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 mb-3"><p className="font-bold text-sm">🔗 Author Backlink Settings</p><input value={editPost.website || ""} onChange={e=>setEditPost({...editPost, website: e.target.value})} placeholder="Author Website - e.g. https://myblog.com" className="w-full p-3 rounded-xl border mt-2 bg-white" /><textarea value={editPost.author_bio || ""} onChange={e=>setEditPost({...editPost, author_bio: e.target.value})} placeholder="Author Bio - 2 lines about writer" className="w-full p-3 rounded-xl border mt-2 bg-white h-[60px]" /><label className="flex items-center gap-2 text-sm font-bold mt-2 cursor-pointer"><input type="checkbox" checked={!!editPost.is_dofollow} onChange={e=>setEditPost({...editPost, is_dofollow: e.target.checked})} className="w-4 h-4" />{editPost.is_dofollow ? "✅ DoFollow ON - Link will pass SEO vote" : "🔒 UGC - Link will NOT pass vote"}</label></div><div className="flex gap-2"><button onClick={()=>{setEditPost(null); setEditingPostId(null);}} className="flex-1 p-3 rounded-xl border">Cancel</button><button onClick={handlePostUpdate} className="flex-1 p-3 rounded-xl bg-black text-white font-bold">💾 Update Post</button></div></div></div>)}
       </div>
     </div>
   );
