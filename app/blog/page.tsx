@@ -28,7 +28,6 @@ function BlogList() {
 
   const cats = ALL_CATEGORIES;
 
-  // ✅ NEW: Har category me kitne blog hai - Count nikal liya
   const catCounts: any = {};
   ALL_CATEGORIES.forEach(c => {
     if (c === "All") catCounts[c] = blogs.length;
@@ -45,6 +44,10 @@ function BlogList() {
 
   const featured = filtered[0];
   const rest = filtered.slice(1);
+
+  // ✅ FIX: All me ho to Featured alag, baaki me saare blog list me
+  const isAllView = search === "" && cat === "All" && !tag;
+  const listToShow = isAllView ? rest : filtered;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
@@ -84,7 +87,7 @@ function BlogList() {
         </div>
       )}
 
-      {featured && search === "" && cat === "All" && !tag && (
+      {featured && isAllView && (
         <Link href={`/blog/${featured.slug}`} className="block bg-[#fffaf0] border rounded-2xl overflow-hidden mb-8 hover:shadow-lg transition">
           {featured.cover_image && <img src={featured.cover_image} className="w-full h-[280px] object-cover" />}
           <div className="p-6">
@@ -98,7 +101,7 @@ function BlogList() {
       )}
 
       <div className="grid md:grid-cols-3 gap-5">
-        {(tag ? filtered : rest).map(b => (
+        {listToShow.map(b => (
           <Link key={b.id} href={`/blog/${b.slug}`} className="bg-white border rounded-2xl overflow-hidden hover:shadow-lg transition">
             {b.cover_image ? <img src={b.cover_image} className="w-full h-[170px] object-cover" /> : <div className="h-[170px] bg-orange-50 flex items-center justify-center text-5xl">📝</div>}
             <div className="p-4">
