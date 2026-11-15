@@ -28,6 +28,13 @@ function BlogList() {
 
   const cats = ALL_CATEGORIES;
 
+  // ✅ NEW: Har category me kitne blog hai - Count nikal liya
+  const catCounts: any = {};
+  ALL_CATEGORIES.forEach(c => {
+    if (c === "All") catCounts[c] = blogs.length;
+    else catCounts[c] = blogs.filter(b => (b.category || "General") === c).length;
+  });
+
   const filtered = blogs.filter(b =>
     (cat === "All" || (b.category || "General") === cat) &&
     (b.title.toLowerCase().includes(search.toLowerCase()) || b.excerpt?.toLowerCase().includes(search.toLowerCase())) &&
@@ -64,7 +71,7 @@ function BlogList() {
       <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search blog... e.g. SIP, YouTube..." className="w-full border p-3 rounded-xl mb-4 outline-none focus:ring-2 ring-orange-300" />
       <div className="flex gap-2 flex-wrap mb-3">
         {cats.map(c => (
-          <button key={c} onClick={() => setCat(c)} className={`px-4 py-1.5 rounded-full text-sm border ${cat === c ? "bg-black text-white" : "bg-white"}`}>{c}</button>
+          <button key={c} onClick={() => setCat(c)} className={`px-4 py-1.5 rounded-full text-sm border flex items-center gap-1.5 ${cat === c ? "bg-black text-white" : "bg-white"}`}>{c} <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${cat === c ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500"}`}>{catCounts[c] || 0}</span></button>
         ))}
       </div>
 
