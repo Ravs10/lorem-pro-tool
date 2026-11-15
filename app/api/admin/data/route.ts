@@ -6,7 +6,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// ✅ Tumhare /api/admin/me jaisa hi auth - Cookie se role check
+// Auth - Same as /api/admin/me - Check role from Cookie
 function checkAuth(req: NextRequest) {
   const role = req.cookies.get("role")?.value || null;
   if (!role) return null;
@@ -95,16 +95,74 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data });
     }
 
+    // ✅ FIXED: create-blog - Now saves category + status + published flags
     if (action === "create-blog") {
-      const { error } = await supabaseAdmin.from("blogs").insert([{ title: body.title, content: body.content, slug: body.slug }]);
+      const isPublished = body.status === "published" || body.status === "approved" || body.is_published === true || body.published === true;
+      const { data, error } = await supabaseAdmin.from("blogs").insert([{
+        title: body.title,
+        content: body.content,
+        slug: body.slug,
+        category: body.category || "General",
+        status: body.status || "pending",
+        is_published: isPublished,
+        published: isPublished,
+        is_deleted: false,
+        author_name: "Admin",
+        excerpt: body.excerpt || null,
+        tags: body.tags || null,
+        cover_image: body.cover_image || null,
+      }]).select().single();
       if (error) throw error;
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, post: data });
     }
 
+    // ✅ FIXED: update-blog - Now saves category + status + published flags
+    // This is the main fix for Approve / Pending button
     if (action === "update-blog") {
-      const { error } = await supabaseAdmin.from("blogs").update({ title: body.title, content: body.content, slug: body.slug }).eq("id", body.id);
+      const updateData: any = {};
+      if (body.title !== undefined) updateData.title = body.title;
+      if (body.content !== undefined) updateData.content = body.content;
+      if (body.slug !== undefined) updateData.slug = body.slug;
+      if (body.category !== undefined) updateData.category = body.category;
+      if (body.excerpt !== undefined) updateData.excerpt = body.excerpt;
+      if (body.tags !== undefined) updateData.tags = body.tags;
+      if (body.cover_image !== undefined) updateData.cover_image = body.cover_image;
+      if (body.author_name !== undefined) updateData.author_name = body.author_name;
+
+      // Status logic - Single source of truth
+      if (body.status !== undefined) {
+        updateData.status = body.status;
+        if (body.status === "published" || body.status === "approved") {
+          updateData.is_published = true;
+          updateData.published = true;
+          updateData.is_deleted = false;
+        }
+        if (body.status === "pending") {
+          updateData.is_published = false;
+          updateData.published = false;
+        }
+      }
+      // Direct flags if sent from frontend
+      if (body.is_published !== undefined && body.status === undefined) updateData.is_published = body.is_published;
+      if (body.published !== undefined && body.status === undefined) updateData.published = body.published;
+
+      const { data, error } = await supabaseAdmin.from("blogs").update(updateData).eq("id", body.id).select().single();
       if (error) throw error;
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, post: data });
+    }
+
+    // ✅ NEW: Dedicated approve / pending action - For extra safety
+    if (action === "update-blog-status") {
+      const newStatus = body.status || "pending";
+      const isPublished = newStatus === "published" || newStatus === "approved";
+      const { data, error } = await supabaseAdmin.from("blogs").update({
+        status: newStatus,
+        is_published: isPublished,
+        published: isPublished,
+        is_deleted: false,
+      }).eq("id", body.id).select().single();
+      if (error) throw error;
+      return NextResponse.json({ success: true, post: data });
     }
 
     if (action === "trash-blog") {
