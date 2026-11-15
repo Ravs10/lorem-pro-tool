@@ -23,26 +23,41 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   }
 }
 
+function cleanHtml(html: string) {
+  if (!html) return ""
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+    .replace(/<object[\s\S]*?<\/object>/gi, "")
+    .replace(/<embed[\s\S]*?<\/embed>/gi, "")
+    .replace(/<form[\s\S]*?<\/form>/gi, "")
+    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "")
+    .replace(/on\w+\s*=\s*[^\s>]+/gi, "")
+    .replace(/javascript:/gi, "")
+    .replace(/data:text\/html/gi, "");
+}
+
 function renderContent(text: string) {
   if (!text) return ""
   const isHtml = /<(p|h1|h2|h3|b|strong|a|ul|li|div)[\s>]/.test(text)
-  if (isHtml) return text
+  if (isHtml) return cleanHtml(text)
   let html = text
+  html = cleanHtml(html)
   html = html.replace(/^### (.*)$/gm, '<h3 class="text-xl font-bold mt-6 mb-2">$1</h3>')
   html = html.replace(/^## (.*)$/gm, '<h2 class="text-2xl font-bold mt-6 mb-2">$1</h2>')
   html = html.replace(/^# (.*)$/gm, '<h1 class="text-3xl font-bold mt-6 mb-2">$1</h1>')
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
-  html = html.replace(/\[(https?:\/\/[^\]]+)\]\(https?:\/?\/?\)/g, '<a href="$1" target="_blank" class="text-orange-600 underline font-bold break-all">$1</a>')
+  html = html.replace(/\[(https?:\/\/[^\]]+)\]\(https?:\/?\/?\)/g, '<a href="$1" target="_blank" rel="ugc nofollow" class="text-orange-600 underline font-bold break-all">$1</a>')
   html = html.replace(/\[([^\]]+)\]\(https?:\/?\/?\)/g, '$1')
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" class="text-orange-600 underline font-bold">$1</a>')
-  html = html.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" class="text-orange-600 underline break-all">$1</a>')
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="ugc nofollow" class="text-orange-600 underline font-bold">$1</a>')
+  html = html.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="ugc nofollow" class="text-orange-600 underline break-all">$1</a>')
   html = html.replace(/^- (.*)$/gm, '<li class="ml-5 list-disc">$1</li>')
   html = html.split(/\n\s*\n/).map(p => {
     if (p.trim().startsWith('<h') || p.trim().startsWith('<li')) return p
     return `<p class="my-3 leading-relaxed">${p.replace(/\n/g, '<br/>')}</p>`
   }).join('')
-  return html
+  return cleanHtml(html)
 }
 
 function getTOC(text: string) {
