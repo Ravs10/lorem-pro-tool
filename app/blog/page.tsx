@@ -15,7 +15,7 @@ function BlogList() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("blogs").select("*").eq("status", "approved").eq("is_deleted", false).order("created_at", { ascending: false });
+      const { data } = await supabase.from("blogs").select("*").in("status", ["published", "approved"]).eq("is_deleted", false).order("created_at", { ascending: false });
       setBlogs(data || []);
     })();
   }, []);
