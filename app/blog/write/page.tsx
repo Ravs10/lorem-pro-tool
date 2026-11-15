@@ -12,14 +12,19 @@ function makeSlug(t: string) {
 
 export default function WriteBlog() {
   const router = useRouter();
-  // Form state - Including SEO fields
-  const [form, setForm] = useState({ name: "", email: "", title: "", category: "General", excerpt: "", cover_image: "", content: "", seo_title: "", seo_description: "", tags: "" });
+  // Form state - Including SEO + Website + Author Bio fields
+  const [form, setForm] = useState({ name: "", email: "", title: "", category: "General", excerpt: "", cover_image: "", content: "", seo_title: "", seo_description: "", tags: "", website: "", author_bio: "" });
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function submit() {
     if (!form.name || !form.email || !form.title || form.content.length < 200) {
       alert("Please enter Name, Email, Title and at least 200 characters of blog content!");
+      return;
+    }
+    // Website validation - If entered, must look like a URL
+    if (form.website && !form.website.startsWith("http")) {
+      alert("Please enter Website with https:// - e.g. https://myblog.com");
       return;
     }
     setLoading(true);
@@ -38,6 +43,10 @@ export default function WriteBlog() {
       seo_title: form.seo_title || form.title,
       seo_description: form.seo_description || form.excerpt || form.content.slice(0, 155),
       tags: form.tags,
+      // ✅ NEW: Website + Author Bio - For DoFollow Backlink
+      website: form.website || null,
+      author_bio: form.author_bio || null,
+      is_dofollow: false, // Default UGC - Admin will change to true after checking
     }]);
     setLoading(false);
     if (error) alert("Error: " + error.message);
@@ -49,6 +58,7 @@ export default function WriteBlog() {
       <div className="text-6xl">🎉</div>
       <h1 className="text-3xl font-bold mt-4">Blog Submitted Successfully!</h1>
       <p className="text-gray-600 mt-2">It will appear on the site after Admin review. We will email you as soon as it is approved!</p>
+      <p className="text-sm text-green-600 font-bold mt-3">✅ Your DoFollow backlink request is also saved. If approved, your Author Bio + Website link will go live with the blog.</p>
       <div className="flex gap-3 justify-center flex-wrap mt-6">
         <button onClick={() => setDone(false)} className="bg-black text-white px-6 py-3 rounded-full font-bold">✍️ Write Another Blog</button>
         <Link href="/blog" className="bg-white border-2 border-orange-500 text-orange-600 px-6 py-3 rounded-full font-bold">📝 All Blogs →</Link>
@@ -69,14 +79,43 @@ export default function WriteBlog() {
       <h1 className="text-3xl font-bold">✍️ Write a Blog</h1>
       <p className="text-gray-600 mt-1">Your blog will be published after Admin review. No login required!</p>
 
+      {/* ✅ NEW: DOFOLLOW BANNER - Log Dekhte Hi Backlink Ke Liye Aayenge */}
+      <Link href="/write-for-us" className="block bg-black text-white rounded-2xl p-5 mt-4">
+        <p className="font-bold text-lg">🔗 Get 1 FREE DoFollow Backlink + Author Bio</p>
+        <p className="text-sm text-gray-300 mt-1">Like Medium & Quora - Just fill your Website Link & Author Bio below. If your blog is approved, your backlink goes live too!</p>
+        <p className="text-xs text-orange-400 font-bold mt-2">Learn How It Works →</p>
+      </Link>
+
       <div className="grid md:grid-cols-2 gap-4 mt-6">
         <input placeholder="Your Name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="border p-3 rounded-xl" />
         <input placeholder="Email *" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="border p-3 rounded-xl" />
       </div>
+
+      {/* ✅ NEW: WEBSITE + AUTHOR BIO - DoFollow Ke Liye */}
+      <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mt-4">
+        <p className="font-bold">🔗 Get Your Free DoFollow Backlink</p>
+        <p className="text-xs text-gray-500 mt-1">Fill this to get your backlink + Author Bio box below your blog. Leave empty if you do not want a backlink.</p>
+        <input placeholder="Your Website Link (for DoFollow Backlink) - e.g. https://myblog.com" value={form.website} onChange={e => setForm({ ...form, website: e.target.value })} className="w-full border p-3 rounded-xl mt-3 bg-white" />
+        <textarea placeholder="Author Bio - 2 lines about you - e.g. I am an SEO Blogger with 5 years of experience in blogging & affiliate marketing." value={form.author_bio} onChange={e => setForm({ ...form, author_bio: e.target.value })} className="w-full border p-3 rounded-xl mt-3 h-[70px] bg-white" />
+        <p className="text-xs text-gray-500 mt-1">This bio + website link will show below your blog as Author Bio Box, like Medium.</p>
+        {/* Live Author Bio Preview */}
+        {(form.name || form.author_bio || form.website) && (
+          <div className="bg-white border rounded-xl p-3 mt-3 flex gap-3 items-start">
+            <div className="w-12 h-12 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold shrink-0">{(form.name || "A").charAt(0).toUpperCase()}</div>
+            <div>
+              <p className="text-[11px] text-gray-400">WRITTEN BY - PREVIEW</p>
+              <p className="font-bold">{form.name || "Your Name"}</p>
+              <p className="text-sm text-gray-500">{form.author_bio || "Your bio will appear here..."}</p>
+              {form.website && <p className="text-sm text-blue-600 font-bold mt-1">🌐 Visit My Website →</p>}
+            </div>
+          </div>
+        )}
+      </div>
+
       <input placeholder="Blog Title * - e.g. How to Become a Crorepati with SIP" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full border p-3 rounded-xl mt-4" />
       <div className="flex gap-4 mt-4">
         <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="border p-3 rounded-xl flex-1">
-          <option>General</option><option>Finance</option><option>YouTube</option><option>AI Tools</option><option>Career</option><option>Study</option>
+          <option>General</option><option>Finance</option><option>YouTube</option><option>AI Tools</option><option>Career</option><option>Study</option><option>Technology</option><option>Blogging & SEO</option><option>Business & Startup</option><option>Health & Fitness</option><option>Education</option><option>Travel</option><option>Food & Recipe</option><option>Sports & Cricket</option><option>Entertainment & Movies</option><option>Tools & Apps</option>
         </select>
         <input placeholder="Cover Image Link (optional)" value={form.cover_image} onChange={e => setForm({ ...form, cover_image: e.target.value })} className="border p-3 rounded-xl flex-[2]" />
       </div>
