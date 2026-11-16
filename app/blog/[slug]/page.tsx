@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const title = blog.seo_title || blog.title
   const desc = blog.seo_description || blog.excerpt || blog.content?.replace(/<[^>]*>/g, '').slice(0, 155)
   const tags = (blog.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean)
-  const canonical = `https://loremprotool.com/blog/${blog.slug}`
+  const canonical = `https://lorem-pro-tool.run4ravish.workers.dev/blog/${blog.slug}`
   return {
     title: title + ' | Lorem Pro Tool',
     description: desc,
@@ -43,7 +43,7 @@ function cleanHtml(html: string) {
 
 // ✅ FIXED: Internal link = DoFollow, External link = UGC NoFollow
 function linkAttrs(href: string) {
-  const isInternal = href.startsWith("/") || href.includes("loremprotool.com") || href.includes("lorem-pro-tool");
+  const isInternal = href.startsWith("/") || href.includes("loremprotool.com") || href.includes("lorem-pro-tool") || href.includes("workers.dev");
   if (isInternal) return `href="${href}" class="text-orange-600 underline font-bold"`;
   return `href="${href}" target="_blank" rel="ugc nofollow" class="text-orange-600 underline font-bold break-all"`;
 }
@@ -164,7 +164,7 @@ export default async function Page({ params }: { params: { slug: string } }) {
                     <>
                       <a href={authorWebsite} target="_blank" rel={blog.is_dofollow ? "" : "ugc nofollow"} className="inline-block mt-3 bg-black text-white text-sm px-4 py-2 rounded-full font-bold">🌐 Visit My Website →</a>
                       <p className="text-[11px] font-bold mt-2">
-                        {blog.is_dofollow ? "✅ Link Status: DoFollow - Vote Given by Lorem Pro Tool" : "🔒 Link Status: UGC - Admin Review ke baad DoFollow milega"}
+                        {blog.is_dofollow ? "✅ Link Status: DoFollow - Vote Given by Lorem Pro Tool" : "🔒 Link Status: UGC - DoFollow will be given after Admin Review"}
                       </p>
                     </>
                   ) : (
