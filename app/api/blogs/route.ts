@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    let { title, slug, excerpt, content, category, tags, author_name, author_email, cover_image, author_website, author_bio } = body;
+    let { title, slug, excerpt, seo_title, seo_description, content, category, tags, author_name, author_email, cover_image, author_website, author_bio } = body;
 
     if (!title || title.length < 10 || title.length > 120) return NextResponse.json({ error: "Title must be 10-120 characters." }, { status: 400 });
     if (!content || content.length < 300 || content.length > 20000) return NextResponse.json({ error: "Content must be 300-20000 characters." }, { status: 400 });
@@ -74,9 +74,12 @@ export async function POST(req: Request) {
     const safeContent = cleanText(content);
     const safeBio = cleanText(author_bio || "").slice(0, 200);
     const safeExcerpt = cleanText(excerpt || "").slice(0, 160);
+    // --- NEW: SEO FIELDS - Khali ho to Title/Excerpt se auto bhar jayega ---
+    const safeSeoTitle = cleanText(seo_title || "").slice(0, 60) || cleanText(title).slice(0, 60);
+    const safeSeoDesc = cleanText(seo_description || "").slice(0, 160) || safeExcerpt;
 
     const { data, error } = await supabase.from("blogs").insert([{
-      title: cleanText(title), slug, excerpt: safeExcerpt, content: safeContent,
+      title: cleanText(title), slug, excerpt: safeExcerpt, seo_title: safeSeoTitle, seo_description: safeSeoDesc, content: safeContent,
       category: category || "General", tags: cleanText(tags || ""),
       author_name: cleanText(author_name), author_email: author_email.toLowerCase().trim(),
       cover_image: safeCover || null, author_website: safeWebsite, author_bio: safeBio,
