@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ data });
     }
 
-    // ✅ FIXED: create-blog - Now saves category + status + published flags + website/bio
+    // ✅ UPDATED: create-blog - Now saves SEO + category + status + published flags + website/bio
     if (action === "create-blog") {
       const isPublished = body.status === "published" || body.status === "approved" || body.is_published === true || body.published === true;
       const { data, error } = await supabaseAdmin.from("blogs").insert([{
@@ -109,6 +109,8 @@ export async function POST(req: NextRequest) {
         is_deleted: false,
         author_name: "Admin",
         excerpt: body.excerpt || null,
+        seo_title: body.seo_title || body.title || null,
+        seo_description: body.seo_description || body.excerpt || null,
         tags: body.tags || null,
         cover_image: body.cover_image || null,
         website: body.website || null,
@@ -119,8 +121,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, post: data });
     }
 
-    // ✅ FIXED: update-blog - Now saves category + status + published flags + website/bio/dofollow
-    // This is the main fix for Approve / Pending button
+    // ✅ UPDATED: update-blog - Now saves SEO + category + status + published flags + website/bio/dofollow
     if (action === "update-blog") {
       const updateData: any = {};
       if (body.title !== undefined) updateData.title = body.title;
@@ -131,6 +132,9 @@ export async function POST(req: NextRequest) {
       if (body.tags !== undefined) updateData.tags = body.tags;
       if (body.cover_image !== undefined) updateData.cover_image = body.cover_image;
       if (body.author_name !== undefined) updateData.author_name = body.author_name;
+      // ✅ NEW: SEO - Admin se edit karne ke liye
+      if (body.seo_title !== undefined) updateData.seo_title = body.seo_title;
+      if (body.seo_description !== undefined) updateData.seo_description = body.seo_description;
       // ✅ NEW: Website + Author Bio + DoFollow - Admin se edit karne ke liye
       if (body.website !== undefined) updateData.website = body.website;
       if (body.author_bio !== undefined) updateData.author_bio = body.author_bio;
@@ -190,7 +194,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    // ✅ NEW: Give / Remove DoFollow - Admin ka Button - YAHAN LAGAYA HAI!
+    // ✅ NEW: Give / Remove DoFollow - Admin ka Button
     if (action === "toggle-dofollow") {
       const { error } = await supabaseAdmin.from("blogs").update({ is_dofollow: body.val }).eq("id", body.id);
       if (error) throw error;
