@@ -14,11 +14,15 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const title = blog.seo_title || blog.title
   const desc = blog.seo_description || blog.excerpt || blog.content?.replace(/<[^>]*>/g, '').slice(0, 155)
   const tags = (blog.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean)
+  const canonical = `https://loremprotool.com/blog/${blog.slug}`
   return {
     title: title + ' | Lorem Pro Tool',
     description: desc,
     keywords: tags,
-    openGraph: { title, description: desc, images: blog.cover_image ? [blog.cover_image] : [], type: 'article' },
+    authors: blog.author_name ? [{ name: blog.author_name }] : undefined,
+    alternates: { canonical },
+    robots: { index: true, follow: true },
+    openGraph: { title, description: desc, url: canonical, images: blog.cover_image ? [blog.cover_image] : [], type: 'article', publishedTime: blog.created_at, authors: blog.author_name ? [blog.author_name] : [] },
     twitter: { card: 'summary_large_image', title, description: desc, images: blog.cover_image ? [blog.cover_image] : [] },
   }
 }
@@ -37,6 +41,13 @@ function cleanHtml(html: string) {
     .replace(/data:text\/html/gi, "");
 }
 
+// ✅ FIXED: Internal link = DoFollow, External link = UGC NoFollow
+function linkAttrs(href: string) {
+  const isInternal = href.startsWith("/") || href.includes("loremprotool.com") || href.includes("lorem-pro-tool");
+  if (isInternal) return `href="${href}" class="text-orange-600 underline font-bold"`;
+  return `href="${href}" target="_blank" rel="ugc nofollow" class="text-orange-600 underline font-bold break-all"`;
+}
+
 function renderContent(text: string) {
   if (!text) return ""
   const isHtml = /<(p|h1|h2|h3|b|strong|a|ul|li|div)[\s>]/.test(text)
@@ -48,10 +59,13 @@ function renderContent(text: string) {
   html = html.replace(/^# (.*)$/gm, '<h1 class="text-3xl font-bold mt-6 mb-2">$1</h1>')
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
   html = html.replace(/\*(.*?)\*/g, '<em>$1</em>')
-  html = html.replace(/\[(https?:\/\/[^\]]+)\]\(https?:\/?\/?\)/g, '<a href="$1" target="_blank" rel="ugc nofollow" class="text-orange-600 underline font-bold break-all">$1</a>')
-  html = html.replace(/\[([^\]]+)\]\(https?:\/?\/?\)/g, '$1')
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="ugc nofollow" class="text-orange-600 underline font-bold">$1</a>')
-  html = html.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="ugc nofollow" class="text-orange-600 underline break-all">$1</a>')
+  // ✅ FIXED: [text](url) - Internal vs External check
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+|\/[^\)]+)\)/g, (m, t, u) => {
+    return `<a ${linkAttrs(u)}>${t}</a>`
+  })
+  html = html.replace(/(?<!href="|">)(https?:\/\/[^\s<]+)/g, (m) => {
+    return `<a ${linkAttrs(m)}>${m}</a>`
+  })
   html = html.replace(/^- (.*)$/gm, '<li class="ml-5 list-disc">$1</li>')
   html = html.split(/\n\s*\n/).map(p => {
     if (p.trim().startsWith('<h') || p.trim().startsWith('<li')) return p
