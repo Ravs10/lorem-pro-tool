@@ -73,14 +73,14 @@ export default function WriteBlog() {
 
         <p className="font-bold text-sm pt-2">🔍 SEO SETTINGS - For Google Ranking</p>
 
-        <Label>SEO Title (Google me dikhega)</Label>
+        <Label>SEO Title (Will Appear on Google)</Label>
         <input name="seo_title" value={form.seo_title} onChange={handle} placeholder="e.g. Personal Loan EMI Calculator 2026 - Free Tool" maxLength={60} className="w-full border p-3 rounded-xl outline-none" />
-        <p className="text-xs text-gray-500 -mt-2">{form.seo_title.length}/60 • Khali chhoda to Blog Title hi Google me dikhega. {form.seo_title.length > 60 ? "❌ Bahut lamba hai" : form.seo_title.length >= 40 ? "✅ Perfect" : "40-60 characters best hai"}</p>
+        <p className="text-xs text-gray-500 -mt-2">{form.seo_title.length}/60 • If left empty, Blog Title will appear on Google. {form.seo_title.length > 60 ? "❌ Too long" : form.seo_title.length >= 40 ? "✅ Perfect" : "40-60 characters is best"}</p>
 
-        <Label>SEO Description (Google me Title ke neeche dikhega)</Label>
+        <Label>SEO Description (Will Appear Below Title on Google)</Label>
         <div className="bg-[#f0fdf4] border border-green-200 rounded-xl p-4 w-full box-border">
-          <textarea name="seo_description" value={form.seo_description} onChange={handle} placeholder="Google search me dikhne wala 1-2 line ka description likho. Isme main keyword zaroor daalo." maxLength={160} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-relaxed" />
-          <p className="text-right text-xs text-gray-500">{form.seo_description.length}/160 - {form.seo_description.length >= 120 ? "✅ Perfect" : form.seo_description.length >= 50 ? "Thoda aur likho" : "120-155 characters best hai"}</p>
+          <textarea name="seo_description" value={form.seo_description} onChange={handle} placeholder="Write a 1-2 line description that will appear on Google search. Include your main keyword." maxLength={160} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-relaxed" />
+          <p className="text-right text-xs text-gray-500">{form.seo_description.length}/160 - {form.seo_description.length >= 120 ? "✅ Perfect" : form.seo_description.length >= 50 ? "Write a little more" : "120-155 characters is best"}</p>
         </div>
 
         <Label>Tags</Label>
