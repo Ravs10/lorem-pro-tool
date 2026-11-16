@@ -3,7 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 export default function WriteBlog() {
-  const [form, setForm] = useState({ title: "", slug: "", excerpt: "", content: "", category: "Finance", tags: "", author_name: "", author_email: "", cover_image: "", author_website: "", author_bio: "" });
+  const [form, setForm] = useState({ title: "", slug: "", excerpt: "", seo_title: "", seo_description: "", content: "", category: "Finance", tags: "", author_name: "", author_email: "", cover_image: "", author_website: "", author_bio: "" });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
   const handle = (e: any) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,7 +17,7 @@ export default function WriteBlog() {
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Submit failed");
       setMsg("✅ Blog Submitted! You will get DoFollow after approval.");
-      setForm({ ...form, title: "", slug: "", excerpt: "", content: "", category: "Finance", tags: "", author_name: "", author_email: "", cover_image: "", author_website: "", author_bio: "" });
+      setForm({ ...form, title: "", slug: "", excerpt: "", seo_title: "", seo_description: "", content: "", category: "Finance", tags: "", author_name: "", author_email: "", cover_image: "", author_website: "", author_bio: "" });
     } catch (err: any) { setMsg("❌ Error: " + err.message); } finally { setLoading(false); }
   }
 
@@ -65,10 +65,22 @@ export default function WriteBlog() {
           </div>
         </div>
 
-        <Label required>Short Description (For SEO)</Label>
+        <Label required>Short Description (For Blog List Page)</Label>
         <div className="bg-[#fffaf0] border rounded-xl p-4 w-full box-border">
-          <textarea name="excerpt" value={form.excerpt} onChange={handle} placeholder="Write a short summary of your blog in 1-2 lines. This will appear on Google." maxLength={160} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-relaxed" />
+          <textarea name="excerpt" value={form.excerpt} onChange={handle} placeholder="Write a short summary of your blog in 1-2 lines. This will appear on Blog List page." maxLength={160} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-relaxed" />
           <p className="text-right text-xs text-gray-500">{form.excerpt.length}/160 - {form.excerpt.length >= 50 ? "✅ Perfect" : "Write a little more"}</p>
+        </div>
+
+        <p className="font-bold text-sm pt-2">🔍 SEO SETTINGS - For Google Ranking</p>
+
+        <Label>SEO Title (Google me dikhega)</Label>
+        <input name="seo_title" value={form.seo_title} onChange={handle} placeholder="e.g. Personal Loan EMI Calculator 2026 - Free Tool" maxLength={60} className="w-full border p-3 rounded-xl outline-none" />
+        <p className="text-xs text-gray-500 -mt-2">{form.seo_title.length}/60 • Khali chhoda to Blog Title hi Google me dikhega. {form.seo_title.length > 60 ? "❌ Bahut lamba hai" : form.seo_title.length >= 40 ? "✅ Perfect" : "40-60 characters best hai"}</p>
+
+        <Label>SEO Description (Google me Title ke neeche dikhega)</Label>
+        <div className="bg-[#f0fdf4] border border-green-200 rounded-xl p-4 w-full box-border">
+          <textarea name="seo_description" value={form.seo_description} onChange={handle} placeholder="Google search me dikhne wala 1-2 line ka description likho. Isme main keyword zaroor daalo." maxLength={160} rows={3} className="w-full bg-transparent outline-none resize-none text-[15px] leading-relaxed" />
+          <p className="text-right text-xs text-gray-500">{form.seo_description.length}/160 - {form.seo_description.length >= 120 ? "✅ Perfect" : form.seo_description.length >= 50 ? "Thoda aur likho" : "120-155 characters best hai"}</p>
         </div>
 
         <Label>Tags</Label>
@@ -77,12 +89,12 @@ export default function WriteBlog() {
         <Label>Cover Image URL</Label>
         <input name="cover_image" value={form.cover_image} onChange={handle} placeholder="Paste cover image URL (optional)" className="w-full border p-3 rounded-xl outline-none" />
 
-        {/* GOOGLE PREVIEW - RESTORED */}
+        {/* GOOGLE PREVIEW - NOW USES SEO FIELDS */}
         <div className="bg-[#fffaf0] border rounded-xl p-4 w-full box-border">
           <p className="text-xs font-bold text-gray-500 mb-2">GOOGLE PREVIEW 👇</p>
-          <p className="text-[#1a0dab] text-[17px] leading-snug break-words">{form.title || "Your title will appear here"}</p>
+          <p className="text-[#1a0dab] text-[17px] leading-snug break-words">{form.seo_title || form.title || "Your title will appear here"}</p>
           <p className="text-[13px] text-[#006621] truncate">lorem-pro-tool... › blog › {form.slug || "your-slug"}</p>
-          <p className="text-[13px] text-gray-600 leading-relaxed break-words line-clamp-2">{form.excerpt || "Your short description will appear here on Google search."}</p>
+          <p className="text-[13px] text-gray-600 leading-relaxed break-words line-clamp-2">{form.seo_description || form.excerpt || "Your SEO description will appear here on Google search."}</p>
         </div>
 
         <Label required>Blog Content</Label>
